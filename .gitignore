@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+ffl-frontend/node_modules/
+
+# Build
+dist/
+build/
+target/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,16 @@
+{
+  "name": "FFL - Fantasy Football League",
+  "short_name": "FFL",
+  "description": "Fantasy Football League Manager",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e40af",
+  "theme_color": "#1e40af",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
