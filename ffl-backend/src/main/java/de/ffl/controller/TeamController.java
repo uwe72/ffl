@@ -1,7 +1,9 @@
 package de.ffl.controller;
 
 import de.ffl.domain.Team;
+import de.ffl.dto.PlayerDto;
 import de.ffl.repository.TeamRepository;
+import de.ffl.service.PlayerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +14,11 @@ import java.util.List;
 public class TeamController {
 
     private final TeamRepository teamRepository;
+    private final PlayerService playerService;
 
-    public TeamController(TeamRepository teamRepository) {
+    public TeamController(TeamRepository teamRepository, PlayerService playerService) {
         this.teamRepository = teamRepository;
+        this.playerService = playerService;
     }
 
     @GetMapping
@@ -27,6 +31,14 @@ public class TeamController {
         return teamRepository.findById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/players")
+    public ResponseEntity<List<PlayerDto>> getPlayersByTeam(@PathVariable Long id) {
+        if (!teamRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(playerService.findByTeamId(id));
     }
 
     @PostMapping

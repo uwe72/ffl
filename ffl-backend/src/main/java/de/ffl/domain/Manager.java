@@ -8,13 +8,16 @@ import java.util.Set;
 
 @Entity
 @Table(name = "ffl_manager")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Manager {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(nullable = false)
@@ -48,6 +51,50 @@ public class Manager {
     )
     @Builder.Default
     private Set<Player> players = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_goalkeeper_id")
+    private Player playerGoalkeeper;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_defender1_id")
+    private Player playerDefender1;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_defender2_id")
+    private Player playerDefender2;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_defender3_id")
+    private Player playerDefender3;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_midfield1_id")
+    private Player playerMidfield1;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_midfield2_id")
+    private Player playerMidfield2;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_midfield3_id")
+    private Player playerMidfield3;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_striker1_id")
+    private Player playerStriker1;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_striker2_id")
+    private Player playerStriker2;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_striker3_id")
+    private Player playerStriker3;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_free_choice_id")
+    private Player playerFreeChoice;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Player playerExchangedOld1;

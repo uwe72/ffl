@@ -15,3 +15,11 @@ export function useTeam(id: number) {
     enabled: !!id,
   })
 }
+
+export function useTeamPlayers(teamId: number) {
+  return useQuery({
+    queryKey: ['teams', teamId, 'players'],
+    queryFn: () => teamApi.getPlayers(teamId).then(res => res.data),
+    enabled: !!teamId,
+  })
+}

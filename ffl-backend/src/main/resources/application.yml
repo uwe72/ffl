@@ -2,13 +2,13 @@ spring:
   application:
     name: ffl-backend
   datasource:
-    url: jdbc:h2:mem:ffl
+    url: jdbc:h2:file:./data/ffl;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
     username: sa
     password: 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -19,3 +19,28 @@ spring:
       path: /h2-console
 server:
   port: 8080
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: mysql
+  datasource:
+    url: jdbc:mysql://192.168.178.124:3306/testdb1
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: testuser
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect

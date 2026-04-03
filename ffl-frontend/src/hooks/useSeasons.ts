@@ -16,6 +16,13 @@ export function useSeason(id: number) {
   })
 }
 
+export function useCurrentSeason() {
+  return useQuery({
+    queryKey: ['seasons', 'current'],
+    queryFn: () => seasonApi.getCurrent().then(res => res.data),
+  })
+}
+
 export function useCreateSeason() {
   const queryClient = useQueryClient()
   return useMutation({

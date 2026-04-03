@@ -28,3 +28,12 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# H2 Database
+ffl-backend/data/
+
+# Data files
+*.csv
+*.json
+!package.json
+!package-lock.json

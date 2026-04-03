@@ -1,6 +1,7 @@
 package de.ffl.controller;
 
 import de.ffl.domain.Season;
+import de.ffl.domain.SeasonState;
 import de.ffl.repository.SeasonRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,15 @@ public class SeasonController {
             .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/current")
+    public ResponseEntity<Season> getCurrentSeason() {
+        return seasonRepository.findAll().stream()
+            .filter(s -> s.getSeasonState() != SeasonState.BEFORE_SEASON)
+            .findFirst()
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     public Season createSeason(@RequestBody Season season) {
         return seasonRepository.save(season);
@@ -47,6 +57,17 @@ public class SeasonController {
             .orElse(ResponseEntity.notFound().build());
     }
 
+    @PutMapping("/{id}/state")
+    public ResponseEntity<Season> updateSeasonState(@PathVariable Long id, @RequestBody SeasonStateUpdate request) {
+        return seasonRepository.findById(id)
+            .map(existing -> {
+                existing.setName(request.getName());
+                existing.setSeasonState(request.getSeasonState());
+                return ResponseEntity.ok(seasonRepository.save(existing));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSeason(@PathVariable Long id) {
         if (seasonRepository.existsById(id)) {
@@ -54,5 +75,15 @@ public class SeasonController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    public static class SeasonStateUpdate {
+        private String name;
+        private SeasonState seasonState;
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public SeasonState getSeasonState() { return seasonState; }
+        public void setSeasonState(SeasonState seasonState) { this.seasonState = seasonState; }
     }
 }
