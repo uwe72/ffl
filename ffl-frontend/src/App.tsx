@@ -9,6 +9,8 @@ import Players from './pages/Players'
 import PlayerDetail from './pages/PlayerDetail'
 import Managers from './pages/Managers'
 import ManagerDetail from './pages/ManagerDetail'
+import ManagerGroups from './pages/ManagerGroups'
+import ManagerGroupDetail from './pages/ManagerGroupDetail'
 import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
 import Login from './pages/Login'
@@ -31,6 +33,8 @@ function App() {
             <Route path="players/:id" element={<PlayerDetail />} />
             <Route path="managers" element={<Managers />} />
             <Route path="managers/:id" element={<ManagerDetail />} />
+            <Route path="manager-groups" element={<ManagerGroups />} />
+            <Route path="manager-groups/:id" element={<ManagerGroupDetail />} />
             <Route path="games" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Games />

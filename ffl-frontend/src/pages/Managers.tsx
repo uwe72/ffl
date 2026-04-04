@@ -95,14 +95,14 @@ export default function Managers() {
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionTotal')}>
                   Pos<SortIcon column="positionTotal" />
                 </Table.Column>
+                <Table.Column className="text-[#c9a66b] cursor-pointer hover:text-[#f5f5f5]" onClick={() => handleSort('shortName')}>
+                  Manager<SortIcon column="shortName" />
+                </Table.Column>
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('pointsTotal')}>
                   Pkt<SortIcon column="pointsTotal" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('pointsLastRound')}>
                   Letzte Rd<SortIcon column="pointsLastRound" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('shortName')}>
-                  Kürzel<SortIcon column="shortName" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('firstName')}>
                   Vorname<SortIcon column="firstName" />
@@ -122,16 +122,16 @@ export default function Managers() {
                       <Table.Cell className="text-center font-medium text-[#f5f5f5]">
                         {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
                       </Table.Cell>
-                      <Table.Cell className="text-center font-medium text-[#c9a66b]">
+                      <Table.Cell className="text-[#c9a66b]">
+                        <RouterLink to={`/managers/${manager.id}`} className="hover:text-[#f5f5f5] link font-medium">
+                          {manager.shortName || '-'}
+                        </RouterLink>
+                      </Table.Cell>
+                      <Table.Cell className="text-center font-medium text-[#f5f5f5]">
                         {manager.pointsTotal ?? '-'}
                       </Table.Cell>
                       <Table.Cell className="text-center text-[#a0aec0]">
                         {manager.pointsLastRound ?? '-'}
-                      </Table.Cell>
-                      <Table.Cell className="text-[#f5f5f5]">
-                        <RouterLink to={`/managers/${manager.id}`} className="hover:text-[#c9a66b] link font-medium">
-                          {manager.shortName || '-'}
-                        </RouterLink>
                       </Table.Cell>
                       <Table.Cell className="text-[#a0aec0]">
                         {manager.firstName || '-'}
@@ -148,7 +148,7 @@ export default function Managers() {
                           {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
                         </Chip>
                       </Table.Cell>
-                      <Table.Cell className="text-right font-medium text-[#c9a66b]">
+                      <Table.Cell className="text-right font-medium text-[#f5f5f5]">
                         {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
                       </Table.Cell>
                     </Table.Row>

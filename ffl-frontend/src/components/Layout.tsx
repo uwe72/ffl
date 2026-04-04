@@ -60,6 +60,9 @@ export default function Layout() {
               <RouterLink to="/managers" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
                 Manager
               </RouterLink>
+              <RouterLink to="/manager-groups" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
+                Gruppen
+              </RouterLink>
             </nav>
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-4">

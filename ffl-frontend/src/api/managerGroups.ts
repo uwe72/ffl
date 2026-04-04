@@ -1,0 +1,16 @@
+import api from './client'
+import type { ManagerGroup, ManagerGroupListDto } from '../types'
+
+export const managerGroupApi = {
+  getAll: () => api.get<ManagerGroupListDto[]>('/manager-groups'),
+  getById: (id: number) => api.get<ManagerGroup>(`/manager-groups/${id}`),
+  create: (data: { name: string; description?: string; seasonId: number }) => 
+    api.post<ManagerGroup>('/manager-groups', data),
+  update: (id: number, data: { name: string; description?: string; emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY' }) => 
+    api.put<ManagerGroup>(`/manager-groups/${id}`, data),
+  delete: (id: number) => api.delete(`/manager-groups/${id}`),
+  addManager: (groupId: number, managerId: number) => 
+    api.post<ManagerGroup>(`/manager-groups/${groupId}/managers/${managerId}`),
+  removeManager: (groupId: number, managerId: number) => 
+    api.delete<ManagerGroup>(`/manager-groups/${groupId}/managers/${managerId}`),
+}

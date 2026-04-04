@@ -11,6 +11,12 @@ public class ManagerGroupDto {
     private String description;
     private Long seasonId;
     private List<ManagerInGroupDto> managers;
+    private Long createdById;
+    private String createdByLogin;
+    private String createdByFirstName;
+    private String createdByLastName;
+    private String emailTo;
+    private boolean editable;
 
     public static ManagerGroupDto fromEntity(ManagerGroup group) {
         ManagerGroupDto dto = new ManagerGroupDto();
@@ -25,6 +31,15 @@ public class ManagerGroupDto {
                 .map(ManagerInGroupDto::fromEntity)
                 .collect(Collectors.toList()));
         }
+        if (group.getCreatedBy() != null) {
+            dto.setCreatedById(group.getCreatedBy().getId());
+            dto.setCreatedByLogin(group.getCreatedBy().getLogin());
+            dto.setCreatedByFirstName(group.getCreatedBy().getFirstName());
+            dto.setCreatedByLastName(group.getCreatedBy().getLastName());
+        }
+        if (group.getEmailTo() != null) {
+            dto.setEmailTo(group.getEmailTo().name());
+        }
         return dto;
     }
 
@@ -38,6 +53,18 @@ public class ManagerGroupDto {
     public void setSeasonId(Long seasonId) { this.seasonId = seasonId; }
     public List<ManagerInGroupDto> getManagers() { return managers; }
     public void setManagers(List<ManagerInGroupDto> managers) { this.managers = managers; }
+    public Long getCreatedById() { return createdById; }
+    public void setCreatedById(Long createdById) { this.createdById = createdById; }
+    public String getCreatedByLogin() { return createdByLogin; }
+    public void setCreatedByLogin(String createdByLogin) { this.createdByLogin = createdByLogin; }
+    public String getCreatedByFirstName() { return createdByFirstName; }
+    public void setCreatedByFirstName(String createdByFirstName) { this.createdByFirstName = createdByFirstName; }
+    public String getCreatedByLastName() { return createdByLastName; }
+    public void setCreatedByLastName(String createdByLastName) { this.createdByLastName = createdByLastName; }
+    public String getEmailTo() { return emailTo; }
+    public void setEmailTo(String emailTo) { this.emailTo = emailTo; }
+    public boolean isEditable() { return editable; }
+    public void setEditable(boolean editable) { this.editable = editable; }
 
     public static class ManagerInGroupDto {
         private Long id;

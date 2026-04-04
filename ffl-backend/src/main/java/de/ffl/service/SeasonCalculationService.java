@@ -87,12 +87,8 @@ public class SeasonCalculationService {
         System.out.println("Berechne Manager-Rankings...");
         calculateAllManagerRanks(season, rounds, allGames);
 
-        int maxMatchday = rounds.stream()
-            .filter(r -> playerRankRepository.findByRoundId(r.getId()).size() > 0)
-            .mapToInt(Round::getNumber)
-            .max()
-            .orElse(0);
-        season.setCurrentMatchday(maxMatchday);
+        Integer maxMatchday = playerRankRepository.findMaxPlayedRoundBySeasonId(seasonId);
+        season.setCurrentMatchday(maxMatchday != null ? maxMatchday : 0);
         seasonRepository.save(season);
         System.out.println("Aktueller Spieltag gesetzt auf: " + maxMatchday);
 

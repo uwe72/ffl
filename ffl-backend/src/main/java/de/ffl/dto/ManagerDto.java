@@ -35,6 +35,7 @@ public class ManagerDto {
     private PlayerDto playerExchangedNew1;
     private PlayerDto playerExchangedNew2;
     private PlayerDto playerExchangedNew3;
+    private Integer currentMatchday;
 
     public static ManagerDto fromEntity(Manager manager) {
         ManagerDto dto = new ManagerDto();
@@ -53,6 +54,7 @@ public class ManagerDto {
         if (manager.getSeason() != null) {
             dto.setSeasonId(manager.getSeason().getId());
             dto.setSeasonName(manager.getSeason().getName());
+            dto.setCurrentMatchday(manager.getSeason().getCurrentMatchday());
         }
         
         int teamValue = calculateTeamValue(manager);
@@ -192,4 +194,6 @@ public class ManagerDto {
     public void setPositionTotal(Integer positionTotal) { this.positionTotal = positionTotal; }
     public Integer getPositionLastRound() { return positionLastRound; }
     public void setPositionLastRound(Integer positionLastRound) { this.positionLastRound = positionLastRound; }
+    public Integer getCurrentMatchday() { return currentMatchday; }
+    public void setCurrentMatchday(Integer currentMatchday) { this.currentMatchday = currentMatchday; }
 }

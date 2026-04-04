@@ -27,4 +27,7 @@ public interface PlayerRankRepository extends JpaRepository<PlayerRank, Long> {
 
     @Query("SELECT pr FROM PlayerRank pr LEFT JOIN FETCH pr.player WHERE pr.round.id = :roundId AND pr.played = true")
     List<PlayerRank> findByRoundIdAndPlayedTrue(@Param("roundId") Long roundId);
+
+    @Query("SELECT MAX(r.number) FROM Round r JOIN PlayerRank pr ON pr.round.id = r.id WHERE pr.played = true AND r.season.id = :seasonId")
+    Integer findMaxPlayedRoundBySeasonId(@Param("seasonId") Long seasonId);
 }

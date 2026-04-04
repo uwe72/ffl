@@ -20,4 +20,12 @@ public interface ManagerGroupRepository extends JpaRepository<ManagerGroup, Long
     
     @Query("SELECT DISTINCT mg FROM ManagerGroup mg JOIN FETCH mg.managers WHERE mg.id IN (SELECT mg2.id FROM ManagerGroup mg2 JOIN mg2.managers m WHERE m.id = :managerId AND mg2.name <> 'Alle' AND mg2.name NOT LIKE '[Saison%')")
     List<ManagerGroup> findByManagerIdWithManagers(@Param("managerId") Long managerId);
+
+    List<ManagerGroup> findByCreatedById(Long userId);
+
+    @Query("SELECT mg FROM ManagerGroup mg WHERE mg.season.id = :seasonId AND mg.name <> 'Alle' AND mg.name NOT LIKE '[Saison%'")
+    List<ManagerGroup> findBySeasonIdFiltered(@Param("seasonId") Long seasonId);
+
+    @Query("SELECT DISTINCT mg FROM ManagerGroup mg JOIN FETCH mg.managers WHERE mg.id = :id")
+    java.util.Optional<ManagerGroup> findByIdWithManagers(@Param("id") Long id);
 }

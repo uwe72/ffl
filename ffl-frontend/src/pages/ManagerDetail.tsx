@@ -315,7 +315,7 @@ export default function ManagerDetail() {
   })) || []
 
   const lastRound = roundDetails && roundDetails.length > 0 ? roundDetails[roundDetails.length - 1] : null
-  const currentRoundNumber = lastRound?.roundNumber || 0
+  const currentRoundNumber = manager.currentMatchday || lastRound?.roundNumber || 0
   const lastRoundPlayerPoints = lastRound?.playerPoints || []
 
   const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ payload: { punkte: number; playerPoints: Array<{ playerName: string; points: number }> } }>; label?: string }) => {

@@ -111,6 +111,7 @@ export interface Manager {
   playerExchangedNew1?: Player
   playerExchangedNew2?: Player
   playerExchangedNew3?: Player
+  currentMatchday?: number
 }
 
 export interface User {
@@ -171,6 +172,24 @@ export interface ManagerGroup {
   description?: string
   seasonId: number
   managers: ManagerInGroup[]
+  createdById?: number
+  createdByLogin?: string
+  createdByFirstName?: string
+  createdByLastName?: string
+  emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY'
+  editable?: boolean
+}
+
+export interface ManagerGroupListDto {
+  id: number
+  name: string
+  description?: string
+  seasonId: number
+  managerCount: number
+  createdById?: number
+  createdByLogin?: string
+  createdByFirstName?: string
+  createdByLastName?: string
 }
 
 export interface Game {

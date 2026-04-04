@@ -85,16 +85,18 @@ export default function Season() {
           <TextField name="budget" isRequired>
             <Label className="text-[#a0aec0]">Budget (€)</Label>
             <Input
-              type="number"
-              value={formData.budget || ''}
-              onChange={(e) => handleChange('budget', parseInt(e.target.value) || 0)}
+              value={formData.budget ? formData.budget.toLocaleString('de-DE') : ''}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\./g, '')
+                handleChange('budget', parseInt(value) || 0)
+              }}
               className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
             />
           </TextField>
         </Card>
 
         <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <TextField name="startRoundRueckrunde">
+          <TextField name="startRoundRueckrunde" isRequired>
             <Label className="text-[#a0aec0]">Start Spieltag Rückrunde</Label>
             <Input
               type="number"
@@ -106,12 +108,18 @@ export default function Season() {
         </Card>
 
         <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <Label className="text-[#a0aec0] block mb-2">Aktueller Spieltag</Label>
-          <p className="text-2xl font-bold text-[#f5f5f5]">{season.currentMatchday ?? '-'}</p>
+          <TextField name="currentMatchday" isReadOnly>
+            <Label className="text-[#a0aec0]">Aktueller Spieltag</Label>
+            <Input
+              value={season.currentMatchday?.toString() ?? '-'}
+              readOnly
+              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"
+            />
+          </TextField>
         </Card>
 
         <Card className="p-6 bg-[#1a2028] border border-[#2d3748] md:col-span-2">
-          <Label className="text-[#a0aec0] block mb-3">Status</Label>
+          <Label className="text-[#a0aec0] block mb-3">Saisonphase</Label>
           <div className="flex gap-4">
             {seasonStateOptions.map((option) => (
               <label
@@ -177,9 +185,9 @@ export default function Season() {
 
       {calculationResult && (
         <div className="mt-6">
-          <div className={`p-4 rounded-t-lg ${calculationResult.success ? 'bg-green-900/30 border border-green-800' : 'bg-red-900/30 border border-red-800'}`}>
-            <span className={calculationResult.success ? 'text-green-400 font-semibold' : 'text-red-400 font-semibold'}>
-              {calculationResult.success ? '✓ Berechnung erfolgreich abgeschlossen' : '✗ Fehler bei der Berechnung'}
+          <div className={`p-4 rounded-t-lg ${calculationResult.success ? 'bg-blue-900/30 border border-blue-700' : 'bg-red-900/30 border border-red-800'}`}>
+            <span className={calculationResult.success ? 'text-blue-400 font-semibold' : 'text-red-400 font-semibold'}>
+              {calculationResult.success ? 'Berechnung erfolgreich abgeschlossen' : 'Fehler bei der Berechnung'}
             </span>
             {calculationResult.error && (
               <span className="text-red-400 ml-2">- {calculationResult.error}</span>

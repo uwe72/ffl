@@ -30,7 +30,8 @@ logs/
 Thumbs.db
 
 # H2 Database
-ffl-backend/data/
+ffl-backend/data/*.lock.db
+ffl-backend/data/*.trace.db
 
 # Data files
 *.csv

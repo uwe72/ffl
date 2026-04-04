@@ -3,11 +3,16 @@ package de.ffl.service;
 import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerGroup;
 import de.ffl.domain.ManagerRank;
+import de.ffl.domain.User;
 import de.ffl.dto.ManagerGroupDto;
-import de.ffl.dto.ManagerGroupDto.ManagerInGroupDto;
+import de.ffl.dto.ManagerGroupListDto;
 import de.ffl.repository.ManagerGroupRepository;
 import de.ffl.repository.ManagerRankRepository;
+import de.ffl.repository.ManagerRepository;
+import de.ffl.repository.UserRepository;
 import org.hibernate.Hibernate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +24,191 @@ public class ManagerGroupService {
 
     private final ManagerGroupRepository managerGroupRepository;
     private final ManagerRankRepository managerRankRepository;
+    private final ManagerRepository managerRepository;
+    private final UserRepository userRepository;
 
-    public ManagerGroupService(ManagerGroupRepository managerGroupRepository, ManagerRankRepository managerRankRepository) {
+    public ManagerGroupService(ManagerGroupRepository managerGroupRepository, ManagerRankRepository managerRankRepository, ManagerRepository managerRepository, UserRepository userRepository) {
         this.managerGroupRepository = managerGroupRepository;
         this.managerRankRepository = managerRankRepository;
+        this.managerRepository = managerRepository;
+        this.userRepository = userRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<ManagerGroupListDto> getVisibleGroups() {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return Collections.emptyList();
+        }
+
+        List<ManagerGroup> groups;
+        if (currentUser.getRole().name().equals("ADMIN")) {
+            groups = managerGroupRepository.findBySeasonIdFiltered(getCurrentSeasonId());
+        } else {
+            groups = managerGroupRepository.findByCreatedById(currentUser.getId());
+        }
+
+        return groups.stream()
+            .map(this::toListDto)
+            .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public ManagerGroupDto getGroupById(Long id) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return null;
+        }
+
+        Optional<ManagerGroup> groupOpt = managerGroupRepository.findByIdWithManagers(id);
+        if (groupOpt.isEmpty()) {
+            return null;
+        }
+
+        ManagerGroup group = groupOpt.get();
+        if (!canAccessGroup(group, currentUser)) {
+            return null;
+        }
+
+        ManagerGroupDto dto = toDtoWithRankData(group);
+        dto.setEditable(canEditGroup(group, currentUser));
+        return dto;
+    }
+
+    @Transactional
+    public ManagerGroupDto createGroup(ManagerGroup group) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            throw new IllegalArgumentException("User not authenticated");
+        }
+
+        if (group.getDescription() == null || group.getDescription().trim().isEmpty()) {
+            throw new IllegalArgumentException("Beschreibung ist erforderlich");
+        }
+
+        group.setCreatedBy(currentUser);
+        if (group.getManagers() == null) {
+            group.setManagers(new HashSet<>());
+        }
+        if (group.getEmailTo() == null) {
+            group.setEmailTo(ManagerGroup.EmailToOption.ALL_MANAGERS);
+        }
+
+        ManagerGroup saved = managerGroupRepository.save(group);
+        ManagerGroupDto dto = toDtoWithRankData(saved);
+        dto.setEditable(true);
+        return dto;
+    }
+
+    @Transactional
+    public ManagerGroupDto updateGroup(Long id, ManagerGroup updatedGroup) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return null;
+        }
+
+        Optional<ManagerGroup> existingOpt = managerGroupRepository.findById(id);
+        if (existingOpt.isEmpty()) {
+            return null;
+        }
+
+        ManagerGroup existing = existingOpt.get();
+        if (!canEditGroup(existing, currentUser)) {
+            return null;
+        }
+
+        if (updatedGroup.getDescription() == null || updatedGroup.getDescription().trim().isEmpty()) {
+            throw new IllegalArgumentException("Beschreibung ist erforderlich");
+        }
+
+        existing.setName(updatedGroup.getName());
+        existing.setDescription(updatedGroup.getDescription());
+        if (updatedGroup.getEmailTo() != null) {
+            existing.setEmailTo(updatedGroup.getEmailTo());
+        }
+        ManagerGroup saved = managerGroupRepository.save(existing);
+        ManagerGroupDto dto = toDtoWithRankData(saved);
+        dto.setEditable(true);
+        return dto;
+    }
+
+    @Transactional
+    public boolean deleteGroup(Long id) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return false;
+        }
+
+        Optional<ManagerGroup> groupOpt = managerGroupRepository.findById(id);
+        if (groupOpt.isEmpty()) {
+            return false;
+        }
+
+        ManagerGroup group = groupOpt.get();
+        if (!canEditGroup(group, currentUser)) {
+            return false;
+        }
+
+        managerGroupRepository.delete(group);
+        return true;
+    }
+
+    @Transactional
+    public ManagerGroupDto addManagerToGroup(Long groupId, Long managerId) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return null;
+        }
+
+        Optional<ManagerGroup> groupOpt = managerGroupRepository.findByIdWithManagers(groupId);
+        if (groupOpt.isEmpty()) {
+            return null;
+        }
+
+        ManagerGroup group = groupOpt.get();
+        if (!canEditGroup(group, currentUser)) {
+            return null;
+        }
+
+        Optional<Manager> managerOpt = managerRepository.findById(managerId);
+        if (managerOpt.isEmpty()) {
+            return null;
+        }
+
+        Manager manager = managerOpt.get();
+        if (!manager.getSeason().getId().equals(group.getSeason().getId())) {
+            return null;
+        }
+
+        group.getManagers().add(manager);
+        ManagerGroup saved = managerGroupRepository.save(group);
+        ManagerGroupDto dto = toDtoWithRankData(saved);
+        dto.setEditable(true);
+        return dto;
+    }
+
+    @Transactional
+    public ManagerGroupDto removeManagerFromGroup(Long groupId, Long managerId) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return null;
+        }
+
+        Optional<ManagerGroup> groupOpt = managerGroupRepository.findByIdWithManagers(groupId);
+        if (groupOpt.isEmpty()) {
+            return null;
+        }
+
+        ManagerGroup group = groupOpt.get();
+        if (!canEditGroup(group, currentUser)) {
+            return null;
+        }
+
+        group.getManagers().removeIf(m -> m.getId().equals(managerId));
+        ManagerGroup saved = managerGroupRepository.save(group);
+        ManagerGroupDto dto = toDtoWithRankData(saved);
+        dto.setEditable(true);
+        return dto;
     }
 
     @Transactional(readOnly = true)
@@ -34,6 +220,51 @@ public class ManagerGroupService {
             .collect(Collectors.toList());
     }
 
+    private boolean canAccessGroup(ManagerGroup group, User user) {
+        if (user.getRole().name().equals("ADMIN")) {
+            return true;
+        }
+        return group.getCreatedBy() != null && group.getCreatedBy().getId().equals(user.getId());
+    }
+
+    private boolean canEditGroup(ManagerGroup group, User user) {
+        if (user.getRole().name().equals("ADMIN")) {
+            return true;
+        }
+        return group.getCreatedBy() != null && group.getCreatedBy().getId().equals(user.getId());
+    }
+
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+        String login = auth.getName();
+        return userRepository.findByLogin(login).orElse(null);
+    }
+
+    private Long getCurrentSeasonId() {
+        return 1L;
+    }
+
+    private ManagerGroupListDto toListDto(ManagerGroup group) {
+        ManagerGroupListDto dto = new ManagerGroupListDto();
+        dto.setId(group.getId());
+        dto.setName(group.getName());
+        dto.setDescription(group.getDescription());
+        if (group.getSeason() != null) {
+            dto.setSeasonId(group.getSeason().getId());
+        }
+        dto.setManagerCount(group.getManagers() != null ? group.getManagers().size() : 0);
+        if (group.getCreatedBy() != null) {
+            dto.setCreatedById(group.getCreatedBy().getId());
+            dto.setCreatedByLogin(group.getCreatedBy().getLogin());
+            dto.setCreatedByFirstName(group.getCreatedBy().getFirstName());
+            dto.setCreatedByLastName(group.getCreatedBy().getLastName());
+        }
+        return dto;
+    }
+
     private ManagerGroupDto toDtoWithRankData(ManagerGroup group) {
         ManagerGroupDto dto = new ManagerGroupDto();
         dto.setId(group.getId());
@@ -42,17 +273,26 @@ public class ManagerGroupService {
         if (group.getSeason() != null) {
             dto.setSeasonId(group.getSeason().getId());
         }
+        if (group.getCreatedBy() != null) {
+            dto.setCreatedById(group.getCreatedBy().getId());
+            dto.setCreatedByLogin(group.getCreatedBy().getLogin());
+            dto.setCreatedByFirstName(group.getCreatedBy().getFirstName());
+            dto.setCreatedByLastName(group.getCreatedBy().getLastName());
+        }
+        if (group.getEmailTo() != null) {
+            dto.setEmailTo(group.getEmailTo().name());
+        }
         
         Hibernate.initialize(group.getManagers());
         
-        List<ManagerInGroupDto> managerDtos = new ArrayList<>();
+        List<ManagerGroupDto.ManagerInGroupDto> managerDtos = new ArrayList<>();
         if (group.getManagers() != null && !group.getManagers().isEmpty()) {
             Map<Long, ManagerRank> latestRanks = getLatestRanksForManagers(group.getManagers());
             
             managerDtos = group.getManagers().stream()
                 .map(m -> {
                     Hibernate.initialize(m.getUser());
-                    ManagerInGroupDto mDto = ManagerInGroupDto.fromEntity(m);
+                    ManagerGroupDto.ManagerInGroupDto mDto = ManagerGroupDto.ManagerInGroupDto.fromEntity(m);
                     ManagerRank rank = latestRanks.get(m.getId());
                     if (rank != null) {
                         mDto.setPointsTotal(rank.getPointsTotal());
@@ -62,7 +302,7 @@ public class ManagerGroupService {
                     }
                     return mDto;
                 })
-                .sorted(Comparator.comparing(ManagerInGroupDto::getPositionTotal, 
+                .sorted(Comparator.comparing(ManagerGroupDto.ManagerInGroupDto::getPositionTotal, 
                     Comparator.nullsLast(Comparator.naturalOrder())))
                 .collect(Collectors.toList());
         }
