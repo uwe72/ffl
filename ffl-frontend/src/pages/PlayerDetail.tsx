@@ -1,5 +1,5 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
-import { Card, Chip, Avatar } from '@heroui/react'
+import { Card, Chip, Avatar, Table } from '@heroui/react'
 import { usePlayer } from '../hooks/usePlayers'
 import { positionLabels, positionColors } from './Players'
 
@@ -69,33 +69,46 @@ export default function PlayerDetail() {
               Manager mit diesem Spieler ({player.managers.length})
             </h2>
             <Card className="p-4 bg-[#242d38] border border-[#3d4a5c]">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {player.managers.map((manager) => (
-                  <RouterLink
-                    key={manager.id}
-                    to={`/managers/${manager.id}`}
-                    className="flex items-center justify-between p-3 rounded-lg bg-[#1a2028] border border-[#2d3748] hover:border-[#c9a66b] transition-all"
-                  >
-                    <div className="flex-1">
-                      <p className="font-medium text-[#f5f5f5]">{manager.name}</p>
-                      {manager.shortName && (
-                        <p className="text-sm text-[#6b7280]">{manager.shortName}</p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      {manager.hinrunde && (
-                        <Chip size="sm" variant="soft" color="accent">Hin</Chip>
-                      )}
-                      {manager.rueckrunde && (
-                        <Chip size="sm" variant="soft" color="success">Rück</Chip>
-                      )}
-                      {!manager.hinrunde && !manager.rueckrunde && (
-                        <Chip size="sm" variant="soft" color="default">-</Chip>
-                      )}
-                    </div>
-                  </RouterLink>
-                ))}
-              </div>
+              <Table>
+                <Table.ScrollContainer>
+                  <Table.Content aria-label="Manager-Tabelle">
+                    <Table.Header>
+                      <Table.Column className="text-[#a0aec0]">Name</Table.Column>
+                      <Table.Column className="text-[#a0aec0]">Kürzel</Table.Column>
+                      <Table.Column className="text-[#a0aec0] text-center">Hinrunde</Table.Column>
+                      <Table.Column className="text-[#a0aec0] text-center">Rückrunde</Table.Column>
+                    </Table.Header>
+                    <Table.Body>
+                      {player.managers.map((manager) => (
+                        <Table.Row key={manager.id} className="hover:bg-[#1a2028]">
+                          <Table.Cell>
+                            <RouterLink to={`/managers/${manager.id}`} className="text-[#f5f5f5] hover:text-[#c9a66b] link font-medium">
+                              {manager.name}
+                            </RouterLink>
+                          </Table.Cell>
+                          <Table.Cell className="text-[#a0aec0]">
+                            {manager.shortName || '-'}
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
+                            {manager.hinrunde ? (
+                              <Chip size="sm" variant="soft" color="accent">Hin</Chip>
+                            ) : (
+                              <span className="text-[#6b7280]">-</span>
+                            )}
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
+                            {manager.rueckrunde ? (
+                              <Chip size="sm" variant="soft" color="success">Rück</Chip>
+                            ) : (
+                              <span className="text-[#6b7280]">-</span>
+                            )}
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table.Content>
+                </Table.ScrollContainer>
+              </Table>
             </Card>
           </div>
         )}

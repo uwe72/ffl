@@ -37,7 +37,15 @@ public class Game {
 
     private Integer goalHost;
     private Integer goalVisitor;
+
+    @Column(columnDefinition = "TEXT")
     private String formation;
+
+    @Column(name = "formation_extern", columnDefinition = "TEXT")
+    private String formationExtern;
+
+    @Column(name = "formation_intern", columnDefinition = "TEXT")
+    private String formationIntern;
 
     @ManyToMany
     @JoinTable(

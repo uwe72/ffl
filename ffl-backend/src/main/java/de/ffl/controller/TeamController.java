@@ -5,6 +5,7 @@ import de.ffl.dto.PlayerDto;
 import de.ffl.repository.TeamRepository;
 import de.ffl.service.PlayerService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,11 +23,19 @@ public class TeamController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<Team> getAllTeams() {
         return teamRepository.findAll();
     }
 
+    @GetMapping("/season/{seasonId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<Team> getTeamsBySeason(@PathVariable Long seasonId) {
+        return teamRepository.findBySeasonId(seasonId);
+    }
+
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Team> getTeamById(@PathVariable Long id) {
         return teamRepository.findById(id)
             .map(ResponseEntity::ok)
@@ -34,6 +43,7 @@ public class TeamController {
     }
 
     @GetMapping("/{id}/players")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PlayerDto>> getPlayersByTeam(@PathVariable Long id) {
         if (!teamRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
@@ -42,6 +52,7 @@ public class TeamController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Team createTeam(@RequestBody Team team) {
         return teamRepository.save(team);
     }

@@ -38,6 +38,12 @@ public class MigrationController {
         return ResponseEntity.ok("Season updated to 2025/26 RUNNING_RUECKRUNDE");
     }
 
+    @PostMapping("/reset-admin")
+    public ResponseEntity<String> resetAdminPassword() {
+        migrationService.resetAdminPassword();
+        return ResponseEntity.ok("Admin password reset to: admin123");
+    }
+
     @PostMapping("/update-manager-groups")
     public ResponseEntity<String> updateManagerGroups() {
         migrationService.updateManagerGroups();

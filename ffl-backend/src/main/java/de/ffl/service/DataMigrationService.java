@@ -2,6 +2,7 @@ package de.ffl.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +17,11 @@ public class DataMigrationService {
     private static final Logger log = LoggerFactory.getLogger(DataMigrationService.class);
 
     private final EntityManager entityManager;
+    private final PasswordEncoder passwordEncoder;
 
-    public DataMigrationService(EntityManager entityManager) {
+    public DataMigrationService(EntityManager entityManager, PasswordEncoder passwordEncoder) {
         this.entityManager = entityManager;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -413,6 +416,16 @@ public class DataMigrationService {
             }
         }
         log.info("Inserted {} manager-group relations", count);
+    }
+
+    @Transactional
+    public void resetAdminPassword() {
+        log.info("Resetting admin password...");
+        String encodedPassword = passwordEncoder.encode("admin123");
+        entityManager.createNativeQuery("UPDATE ffl_user SET password = ? WHERE login = 'admin'")
+            .setParameter(1, encodedPassword)
+            .executeUpdate();
+        log.info("Admin password reset successfully");
     }
 
     public static class MigrationResult {

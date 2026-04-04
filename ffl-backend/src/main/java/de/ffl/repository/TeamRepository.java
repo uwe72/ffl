@@ -2,6 +2,8 @@ package de.ffl.repository;
 
 import de.ffl.domain.Team;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,4 +14,7 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     Optional<Team> findByName(String name);
     Optional<Team> findByShortName(String shortName);
     List<Team> findByNameContainingIgnoreCase(String name);
+
+    @Query("SELECT t FROM Team t JOIN t.seasons s WHERE s.id = :seasonId ORDER BY t.name")
+    List<Team> findBySeasonId(@Param("seasonId") Long seasonId);
 }

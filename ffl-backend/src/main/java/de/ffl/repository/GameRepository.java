@@ -11,4 +11,5 @@ import java.util.List;
 public interface GameRepository extends JpaRepository<Game, Long> {
     List<Game> findByRound(Round round);
     List<Game> findByRoundId(Long roundId);
+    List<Game> findByRoundSeasonId(Long seasonId);
 }

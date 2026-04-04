@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +23,13 @@ public class CsvImportService {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     private final JdbcTemplate jdbcTemplate;
+    private final PasswordEncoder passwordEncoder;
     private Map<String, Long> playerNameToId = new HashMap<>();
     private Map<Long, Long> oldPlayerIdToNewId = new HashMap<>();
 
-    public CsvImportService(JdbcTemplate jdbcTemplate) {
+    public CsvImportService(JdbcTemplate jdbcTemplate, PasswordEncoder passwordEncoder) {
         this.jdbcTemplate = jdbcTemplate;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -290,10 +293,13 @@ private String detectTableName(String[] headers) {
                     email = login.toLowerCase() + "@ffl.local";
                 }
 
+                String rawPassword = getStringOrDefault(row, "PASSWORD", "password");
+                String encodedPassword = passwordEncoder.encode(rawPassword);
+
                 jdbcTemplate.update(sql,
                         id,
                         login,
-                        getStringOrDefault(row, "PASSWORD", "password"),
+                        encodedPassword,
                         email,
                         getString(row, "FIRST_NAME"),
                         getString(row, "LAST_NAME"),
@@ -379,7 +385,7 @@ private String detectTableName(String[] headers) {
         playerNameToId.clear();
         oldPlayerIdToNewId.clear();
 
-        String sql = "INSERT INTO ffl_player (id, name_kicker, first_name, last_name, position, prize, picture_url, season_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO ffl_player (id, name_kicker, name_kicker_alt1, name_kicker_alt2, name_kicker_alt3, first_name, last_name, position, prize, picture_url, season_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         for (Map<String, String> row : rows) {
             try {
@@ -410,6 +416,9 @@ private String detectTableName(String[] headers) {
                 jdbcTemplate.update(sql,
                         newId,
                         nameKicker,
+                        getString(row, "Name_Kicker_Alt1"),
+                        getString(row, "Name_Kicker_Alt2"),
+                        getString(row, "Name_Kicker_Alt3"),
                         getString(row, "Vorname"),
                         getString(row, "Nachname"),
                         mapPosition(getString(row, "player_position")),
@@ -521,7 +530,7 @@ private String detectTableName(String[] headers) {
         if (rows == null) return;
         log.info("Importing {} games...", rows.size());
 
-        String sql = "INSERT INTO ffl_game (id, name, host_id, visitor_id, goal_host, goal_visitor, round_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO ffl_game (id, name, host_id, visitor_id, goal_host, goal_visitor, round_id, formation) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         for (Map<String, String> row : rows) {
             try {
@@ -540,6 +549,8 @@ private String detectTableName(String[] headers) {
                     name = "Game " + id;
                 }
 
+                String formation = getString(row, "Formation");
+
                 jdbcTemplate.update(sql,
                         id,
                         name,
@@ -547,7 +558,8 @@ private String detectTableName(String[] headers) {
                         visitorId,
                         getInteger(row, "NUMBER_GOAL_HOST"),
                         getInteger(row, "NUMBER_GOAL_VISITOR"),
-                        roundId);
+                        roundId,
+                        formation);
 
                 result.gamesImported++;
             } catch (Exception e) {

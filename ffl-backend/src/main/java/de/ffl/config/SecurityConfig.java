@@ -53,6 +53,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/teams/**").permitAll()
                 .requestMatchers("/api/seasons/**").permitAll()
                 .requestMatchers("/api/managers/**").permitAll()
+                .requestMatchers("/api/games/**").authenticated()
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())

@@ -3,8 +3,10 @@ package de.ffl.controller;
 import de.ffl.domain.Player;
 import de.ffl.domain.Position;
 import de.ffl.dto.PlayerDto;
+import de.ffl.dto.PlayerSearchDto;
 import de.ffl.service.PlayerService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,22 +23,26 @@ public class PlayerController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<PlayerDto> getAllPlayers() {
         return playerService.findAll();
     }
 
     @GetMapping("/season/{seasonId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<PlayerDto> getPlayersBySeason(@PathVariable Long seasonId) {
         return playerService.findBySeasonId(seasonId);
     }
 
     @GetMapping("/season/{seasonId}/position/{position}")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<PlayerDto> getPlayersByPosition(@PathVariable Long seasonId, 
                                               @PathVariable Position position) {
         return playerService.findBySeasonAndPosition(seasonId, position);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PlayerDto> getPlayerById(@PathVariable Long id) {
         PlayerDto player = playerService.findByIdWithManagers(id);
         if (player == null) {
@@ -45,7 +51,34 @@ public class PlayerController {
         return ResponseEntity.ok(player);
     }
 
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<PlayerSearchDto> searchPlayers(
+            @RequestParam Long seasonId,
+            @RequestParam(required = false) String name) {
+        return playerService.searchPlayers(seasonId, name);
+    }
+
+    @GetMapping("/team/{teamId}/season/{seasonId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<PlayerSearchDto> getPlayersByTeamAndSeason(
+            @PathVariable Long teamId,
+            @PathVariable Long seasonId) {
+        return playerService.findByTeamAndSeason(teamId, seasonId);
+    }
+
+    @PostMapping("/{playerId}/assign-team/{teamId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> assignPlayerToTeam(
+            @PathVariable Long playerId,
+            @PathVariable Long teamId,
+            @RequestParam(required = false) String alternativeName) {
+        playerService.assignPlayerToTeam(playerId, teamId, alternativeName);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public PlayerDto createPlayer(@RequestBody Player player) {
         return PlayerDto.fromEntity(playerService.save(player));
     }

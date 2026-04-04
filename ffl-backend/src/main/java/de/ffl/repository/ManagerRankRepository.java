@@ -22,4 +22,10 @@ public interface ManagerRankRepository extends JpaRepository<ManagerRank, Long> 
     
     @Query("SELECT mr FROM ManagerRank mr WHERE mr.manager.id IN :managerIds")
     List<ManagerRank> findByManagerIdIn(@Param("managerIds") List<Long> managerIds);
+
+    @Query("SELECT mr FROM ManagerRank mr JOIN mr.round r WHERE mr.manager.id = :managerId AND r.number = :roundNumber")
+    Optional<ManagerRank> findByManagerIdAndRoundNumber(@Param("managerId") Long managerId, @Param("roundNumber") Integer roundNumber);
+
+    @Query("SELECT mr FROM ManagerRank mr JOIN mr.round r WHERE mr.manager.id IN :managerIds AND r.number = :roundNumber")
+    List<ManagerRank> findByManagerIdInAndRoundNumber(@Param("managerIds") List<Long> managerIds, @Param("roundNumber") Integer roundNumber);
 }

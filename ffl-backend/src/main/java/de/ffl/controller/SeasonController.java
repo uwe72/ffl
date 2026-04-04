@@ -3,6 +3,7 @@ package de.ffl.controller;
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
 import de.ffl.repository.SeasonRepository;
+import de.ffl.service.SeasonService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,9 +14,11 @@ import java.util.List;
 public class SeasonController {
 
     private final SeasonRepository seasonRepository;
+    private final SeasonService seasonService;
 
-    public SeasonController(SeasonRepository seasonRepository) {
+    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService) {
         this.seasonRepository = seasonRepository;
+        this.seasonService = seasonService;
     }
 
     @GetMapping
@@ -52,6 +55,7 @@ public class SeasonController {
                 existing.setBudget(season.getBudget());
                 existing.setSeasonState(season.getSeasonState());
                 existing.setFinalRegistrationDate(season.getFinalRegistrationDate());
+                existing.setStartRoundRueckrunde(season.getStartRoundRueckrunde());
                 return ResponseEntity.ok(seasonRepository.save(existing));
             })
             .orElse(ResponseEntity.notFound().build());
@@ -66,6 +70,15 @@ public class SeasonController {
                 return ResponseEntity.ok(seasonRepository.save(existing));
             })
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/calculate")
+    public ResponseEntity<SeasonService.CalculationResult> calculateSeason(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        SeasonService.CalculationResult result = seasonService.calculateSeasonWithLogs(id);
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")

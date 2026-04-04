@@ -5,9 +5,11 @@ import de.ffl.domain.Player;
 import de.ffl.domain.PlayerRank;
 import de.ffl.domain.Position;
 import de.ffl.dto.PlayerDto;
+import de.ffl.dto.PlayerSearchDto;
 import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.PlayerRankRepository;
 import de.ffl.repository.PlayerRepository;
+import de.ffl.repository.TeamRepository;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +25,14 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final ManagerRepository managerRepository;
     private final PlayerRankRepository playerRankRepository;
+    private final TeamRepository teamRepository;
 
-    public PlayerService(PlayerRepository playerRepository, ManagerRepository managerRepository, PlayerRankRepository playerRankRepository) {
+    public PlayerService(PlayerRepository playerRepository, ManagerRepository managerRepository, 
+                         PlayerRankRepository playerRankRepository, TeamRepository teamRepository) {
         this.playerRepository = playerRepository;
         this.managerRepository = managerRepository;
         this.playerRankRepository = playerRankRepository;
+        this.teamRepository = teamRepository;
     }
 
     private Map<Long, Integer> buildPlayerPointsMap(List<Long> playerIds) {
@@ -122,6 +127,13 @@ public class PlayerService {
         return convertToDtos(players);
     }
 
+    public List<PlayerSearchDto> findByTeamAndSeason(Long teamId, Long seasonId) {
+        List<Player> players = playerRepository.findByTeamIdAndSeasonId(teamId, seasonId);
+        return players.stream()
+            .map(PlayerSearchDto::fromEntity)
+            .collect(Collectors.toList());
+    }
+
     public PlayerDto findByIdWithManagers(Long id) {
         Player player = playerRepository.findById(id).orElse(null);
         if (player == null) {
@@ -163,5 +175,38 @@ public class PlayerService {
             .max(Comparator.comparing(r -> r.getRound().getId()))
             .map(PlayerRank::getPointsTotal)
             .orElse(0);
+    }
+
+    public List<PlayerSearchDto> searchPlayers(Long seasonId, String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return List.of();
+        }
+        List<Player> players = playerRepository.searchBySeasonIdAndName(seasonId, searchTerm.trim());
+        return players.stream()
+            .map(PlayerSearchDto::fromEntity)
+            .collect(Collectors.toList());
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void assignPlayerToTeam(Long playerId, Long teamId, String alternativeName) {
+        Player player = playerRepository.findById(playerId).orElse(null);
+        if (player == null) return;
+        
+        if (alternativeName != null && !alternativeName.trim().isEmpty()) {
+            if (player.getNameKickerAlt1() == null || player.getNameKickerAlt1().isEmpty()) {
+                player.setNameKickerAlt1(alternativeName);
+            } else if (player.getNameKickerAlt2() == null || player.getNameKickerAlt2().isEmpty()) {
+                player.setNameKickerAlt2(alternativeName);
+            } else if (player.getNameKickerAlt3() == null || player.getNameKickerAlt3().isEmpty()) {
+                player.setNameKickerAlt3(alternativeName);
+            }
+        }
+        
+        var team = teamRepository.findById(teamId).orElse(null);
+        if (team != null && player.getTeams() != null && !player.getTeams().contains(team)) {
+            player.getTeams().add(team);
+        }
+        
+        playerRepository.save(player);
     }
 }

@@ -2,15 +2,18 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import Layout from './components/Layout'
 import Home from './pages/Home'
-import Seasons from './pages/Seasons'
+import Season from './pages/Season'
 import Teams from './pages/Teams'
 import TeamDetail from './pages/TeamDetail'
 import Players from './pages/Players'
 import PlayerDetail from './pages/PlayerDetail'
 import Managers from './pages/Managers'
 import ManagerDetail from './pages/ManagerDetail'
+import Games from './pages/Games'
+import GameDetail from './pages/GameDetail'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
@@ -21,13 +24,23 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
-            <Route path="seasons" element={<Seasons />} />
+            <Route path="season" element={<Season />} />
             <Route path="teams" element={<Teams />} />
             <Route path="teams/:id" element={<TeamDetail />} />
             <Route path="players" element={<Players />} />
             <Route path="players/:id" element={<PlayerDetail />} />
             <Route path="managers" element={<Managers />} />
             <Route path="managers/:id" element={<ManagerDetail />} />
+            <Route path="games" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <Games />
+              </ProtectedRoute>
+            } />
+            <Route path="games/:id" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <GameDetail />
+              </ProtectedRoute>
+            } />
           </Route>
         </Routes>
       </BrowserRouter>

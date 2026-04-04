@@ -34,6 +34,13 @@ public class Season {
 
     private LocalDate finalRegistrationDate;
 
+    @Column(name = "start_round_rueckrunde")
+    @Builder.Default
+    private Integer startRoundRueckrunde = 16;
+
+    @Column(name = "current_matchday")
+    private Integer currentMatchday;
+
     @ManyToMany
     @JoinTable(
         name = "season_2_team",

@@ -33,3 +33,14 @@ export function useCreateSeason() {
     },
   })
 }
+
+export function useUpdateSeason() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof seasonApi.update>[1] }) =>
+      seasonApi.update(id, data).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seasons'] })
+    },
+  })
+}

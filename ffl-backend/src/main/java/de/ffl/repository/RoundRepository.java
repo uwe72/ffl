@@ -12,5 +12,6 @@ import java.util.Optional;
 public interface RoundRepository extends JpaRepository<Round, Long> {
     List<Round> findBySeason(Season season);
     List<Round> findBySeasonId(Long seasonId);
+    List<Round> findBySeasonIdOrderByNumber(Long seasonId);
     Optional<Round> findBySeasonIdAndNumber(Long seasonId, Integer number);
 }

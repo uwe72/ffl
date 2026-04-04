@@ -4,6 +4,8 @@ export interface Season {
   budget: number
   seasonState: SeasonState
   finalRegistrationDate?: string
+  startRoundRueckrunde?: number
+  currentMatchday?: number
 }
 
 export type SeasonState = 'BEFORE_SEASON' | 'RUNNING_HINRUNDE' | 'RUNNING_RUECKRUNDE'
@@ -169,4 +171,87 @@ export interface ManagerGroup {
   description?: string
   seasonId: number
   managers: ManagerInGroup[]
+}
+
+export interface Game {
+  id: number
+  name: string
+  roundId: number
+  roundNumber: number
+  seasonId: number
+  hostId: number
+  hostName: string
+  hostShortName?: string
+  hostLogoUrl?: string
+  visitorId: number
+  visitorName: string
+  visitorShortName?: string
+  visitorLogoUrl?: string
+  goalHost?: number
+  goalVisitor?: number
+  formation?: string
+  formationExtern?: string
+  formationIntern?: string
+  importString?: string
+  playersHost?: PlayerPoints[]
+  playersVisitor?: PlayerPoints[]
+}
+
+export interface PlayerPoints {
+  playerId: number
+  playerName: string
+  nameKickerAlt1?: string
+  nameKickerAlt2?: string
+  nameKickerAlt3?: string
+  position?: string
+  totalPoints: number
+  rules: RulePoint[]
+}
+
+export interface GameImportResult {
+  success: boolean
+  errorMessage?: string
+  missingPlayers?: MissingPlayer[]
+  game?: Game
+}
+
+export interface MissingPlayer {
+  playerName: string
+  teamId?: number
+  teamName: string
+  isHost: boolean
+}
+
+export interface ValidationResult {
+  valid: boolean
+  errors: string[]
+  hostPlayerCount: number
+  visitorPlayerCount: number
+  missingPlayers?: MissingPlayerInfo[]
+}
+
+export interface MissingPlayerInfo {
+  playerName: string
+  teamName: string
+  teamId?: number
+  host: boolean
+}
+
+export interface PlayerSearchDto {
+  id: number
+  nameKicker: string
+  nameKickerAlt1?: string
+  nameKickerAlt2?: string
+  nameKickerAlt3?: string
+  firstName?: string
+  lastName?: string
+  position?: string
+  teams: Array<{ id: number; name: string }>
+}
+
+export interface RulePoint {
+  rule: string
+  ruleLabel: string
+  count: number
+  points: number
 }

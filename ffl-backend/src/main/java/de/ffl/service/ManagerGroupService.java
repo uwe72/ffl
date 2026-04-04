@@ -74,11 +74,23 @@ public class ManagerGroupService {
     private Map<Long, ManagerRank> getLatestRanksForManagers(Set<Manager> managers) {
         Map<Long, ManagerRank> result = new HashMap<>();
         
+        Integer currentMatchday = null;
         for (Manager manager : managers) {
-            List<ManagerRank> ranks = managerRankRepository.findByManagerIdOrderByRoundIdAsc(manager.getId());
-            if (!ranks.isEmpty()) {
-                result.put(manager.getId(), ranks.get(ranks.size() - 1));
+            if (manager.getSeason() != null && manager.getSeason().getCurrentMatchday() != null) {
+                currentMatchday = manager.getSeason().getCurrentMatchday();
+                break;
             }
+        }
+        
+        if (currentMatchday == null) {
+            return result;
+        }
+        
+        List<Long> managerIds = managers.stream().map(Manager::getId).collect(Collectors.toList());
+        List<ManagerRank> ranks = managerRankRepository.findByManagerIdInAndRoundNumber(managerIds, currentMatchday);
+        
+        for (ManagerRank rank : ranks) {
+            result.put(rank.getManager().getId(), rank);
         }
         
         return result;

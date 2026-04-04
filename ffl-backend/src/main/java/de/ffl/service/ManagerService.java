@@ -139,17 +139,25 @@ public class ManagerService {
         
         List<ManagerRank> ranks = managerRankRepository.findByManagerIdIn(managerIds);
         
-        Map<Long, ManagerRank> latestRanks = new HashMap<>();
+        Map<Long, Season> managerToSeason = new HashMap<>();
+        List<Manager> managers = managerRepository.findAllById(managerIds);
+        for (Manager m : managers) {
+            if (m.getSeason() != null) {
+                managerToSeason.put(m.getId(), m.getSeason());
+            }
+        }
+        
+        Map<Long, ManagerRank> result = new HashMap<>();
         for (ManagerRank rank : ranks) {
             Long managerId = rank.getManager().getId();
-            latestRanks.compute(managerId, (k, existing) -> {
-                if (existing == null || rank.getRound().getId() > existing.getRound().getId()) {
-                    return rank;
+            Season season = managerToSeason.get(managerId);
+            if (season != null && season.getCurrentMatchday() != null) {
+                if (rank.getRound().getNumber() == season.getCurrentMatchday()) {
+                    result.put(managerId, rank);
                 }
-                return existing;
-            });
+            }
         }
-        return latestRanks;
+        return result;
     }
 
     private ManagerDto convertToDto(Manager manager, 

@@ -16,7 +16,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-[#0f1419]">
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#1a2028] border-b border-[#2d3748] shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
             <RouterLink to="/" className="flex items-center gap-3 group">
               <div className="relative">
@@ -41,9 +41,16 @@ export default function Layout() {
               </div>
             </RouterLink>
             <nav className="flex gap-6 items-center">
-              <RouterLink to="/seasons" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
-                Saisons
-              </RouterLink>
+              {isAuthenticated && user?.role === 'ADMIN' && (
+                <>
+                  <RouterLink to="/season" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
+                    Saison
+                  </RouterLink>
+                  <RouterLink to="/games" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
+                    Spiele
+                  </RouterLink>
+                </>
+              )}
               <RouterLink to="/teams" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
                 Teams
               </RouterLink>
@@ -58,8 +65,8 @@ export default function Layout() {
               <div className="flex items-center gap-4">
                 {isAuthenticated ? (
                   <>
-                    <span className="text-sm text-[#a0aec0]">{user?.login}</span>
-                    <Button size="sm" variant="secondary" onPress={logout}>
+                    <span className="text-sm text-[#a0aec0]">{user?.login} ({user?.role === 'ADMIN' ? 'Admin' : 'User'})</span>
+                    <Button size="sm" variant="secondary" onPress={logout} className="h-7 px-3 text-xs">
                       Abmelden
                     </Button>
                   </>
@@ -68,12 +75,15 @@ export default function Layout() {
                     <RouterLink to="/login" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
                       Anmelden
                     </RouterLink>
-                    <Button
-                      size="sm"
-                      variant="primary"
-                    >
-                      Registrieren
-                    </Button>
+                    {season?.seasonState === 'BEFORE_SEASON' && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        className="h-7 px-3 text-xs"
+                      >
+                        Registrieren
+                      </Button>
+                    )}
                   </>
                 )}
               </div>

@@ -27,4 +27,16 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
 
     @Query("SELECT DISTINCT p FROM Player p LEFT JOIN FETCH p.teams t WHERE t.id = :teamId")
     List<Player> findByTeamIdWithTeams(@Param("teamId") Long teamId);
+
+    @Query("SELECT DISTINCT p FROM Player p LEFT JOIN FETCH p.teams WHERE p.season.id = :seasonId AND " +
+           "(LOWER(p.nameKicker) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(p.nameKickerAlt1) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(p.nameKickerAlt2) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(p.nameKickerAlt3) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(p.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(p.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
+    List<Player> searchBySeasonIdAndName(@Param("seasonId") Long seasonId, @Param("searchTerm") String searchTerm);
+
+    @Query("SELECT DISTINCT p FROM Player p LEFT JOIN FETCH p.teams t WHERE t.id = :teamId AND p.season.id = :seasonId")
+    List<Player> findByTeamIdAndSeasonId(@Param("teamId") Long teamId, @Param("seasonId") Long seasonId);
 }
