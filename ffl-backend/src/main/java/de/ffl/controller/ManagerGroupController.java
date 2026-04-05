@@ -3,6 +3,7 @@ package de.ffl.controller;
 import de.ffl.domain.ManagerGroup;
 import de.ffl.dto.ManagerGroupDto;
 import de.ffl.dto.ManagerGroupListDto;
+import de.ffl.dto.ManagerGroupRoundStatsDto;
 import de.ffl.service.ManagerGroupService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,18 @@ public class ManagerGroupController {
     @GetMapping
     public ResponseEntity<List<ManagerGroupListDto>> getAllVisibleGroups() {
         List<ManagerGroupListDto> groups = managerGroupService.getVisibleGroups();
+        return ResponseEntity.ok(groups);
+    }
+
+    @GetMapping("/my-groups-with-stats")
+    public ResponseEntity<List<ManagerGroupRoundStatsDto>> getMyGroupsWithStats() {
+        List<ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
+        return ResponseEntity.ok(groups);
+    }
+
+    @GetMapping("/manager/{managerId}/with-stats")
+    public ResponseEntity<List<ManagerGroupRoundStatsDto>> getGroupsWithStatsByManagerId(@PathVariable Long managerId) {
+        List<ManagerGroupRoundStatsDto> groups = managerGroupService.getGroupsWithStatsByManagerId(managerId);
         return ResponseEntity.ok(groups);
     }
 

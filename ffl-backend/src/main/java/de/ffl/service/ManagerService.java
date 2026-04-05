@@ -7,14 +7,20 @@ import de.ffl.domain.PlayerRank;
 import de.ffl.domain.Position;
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
+import de.ffl.domain.User;
 import de.ffl.dto.ManagerDto;
+import de.ffl.dto.ManagerRoundStatsDto;
 import de.ffl.dto.PlayerDto;
+import de.ffl.dto.PositionStatsDto;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.PlayerRankRepository;
 import de.ffl.repository.PlayerRepository;
 import de.ffl.repository.SeasonRepository;
+import de.ffl.repository.UserRepository;
 import org.hibernate.Hibernate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,17 +41,20 @@ public class ManagerService {
     private final SeasonRepository seasonRepository;
     private final PlayerRankRepository playerRankRepository;
     private final ManagerRankRepository managerRankRepository;
+    private final UserRepository userRepository;
 
     public ManagerService(ManagerRepository managerRepository,
                           PlayerRepository playerRepository,
                           SeasonRepository seasonRepository,
                           PlayerRankRepository playerRankRepository,
-                          ManagerRankRepository managerRankRepository) {
+                          ManagerRankRepository managerRankRepository,
+                          UserRepository userRepository) {
         this.managerRepository = managerRepository;
         this.playerRepository = playerRepository;
         this.seasonRepository = seasonRepository;
         this.playerRankRepository = playerRankRepository;
         this.managerRankRepository = managerRankRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional(readOnly = true)
@@ -355,5 +364,177 @@ public class ManagerService {
                 throw new IllegalArgumentException("Maximum 5 players from the same team allowed");
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    public ManagerDto findByUserId(Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return null;
+        
+        Manager manager = managerRepository.findByUserId(userId);
+        if (manager == null) return null;
+        
+        return findById(manager.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public PositionStatsDto getPositionStatsForManager(Long managerId) {
+        Manager manager = managerRepository.findById(managerId).orElse(null);
+        if (manager == null) return null;
+        
+        List<ManagerRank> ranks = managerRankRepository.findByManagerIdOrderByRoundIdAsc(managerId);
+        if (ranks.isEmpty()) return null;
+        
+        ManagerRank latestRank = ranks.get(ranks.size() - 1);
+        
+        PositionStatsDto stats = new PositionStatsDto();
+        stats.setGoalkeeper(getPointsForPosition(manager, Position.GOALKEEPER, latestRank));
+        stats.setDefender(getPointsForPosition(manager, Position.DEFENDER, latestRank));
+        stats.setMidfield(getPointsForPosition(manager, Position.MIDFIELD, latestRank));
+        stats.setStriker(getPointsForPosition(manager, Position.STRIKER, latestRank));
+        
+        return stats;
+    }
+
+    @Transactional(readOnly = true)
+    public PositionStatsDto getLeagueAveragePositionStats(Long seasonId) {
+        List<Manager> managers = managerRepository.findBySeasonIdWithPlayers(seasonId);
+        if (managers.isEmpty()) return null;
+        
+        int totalGk = 0, totalDef = 0, totalMid = 0, totalSt = 0;
+        int count = 0;
+        
+        for (Manager manager : managers) {
+            List<ManagerRank> ranks = managerRankRepository.findByManagerIdOrderByRoundIdAsc(manager.getId());
+            if (!ranks.isEmpty()) {
+                ManagerRank latestRank = ranks.get(ranks.size() - 1);
+                totalGk += getPointsForPosition(manager, Position.GOALKEEPER, latestRank);
+                totalDef += getPointsForPosition(manager, Position.DEFENDER, latestRank);
+                totalMid += getPointsForPosition(manager, Position.MIDFIELD, latestRank);
+                totalSt += getPointsForPosition(manager, Position.STRIKER, latestRank);
+                count++;
+            }
+        }
+        
+        if (count == 0) return null;
+        
+        PositionStatsDto stats = new PositionStatsDto();
+        stats.setGoalkeeper(totalGk / count);
+        stats.setDefender(totalDef / count);
+        stats.setMidfield(totalMid / count);
+        stats.setStriker(totalSt / count);
+        
+        return stats;
+    }
+
+    private int getPointsForPosition(Manager manager, Position position, ManagerRank rank) {
+        Season season = manager.getSeason();
+        boolean isRueckrunde = season != null && season.getSeasonState() == SeasonState.RUNNING_RUECKRUNDE;
+        
+        int points = 0;
+        
+        if (position == Position.GOALKEEPER && manager.getPlayerGoalkeeper() != null) {
+            points = getPlayerPoints(manager.getPlayerGoalkeeper().getId(), rank);
+        } else if (position == Position.DEFENDER) {
+            points += getPlayerPointsSafe(manager.getPlayerDefender1(), rank, isRueckrunde);
+            points += getPlayerPointsSafe(manager.getPlayerDefender2(), rank, isRueckrunde);
+            points += getPlayerPointsSafe(manager.getPlayerDefender3(), rank, isRueckrunde);
+        } else if (position == Position.MIDFIELD) {
+            points += getPlayerPointsSafe(manager.getPlayerMidfield1(), rank, isRueckrunde);
+            points += getPlayerPointsSafe(manager.getPlayerMidfield2(), rank, isRueckrunde);
+            points += getPlayerPointsSafe(manager.getPlayerMidfield3(), rank, isRueckrunde);
+        } else if (position == Position.STRIKER) {
+            points += getPlayerPointsSafe(manager.getPlayerStriker1(), rank, isRueckrunde);
+            points += getPlayerPointsSafe(manager.getPlayerStriker2(), rank, isRueckrunde);
+            points += getPlayerPointsSafe(manager.getPlayerStriker3(), rank, isRueckrunde);
+            points += getPlayerPointsSafe(manager.getPlayerFreeChoice(), rank, isRueckrunde);
+        }
+        
+        return points;
+    }
+
+    private int getPlayerPointsSafe(Player player, ManagerRank rank, boolean isRueckrunde) {
+        if (player == null) return 0;
+        return getPlayerPoints(player.getId(), rank);
+    }
+
+    private int getPlayerPoints(Long playerId, ManagerRank rank) {
+        if (playerId == null || rank == null) return 0;
+        return playerRankRepository.findByPlayerIdAndRoundId(playerId, rank.getRound().getId())
+            .map(PlayerRank::getPointsTotal)
+            .orElse(0);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ManagerRoundStatsDto> getRoundStatsForTopManagers(Long seasonId, int limit) {
+        List<Manager> managers = managerRepository.findBySeasonIdWithPlayers(seasonId);
+        
+        List<ManagerDto> managerDtos = managers.stream()
+            .map(m -> {
+                List<ManagerRank> ranks = managerRankRepository.findByManagerIdOrderByRoundIdAsc(m.getId());
+                ManagerDto dto = new ManagerDto();
+                dto.setId(m.getId());
+                dto.setName(m.getName());
+                dto.setShortName(m.getShortName());
+                if (!ranks.isEmpty()) {
+                    ManagerRank latest = ranks.get(ranks.size() - 1);
+                    dto.setPointsTotal(latest.getPointsTotal());
+                    dto.setPositionTotal(latest.getPositionTotal());
+                }
+                return dto;
+            })
+            .sorted(Comparator.comparing(ManagerDto::getPointsTotal, Comparator.nullsLast(Comparator.reverseOrder())))
+            .limit(limit)
+            .collect(Collectors.toList());
+        
+        Long currentUserId = getCurrentUserId();
+        boolean currentUserIncluded = managerDtos.stream().anyMatch(d -> d.getId().equals(currentUserId));
+        
+        if (!currentUserIncluded && currentUserId != null) {
+            Manager currentUserManager = managerRepository.findByUserId(currentUserId);
+            if (currentUserManager != null) {
+                ManagerDto userDto = findById(currentUserManager.getId());
+                if (userDto != null) {
+                    managerDtos.add(userDto);
+                }
+            }
+        }
+        
+        return managerDtos.stream()
+            .map(this::convertToRoundStatsDto)
+            .collect(Collectors.toList());
+    }
+
+    private ManagerRoundStatsDto convertToRoundStatsDto(ManagerDto dto) {
+        ManagerRoundStatsDto stats = new ManagerRoundStatsDto();
+        stats.setManagerId(dto.getId());
+        stats.setManagerName(dto.getName());
+        stats.setShortName(dto.getShortName());
+        
+        List<ManagerRank> ranks = managerRankRepository.findByManagerIdOrderByRoundIdAsc(dto.getId());
+        
+        List<ManagerRoundStatsDto.RoundPointDto> roundData = new ArrayList<>();
+        int cumulative = 0;
+        for (ManagerRank rank : ranks) {
+            cumulative += rank.getPointsRound();
+            ManagerRoundStatsDto.RoundPointDto rp = new ManagerRoundStatsDto.RoundPointDto();
+            rp.setRound(rank.getRound().getNumber());
+            rp.setPointsCumulative(cumulative);
+            roundData.add(rp);
+        }
+        stats.setRoundData(roundData);
+        
+        return stats;
+    }
+
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+        String login = auth.getName();
+        return userRepository.findByLogin(login)
+            .map(User::getId)
+            .orElse(null);
     }
 }

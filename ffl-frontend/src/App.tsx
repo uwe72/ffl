@@ -13,6 +13,8 @@ import ManagerGroups from './pages/ManagerGroups'
 import ManagerGroupDetail from './pages/ManagerGroupDetail'
 import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
+import Users from './pages/Users'
+import UserDetail from './pages/UserDetail'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -35,6 +37,16 @@ function App() {
             <Route path="managers/:id" element={<ManagerDetail />} />
             <Route path="manager-groups" element={<ManagerGroups />} />
             <Route path="manager-groups/:id" element={<ManagerGroupDetail />} />
+            <Route path="users" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <Users />
+              </ProtectedRoute>
+            } />
+            <Route path="users/:id" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <UserDetail />
+              </ProtectedRoute>
+            } />
             <Route path="games" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Games />

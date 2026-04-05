@@ -1,5 +1,5 @@
 import api from './client'
-import type { ManagerGroup, ManagerGroupListDto } from '../types'
+import type { ManagerGroup, ManagerGroupListDto, ManagerGroupRoundStats } from '../types'
 
 export const managerGroupApi = {
   getAll: () => api.get<ManagerGroupListDto[]>('/manager-groups'),
@@ -13,4 +13,6 @@ export const managerGroupApi = {
     api.post<ManagerGroup>(`/manager-groups/${groupId}/managers/${managerId}`),
   removeManager: (groupId: number, managerId: number) => 
     api.delete<ManagerGroup>(`/manager-groups/${groupId}/managers/${managerId}`),
+  getMyGroupsWithStats: () => api.get<ManagerGroupRoundStats[]>('/manager-groups/my-groups-with-stats'),
+  getGroupsWithStatsByManagerId: (managerId: number) => api.get<ManagerGroupRoundStats[]>(`/manager-groups/manager/${managerId}/with-stats`),
 }

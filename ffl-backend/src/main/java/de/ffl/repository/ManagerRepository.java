@@ -16,6 +16,7 @@ public interface ManagerRepository extends JpaRepository<Manager, Long> {
     List<Manager> findBySeason(Season season);
     List<Manager> findBySeasonId(Long seasonId);
     Optional<Manager> findByUserIdAndSeasonId(Long userId, Long seasonId);
+    Manager findByUserId(Long userId);
     
     @Query("SELECT DISTINCT m FROM Manager m " +
            "LEFT JOIN m.playerGoalkeeper pg " +
@@ -129,4 +130,14 @@ public interface ManagerRepository extends JpaRepository<Manager, Long> {
            "WHERE p.id IN :playerIds " +
            "GROUP BY p.id")
     List<Object[]> countManagersByPlayerIdIn(@Param("playerIds") List<Long> playerIds);
+
+    List<Manager> findAllByUserId(Long userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM manager_2_player WHERE manager_id = :managerId", nativeQuery = true)
+    void deletePlayerRelationsByManagerId(@Param("managerId") Long managerId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM manager_group_2_manager WHERE manager_id = :managerId", nativeQuery = true)
+    void deleteGroupRelationsByManagerId(@Param("managerId") Long managerId);
 }

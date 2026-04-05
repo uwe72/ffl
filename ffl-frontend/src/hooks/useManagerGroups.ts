@@ -70,3 +70,19 @@ export const useRemoveManagerFromGroup = (groupId: number) => {
     },
   })
 }
+
+export const useMyGroupsWithStats = (enabled = true) => {
+  return useQuery({
+    queryKey: ['manager-groups', 'my-stats'],
+    queryFn: () => managerGroupApi.getMyGroupsWithStats().then(res => res.data),
+    enabled,
+  })
+}
+
+export const useManagerGroupsWithStats = (managerId: number, enabled = true) => {
+  return useQuery({
+    queryKey: ['manager-groups', 'stats', managerId],
+    queryFn: () => managerGroupApi.getGroupsWithStatsByManagerId(managerId).then(res => res.data),
+    enabled: enabled && !!managerId,
+  })
+}

@@ -6,6 +6,7 @@ import de.ffl.domain.ManagerRank;
 import de.ffl.domain.User;
 import de.ffl.dto.ManagerGroupDto;
 import de.ffl.dto.ManagerGroupListDto;
+import de.ffl.dto.ManagerGroupRoundStatsDto;
 import de.ffl.repository.ManagerGroupRepository;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.ManagerRepository;
@@ -334,5 +335,77 @@ public class ManagerGroupService {
         }
         
         return result;
+    }
+
+    @Transactional(readOnly = true)
+    public List<ManagerGroupRoundStatsDto> getMyGroupsWithStats() {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return Collections.emptyList();
+        }
+
+        Manager currentManager = managerRepository.findByUserId(currentUser.getId());
+        if (currentManager == null) {
+            return Collections.emptyList();
+        }
+
+        return getGroupsWithStatsByManagerId(currentManager.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ManagerGroupRoundStatsDto> getGroupsWithStatsByManagerId(Long managerId) {
+        if (managerId == null) {
+            return Collections.emptyList();
+        }
+
+        List<ManagerGroup> groups = managerGroupRepository.findByManagerIdWithManagers(managerId);
+        
+        return groups.stream()
+            .map(group -> convertToRoundStatsDto(group, managerId))
+            .collect(Collectors.toList());
+    }
+
+    private ManagerGroupRoundStatsDto convertToRoundStatsDto(ManagerGroup group, Long currentManagerId) {
+        ManagerGroupRoundStatsDto dto = new ManagerGroupRoundStatsDto();
+        dto.setGroupId(group.getId());
+        dto.setGroupName(group.getName());
+        
+        Hibernate.initialize(group.getManagers());
+        
+        List<ManagerGroupRoundStatsDto.ManagerRoundDataDto> managerDtos = new ArrayList<>();
+        if (group.getManagers() != null) {
+            for (Manager manager : group.getManagers()) {
+                ManagerGroupRoundStatsDto.ManagerRoundDataDto mDto = new ManagerGroupRoundStatsDto.ManagerRoundDataDto();
+                mDto.setManagerId(manager.getId());
+                mDto.setManagerName(manager.getName());
+                mDto.setShortName(manager.getShortName());
+                
+                if (manager.getUser() != null) {
+                    Hibernate.initialize(manager.getUser());
+                    mDto.setFirstName(manager.getUser().getFirstName());
+                    mDto.setLastName(manager.getUser().getLastName());
+                    mDto.setLogin(manager.getUser().getLogin());
+                }
+                
+                mDto.setIsCurrentUser(manager.getId().equals(currentManagerId));
+                
+                List<ManagerRank> ranks = managerRankRepository.findByManagerIdOrderByRoundIdAsc(manager.getId());
+                List<ManagerGroupRoundStatsDto.RoundPointDto> roundData = new ArrayList<>();
+                int cumulative = 0;
+                for (ManagerRank rank : ranks) {
+                    cumulative += rank.getPointsRound();
+                    ManagerGroupRoundStatsDto.RoundPointDto rp = new ManagerGroupRoundStatsDto.RoundPointDto();
+                    rp.setRound(rank.getRound().getNumber());
+                    rp.setPointsCumulative(cumulative);
+                    roundData.add(rp);
+                }
+                mDto.setRoundData(roundData);
+                
+                managerDtos.add(mDto);
+            }
+        }
+        dto.setManagers(managerDtos);
+        
+        return dto;
     }
 }

@@ -5,15 +5,20 @@ import de.ffl.domain.ManagerRank;
 import de.ffl.dto.ManagerDto;
 import de.ffl.dto.ManagerGroupDto;
 import de.ffl.dto.ManagerRankDto;
+import de.ffl.dto.ManagerRoundStatsDto;
+import de.ffl.dto.PositionStatsDto;
 import de.ffl.dto.RoundDetailDto;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.PointsRepository;
+import de.ffl.repository.UserRepository;
 import de.ffl.service.ManagerGroupService;
 import de.ffl.service.ManagerService;
 import de.ffl.service.ManagerRoundService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,14 +34,16 @@ public class ManagerController {
     private final PointsRepository pointsRepository;
     private final ManagerGroupService managerGroupService;
     private final JdbcTemplate jdbcTemplate;
+    private final UserRepository userRepository;
 
-    public ManagerController(ManagerService managerService, ManagerRankRepository managerRankRepository, ManagerRoundService managerRoundService, PointsRepository pointsRepository, ManagerGroupService managerGroupService, JdbcTemplate jdbcTemplate) {
+    public ManagerController(ManagerService managerService, ManagerRankRepository managerRankRepository, ManagerRoundService managerRoundService, PointsRepository pointsRepository, ManagerGroupService managerGroupService, JdbcTemplate jdbcTemplate, UserRepository userRepository) {
         this.managerService = managerService;
         this.managerRankRepository = managerRankRepository;
         this.managerRoundService = managerRoundService;
         this.pointsRepository = pointsRepository;
         this.managerGroupService = managerGroupService;
         this.jdbcTemplate = jdbcTemplate;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -121,5 +128,49 @@ public class ManagerController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/current")
+    public ResponseEntity<ManagerDto> getCurrentManager() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        String login = auth.getName();
+        Long userId = userRepository.findByLogin(login)
+            .map(u -> u.getId())
+            .orElse(null);
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+        ManagerDto manager = managerService.findByUserId(userId);
+        if (manager == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(manager);
+    }
+
+    @GetMapping("/{id}/position-stats")
+    public ResponseEntity<PositionStatsDto> getManagerPositionStats(@PathVariable Long id) {
+        PositionStatsDto stats = managerService.getPositionStatsForManager(id);
+        if (stats == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/league/position-stats")
+    public ResponseEntity<PositionStatsDto> getLeaguePositionStats(@RequestParam Long seasonId) {
+        PositionStatsDto stats = managerService.getLeagueAveragePositionStats(seasonId);
+        if (stats == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/round-stats")
+    public ResponseEntity<List<ManagerRoundStatsDto>> getRoundStats(@RequestParam Long seasonId) {
+        List<ManagerRoundStatsDto> stats = managerService.getRoundStatsForTopManagers(seasonId, 5);
+        return ResponseEntity.ok(stats);
     }
 }

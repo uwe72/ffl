@@ -114,13 +114,25 @@ export interface Manager {
   currentMatchday?: number
 }
 
+export interface ManagerInfo {
+  id: number
+  name: string
+  shortName?: string
+  seasonId: number
+  seasonName: string
+}
+
 export interface User {
   id: number
   login: string
   email: string
   firstName?: string
   lastName?: string
+  street?: string
+  city?: string
+  birthday?: string
   role: UserRole
+  managers?: ManagerInfo[]
 }
 
 export type UserRole = 'ADMIN' | 'NORMAL' | 'GUEST'
@@ -190,6 +202,40 @@ export interface ManagerGroupListDto {
   createdByLogin?: string
   createdByFirstName?: string
   createdByLastName?: string
+}
+
+export interface PositionStats {
+  goalkeeper: number
+  defender: number
+  midfield: number
+  striker: number
+}
+
+export interface RoundPointData {
+  round: number
+  pointsCumulative: number
+}
+
+export interface ManagerRoundStats {
+  managerId: number
+  managerName: string
+  shortName?: string
+  roundData: RoundPointData[]
+}
+
+export interface ManagerGroupRoundStats {
+  groupId: number
+  groupName: string
+  managers: {
+    managerId: number
+    managerName: string
+    shortName?: string
+    firstName?: string
+    lastName?: string
+    login?: string
+    isCurrentUser: boolean
+    roundData: RoundPointData[]
+  }[]
 }
 
 export interface Game {

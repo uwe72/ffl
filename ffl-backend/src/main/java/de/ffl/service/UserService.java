@@ -1,0 +1,137 @@
+package de.ffl.service;
+
+import de.ffl.domain.Manager;
+import de.ffl.domain.User;
+import de.ffl.dto.UserDto;
+import de.ffl.repository.ManagerGroupRepository;
+import de.ffl.repository.ManagerRankRepository;
+import de.ffl.repository.ManagerRepository;
+import de.ffl.repository.UserRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final ManagerRepository managerRepository;
+    private final ManagerRankRepository managerRankRepository;
+    private final ManagerGroupRepository managerGroupRepository;
+
+    public UserService(UserRepository userRepository,
+                       ManagerRepository managerRepository,
+                       ManagerRankRepository managerRankRepository,
+                       ManagerGroupRepository managerGroupRepository) {
+        this.userRepository = userRepository;
+        this.managerRepository = managerRepository;
+        this.managerRankRepository = managerRankRepository;
+        this.managerGroupRepository = managerGroupRepository;
+    }
+
+    public List<UserDto> findAll() {
+        return userRepository.findAll().stream()
+            .map(UserDto::fromEntity)
+            .collect(Collectors.toList());
+    }
+
+    public UserDto findById(Long id) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            return null;
+        }
+        List<Manager> managers = managerRepository.findAllByUserId(id);
+        return UserDto.fromEntityWithManagers(user, managers);
+    }
+
+    @Transactional
+    public UserDto updateUser(Long id, UserDto updateData) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            return null;
+        }
+
+        String oldFirstName = user.getFirstName();
+        String oldLastName = user.getLastName();
+
+        if (updateData.getEmail() != null) {
+            user.setEmail(updateData.getEmail());
+        }
+        if (updateData.getFirstName() != null) {
+            user.setFirstName(updateData.getFirstName());
+        }
+        if (updateData.getLastName() != null) {
+            user.setLastName(updateData.getLastName());
+        }
+        if (updateData.getStreet() != null) {
+            user.setStreet(updateData.getStreet());
+        }
+        if (updateData.getCity() != null) {
+            user.setCity(updateData.getCity());
+        }
+        if (updateData.getBirthday() != null && !updateData.getBirthday().isEmpty()) {
+            try {
+                user.setBirthday(java.time.LocalDate.parse(updateData.getBirthday()));
+            } catch (Exception ignored) {
+            }
+        }
+
+        boolean nameChanged = !java.util.Objects.equals(oldFirstName, user.getFirstName()) ||
+                              !java.util.Objects.equals(oldLastName, user.getLastName());
+
+        User saved = userRepository.save(user);
+
+        if (nameChanged) {
+            updateManagerNames(saved);
+        }
+
+        List<Manager> managers = managerRepository.findAllByUserId(id);
+        return UserDto.fromEntityWithManagers(saved, managers);
+    }
+
+    private void updateManagerNames(User user) {
+        List<Manager> managers = managerRepository.findAllByUserId(user.getId());
+        
+        String firstName = user.getFirstName() != null ? user.getFirstName().trim() : "";
+        String lastName = user.getLastName() != null ? user.getLastName().trim() : "";
+
+        for (Manager manager : managers) {
+            if (!firstName.isEmpty() && !lastName.isEmpty()) {
+                manager.setName(firstName + " " + lastName);
+                String shortName = firstName.substring(0, 1).toUpperCase() + 
+                                   lastName.substring(0, 1).toUpperCase();
+                manager.setShortName(shortName);
+            } else if (!firstName.isEmpty()) {
+                manager.setName(firstName);
+                manager.setShortName(firstName.substring(0, 1).toUpperCase());
+            } else if (!lastName.isEmpty()) {
+                manager.setName(lastName);
+                manager.setShortName(lastName.substring(0, 1).toUpperCase());
+            }
+        }
+        
+        managerRepository.saveAll(managers);
+    }
+
+    @Transactional
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            return;
+        }
+
+        managerGroupRepository.clearCreatedByForUser(id);
+
+        List<Manager> managers = managerRepository.findAllByUserId(id);
+        for (Manager manager : managers) {
+            managerRankRepository.deleteByManagerId(manager.getId());
+            managerRepository.deletePlayerRelationsByManagerId(manager.getId());
+            managerRepository.deleteGroupRelationsByManagerId(manager.getId());
+        }
+        managerRepository.deleteAll(managers);
+
+        userRepository.deleteById(id);
+    }
+}
