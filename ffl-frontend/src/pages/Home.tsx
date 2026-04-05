@@ -105,8 +105,8 @@ export default function Home() {
       <div className="grid gap-6 md:grid-cols-2 mb-8">
         {isAuthenticated && displayManager ? (
           <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-            <h3 className="text-lg font-semibold text-[#f5f5f5] mb-4 flex items-center gap-2">
-              <span className="text-[#c9a66b]">👤</span> {isAdmin ? 'Admin-Ansicht: uwe72' : 'Dein Manager'}
+            <h3 className="text-lg font-semibold text-[#f5f5f5] mb-4">
+              {isAdmin ? 'Admin-Ansicht: uwe72' : 'Dein Manager'}
             </h3>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
@@ -132,7 +132,7 @@ export default function Home() {
         ) : (
           <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
             <h3 className="text-lg font-semibold text-[#f5f5f5] mb-4 flex items-center gap-2">
-              <span className="text-[#c9a66b]">👤</span> Dein Manager
+              Dein Manager
             </h3>
             <p className="text-[#6b7280] text-center py-4">
               Melde dich an, um deinen Manager zu sehen.
@@ -141,8 +141,8 @@ export default function Home() {
         )}
 
         <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <h3 className="text-lg font-semibold text-[#f5f5f5] mb-4 flex items-center gap-2">
-            <span className="text-[#c9a66b]">🏆</span> Manager des {season?.currentMatchday ? `${season.currentMatchday}. ` : ''}Spieltags
+          <h3 className="text-lg font-semibold text-[#f5f5f5] mb-4">
+            Manager des {season?.currentMatchday ? `${season.currentMatchday}. ` : ''}Spieltags
           </h3>
           {topManagersLastRound.length > 0 ? (
             <div className="space-y-3">
@@ -173,8 +173,8 @@ export default function Home() {
       {groupsWithStats && groupsWithStats.length > 0 && (
         <Card className="p-6 bg-[#1a2028] border border-[#2d3748] mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-[#f5f5f5] flex items-center gap-2">
-              <span className="text-[#c9a66b]">📈</span> Punkte-Entwicklung in Gruppe
+            <h3 className="text-lg font-semibold text-[#f5f5f5]">
+              Punkte-Entwicklung in Gruppe
             </h3>
             <select
               value={selectedGroupId}
