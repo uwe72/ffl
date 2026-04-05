@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,97 +47,124 @@ public class SeasonCalculationService {
 
     @Transactional
     public void calculateSeason(Long seasonId) {
+        calculateSeason(seasonId, null);
+    }
+
+    @Transactional
+    public void calculateSeason(Long seasonId, Consumer<String> logCallback) {
         Season season = seasonRepository.findById(seasonId)
             .orElseThrow(() -> new IllegalArgumentException("Season not found: " + seasonId));
 
         log.info("Calculating season: {}", season.getName());
-        System.out.println("=== Start der Saison-Berechnung ===");
-        System.out.println("Saison: " + season.getName() + " (ID: " + seasonId + ")");
+        log(logCallback, "");
+        log(logCallback, "═══════════════════════════════════════════════════════════");
+        log(logCallback, "  SAISON-BERECHNUNG GESTARTET");
+        log(logCallback, "═══════════════════════════════════════════════════════════");
+        log(logCallback, "Saison: " + season.getName() + " (ID: " + seasonId + ")");
+        log(logCallback, "");
 
         List<Round> rounds = roundRepository.findBySeasonIdOrderByNumber(seasonId);
-        System.out.println("Gefundene Spieltage: " + rounds.size());
-        
         List<Game> allGames = new ArrayList<>();
         for (Round round : rounds) {
             allGames.addAll(gameRepository.findByRoundId(round.getId()));
         }
-        System.out.println("Gefundene Spiele: " + allGames.size());
 
-        clearSeasonCalculations(allGames, seasonId);
+        log(logCallback, "▶ Vorbereitung");
+        log(logCallback, "  ├─ Gefundene Spieltage: " + rounds.size());
+        log(logCallback, "  ├─ Gefundene Spiele: " + allGames.size());
+        log(logCallback, "  └─ Lösche alte Berechnungen...");
+        clearSeasonCalculations(allGames, seasonId, logCallback);
+        log(logCallback, "");
 
         Map<Long, Set<Player>> roundPlayersHost = new HashMap<>();
         Map<Long, Set<Player>> roundPlayersVisitor = new HashMap<>();
         Map<Long, Integer> roundGoalsHost = new HashMap<>();
         Map<Long, Integer> roundGoalsVisitor = new HashMap<>();
 
+        log(logCallback, "▶ Spiele verarbeiten");
         int gamesProcessed = 0;
         int gamesSkipped = 0;
         for (Game game : allGames) {
             if (game.getFormation() != null && !game.getFormation().isEmpty()) {
-                System.out.println("Verarbeite Spiel: " + game.getHost().getName() + " vs " + game.getVisitor().getName());
-                processGame(game, roundPlayersHost, roundPlayersVisitor, roundGoalsHost, roundGoalsVisitor);
+                processGame(game, roundPlayersHost, roundPlayersVisitor, roundGoalsHost, roundGoalsVisitor, logCallback);
                 gamesProcessed++;
             } else {
                 gamesSkipped++;
             }
         }
-        System.out.println("Spiele verarbeitet: " + gamesProcessed + ", übersprungen (keine Formation): " + gamesSkipped);
+        log(logCallback, "  └─ ✓ " + gamesProcessed + " Spiele verarbeitet, " + gamesSkipped + " übersprungen");
+        log(logCallback, "");
 
-        System.out.println("Berechne Spieler-Rankings...");
-        calculateAllPlayerRanks(season, rounds, allGames, roundPlayersHost, roundPlayersVisitor);
-        System.out.println("Berechne Manager-Rankings...");
-        calculateAllManagerRanks(season, rounds, allGames);
+        log(logCallback, "");
+        log(logCallback, "═══════════════════════════════════════════════════════════");
+        log(logCallback, "  SPIELER-RANKINGS");
+        log(logCallback, "═══════════════════════════════════════════════════════════");
+        calculateAllPlayerRanks(season, rounds, allGames, roundPlayersHost, roundPlayersVisitor, logCallback);
+        log(logCallback, "");
 
-        Integer maxMatchday = playerRankRepository.findMaxPlayedRoundBySeasonId(seasonId);
+        log(logCallback, "");
+        log(logCallback, "═══════════════════════════════════════════════════════════");
+        log(logCallback, "  MANAGER-RANKINGS");
+        log(logCallback, "═══════════════════════════════════════════════════════════");
+        calculateAllManagerRanks(season, rounds, allGames, logCallback);
+        log(logCallback, "");
+
+        Integer maxMatchday = gameRepository.findMaxRoundWithFormationOrPoints(seasonId);
         season.setCurrentMatchday(maxMatchday != null ? maxMatchday : 0);
         seasonRepository.save(season);
-        System.out.println("Aktueller Spieltag gesetzt auf: " + maxMatchday);
 
-        System.out.println("=== Saison-Berechnung erfolgreich abgeschlossen ===");
+        log(logCallback, "");
+        log(logCallback, "═══════════════════════════════════════════════════════════");
+        log(logCallback, "  BERECHNUNG ABGESCHLOSSEN");
+        log(logCallback, "═══════════════════════════════════════════════════════════");
+        log(logCallback, "Aktueller Spieltag: " + maxMatchday);
+        log(logCallback, "");
         log.info("Season calculation completed: {}", season.getName());
     }
 
-    private void clearSeasonCalculations(List<Game> games, Long seasonId) {
+    private void log(Consumer<String> callback, String message) {
+        if (callback != null) {
+            callback.accept(message);
+        }
+    }
+
+    private void clearSeasonCalculations(List<Game> games, Long seasonId, Consumer<String> logCallback) {
         log.info("Clearing calculations for season: {}", seasonId);
-        System.out.println("Lösche alte Berechnungen...");
-        
-        System.out.println("  - Lösche Punkte für " + games.size() + " Spiele...");
+        log(logCallback, "     • Lösche Punkte für " + games.size() + " Spiele...");
         for (Game game : games) {
             pointsRepository.deleteByGameId(game.getId());
         }
-        System.out.println("  - Lösche PlayerRank Einträge...");
+        log(logCallback, "     • Lösche PlayerRank Einträge...");
         playerRankRepository.deleteAll();
-        System.out.println("  - Lösche ManagerRank Einträge...");
+        log(logCallback, "     • Lösche ManagerRank Einträge...");
         managerRankRepository.deleteAll();
-
-        System.out.println("  - Bereinige Spielerzuordnungen in Spielen...");
+        log(logCallback, "     • Bereinige Spielerzuordnungen in Spielen...");
         for (Game game : games) {
             game.getPlayersHost().clear();
             game.getPlayersVisitor().clear();
             gameRepository.save(game);
         }
-        System.out.println("Alte Berechnungen gelöscht.");
+        log(logCallback, "     ✓ Alte Berechnungen gelöscht");
     }
 
     private void processGame(Game game, 
             Map<Long, Set<Player>> roundPlayersHost,
             Map<Long, Set<Player>> roundPlayersVisitor,
             Map<Long, Integer> roundGoalsHost,
-            Map<Long, Integer> roundGoalsVisitor) {
+            Map<Long, Integer> roundGoalsVisitor,
+            Consumer<String> logCallback) {
         
         String formation = game.getFormation();
         Long roundId = game.getRound().getId();
         
         log.debug("Processing game: {} - {}", game.getHost().getName(), game.getVisitor().getName());
-        System.out.println("  Spiel: " + game.getHost().getName() + " vs " + game.getVisitor().getName());
+        log(logCallback, "  ├─ " + game.getHost().getName() + " vs " + game.getVisitor().getName());
 
         Team host = game.getHost();
         Team visitor = game.getVisitor();
 
         Set<Player> playersHost = findPlayers(game, host, true, formation);
         Set<Player> playersVisitor = findPlayers(game, visitor, false, formation);
-        
-        System.out.println("    Heim-Spieler: " + playersHost.size() + ", Gast-Spieler: " + playersVisitor.size());
 
         game.setPlayersHost(playersHost);
         game.setPlayersVisitor(playersVisitor);
@@ -149,8 +177,6 @@ public class SeasonCalculationService {
 
         game.setGoalHost(goalsHostCount);
         game.setGoalVisitor(goalsVisitorCount);
-        
-        System.out.println("    Ergebnis: " + goalsHostCount + " : " + goalsVisitorCount);
 
         gameRepository.save(game);
 
@@ -227,7 +253,7 @@ public class SeasonCalculationService {
         String wechsel = formation.substring(wechselStart + 7);
         String[] lines = wechsel.split(FFL_LINE_BREAK);
 
-        Set<String> startingNames = new HashSet<>(startingPlayers);
+        Set<String> activePlayers = new HashSet<>(startingPlayers);
         List<String> allPlayers = new ArrayList<>();
         
         for (String line : lines) {
@@ -241,7 +267,9 @@ public class SeasonCalculationService {
             String eingewechselt = allPlayers.get(i);
             String ausgewechselt = allPlayers.get(i + 1);
             
-            if (startingNames.contains(ausgewechselt)) {
+            if (activePlayers.contains(ausgewechselt)) {
+                activePlayers.remove(ausgewechselt);
+                activePlayers.add(eingewechselt);
                 result.add(eingewechselt);
             }
         }
@@ -262,7 +290,7 @@ public class SeasonCalculationService {
         String[] lines = toreSection.split(FFL_LINE_BREAK);
         for (String line : lines) {
             if (line == null || line.trim().isEmpty()) continue;
-            if (Character.isDigit(line.charAt(0))) continue;
+            if (!Character.isAlphabetic(line.charAt(0))) continue;
             if (line.startsWith("Rechtsschuss") || line.startsWith("Linksschuss") || 
                 line.startsWith("Kopfball") || line.startsWith("Brust")) continue;
             if (line.contains("(Eigentor)")) continue;
@@ -291,6 +319,7 @@ public class SeasonCalculationService {
         String[] lines = toreSection.split(FFL_LINE_BREAK);
         for (String line : lines) {
             if (line == null || line.trim().isEmpty()) continue;
+            if (!Character.isAlphabetic(line.charAt(0))) continue;
             if (!line.contains("(Eigentor)")) continue;
 
             String playerName = line.replace("(Eigentor)", "").trim();
@@ -391,7 +420,7 @@ public class SeasonCalculationService {
         String[] lines = toreSection.split(FFL_LINE_BREAK);
         for (String line : lines) {
             if (line == null || line.trim().isEmpty()) continue;
-            if (Character.isDigit(line.charAt(0))) continue;
+            if (!Character.isAlphabetic(line.charAt(0))) continue;
             if (line.startsWith("Rechtsschuss") || line.startsWith("Linksschuss") || 
                 line.startsWith("Kopfball") || line.startsWith("Brust")) continue;
             if (line.contains("(Eigentor)")) continue;
@@ -437,12 +466,11 @@ public class SeasonCalculationService {
 
     private void calculateAllPlayerRanks(Season season, List<Round> rounds, List<Game> allGames,
             Map<Long, Set<Player>> roundPlayersHost,
-            Map<Long, Set<Player>> roundPlayersVisitor) {
-        
-        System.out.println("Berechne PlayerRank für " + rounds.size() + " Spieltage...");
+            Map<Long, Set<Player>> roundPlayersVisitor,
+            Consumer<String> logCallback) {
         
         List<Player> players = playerRepository.findBySeasonId(season.getId());
-        System.out.println("Spieler in Saison: " + players.size());
+        log(logCallback, "  ├─ Spieler in Saison: " + players.size());
         
         Map<Long, Integer> totalPoints = new HashMap<>();
         Map<Long, Integer> matchesPlayed = new HashMap<>();
@@ -454,21 +482,22 @@ public class SeasonCalculationService {
 
         List<Long> allGameIds = allGames.stream().map(Game::getId).collect(Collectors.toList());
         List<Points> allPoints = pointsRepository.findByGameIdIn(allGameIds);
-        System.out.println("Gefundene Punkte-Einträge: " + allPoints.size());
+        log(logCallback, "  ├─ Punkte-Einträge: " + allPoints.size());
         
         Map<Long, List<Points>> pointsByGame = allPoints.stream()
             .collect(Collectors.groupingBy(p -> p.getGame().getId()));
 
+        log(logCallback, "  └─ Verarbeite Spieltage...");
         int roundCount = 0;
         for (Round round : rounds) {
             roundCount++;
-            System.out.println("  Spieltag " + roundCount + "/" + rounds.size() + " (ID: " + round.getId() + ")");
+            log(logCallback, "     Spieltag " + roundCount + "/" + rounds.size());
             calculatePlayerRanksForRound(round, players, allGames, totalPoints, matchesPlayed,
                 pointsByGame,
                 roundPlayersHost.getOrDefault(round.getId(), Collections.emptySet()),
                 roundPlayersVisitor.getOrDefault(round.getId(), Collections.emptySet()));
         }
-        System.out.println("PlayerRank-Berechnung abgeschlossen.");
+        log(logCallback, "✓ PlayerRank-Berechnung abgeschlossen");
     }
 
     private void calculatePlayerRanksForRound(Round round, List<Player> players, List<Game> allGames,
@@ -537,11 +566,9 @@ public class SeasonCalculationService {
         playerRankRepository.saveAll(ranksToSave);
     }
 
-    private void calculateAllManagerRanks(Season season, List<Round> rounds, List<Game> allGames) {
-        System.out.println("Berechne ManagerRank für " + rounds.size() + " Spieltage...");
-        
+    private void calculateAllManagerRanks(Season season, List<Round> rounds, List<Game> allGames, Consumer<String> logCallback) {
         List<Manager> managers = managerRepository.findBySeasonId(season.getId());
-        System.out.println("Manager in Saison: " + managers.size());
+        log(logCallback, "  ├─ Manager in Saison: " + managers.size());
         
         Map<Long, Integer> totalPoints = new HashMap<>();
         for (Manager manager : managers) {
@@ -550,19 +577,20 @@ public class SeasonCalculationService {
 
         List<Long> allGameIds = allGames.stream().map(Game::getId).collect(Collectors.toList());
         List<Points> allPoints = pointsRepository.findByGameIdIn(allGameIds);
-        System.out.println("Gefundene Punkte-Einträge: " + allPoints.size());
+        log(logCallback, "  ├─ Punkte-Einträge: " + allPoints.size());
         
         Map<Long, List<Points>> pointsByGame = allPoints.stream()
             .collect(Collectors.groupingBy(p -> p.getGame().getId()));
 
+        log(logCallback, "  └─ Verarbeite Spieltage...");
         int roundCount = 0;
         int transferRound = season.getStartRoundRueckrunde() != null ? season.getStartRoundRueckrunde() : 16;
         for (Round round : rounds) {
             roundCount++;
-            System.out.println("  Spieltag " + roundCount + "/" + rounds.size() + " (ID: " + round.getId() + ")");
+            log(logCallback, "     Spieltag " + roundCount + "/" + rounds.size());
             calculateManagerRanksForRound(round, managers, allGames, totalPoints, pointsByGame, transferRound);
         }
-        System.out.println("ManagerRank-Berechnung abgeschlossen.");
+        log(logCallback, "✓ ManagerRank-Berechnung abgeschlossen");
     }
 
     private void calculateManagerRanksForRound(Round round, List<Manager> managers, List<Game> allGames,

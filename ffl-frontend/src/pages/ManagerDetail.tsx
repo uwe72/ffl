@@ -234,7 +234,7 @@ function ManagerGroupTable({ group, currentManagerId }: { group: ManagerGroup; c
               >
                 Pkt<SortIcon column="points" />
               </th>
-              <th className="px-3 py-2 text-right text-[#a0aec0] font-medium border-b border-[#2d3748]">Letzte Rd</th>
+              <th className="px-3 py-2 text-right text-[#a0aec0] font-medium border-b border-[#2d3748]">Letzter Spieltag</th>
             </tr>
           </thead>
           <tbody className="bg-[#1a2028]">

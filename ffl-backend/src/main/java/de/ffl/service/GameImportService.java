@@ -22,6 +22,7 @@ public class GameImportService {
     private final PointsRepository pointsRepository;
     private final PlayerRankRepository playerRankRepository;
     private final SeasonCalculationService seasonCalculationService;
+    private final SeasonRepository seasonRepository;
 
     public GameImportService(
             GameRepository gameRepository,
@@ -29,13 +30,15 @@ public class GameImportService {
             PlayerRepository playerRepository,
             PointsRepository pointsRepository,
             PlayerRankRepository playerRankRepository,
-            SeasonCalculationService seasonCalculationService) {
+            SeasonCalculationService seasonCalculationService,
+            SeasonRepository seasonRepository) {
         this.gameRepository = gameRepository;
         this.teamRepository = teamRepository;
         this.playerRepository = playerRepository;
         this.pointsRepository = pointsRepository;
         this.playerRankRepository = playerRankRepository;
         this.seasonCalculationService = seasonCalculationService;
+        this.seasonRepository = seasonRepository;
     }
 
     @Transactional
@@ -224,6 +227,8 @@ public class GameImportService {
         seasonCalculationService.createPointsForPlayers(game, playersHost, true);
         seasonCalculationService.createPointsForPlayers(game, playersVisitor, false);
 
+        updateCurrentMatchday(game);
+
         GameDto gameDto = GameDto.fromEntity(game);
         
         return GameImportResult.builder()
@@ -324,7 +329,7 @@ public class GameImportService {
         String wechsel = formation.substring(wechselStart + 7);
         String[] lines = wechsel.split(FFL_LINE_BREAK);
 
-        Set<String> startingNames = new HashSet<>(startingPlayers);
+        Set<String> activePlayers = new HashSet<>(startingPlayers);
         List<String> allPlayers = new ArrayList<>();
         
         for (String line : lines) {
@@ -338,7 +343,9 @@ public class GameImportService {
             String eingewechselt = allPlayers.get(i);
             String ausgewechselt = allPlayers.get(i + 1);
             
-            if (startingNames.contains(ausgewechselt)) {
+            if (activePlayers.contains(ausgewechselt)) {
+                activePlayers.remove(ausgewechselt);
+                activePlayers.add(eingewechselt);
                 result.add(eingewechselt);
             }
         }
@@ -379,5 +386,12 @@ public class GameImportService {
             .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
             .toLowerCase()
             .trim();
+    }
+
+    private void updateCurrentMatchday(Game game) {
+        Season season = game.getRound().getSeason();
+        Integer maxRound = gameRepository.findMaxRoundWithFormationOrPoints(season.getId());
+        season.setCurrentMatchday(maxRound != null ? maxRound : 0);
+        seasonRepository.save(season);
     }
 }

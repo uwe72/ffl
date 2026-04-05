@@ -80,9 +80,10 @@ public class ManagerService {
         Set<Long> playerIds = collectPlayerIds(managers);
         
         Map<Long, PlayerRank> latestPlayerRanks = loadLatestPlayerRanks(playerIds);
-        Map<Long, ManagerRank> latestManagerRanks = loadLatestManagerRanks(List.of(id));
+        Map<Long, ManagerRank> latestManagerRanks = loadLatestManagerRanks(List.of(id), managers);
+        Map<Long, List<ManagerRank>> allManagerRanks = loadAllManagerRanks(List.of(id));
         
-        return convertToDto(manager, latestPlayerRanks, latestManagerRanks);
+        return convertToDto(manager, latestPlayerRanks, latestManagerRanks, allManagerRanks);
     }
 
     private List<ManagerDto> convertManagersToDto(List<Manager> managers) {
@@ -90,10 +91,11 @@ public class ManagerService {
         List<Long> managerIds = managers.stream().map(Manager::getId).collect(Collectors.toList());
         
         Map<Long, PlayerRank> latestPlayerRanks = loadLatestPlayerRanks(playerIds);
-        Map<Long, ManagerRank> latestManagerRanks = loadLatestManagerRanks(managerIds);
+        Map<Long, ManagerRank> latestManagerRanks = loadLatestManagerRanks(managerIds, managers);
+        Map<Long, List<ManagerRank>> allManagerRanks = loadAllManagerRanks(managerIds);
         
         return managers.stream()
-            .map(m -> convertToDto(m, latestPlayerRanks, latestManagerRanks))
+            .map(m -> convertToDto(m, latestPlayerRanks, latestManagerRanks, allManagerRanks))
             .collect(Collectors.toList());
     }
 
@@ -141,7 +143,7 @@ public class ManagerService {
         return latestRanks;
     }
 
-    private Map<Long, ManagerRank> loadLatestManagerRanks(List<Long> managerIds) {
+    private Map<Long, ManagerRank> loadLatestManagerRanks(List<Long> managerIds, List<Manager> managers) {
         if (managerIds.isEmpty()) {
             return Map.of();
         }
@@ -149,7 +151,6 @@ public class ManagerService {
         List<ManagerRank> ranks = managerRankRepository.findByManagerIdIn(managerIds);
         
         Map<Long, Season> managerToSeason = new HashMap<>();
-        List<Manager> managers = managerRepository.findAllById(managerIds);
         for (Manager m : managers) {
             if (m.getSeason() != null) {
                 managerToSeason.put(m.getId(), m.getSeason());
@@ -160,7 +161,7 @@ public class ManagerService {
         for (ManagerRank rank : ranks) {
             Long managerId = rank.getManager().getId();
             Season season = managerToSeason.get(managerId);
-            if (season != null && season.getCurrentMatchday() != null) {
+            if (season != null && season.getCurrentMatchday() != null && rank.getRound() != null) {
                 if (rank.getRound().getNumber() == season.getCurrentMatchday()) {
                     result.put(managerId, rank);
                 }
@@ -169,9 +170,30 @@ public class ManagerService {
         return result;
     }
 
+    private Map<Long, List<ManagerRank>> loadAllManagerRanks(List<Long> managerIds) {
+        if (managerIds.isEmpty()) {
+            return Map.of();
+        }
+        
+        List<ManagerRank> ranks = managerRankRepository.findByManagerIdIn(managerIds);
+        
+        Map<Long, List<ManagerRank>> allRanks = new HashMap<>();
+        for (ManagerRank rank : ranks) {
+            Long managerId = rank.getManager().getId();
+            allRanks.computeIfAbsent(managerId, k -> new ArrayList<>()).add(rank);
+        }
+        
+        for (List<ManagerRank> managerRanks : allRanks.values()) {
+            managerRanks.sort((a, b) -> a.getRound().getNumber().compareTo(b.getRound().getNumber()));
+        }
+        
+        return allRanks;
+    }
+
     private ManagerDto convertToDto(Manager manager, 
-                                     Map<Long, PlayerRank> latestPlayerRanks,
-                                     Map<Long, ManagerRank> latestManagerRanks) {
+                                    Map<Long, PlayerRank> latestPlayerRanks, 
+                                    Map<Long, ManagerRank> latestManagerRanks,
+                                    Map<Long, List<ManagerRank>> allManagerRanks) {
         Hibernate.initialize(manager.getUser());
         Hibernate.initialize(manager.getSeason());
         
@@ -255,6 +277,28 @@ public class ManagerService {
             dto.setPositionTotal(rank.getPositionTotal());
             dto.setPointsLastRound(rank.getPointsRound());
             dto.setPositionLastRound(rank.getPositionRound());
+        }
+        
+        Season season = manager.getSeason();
+        if (season != null && season.getCurrentMatchday() != null) {
+            Integer currentMatchday = season.getCurrentMatchday();
+            List<ManagerRank> managerRanks = allManagerRanks.get(manager.getId());
+            if (managerRanks != null) {
+                ManagerRank currentRank = managerRanks.stream()
+                    .filter(r -> r.getRound().getNumber().equals(currentMatchday))
+                    .findFirst()
+                    .orElse(null);
+                ManagerRank previousRank = managerRanks.stream()
+                    .filter(r -> r.getRound().getNumber().equals(currentMatchday - 1))
+                    .findFirst()
+                    .orElse(null);
+                
+                if (currentRank != null && previousRank != null 
+                    && currentRank.getPositionTotal() != null 
+                    && previousRank.getPositionTotal() != null) {
+                    dto.setPositionChange(previousRank.getPositionTotal() - currentRank.getPositionTotal());
+                }
+            }
         }
         
         return dto;

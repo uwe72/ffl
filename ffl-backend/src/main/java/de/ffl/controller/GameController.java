@@ -8,6 +8,8 @@ import de.ffl.dto.FormationValidationResult;
 import de.ffl.service.FormationConverterService;
 import de.ffl.service.GameImportService;
 import de.ffl.service.GameService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/games")
 public class GameController {
+
+    private static final Logger log = LoggerFactory.getLogger(GameController.class);
 
     private final GameService gameService;
     private final GameImportService gameImportService;
@@ -111,6 +115,10 @@ public class GameController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<FormationValidationResult> validateFormation(
             @PathVariable Long id, @RequestBody String formationExtern) {
+        log.info("=== VALIDATE FORMATION ===");
+        log.info("Empfangene Länge: {}", formationExtern.length());
+        int start = Math.max(0, formationExtern.length() - 100);
+        log.info("Letzte 100 Zeichen: [{}]", formationExtern.substring(start));
         FormationValidationResult result = gameService.validateFormationForGameDto(id, formationExtern);
         return ResponseEntity.ok(result);
     }

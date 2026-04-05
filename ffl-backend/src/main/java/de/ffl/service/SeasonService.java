@@ -5,17 +5,22 @@ import de.ffl.domain.SeasonState;
 import de.ffl.repository.SeasonRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class SeasonService {
 
     private final SeasonRepository seasonRepository;
     private final SeasonCalculationService seasonCalculationService;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public SeasonService(SeasonRepository seasonRepository, SeasonCalculationService seasonCalculationService) {
         this.seasonRepository = seasonRepository;
@@ -61,6 +66,34 @@ public class SeasonService {
     @Transactional
     public void calculateSeason(Long seasonId) {
         seasonCalculationService.calculateSeason(seasonId);
+    }
+
+    public SseEmitter calculateSeasonStream(Long seasonId) {
+        SseEmitter emitter = new SseEmitter(300000L);
+        
+        executor.execute(() -> {
+            try {
+                seasonCalculationService.calculateSeason(seasonId, message -> {
+                    try {
+                        emitter.send(SseEmitter.event().data(message));
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to send SSE event", e);
+                    }
+                });
+                emitter.send(SseEmitter.event().name("complete").data(""));
+                emitter.complete();
+            } catch (Exception e) {
+                try {
+                    emitter.send(SseEmitter.event()
+                        .name("error")
+                        .data("FEHLER: " + e.getMessage()));
+                } catch (IOException ioException) {
+                }
+                emitter.completeWithError(e);
+            }
+        });
+        
+        return emitter;
     }
 
     public CalculationResult calculateSeasonWithLogs(Long seasonId) {

@@ -1,0 +1,18 @@
+UPDATE ffl_team SET short_name = 'Bodenständig, Rekordtrainer.' WHERE name = 'Heidenheim';
+UPDATE ffl_team SET short_name = 'Traditionsclub mit Geißbock.' WHERE name = '1. FC Köln';
+UPDATE ffl_team SET short_name = 'Eiserne mit enger Fan-Bindung.' WHERE name = '1. FC Union Berlin';
+UPDATE ffl_team SET short_name = 'Talentschmiede im Karneval.' WHERE name = '1. FSV Mainz 05';
+UPDATE ffl_team SET short_name = 'Werksclub und Meister 2024.' WHERE name = 'Bayer Leverkusen';
+UPDATE ffl_team SET short_name = 'Dominanter Rekordmeister.' WHERE name = 'Bayern München';
+UPDATE ffl_team SET short_name = 'Traditionsreiche Fohlenelf.' WHERE name = 'Borussia M''gladbach';
+UPDATE ffl_team SET short_name = 'Macht mit Gelber Wand.' WHERE name = 'Borussia Dortmund';
+UPDATE ffl_team SET short_name = 'Magische Europapokalnächte.' WHERE name = 'Eintracht Frankfurt';
+UPDATE ffl_team SET short_name = 'Kämpferische Fuggerstädter.' WHERE name = 'FC Augsburg';
+UPDATE ffl_team SET short_name = 'Kultclub vom Hamburger Kiez.' WHERE name = 'FC St. Pauli';
+UPDATE ffl_team SET short_name = 'Gefallener Bundesliga-Dino.' WHERE name = 'Hamburger SV';
+UPDATE ffl_team SET short_name = 'Modernes Red-Bull-Projekt.' WHERE name = 'RB Leipzig';
+UPDATE ffl_team SET short_name = 'Sympathischer Breisgau-Club.' WHERE name = 'SC Freiburg';
+UPDATE ffl_team SET short_name = 'Analytischer Kraichgau-Club.' WHERE name = 'TSG Hoffenheim';
+UPDATE ffl_team SET short_name = 'Stolzer Schwaben-Club.' WHERE name = 'VfB Stuttgart';
+UPDATE ffl_team SET short_name = 'VW-Werksclub mit Ambitionen.' WHERE name = 'VfL Wolfsburg';
+UPDATE ffl_team SET short_name = 'Familiärer Club an der Weser.' WHERE name = 'Werder Bremen';

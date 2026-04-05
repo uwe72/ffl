@@ -12,7 +12,7 @@ export default function Teams() {
     <div>
       <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Teams</h1>
       {teams && teams.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {teams.map(team => (
             <Card key={team.id} className="p-6 bg-[#1a2028] border border-[#2d3748] hover:border-[#c9a66b] hover:bg-[#242d38] transition-all">
               <RouterLink to={`/teams/${team.id}`} className="block link">

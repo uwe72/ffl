@@ -20,6 +20,8 @@ public class PlayerDto {
     private Integer managerCount;
     private List<ManagerInfo> managers;
     private Integer points;
+    private Integer positionTotal;
+    private Integer pointsLastRound;
 
     public static PlayerDto fromEntity(Player player) {
         PlayerDto dto = new PlayerDto();
@@ -111,6 +113,10 @@ public class PlayerDto {
     public void setManagers(List<ManagerInfo> managers) { this.managers = managers; }
     public Integer getPoints() { return points; }
     public void setPoints(Integer points) { this.points = points; }
+    public Integer getPositionTotal() { return positionTotal; }
+    public void setPositionTotal(Integer positionTotal) { this.positionTotal = positionTotal; }
+    public Integer getPointsLastRound() { return pointsLastRound; }
+    public void setPointsLastRound(Integer pointsLastRound) { this.pointsLastRound = pointsLastRound; }
 
     public static class TeamInfo {
         private Long id;
@@ -135,6 +141,13 @@ public class PlayerDto {
         private Long id;
         private String name;
         private String shortName;
+        private String firstName;
+        private String lastName;
+        private Integer teamValue;
+        private String paymentState;
+        private Integer positionTotal;
+        private Integer pointsTotal;
+        private Integer pointsLastRound;
         private boolean hinrunde;
         private boolean rueckrunde;
 
@@ -144,6 +157,20 @@ public class PlayerDto {
         public void setName(String name) { this.name = name; }
         public String getShortName() { return shortName; }
         public void setShortName(String shortName) { this.shortName = shortName; }
+        public String getFirstName() { return firstName; }
+        public void setFirstName(String firstName) { this.firstName = firstName; }
+        public String getLastName() { return lastName; }
+        public void setLastName(String lastName) { this.lastName = lastName; }
+        public Integer getTeamValue() { return teamValue; }
+        public void setTeamValue(Integer teamValue) { this.teamValue = teamValue; }
+        public String getPaymentState() { return paymentState; }
+        public void setPaymentState(String paymentState) { this.paymentState = paymentState; }
+        public Integer getPositionTotal() { return positionTotal; }
+        public void setPositionTotal(Integer positionTotal) { this.positionTotal = positionTotal; }
+        public Integer getPointsTotal() { return pointsTotal; }
+        public void setPointsTotal(Integer pointsTotal) { this.pointsTotal = pointsTotal; }
+        public Integer getPointsLastRound() { return pointsLastRound; }
+        public void setPointsLastRound(Integer pointsLastRound) { this.pointsLastRound = pointsLastRound; }
         public boolean isHinrunde() { return hinrunde; }
         public void setHinrunde(boolean hinrunde) { this.hinrunde = hinrunde; }
         public boolean isRueckrunde() { return rueckrunde; }

@@ -33,12 +33,21 @@ export interface Player {
   managerCount?: number
   managers?: ManagerInfo[]
   points?: number
+  positionTotal?: number
+  pointsLastRound?: number
 }
 
 export interface ManagerInfo {
   id: number
   name: string
   shortName?: string
+  firstName?: string
+  lastName?: string
+  teamValue?: number
+  paymentState?: string
+  positionTotal?: number
+  pointsTotal?: number
+  pointsLastRound?: number
   hinrunde: boolean
   rueckrunde: boolean
 }
@@ -94,6 +103,7 @@ export interface Manager {
   pointsLastRound?: number
   positionTotal?: number
   positionLastRound?: number
+  positionChange?: number
   playerGoalkeeper?: Player
   playerDefender1?: Player
   playerDefender2?: Player

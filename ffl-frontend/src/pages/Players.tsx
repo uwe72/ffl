@@ -17,13 +17,13 @@ export const positionColors: Record<string, 'warning' | 'accent' | 'success' | '
   STRIKER: 'danger'
 }
 
-type SortKey = 'nameKicker' | 'position' | 'prize' | 'managerCount' | 'points'
+type SortKey = 'positionTotal' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position'
 type SortOrder = 'asc' | 'desc'
 
 export default function Players() {
   const [selectedPosition, setSelectedPosition] = useState<string>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
-  const [sortKey, setSortKey] = useState<SortKey>('nameKicker')
+  const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
 
   const { data: players, isLoading, error } = usePlayers()
@@ -58,20 +58,26 @@ export default function Players() {
     return filtered.sort((a, b) => {
       let comparison = 0
       switch (sortKey) {
+        case 'positionTotal':
+          comparison = (a.positionTotal ?? 999) - (b.positionTotal ?? 999)
+          break
         case 'nameKicker':
           comparison = a.nameKicker.localeCompare(b.nameKicker)
           break
-        case 'position':
-          comparison = a.position.localeCompare(b.position)
+        case 'points':
+          comparison = (b.points ?? 0) - (a.points ?? 0)
           break
-        case 'prize':
-          comparison = a.prize - b.prize
+        case 'pointsLastRound':
+          comparison = (b.pointsLastRound ?? 0) - (a.pointsLastRound ?? 0)
           break
         case 'managerCount':
           comparison = (a.managerCount ?? 0) - (b.managerCount ?? 0)
           break
-        case 'points':
-          comparison = (a.points ?? 0) - (b.points ?? 0)
+        case 'prize':
+          comparison = a.prize - b.prize
+          break
+        case 'position':
+          comparison = a.position.localeCompare(b.position)
           break
       }
       return sortOrder === 'asc' ? comparison : -comparison
@@ -121,36 +127,45 @@ export default function Players() {
           <Table.ScrollContainer>
             <Table.Content aria-label="Spieler-Tabelle">
               <Table.Header>
-                <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('nameKicker')}>
+                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionTotal')}>
+                  Pos<SortIcon column="positionTotal" />
+                </Table.Column>
+                <Table.Column className="text-[#c9a66b] cursor-pointer hover:text-[#f5f5f5]" onClick={() => handleSort('nameKicker')}>
                   Name<SortIcon column="nameKicker" />
+                </Table.Column>
+                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('points')}>
+                  Pkt<SortIcon column="points" />
+                </Table.Column>
+                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('pointsLastRound')}>
+                  Letzter Spieltag<SortIcon column="pointsLastRound" />
+                </Table.Column>
+                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('managerCount')}>
+                  Manager<SortIcon column="managerCount" />
+                </Table.Column>
+                <Table.Column className="text-[#a0aec0] text-right cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('prize')}>
+                  Preis<SortIcon column="prize" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('position')}>
                   Position<SortIcon column="position" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0]">Team</Table.Column>
-                <Table.Column className="text-[#a0aec0] text-right cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('prize')}>
-                  Preis<SortIcon column="prize" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] text-right cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('points')}>
-                  Punkte<SortIcon column="points" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('managerCount')}>
-                  Manager<SortIcon column="managerCount" />
-                </Table.Column>
               </Table.Header>
               <Table.Body>
                 {filteredPlayers && filteredPlayers.length > 0 ? (
                   filteredPlayers.map((player) => (
                     <Table.Row key={player.id} className="hover:bg-[#242d38]">
+                      <Table.Cell className="text-center font-medium text-[#f5f5f5]">
+                        {player.positionTotal ? `${player.positionTotal}.` : '-'}
+                      </Table.Cell>
                       <Table.Cell>
-                        <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-[#c9a66b] link">
+                        <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-[#f5f5f5] link">
                           {player.pictureUrl && (
                             <Avatar size="sm" className="mr-3">
                               <Avatar.Image src={player.pictureUrl} alt={player.nameKicker} />
                             </Avatar>
                           )}
                           <div>
-                            <div className="font-medium text-[#f5f5f5]">{player.nameKicker}</div>
+                            <div className="font-medium text-[#c9a66b]">{player.nameKicker}</div>
                             {player.firstName && player.lastName && (
                               <div className="text-sm text-[#6b7280]">
                                 {player.firstName} {player.lastName}
@@ -158,6 +173,27 @@ export default function Players() {
                             )}
                           </div>
                         </RouterLink>
+                      </Table.Cell>
+                      <Table.Cell className="text-center font-medium text-[#f5f5f5]">
+                        {player.points ?? '-'}
+                      </Table.Cell>
+                      <Table.Cell className="text-center text-[#a0aec0]">
+                        {player.pointsLastRound ?? '-'}
+                      </Table.Cell>
+                      <Table.Cell className="text-center">
+                        <RouterLink to={`/players/${player.id}`}>
+                          <Chip 
+                            size="sm" 
+                            variant="soft" 
+                            color={player.managerCount && player.managerCount > 0 ? 'accent' : 'default'}
+                            className="cursor-pointer hover:opacity-80"
+                          >
+                            {player.managerCount ?? 0}
+                          </Chip>
+                        </RouterLink>
+                      </Table.Cell>
+                      <Table.Cell className="text-right font-medium text-[#f5f5f5]">
+                        {player.prize.toLocaleString()} €
                       </Table.Cell>
                       <Table.Cell>
                         <Chip size="sm" color={positionColors[player.position]} variant="soft">
@@ -180,29 +216,11 @@ export default function Players() {
                           </span>
                         ) : '-'}
                       </Table.Cell>
-                      <Table.Cell className="text-right font-medium text-[#c9a66b]">
-                        {player.prize.toLocaleString()} €
-                      </Table.Cell>
-                      <Table.Cell className="text-right font-medium text-[#f5f5f5]">
-                        {player.points ?? 0}
-                      </Table.Cell>
-                      <Table.Cell className="text-center">
-                        <RouterLink to={`/players/${player.id}`}>
-                          <Chip 
-                            size="sm" 
-                            variant="soft" 
-                            color={player.managerCount && player.managerCount > 0 ? 'accent' : 'default'}
-                            className="cursor-pointer hover:opacity-80"
-                          >
-                            {player.managerCount ?? 0}
-                          </Chip>
-                        </RouterLink>
-                      </Table.Cell>
                     </Table.Row>
                   ))
                 ) : (
                   <Table.Row>
-                    <Table.Cell colSpan={6} className="text-center text-[#6b7280] py-8">
+                    <Table.Cell colSpan={8} className="text-center text-[#6b7280] py-8">
                       Keine Spieler gefunden
                     </Table.Cell>
                   </Table.Row>

@@ -8,7 +8,7 @@ const paymentStateLabels = {
   NOT_PAID: 'Nicht bezahlt'
 }
 
-type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'pointsTotal' | 'pointsLastRound'
+type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
 type SortOrder = 'asc' | 'desc'
 
 export default function Managers() {
@@ -60,6 +60,9 @@ export default function Managers() {
         case 'positionTotal':
           comparison = (a.positionTotal || 999) - (b.positionTotal || 999)
           break
+        case 'positionChange':
+          comparison = (a.positionChange || 0) - (b.positionChange || 0)
+          break
         case 'pointsTotal':
           comparison = (b.pointsTotal || 0) - (a.pointsTotal || 0)
           break
@@ -95,6 +98,9 @@ export default function Managers() {
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionTotal')}>
                   Pos<SortIcon column="positionTotal" />
                 </Table.Column>
+                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionChange')}>
+                  +-<SortIcon column="positionChange" />
+                </Table.Column>
                 <Table.Column className="text-[#c9a66b] cursor-pointer hover:text-[#f5f5f5]" onClick={() => handleSort('shortName')}>
                   Manager<SortIcon column="shortName" />
                 </Table.Column>
@@ -102,7 +108,7 @@ export default function Managers() {
                   Pkt<SortIcon column="pointsTotal" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('pointsLastRound')}>
-                  Letzte Rd<SortIcon column="pointsLastRound" />
+                  Letzter Spieltag<SortIcon column="pointsLastRound" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('firstName')}>
                   Vorname<SortIcon column="firstName" />
@@ -121,6 +127,15 @@ export default function Managers() {
                     <Table.Row key={manager.id} className="hover:bg-[#242d38]">
                       <Table.Cell className="text-center font-medium text-[#f5f5f5]">
                         {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
+                      </Table.Cell>
+                      <Table.Cell className="text-center">
+                        {manager.positionChange != null && manager.positionChange !== 0 ? (
+                          <span className={`font-medium ${manager.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
+                          </span>
+                        ) : (
+                          <span className="text-[#6b7280]">-</span>
+                        )}
                       </Table.Cell>
                       <Table.Cell className="text-[#c9a66b]">
                         <RouterLink to={`/managers/${manager.id}`} className="hover:text-[#f5f5f5] link font-medium">
@@ -155,7 +170,7 @@ export default function Managers() {
                   ))
                 ) : (
                   <Table.Row>
-                    <Table.Cell colSpan={8} className="text-center text-[#6b7280] py-8">
+                    <Table.Cell colSpan={9} className="text-center text-[#6b7280] py-8">
                       Keine Manager gefunden
                     </Table.Cell>
                   </Table.Row>

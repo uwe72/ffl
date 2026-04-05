@@ -67,6 +67,12 @@ public class PlayerController {
         return playerService.findByTeamAndSeason(teamId, seasonId);
     }
 
+    @GetMapping("/season/{seasonId}/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<PlayerSearchDto> getAllPlayersBySeason(@PathVariable Long seasonId) {
+        return playerService.findBySeasonIdAsSearchDto(seasonId);
+    }
+
     @PostMapping("/{playerId}/assign-team/{teamId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> assignPlayerToTeam(

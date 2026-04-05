@@ -20,11 +20,13 @@ public class GameService {
     private final GameRepository gameRepository;
     private final PointsRepository pointsRepository;
     private final FormationConverterService formationConverterService;
+    private final GameImportService gameImportService;
 
-    public GameService(GameRepository gameRepository, PointsRepository pointsRepository, FormationConverterService formationConverterService) {
+    public GameService(GameRepository gameRepository, PointsRepository pointsRepository, FormationConverterService formationConverterService, GameImportService gameImportService) {
         this.gameRepository = gameRepository;
         this.pointsRepository = pointsRepository;
         this.formationConverterService = formationConverterService;
+        this.gameImportService = gameImportService;
     }
 
     public List<GameDto> findAll() {
@@ -83,9 +85,13 @@ public class GameService {
         game.setFormationExtern(formationExtern);
         game.setFormationIntern(formationIntern);
         game.setFormation(formationIntern);
-        game = gameRepository.save(game);
+        gameRepository.save(game);
         
-        return convertToDto(game);
+        gameImportService.validateAndImport(id);
+        
+        return gameRepository.findById(id)
+            .map(this::convertToDtoWithPlayers)
+            .orElse(null);
     }
     
     public FormationConverterService.ValidationResult validateFormationExtern(String formationExtern) {

@@ -86,7 +86,7 @@ export default function ManagerGroups() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-[#f5f5f5]">Managergruppen</h1>
+        <h1 className="text-3xl font-bold text-[#f5f5f5]">Gruppen</h1>
         <Button
           onPress={() => setIsCreateModalOpen(true)}
           className="bg-[#c9a66b] text-[#0f1419]"

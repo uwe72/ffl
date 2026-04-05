@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.time.LocalDate;
 
 @Configuration
@@ -18,9 +21,15 @@ public class DataSeeder {
             SeasonRepository seasonRepository,
             TeamRepository teamRepository,
             PlayerRepository playerRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            DataSource dataSource
     ) {
         return args -> {
+            try (Connection conn = dataSource.getConnection();
+                 Statement stmt = conn.createStatement()) {
+                stmt.execute("ALTER TABLE ffl_player ALTER COLUMN id RESTART WITH (SELECT COALESCE(MAX(id), 0) + 1 FROM ffl_player)");
+            } catch (Exception ignored) {}
+            
             if (userRepository.count() == 0) {
                 User admin = User.builder()
                         .login("admin")

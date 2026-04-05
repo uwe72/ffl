@@ -1,16 +1,23 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { useGames, useLatestCompletedRound } from '../hooks/useGames'
+import { useGames, useGame } from '../hooks/useGames'
+import { useCurrentSeason } from '../hooks/useSeasons'
+import { useQueryClient } from '@tanstack/react-query'
+import FormationImportDialog from '../components/FormationImportDialog'
 
 type SortKey = 'roundNumber' | 'name' | 'hostName' | 'visitorName' | 'goalHost' | 'goalVisitor'
 type SortOrder = 'asc' | 'desc'
 
 export default function Games() {
   const { data: games, isLoading: gamesLoading, error } = useGames()
-  const { data: latestRound } = useLatestCompletedRound()
+  const { data: currentSeason } = useCurrentSeason()
   const [sortKey, setSortKey] = useState<SortKey>('roundNumber')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [selectedRound, setSelectedRound] = useState<number | null>(null)
+  const [importGameId, setImportGameId] = useState<number | null>(null)
+  const queryClient = useQueryClient()
+  
+  const { data: importGame } = useGame(importGameId || 0)
 
   const rounds = useMemo(() => {
     if (!games) return []
@@ -19,12 +26,12 @@ export default function Games() {
   }, [games])
 
   useEffect(() => {
-    if (latestRound !== undefined && latestRound !== null && selectedRound === null) {
-      setSelectedRound(latestRound)
-    } else if (rounds.length > 0 && selectedRound === null && latestRound === null) {
+    if (currentSeason?.currentMatchday && selectedRound === null) {
+      setSelectedRound(currentSeason.currentMatchday)
+    } else if (rounds.length > 0 && selectedRound === null && !currentSeason?.currentMatchday) {
       setSelectedRound(Math.max(...rounds))
     }
-  }, [rounds, selectedRound, latestRound])
+  }, [rounds, selectedRound, currentSeason?.currentMatchday])
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -81,10 +88,21 @@ export default function Games() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Spiele Übersicht</h1>
+      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Spiele</h1>
       
-      <div className="mb-4 flex items-center gap-4">
+      <div className="mb-4 flex items-center gap-2">
         <label className="text-[#a0aec0] text-sm">Spieltag:</label>
+        <button
+          onClick={() => {
+            const currentIndex = rounds.indexOf(selectedRound!)
+            if (currentIndex > 0) setSelectedRound(rounds[currentIndex - 1])
+          }}
+          disabled={!selectedRound || rounds.indexOf(selectedRound) <= 0}
+          className="p-2 rounded-lg bg-[#1a2028] border border-[#2d3748] text-[#f5f5f5] hover:border-[#c9a66b] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#2d3748] transition-colors"
+          title="Vorheriger Spieltag"
+        >
+          ←
+        </button>
         <select
           value={selectedRound || ''}
           onChange={(e) => setSelectedRound(e.target.value ? Number(e.target.value) : null)}
@@ -96,6 +114,17 @@ export default function Games() {
             </option>
           ))}
         </select>
+        <button
+          onClick={() => {
+            const currentIndex = rounds.indexOf(selectedRound!)
+            if (currentIndex < rounds.length - 1) setSelectedRound(rounds[currentIndex + 1])
+          }}
+          disabled={!selectedRound || rounds.indexOf(selectedRound) >= rounds.length - 1}
+          className="p-2 rounded-lg bg-[#1a2028] border border-[#2d3748] text-[#f5f5f5] hover:border-[#c9a66b] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#2d3748] transition-colors"
+          title="Nächster Spieltag"
+        >
+          →
+        </button>
       </div>
 
       {sortedGames.length > 0 ? (
@@ -133,26 +162,54 @@ export default function Games() {
                       </RouterLink>
                     </td>
                     <td className="px-4 py-3 text-[#f5f5f5]">
-                      <div>
-                        <div className="font-medium">{game.hostName || '-'}</div>
-                        {game.hostShortName && (
-                          <div className="text-sm text-[#6b7280]">{game.hostShortName}</div>
+                      <div className="flex items-center gap-3">
+                        {game.hostLogoUrl && (
+                          <img 
+                            src={game.hostLogoUrl} 
+                            alt={game.hostName}
+                            className="h-8 w-8 object-contain flex-shrink-0"
+                          />
                         )}
+                        <div>
+                          <div className="font-medium">{game.hostName || '-'}</div>
+                          {game.hostShortName && (
+                            <div className="text-sm text-[#6b7280]">{game.hostShortName}</div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#242d38]">
-                        <span className="text-[#f5f5f5] font-semibold">{game.goalHost ?? '-'}</span>
-                        <span className="text-[#6b7280]">:</span>
-                        <span className="text-[#f5f5f5] font-semibold">{game.goalVisitor ?? '-'}</span>
-                      </span>
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#242d38]">
+                          <span className="text-[#f5f5f5] font-semibold">{game.goalHost ?? '-'}</span>
+                          <span className="text-[#6b7280]">:</span>
+                          <span className="text-[#f5f5f5] font-semibold">{game.goalVisitor ?? '-'}</span>
+                        </span>
+                        {game.goalHost == null && game.goalVisitor == null && (
+                          <button
+                            onClick={() => setImportGameId(game.id)}
+                            className="px-2 py-1 text-xs rounded bg-[#c9a66b] text-[#1a2028] font-medium hover:bg-[#b8956a]"
+                          >
+                            Import
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-[#f5f5f5]">
-                      <div>
-                        <div className="font-medium">{game.visitorName || '-'}</div>
-                        {game.visitorShortName && (
-                          <div className="text-sm text-[#6b7280]">{game.visitorShortName}</div>
+                      <div className="flex items-center gap-3">
+                        {game.visitorLogoUrl && (
+                          <img 
+                            src={game.visitorLogoUrl} 
+                            alt={game.visitorName}
+                            className="h-8 w-8 object-contain flex-shrink-0"
+                          />
                         )}
+                        <div>
+                          <div className="font-medium">{game.visitorName || '-'}</div>
+                          {game.visitorShortName && (
+                            <div className="text-sm text-[#6b7280]">{game.visitorShortName}</div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -166,6 +223,20 @@ export default function Games() {
           Keine Spiele gefunden
         </div>
       )}
+
+      <FormationImportDialog
+        isOpen={importGameId !== null}
+        onClose={() => setImportGameId(null)}
+        onImport={() => {
+          queryClient.invalidateQueries({ queryKey: ['games'] })
+          if (importGameId) {
+            queryClient.invalidateQueries({ queryKey: ['games', importGameId] })
+          }
+        }}
+        initialValue={importGame?.formationExtern || ''}
+        gameId={importGameId || 0}
+        game={importGame}
+      />
     </div>
   )
 }

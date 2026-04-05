@@ -7,14 +7,19 @@ import de.ffl.dto.FormationValidationResult;
 import de.ffl.dto.MissingPlayerInfo;
 import de.ffl.repository.GameRepository;
 import de.ffl.repository.PlayerRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class FormationConverterService {
 
+    private static final Logger log = LoggerFactory.getLogger(FormationConverterService.class);
     private static final String FFL_LINE_BREAK = "_LB_";
     
     private final GameRepository gameRepository;
@@ -30,18 +35,45 @@ public class FormationConverterService {
             return null;
         }
         
+        log.info("=== CONVERT TO INTERN ===");
+        log.info("Input Länge: {}", extern.length());
+        int inputStart = Math.max(0, extern.length() - 50);
+        log.info("Letzte 50 Zeichen Input: [{}]", extern.substring(inputStart));
+        
+        log.info("=== Letzte 20 Zeichen als Codes ===");
+        String lastPart = extern.substring(Math.max(0, extern.length() - 20));
+        for (int i = 0; i < lastPart.length(); i++) {
+            char c = lastPart.charAt(i);
+            log.info("  [{}]: '{}' (ASCII: {})", i, c, (int)c);
+        }
+        
         String normalized = extern
             .replace("\r\n", "\n")
             .replace("\r", "\n")
             .replaceAll("\\n+", "_LB_")
             .replaceAll("_LB__LB_+", "_LB_");
         
+        log.info("=== Nach replaceAll ===");
+        log.info("Normalized Länge: {}", normalized.length());
+        int normStart = Math.max(0, normalized.length() - 50);
+        log.info("Letzte 50 Zeichen normalized: [{}]", normalized.substring(normStart));
+        
         if (normalized.startsWith("_LB_")) {
-            normalized = normalized.substring(5);
+            log.info("=== Entferne _LB_ am Anfang ===");
+            normalized = normalized.substring(4);
+            log.info("Nach Entfernen Anfang, Länge: {}", normalized.length());
         }
         if (normalized.endsWith("_LB_")) {
-            normalized = normalized.substring(0, normalized.length() - 5);
+            log.info("=== Entferne _LB_ am Ende ===");
+            log.info("Vorher: Letzte 10 Zeichen: [{}]", normalized.substring(Math.max(0, normalized.length() - 10)));
+            normalized = normalized.substring(0, normalized.length() - 4);
+            log.info("Nachher: Letzte 10 Zeichen: [{}]", normalized.substring(Math.max(0, normalized.length() - 10)));
+            log.info("Nach Entfernen Ende, Länge: {}", normalized.length());
         }
+        
+        log.info("Output Länge: {}", normalized.length());
+        int outputStart = Math.max(0, normalized.length() - 50);
+        log.info("Letzte 50 Zeichen Output: [{}]", normalized.substring(outputStart));
         
         return normalized;
     }
@@ -187,7 +219,7 @@ public class FormationConverterService {
             if (line == null || line.trim().isEmpty()) continue;
             String trimmed = line.trim();
             
-            if (Character.isDigit(trimmed.charAt(0))) continue;
+            if (!Character.isAlphabetic(trimmed.charAt(0))) continue;
             if (trimmed.startsWith("Rechtsschuss") || trimmed.startsWith("Linksschuss") || 
                 trimmed.startsWith("Kopfball") || trimmed.startsWith("Brust")) continue;
             if (trimmed.contains("(Eigentor)")) continue;
@@ -233,6 +265,7 @@ public class FormationConverterService {
         String wechsel = formation.substring(wechselStart + 7);
         String[] lines = wechsel.split(FFL_LINE_BREAK);
 
+        Set<String> activePlayers = new HashSet<>(startingPlayers);
         List<String> allPlayers = new ArrayList<>();
         for (String line : lines) {
             if (line == null || line.trim().isEmpty()) continue;
@@ -243,16 +276,13 @@ public class FormationConverterService {
             }
         }
 
-        java.util.Map<String, String> auswechselMap = new java.util.HashMap<>();
         for (int i = 0; i < allPlayers.size() - 1; i += 2) {
             String eingewechselt = allPlayers.get(i);
             String ausgewechselt = allPlayers.get(i + 1);
-            auswechselMap.put(eingewechselt, ausgewechselt);
-        }
-
-        for (String eingewechselt : auswechselMap.keySet()) {
-            String ausgewechselt = auswechselMap.get(eingewechselt);
-            if (startingPlayers.contains(ausgewechselt)) {
+            
+            if (activePlayers.contains(ausgewechselt)) {
+                activePlayers.remove(ausgewechselt);
+                activePlayers.add(eingewechselt);
                 result.add(eingewechselt);
             }
         }

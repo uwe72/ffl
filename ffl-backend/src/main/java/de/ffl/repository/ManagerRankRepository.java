@@ -20,7 +20,7 @@ public interface ManagerRankRepository extends JpaRepository<ManagerRank, Long> 
     List<ManagerRank> findByManagerIdOrderByRoundIdAsc(Long managerId);
     Optional<ManagerRank> findByManagerIdAndRoundId(Long managerId, Long roundId);
     
-    @Query("SELECT mr FROM ManagerRank mr WHERE mr.manager.id IN :managerIds")
+    @Query("SELECT mr FROM ManagerRank mr LEFT JOIN FETCH mr.round WHERE mr.manager.id IN :managerIds")
     List<ManagerRank> findByManagerIdIn(@Param("managerIds") List<Long> managerIds);
 
     @Query("SELECT mr FROM ManagerRank mr JOIN mr.round r WHERE mr.manager.id = :managerId AND r.number = :roundNumber")

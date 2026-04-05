@@ -4,8 +4,10 @@ import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.service.SeasonService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -79,6 +81,11 @@ public class SeasonController {
         }
         SeasonService.CalculationResult result = seasonService.calculateSeasonWithLogs(id);
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping(value = "/{id}/calculate-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter calculateSeasonStream(@PathVariable Long id) {
+        return seasonService.calculateSeasonStream(id);
     }
 
     @DeleteMapping("/{id}")

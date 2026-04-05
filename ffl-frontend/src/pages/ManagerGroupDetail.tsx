@@ -351,7 +351,7 @@ export default function ManagerGroupDetail() {
                   className="px-3 py-2 text-center text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
                   onClick={() => handleSort('pointsLastRound')}
                 >
-                  Letzte Rd<SortIcon column="pointsLastRound" />
+                  Letzter Spieltag<SortIcon column="pointsLastRound" />
                 </th>
                 {group.editable && (
                   <th className="px-3 py-2 text-right text-[#a0aec0] font-medium border-b border-[#2d3748]">

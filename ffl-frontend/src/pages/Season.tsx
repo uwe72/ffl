@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Card, TextField, Label, Input, Button } from '@heroui/react'
 import { useCurrentSeason, useUpdateSeason } from '../hooks/useSeasons'
-import { seasonApi, type CalculationResult } from '../api/seasons'
+import CalculationDialog from '../components/CalculationDialog'
 import type { Season, SeasonState } from '../types'
 
 const seasonStateOptions: { value: SeasonState; label: string }[] = [
@@ -16,8 +16,7 @@ export default function Season() {
   
   const [formData, setFormData] = useState<Partial<Season>>({})
   const [hasChanges, setHasChanges] = useState(false)
-  const [calculating, setCalculating] = useState(false)
-  const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null)
+  const [showCalcDialog, setShowCalcDialog] = useState(false)
 
   useEffect(() => {
     if (season) {
@@ -42,23 +41,8 @@ export default function Season() {
     setHasChanges(false)
   }
 
-  const handleCalculate = async () => {
-    if (!season) return
-    setCalculating(true)
-    setCalculationResult(null)
-    try {
-      const res = await seasonApi.calculate(season.id)
-      setCalculationResult(res.data)
-    } catch (err) {
-      console.error('Fehler bei der Berechnung', err)
-      setCalculationResult({
-        success: false,
-        log: '',
-        error: 'Fehler beim Aufruf der Berechnung'
-      })
-    } finally {
-      setCalculating(false)
-    }
+  const handleCalculate = () => {
+    setShowCalcDialog(true)
   }
 
   if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
@@ -67,7 +51,7 @@ export default function Season() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Saison bearbeiten</h1>
+      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Saison</h1>
       
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
@@ -176,29 +160,18 @@ export default function Season() {
         <Button
           variant="primary"
           onPress={handleCalculate}
-          isDisabled={calculating}
           className="bg-[#c9a66b] text-[#0f1419] font-medium"
         >
-          {calculating ? 'Berechne...' : 'Punkte neu berechnen'}
+          Punkte neu berechnen
         </Button>
       </div>
 
-      {calculationResult && (
-        <div className="mt-6">
-          <div className={`p-4 rounded-t-lg ${calculationResult.success ? 'bg-blue-900/30 border border-blue-700' : 'bg-red-900/30 border border-red-800'}`}>
-            <span className={calculationResult.success ? 'text-blue-400 font-semibold' : 'text-red-400 font-semibold'}>
-              {calculationResult.success ? 'Berechnung erfolgreich abgeschlossen' : 'Fehler bei der Berechnung'}
-            </span>
-            {calculationResult.error && (
-              <span className="text-red-400 ml-2">- {calculationResult.error}</span>
-            )}
-          </div>
-          <textarea
-            readOnly
-            value={calculationResult.log || 'Kein Log verfügbar'}
-            className={`w-full h-64 p-4 font-mono text-sm bg-[#0f1419] text-[#a0aec0] border border-[#2d3748] rounded-b-lg resize-y ${calculationResult.success ? '' : 'border-red-800'}`}
-          />
-        </div>
+      {season && (
+        <CalculationDialog
+          isOpen={showCalcDialog}
+          onClose={() => setShowCalcDialog(false)}
+          seasonId={season.id}
+        />
       )}
     </div>
   )

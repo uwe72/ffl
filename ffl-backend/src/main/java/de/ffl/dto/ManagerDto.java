@@ -36,6 +36,7 @@ public class ManagerDto {
     private PlayerDto playerExchangedNew2;
     private PlayerDto playerExchangedNew3;
     private Integer currentMatchday;
+    private Integer positionChange;
 
     public static ManagerDto fromEntity(Manager manager) {
         ManagerDto dto = new ManagerDto();
@@ -196,4 +197,6 @@ public class ManagerDto {
     public void setPositionLastRound(Integer positionLastRound) { this.positionLastRound = positionLastRound; }
     public Integer getCurrentMatchday() { return currentMatchday; }
     public void setCurrentMatchday(Integer currentMatchday) { this.currentMatchday = currentMatchday; }
+    public Integer getPositionChange() { return positionChange; }
+    public void setPositionChange(Integer positionChange) { this.positionChange = positionChange; }
 }
