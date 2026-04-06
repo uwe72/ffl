@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import { Button, Card, Alert, TextField, Label, Input } from '@heroui/react'
 import { useAuth } from '../context/AuthContext'
+import { useCurrentSeason } from '../hooks/useSeasons'
 
 export default function Login() {
   const [login, setLogin] = useState('')
@@ -9,6 +10,7 @@ export default function Login() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const { login: authLogin } = useAuth()
+  const { data: season } = useCurrentSeason()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,8 +29,8 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f1419] py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="max-w-md w-full p-8 bg-[#1a2028] border border-[#2d3748]">
+    <div className="min-h-screen flex items-center justify-center bg-[#0f1419] py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background.png')" }}>
+      <Card className="max-w-md w-full p-8 bg-[#1a2028]/80 backdrop-blur-md border border-[#2d3748]/50 shadow-xl">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-[#f5f5f5]">Anmelden</h2>
         </div>
@@ -69,11 +71,13 @@ export default function Login() {
           >
             {isLoading ? 'Wird geladen...' : 'Anmelden'}
           </Button>
-          <div className="text-center">
-            <RouterLink to="/register" className="text-[#c9a66b] hover:text-[#d4b77a] link">
-              Noch kein Konto? Registrieren
-            </RouterLink>
-          </div>
+          {season?.seasonState === 'BEFORE_SEASON' && (
+            <div className="text-center">
+              <RouterLink to="/register" className="text-[#c9a66b] hover:text-[#d4b77a] link">
+                Noch kein Konto? Registrieren
+              </RouterLink>
+            </div>
+          )}
         </form>
       </Card>
     </div>

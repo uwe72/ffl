@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Table, Button, Input, Chip, Card, Avatar } from '@heroui/react'
+import { Table, Button, Chip, Card, Avatar } from '@heroui/react'
 import { usePlayers } from '../hooks/usePlayers'
+import type { Team } from '../types'
 
 export const positionLabels: Record<string, string> = {
   GOALKEEPER: 'Torwart',
@@ -20,13 +21,83 @@ export const positionColors: Record<string, 'warning' | 'accent' | 'success' | '
 type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position'
 type SortOrder = 'asc' | 'desc'
 
+interface TeamDropdownProps {
+  teams: Team[]
+  selectedTeamId: number | 'ALL'
+  onSelect: (id: number | 'ALL') => void
+}
+
+function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const selectedTeam = teams.find(t => t.id === selectedTeamId)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="min-w-48 px-3 py-2 rounded-lg bg-[#242d38] border border-[#2d3748] text-[#f5f5f5] text-sm flex items-center justify-between gap-2 focus:outline-none focus:border-[#c9a66b] hover:border-[#3d4a5c] transition-colors"
+      >
+        <span className="flex items-center gap-2 truncate">
+          {selectedTeam?.logoSUrl && (
+            <img src={selectedTeam.logoSUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
+          )}
+          <span className="truncate">{selectedTeam?.name || 'Alle Vereine'}</span>
+        </span>
+        <span className="text-[#6b7280] text-xs">▼</span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1 w-full bg-[#1a2028] border border-[#2d3748] rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
+          <button
+            onClick={() => { onSelect('ALL'); setIsOpen(false) }}
+            className={`w-full px-3 py-2 text-left text-sm hover:bg-[#242d38] transition-colors ${selectedTeamId === 'ALL' ? 'bg-[#242d38] text-[#c9a66b]' : 'text-[#a0aec0]'}`}
+          >
+            Alle Vereine
+          </button>
+          {teams.map(team => (
+            <button
+              key={team.id}
+              onClick={() => { onSelect(team.id); setIsOpen(false) }}
+              className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-[#242d38] transition-colors ${selectedTeamId === team.id ? 'bg-[#242d38] text-[#c9a66b]' : 'text-[#f5f5f5]'}`}
+            >
+              {team.logoSUrl && (
+                <img src={team.logoSUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
+              )}
+              <span className="truncate">{team.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Players() {
   const [selectedPosition, setSelectedPosition] = useState<string>('ALL')
+  const [selectedTeamId, setSelectedTeamId] = useState<number | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
 
   const { data: players, isLoading, error } = usePlayers()
+
+  const teams = useMemo(() => {
+    if (!players) return []
+    const teamMap = new Map<number, Team>()
+    players.forEach(p => p.teams.forEach(t => teamMap.set(t.id, t)))
+    return Array.from(teamMap.values()).sort((a, b) => a.name.localeCompare(b.name))
+  }, [players])
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -47,12 +118,13 @@ export default function Players() {
     
     const filtered = players.filter(player => {
       const matchesPosition = selectedPosition === 'ALL' || player.position === selectedPosition
+      const matchesTeam = selectedTeamId === 'ALL' || player.teams.some(t => t.id === selectedTeamId)
       const matchesSearch = 
         player.nameKicker.toLowerCase().includes(searchTerm.toLowerCase()) ||
         player.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         player.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         player.teams.some(t => t.name.toLowerCase().includes(searchTerm.toLowerCase()))
-      return matchesPosition && matchesSearch
+      return matchesPosition && matchesTeam && matchesSearch
     })
 
     return filtered.sort((a, b) => {
@@ -85,7 +157,7 @@ export default function Players() {
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-  }, [players, selectedPosition, searchTerm, sortKey, sortOrder])
+  }, [players, selectedPosition, selectedTeamId, searchTerm, sortKey, sortOrder])
 
   if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
   if (error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
@@ -95,14 +167,7 @@ export default function Players() {
       <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Spieler</h1>
 
       <Card className="p-4 bg-[#1a2028] border border-[#2d3748]">
-        <div className="flex flex-wrap gap-4 mb-4">
-          <Input
-            placeholder="Spieler suchen..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-xs bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-          />
-          
+        <div className="flex flex-wrap gap-4 mb-4 items-center">
           <div className="flex gap-2 flex-wrap">
             <Button
               size="sm"
@@ -124,6 +189,21 @@ export default function Players() {
               </Button>
             ))}
           </div>
+
+          <div className="flex gap-3 items-center">
+            <input
+              type="text"
+              placeholder="Spieler suchen..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="min-w-48 px-3 py-2 rounded-lg bg-[#242d38] border border-[#2d3748] text-[#f5f5f5] text-sm placeholder-[#6b7280] focus:outline-none focus:border-[#c9a66b] hover:border-[#3d4a5c] transition-colors"
+            />
+            <TeamDropdown
+              teams={teams}
+              selectedTeamId={selectedTeamId}
+              onSelect={setSelectedTeamId}
+            />
+          </div>
         </div>
 
         <Table>
@@ -136,14 +216,14 @@ export default function Players() {
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionChange')}>
                   +-<SortIcon column="positionChange" />
                 </Table.Column>
-                <Table.Column className="text-[#c9a66b] cursor-pointer hover:text-[#f5f5f5]" onClick={() => handleSort('nameKicker')}>
+                <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('nameKicker')}>
                   Name<SortIcon column="nameKicker" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('points')}>
                   Pkt<SortIcon column="points" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('pointsLastRound')}>
-                  Letzter Spieltag<SortIcon column="pointsLastRound" />
+                  Spieltag<SortIcon column="pointsLastRound" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('managerCount')}>
                   Manager<SortIcon column="managerCount" />
@@ -217,10 +297,10 @@ export default function Players() {
                       </Table.Cell>
                       <Table.Cell className="text-[#a0aec0]">
                         {player.teams.length > 0 ? (
-                          <span className="flex items-center gap-3">
+                          <span className="flex items-center gap-1 flex-wrap">
                             {player.teams.map((team, index) => (
                               <span key={team.id} className="flex items-center gap-1">
-                                {index > 0 && ', '}
+                                {index > 0 && <span className="text-[#6b7280]">,</span>}
                                 {team.logoSUrl && (
                                   <img 
                                     src={team.logoSUrl} 
@@ -228,11 +308,7 @@ export default function Players() {
                                     className="w-5 h-5 object-contain flex-shrink-0"
                                   />
                                 )}
-                                {index === player.teams.length - 1 ? (
-                                  <span className="font-semibold text-[#f5f5f5]">{team.name}</span>
-                                ) : (
-                                  <span className="line-through text-[#6b7280]">{team.name}</span>
-                                )}
+                                <span className="font-semibold text-[#f5f5f5]">{team.name}</span>
                               </span>
                             ))}
                           </span>

@@ -1,5 +1,5 @@
 import api from './client'
-import type { Player, PlayerSearchDto } from '../types'
+import type { Player, PlayerSearchDto, PlayerRank } from '../types'
 
 export const playerApi = {
   getAll: () => api.get<Player[]>('/players'),
@@ -13,4 +13,6 @@ export const playerApi = {
     api.get<PlayerSearchDto[]>(`/players/search?seasonId=${seasonId}&name=${encodeURIComponent(name)}`),
   assignToTeam: (playerId: number, teamId: number, alternativeName?: string) => 
     api.post(`/players/${playerId}/assign-team/${teamId}${alternativeName ? `?alternativeName=${encodeURIComponent(alternativeName)}` : ''}`),
+  update: (id: number, data: Partial<Player>) => api.put<Player>(`/players/${id}`, data),
+  getRanks: (id: number) => api.get<PlayerRank[]>(`/players/${id}/ranks`),
 }

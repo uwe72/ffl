@@ -3,6 +3,7 @@ package de.ffl.controller;
 import de.ffl.domain.Player;
 import de.ffl.domain.Position;
 import de.ffl.dto.PlayerDto;
+import de.ffl.dto.PlayerRankDto;
 import de.ffl.dto.PlayerSearchDto;
 import de.ffl.service.PlayerService;
 import org.springframework.http.ResponseEntity;
@@ -87,5 +88,25 @@ public class PlayerController {
     @PreAuthorize("hasRole('ADMIN')")
     public PlayerDto createPlayer(@RequestBody Player player) {
         return PlayerDto.fromEntity(playerService.save(player));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PlayerDto> updatePlayer(@PathVariable Long id, @RequestBody PlayerDto updateData) {
+        PlayerDto updated = playerService.update(id, updateData);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
+
+    @GetMapping("/{id}/ranks")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PlayerRankDto>> getPlayerRanks(@PathVariable Long id) {
+        List<PlayerRankDto> ranks = playerService.findRanksByPlayerId(id);
+        if (ranks == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(ranks);
     }
 }

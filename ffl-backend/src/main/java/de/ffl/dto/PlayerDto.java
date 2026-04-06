@@ -11,6 +11,9 @@ import java.util.stream.Collectors;
 public class PlayerDto {
     private Long id;
     private String nameKicker;
+    private String nameKickerAlt1;
+    private String nameKickerAlt2;
+    private String nameKickerAlt3;
     private String firstName;
     private String lastName;
     private Position position;
@@ -23,11 +26,15 @@ public class PlayerDto {
     private Integer positionTotal;
     private Integer pointsLastRound;
     private Integer positionChange;
+    private SeasonInfo season;
 
     public static PlayerDto fromEntity(Player player) {
         PlayerDto dto = new PlayerDto();
         dto.setId(player.getId());
         dto.setNameKicker(player.getNameKicker());
+        dto.setNameKickerAlt1(player.getNameKickerAlt1());
+        dto.setNameKickerAlt2(player.getNameKickerAlt2());
+        dto.setNameKickerAlt3(player.getNameKickerAlt3());
         dto.setFirstName(player.getFirstName());
         dto.setLastName(player.getLastName());
         dto.setPosition(player.getPosition());
@@ -96,6 +103,12 @@ public class PlayerDto {
     public void setId(Long id) { this.id = id; }
     public String getNameKicker() { return nameKicker; }
     public void setNameKicker(String nameKicker) { this.nameKicker = nameKicker; }
+    public String getNameKickerAlt1() { return nameKickerAlt1; }
+    public void setNameKickerAlt1(String nameKickerAlt1) { this.nameKickerAlt1 = nameKickerAlt1; }
+    public String getNameKickerAlt2() { return nameKickerAlt2; }
+    public void setNameKickerAlt2(String nameKickerAlt2) { this.nameKickerAlt2 = nameKickerAlt2; }
+    public String getNameKickerAlt3() { return nameKickerAlt3; }
+    public void setNameKickerAlt3(String nameKickerAlt3) { this.nameKickerAlt3 = nameKickerAlt3; }
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
@@ -120,6 +133,8 @@ public class PlayerDto {
     public void setPointsLastRound(Integer pointsLastRound) { this.pointsLastRound = pointsLastRound; }
     public Integer getPositionChange() { return positionChange; }
     public void setPositionChange(Integer positionChange) { this.positionChange = positionChange; }
+    public SeasonInfo getSeason() { return season; }
+    public void setSeason(SeasonInfo season) { this.season = season; }
 
     public static class TeamInfo {
         private Long id;
@@ -144,6 +159,19 @@ public class PlayerDto {
         public void setLogoSUrl(String logoSUrl) { this.logoSUrl = logoSUrl; }
     }
 
+    public static class SeasonInfo {
+        private Long id;
+        private String name;
+        private Integer currentMatchday;
+
+        public Long getId() { return id; }
+        public void setId(Long id) { this.id = id; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public Integer getCurrentMatchday() { return currentMatchday; }
+        public void setCurrentMatchday(Integer currentMatchday) { this.currentMatchday = currentMatchday; }
+    }
+
     public static class ManagerInfo {
         private Long id;
         private String name;
@@ -153,6 +181,7 @@ public class PlayerDto {
         private Integer teamValue;
         private String paymentState;
         private Integer positionTotal;
+        private Integer positionChange;
         private Integer pointsTotal;
         private Integer pointsLastRound;
         private boolean hinrunde;
@@ -174,6 +203,8 @@ public class PlayerDto {
         public void setPaymentState(String paymentState) { this.paymentState = paymentState; }
         public Integer getPositionTotal() { return positionTotal; }
         public void setPositionTotal(Integer positionTotal) { this.positionTotal = positionTotal; }
+        public Integer getPositionChange() { return positionChange; }
+        public void setPositionChange(Integer positionChange) { this.positionChange = positionChange; }
         public Integer getPointsTotal() { return pointsTotal; }
         public void setPointsTotal(Integer pointsTotal) { this.pointsTotal = pointsTotal; }
         public Integer getPointsLastRound() { return pointsLastRound; }

@@ -1,5 +1,5 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
-import { Card, Chip } from '@heroui/react'
+import { Card, Chip, Avatar } from '@heroui/react'
 import { useState, useMemo, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts'
 import { useManager, useManagerRoundDetails, useManagerGroups } from '../hooks/useManagers'
@@ -32,49 +32,88 @@ const positionOrder: Record<string, number> = {
   STRIKER: 3
 }
 
-type SortKey = 'nameKicker' | 'team' | 'position' | 'prize' | 'points'
+type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position' | 'team'
 type SortOrder = 'asc' | 'desc'
 
 function PlayerRow({ player }: { player: Player }) {
   const currentTeam = player.teams[player.teams.length - 1]
   return (
     <tr className="hover:bg-[#242d38] border-b border-[#2d3748]">
-      <td className="px-3 py-2">
-        <RouterLink
-          to={`/players/${player.id}`}
-          className="hover:text-[#c9a66b] link text-[#f5f5f5]"
-        >
-          {player.nameKicker}
-        </RouterLink>
+      <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
+        {player.positionTotal ? `${player.positionTotal}.` : '-'}
+      </td>
+      <td className="px-3 py-2 text-center">
+        {player.positionChange != null && player.positionChange !== 0 ? (
+          <span className={`font-medium ${player.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
+          </span>
+        ) : (
+          <span className="text-[#6b7280]">-</span>
+        )}
       </td>
       <td className="px-3 py-2">
-        {currentTeam?.logoSUrl && (
-          <img 
-            src={currentTeam.logoSUrl} 
-            alt={currentTeam.name}
-            className="w-6 h-6 object-contain inline-block mr-2"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-          />
-        )}
-        <span className="text-[#a0aec0]">{currentTeam?.name || '-'}</span>
+        <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-[#f5f5f5] link">
+          {player.pictureUrl && (
+            <Avatar size="sm" className="mr-3">
+              <Avatar.Image src={player.pictureUrl} alt={player.nameKicker} />
+            </Avatar>
+          )}
+          <div>
+            <div className="font-medium text-[#c9a66b]">{player.nameKicker}</div>
+            {player.firstName && player.lastName && (
+              <div className="text-sm text-[#6b7280]">
+                {player.firstName} {player.lastName}
+              </div>
+            )}
+          </div>
+        </RouterLink>
+      </td>
+      <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
+        {player.points ?? '-'}
+      </td>
+      <td className="px-3 py-2 text-center text-[#a0aec0]">
+        {player.pointsLastRound ?? '-'}
+      </td>
+      <td className="px-3 py-2 text-center">
+        <RouterLink to={`/players/${player.id}`}>
+          <Chip 
+            size="sm" 
+            variant="soft" 
+            color={player.managerCount && player.managerCount > 0 ? 'accent' : 'default'}
+            className="cursor-pointer hover:opacity-80"
+          >
+            {player.managerCount ?? 0}
+          </Chip>
+        </RouterLink>
+      </td>
+      <td className="px-3 py-2 text-right font-medium text-[#f5f5f5]">
+        {player.prize.toLocaleString()} €
       </td>
       <td className="px-3 py-2">
         <Chip size="sm" color={positionColors[player.position]} variant="soft">
           {positionLabels[player.position]}
         </Chip>
       </td>
-      <td className="px-3 py-2 text-right font-medium text-[#c9a66b]">
-        {(player.prize / 1000000).toFixed(1)} Mio.
-      </td>
-      <td className="px-3 py-2 text-right font-medium text-[#f5f5f5]">
-        {player.points ?? 0}
+      <td className="px-3 py-2 text-[#a0aec0]">
+        {currentTeam ? (
+          <span className="flex items-center gap-1">
+            {currentTeam.logoSUrl && (
+              <img 
+                src={currentTeam.logoSUrl} 
+                alt={currentTeam.name} 
+                className="w-5 h-5 object-contain flex-shrink-0"
+              />
+            )}
+            <span className="font-semibold text-[#f5f5f5]">{currentTeam.name}</span>
+          </span>
+        ) : '-'}
       </td>
     </tr>
   )
 }
 
 function PlayerTable({ players, title }: { players: Player[]; title: string }) {
-  const [sortKey, setSortKey] = useState<SortKey>('position')
+  const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
 
   const handleSort = (key: SortKey) => {
@@ -95,22 +134,34 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
     return [...players].sort((a, b) => {
       let comparison = 0
       switch (sortKey) {
+        case 'positionTotal':
+          comparison = (a.positionTotal ?? 999) - (b.positionTotal ?? 999)
+          break
+        case 'positionChange':
+          comparison = (a.positionChange ?? 0) - (b.positionChange ?? 0)
+          break
         case 'nameKicker':
           comparison = a.nameKicker.localeCompare(b.nameKicker)
+          break
+        case 'points':
+          comparison = (b.points ?? 0) - (a.points ?? 0)
+          break
+        case 'pointsLastRound':
+          comparison = (b.pointsLastRound ?? 0) - (a.pointsLastRound ?? 0)
+          break
+        case 'managerCount':
+          comparison = (a.managerCount ?? 0) - (b.managerCount ?? 0)
+          break
+        case 'prize':
+          comparison = a.prize - b.prize
+          break
+        case 'position':
+          comparison = (positionOrder[a.position] || 0) - (positionOrder[b.position] || 0)
           break
         case 'team':
           const teamA = a.teams[a.teams.length - 1]?.name || ''
           const teamB = b.teams[b.teams.length - 1]?.name || ''
           comparison = teamA.localeCompare(teamB)
-          break
-        case 'position':
-          comparison = (positionOrder[a.position] || 0) - (positionOrder[b.position] || 0)
-          break
-        case 'prize':
-          comparison = a.prize - b.prize
-          break
-        case 'points':
-          comparison = (a.points ?? 0) - (b.points ?? 0)
           break
       }
       return sortOrder === 'asc' ? comparison : -comparison
@@ -125,16 +176,46 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
           <thead className="bg-[#1a2028]">
             <tr>
               <th 
-                className="px-3 py-2 text-left text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
-                onClick={() => handleSort('nameKicker')}
+                className="px-3 py-2 text-center text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                onClick={() => handleSort('positionTotal')}
               >
-                Spieler<SortIcon column="nameKicker" />
+                Pos<SortIcon column="positionTotal" />
+              </th>
+              <th 
+                className="px-3 py-2 text-center text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                onClick={() => handleSort('positionChange')}
+              >
+                +-<SortIcon column="positionChange" />
               </th>
               <th 
                 className="px-3 py-2 text-left text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
-                onClick={() => handleSort('team')}
+                onClick={() => handleSort('nameKicker')}
               >
-                Team<SortIcon column="team" />
+                Name<SortIcon column="nameKicker" />
+              </th>
+              <th 
+                className="px-3 py-2 text-center text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                onClick={() => handleSort('points')}
+              >
+                Pkt<SortIcon column="points" />
+              </th>
+              <th 
+                className="px-3 py-2 text-center text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                onClick={() => handleSort('pointsLastRound')}
+              >
+                Spieltag<SortIcon column="pointsLastRound" />
+              </th>
+              <th 
+                className="px-3 py-2 text-center text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                onClick={() => handleSort('managerCount')}
+              >
+                Manager<SortIcon column="managerCount" />
+              </th>
+              <th 
+                className="px-3 py-2 text-right text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                onClick={() => handleSort('prize')}
+              >
+                Preis<SortIcon column="prize" />
               </th>
               <th 
                 className="px-3 py-2 text-left text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
@@ -143,16 +224,10 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
                 Position<SortIcon column="position" />
               </th>
               <th 
-                className="px-3 py-2 text-right text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
-                onClick={() => handleSort('prize')}
+                className="px-3 py-2 text-left text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                onClick={() => handleSort('team')}
               >
-                Wert<SortIcon column="prize" />
-              </th>
-              <th 
-                className="px-3 py-2 text-right text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
-                onClick={() => handleSort('points')}
-              >
-                Punkte<SortIcon column="points" />
+                Team<SortIcon column="team" />
               </th>
             </tr>
           </thead>

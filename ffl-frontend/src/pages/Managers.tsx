@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { Table, Input, Chip, Card } from '@heroui/react'
 import { useManagers } from '../hooks/useManagers'
+import { useAuth } from '../context/AuthContext'
 
 const paymentStateLabels = {
   PAID: 'Bezahlt',
@@ -17,6 +18,8 @@ export default function Managers() {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
 
   const { data: managers, isLoading, error } = useManagers()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -101,14 +104,14 @@ export default function Managers() {
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionChange')}>
                   +-<SortIcon column="positionChange" />
                 </Table.Column>
-                <Table.Column className="text-[#c9a66b] cursor-pointer hover:text-[#f5f5f5]" onClick={() => handleSort('shortName')}>
+                <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('shortName')}>
                   Manager<SortIcon column="shortName" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('pointsTotal')}>
                   Pkt<SortIcon column="pointsTotal" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('pointsLastRound')}>
-                  Letzter Spieltag<SortIcon column="pointsLastRound" />
+                  Spieltag<SortIcon column="pointsLastRound" />
                 </Table.Column>
                 <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('firstName')}>
                   Vorname<SortIcon column="firstName" />
@@ -116,7 +119,7 @@ export default function Managers() {
                 <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('lastName')}>
                   Nachname<SortIcon column="lastName" />
                 </Table.Column>
-                <Table.Column className="text-[#a0aec0]">Status</Table.Column>
+                {isAdmin && <Table.Column className="text-[#a0aec0]">Status</Table.Column>}
                 <Table.Column className="text-[#a0aec0] text-right cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('teamValue')}>
                   Teamwert<SortIcon column="teamValue" />
                 </Table.Column>
@@ -154,15 +157,17 @@ export default function Managers() {
                       <Table.Cell className="text-[#a0aec0]">
                         {manager.lastName || '-'}
                       </Table.Cell>
-                      <Table.Cell>
-                        <Chip
-                          size="sm"
-                          color={manager.paymentState === 'PAID' ? 'success' : 'danger'}
-                          variant="soft"
-                        >
-                          {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
-                        </Chip>
-                      </Table.Cell>
+                      {isAdmin && (
+                        <Table.Cell>
+                          <Chip
+                            size="sm"
+                            color={manager.paymentState === 'PAID' ? 'success' : 'danger'}
+                            variant="soft"
+                          >
+                            {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
+                          </Chip>
+                        </Table.Cell>
+                      )}
                       <Table.Cell className="text-right font-medium text-[#f5f5f5]">
                         {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
                       </Table.Cell>
@@ -170,7 +175,7 @@ export default function Managers() {
                   ))
                 ) : (
                   <Table.Row>
-                    <Table.Cell colSpan={9} className="text-center text-[#6b7280] py-8">
+                    <Table.Cell colSpan={isAdmin ? 9 : 8} className="text-center text-[#6b7280] py-8">
                       Keine Manager gefunden
                     </Table.Cell>
                   </Table.Row>

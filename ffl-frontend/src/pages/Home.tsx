@@ -1,4 +1,4 @@
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { Card, Chip } from '@heroui/react'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useCurrentManager, useManagersBySeason, useManagerCurrentPlayers } from '../hooks/useManagers'
@@ -32,6 +32,13 @@ export default function Home() {
   const { data: season } = useCurrentSeason()
   const { data: currentManager } = useCurrentManager()
   const { data: managers } = useManagersBySeason(season?.id || 0)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login')
+    }
+  }, [isAuthenticated, navigate])
   
   const isAdmin = user?.role === 'ADMIN'
   const uwe72Manager = managers?.find(m => m.shortName === 'uwe72')
@@ -173,21 +180,10 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
     return <span className="text-[#c9a66b] ml-1">{playerSortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="py-6">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#f5f5f5] mb-2">Willkommen bei FFL</h1>
-          <p className="text-[#a0aec0]">Bitte anmelden, um das Dashboard zu sehen.</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="py-6">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-[#f5f5f5] mb-2">Willkommen bei FFL</h1>
+        <h1 className="text-3xl font-bold text-[#f5f5f5] mb-2">Willkommen {displayManager?.firstName || 'bei FFL'}!</h1>
         {season && (
           <p className="text-[#a0aec0]">
             Saison {season.name} · {season.seasonState === 'RUNNING_HINRUNDE' ? 'Hinrunde' : season.seasonState === 'RUNNING_RUECKRUNDE' ? 'Rückrunde' : 'Vor Saison'}
@@ -367,7 +363,7 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                         Pkt<PlayerSortIcon column="points" />
                       </th>
                       <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('pointsLastRound')}>
-                        Letzter Spieltag<PlayerSortIcon column="pointsLastRound" />
+                        Spieltag<PlayerSortIcon column="pointsLastRound" />
                       </th>
                       <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('managerCount')}>
                         Manager<PlayerSortIcon column="managerCount" />

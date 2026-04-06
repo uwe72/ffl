@@ -23,6 +23,9 @@ export type Position = 'GOALKEEPER' | 'DEFENDER' | 'MIDFIELD' | 'STRIKER'
 export interface Player {
   id: number
   nameKicker: string
+  nameKickerAlt1?: string
+  nameKickerAlt2?: string
+  nameKickerAlt3?: string
   firstName?: string
   lastName?: string
   position: Position
@@ -47,6 +50,7 @@ export interface ManagerInfo {
   teamValue?: number
   paymentState?: string
   positionTotal?: number
+  positionChange?: number
   pointsTotal?: number
   pointsLastRound?: number
   hinrunde: boolean
@@ -54,6 +58,27 @@ export interface ManagerInfo {
 }
 
 export type PaymentState = 'PAID' | 'NOT_PAID'
+
+export interface RulePoint {
+  rule: string
+  ruleLabel: string
+  count: number
+  points: number
+}
+
+export interface PlayerRank {
+  roundId: number
+  roundNumber: number
+  pointsRound: number
+  pointsTotal: number
+  positionTotal: number
+  positionRound: number
+  played: boolean
+  gameName?: string
+  goalHost?: number
+  goalVisitor?: number
+  rules?: RulePoint[]
+}
 
 export interface RoundDetail {
   roundId: number

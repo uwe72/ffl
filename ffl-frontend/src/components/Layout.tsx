@@ -1,4 +1,4 @@
-import { Outlet, Link as RouterLink } from 'react-router-dom'
+import { Outlet, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { Button } from '@heroui/react'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
@@ -12,9 +12,15 @@ const seasonStateLabels: Record<string, string> = {
 export default function Layout() {
   const { user, isAuthenticated, logout } = useAuth()
   const { data: season } = useCurrentSeason()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   return (
-    <div className="min-h-screen bg-[#0f1419]">
+    <div className="min-h-screen bg-[#0f1419]" style={!isAuthenticated ? { backgroundImage: "url('/background.png')", backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#1a2028] border-b border-[#2d3748] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
@@ -72,7 +78,7 @@ export default function Layout() {
                 {isAuthenticated ? (
                   <>
                     <span className="text-sm text-[#a0aec0]">{user?.login} ({user?.role === 'ADMIN' ? 'Admin' : 'User'})</span>
-                    <Button size="sm" variant="secondary" onPress={logout} className="h-7 px-3 text-xs">
+                    <Button size="sm" variant="secondary" onPress={handleLogout} className="h-7 px-3 text-xs">
                       Abmelden
                     </Button>
                   </>
