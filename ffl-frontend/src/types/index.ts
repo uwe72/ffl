@@ -35,6 +35,7 @@ export interface Player {
   points?: number
   positionTotal?: number
   pointsLastRound?: number
+  positionChange?: number
 }
 
 export interface ManagerInfo {
@@ -76,6 +77,15 @@ export interface PlayerPoint {
   playerName: string
   points: number
   rules: RulePoint[]
+  position?: string
+  prize?: number
+  teamName?: string
+  teamLogoUrl?: string
+  positionTotal?: number
+  positionChange?: number
+  pointsLastRound?: number
+  pointsTotal?: number
+  managerCount?: number
 }
 
 export interface ManagerRank {

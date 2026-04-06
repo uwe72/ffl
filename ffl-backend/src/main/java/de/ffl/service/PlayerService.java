@@ -114,6 +114,46 @@ public class PlayerService {
         return result;
     }
 
+    private Map<Long, Integer> buildPlayerPositionChangeMap(List<Long> playerIds) {
+        if (playerIds.isEmpty()) {
+            return Map.of();
+        }
+        List<PlayerRank> allRanks = playerRankRepository.findByPlayerIdInWithRound(playerIds);
+        Map<Long, Season> playerToSeason = new HashMap<>();
+        List<Player> players = playerRepository.findAllById(playerIds);
+        for (Player p : players) {
+            if (p.getSeason() != null) {
+                playerToSeason.put(p.getId(), p.getSeason());
+            }
+        }
+        
+        Map<Long, Map<Integer, PlayerRank>> playerRanksByRound = new HashMap<>();
+        for (PlayerRank rank : allRanks) {
+            Long playerId = rank.getPlayer().getId();
+            playerRanksByRound.computeIfAbsent(playerId, k -> new HashMap<>())
+                .put(rank.getRound().getNumber(), rank);
+        }
+        
+        Map<Long, Integer> result = new HashMap<>();
+        for (Long playerId : playerIds) {
+            Season season = playerToSeason.get(playerId);
+            if (season != null && season.getCurrentMatchday() != null) {
+                Integer currentMatchday = season.getCurrentMatchday();
+                Map<Integer, PlayerRank> ranksByRound = playerRanksByRound.get(playerId);
+                if (ranksByRound != null) {
+                    PlayerRank currentRank = ranksByRound.get(currentMatchday);
+                    PlayerRank previousRank = ranksByRound.get(currentMatchday - 1);
+                    if (currentRank != null && previousRank != null 
+                        && currentRank.getPositionTotal() != null 
+                        && previousRank.getPositionTotal() != null) {
+                        result.put(playerId, previousRank.getPositionTotal() - currentRank.getPositionTotal());
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
     private Map<Long, Integer> buildManagerCountMap(List<Long> playerIds) {
         if (playerIds.isEmpty()) {
             return Map.of();
@@ -140,6 +180,7 @@ public class PlayerService {
         Map<Long, Integer> managerCountMap = buildManagerCountMap(playerIds);
         Map<Long, Integer> positionMap = buildPlayerPositionMap(playerIds);
         Map<Long, Integer> pointsLastRoundMap = buildPlayerPointsLastRoundMap(playerIds);
+        Map<Long, Integer> positionChangeMap = buildPlayerPositionChangeMap(playerIds);
         return players.stream()
             .map(p -> {
                 PlayerDto dto = PlayerDto.fromEntity(p);
@@ -148,6 +189,7 @@ public class PlayerService {
                 dto.setPoints(pointsMap.getOrDefault(p.getId(), 0));
                 dto.setPositionTotal(positionMap.getOrDefault(p.getId(), null));
                 dto.setPointsLastRound(pointsLastRoundMap.getOrDefault(p.getId(), 0));
+                dto.setPositionChange(positionChangeMap.get(p.getId()));
                 return dto;
             })
             .collect(Collectors.toList());

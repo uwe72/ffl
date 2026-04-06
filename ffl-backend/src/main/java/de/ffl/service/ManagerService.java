@@ -82,8 +82,12 @@ public class ManagerService {
         Map<Long, PlayerRank> latestPlayerRanks = loadLatestPlayerRanks(playerIds);
         Map<Long, ManagerRank> latestManagerRanks = loadLatestManagerRanks(List.of(id), managers);
         Map<Long, List<ManagerRank>> allManagerRanks = loadAllManagerRanks(List.of(id));
+        Map<Long, Integer> playerPositionMap = buildPlayerPositionMap(playerIds, managers);
+        Map<Long, Integer> playerPointsLastRoundMap = buildPlayerPointsLastRoundMap(playerIds, managers);
+        Map<Long, Integer> playerPositionChangeMap = buildPlayerPositionChangeMap(playerIds, managers);
         
-        return convertToDto(manager, latestPlayerRanks, latestManagerRanks, allManagerRanks);
+        return convertToDto(manager, latestPlayerRanks, latestManagerRanks, allManagerRanks,
+                           playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap);
     }
 
     private List<ManagerDto> convertManagersToDto(List<Manager> managers) {
@@ -93,9 +97,13 @@ public class ManagerService {
         Map<Long, PlayerRank> latestPlayerRanks = loadLatestPlayerRanks(playerIds);
         Map<Long, ManagerRank> latestManagerRanks = loadLatestManagerRanks(managerIds, managers);
         Map<Long, List<ManagerRank>> allManagerRanks = loadAllManagerRanks(managerIds);
+        Map<Long, Integer> playerPositionMap = buildPlayerPositionMap(playerIds, managers);
+        Map<Long, Integer> playerPointsLastRoundMap = buildPlayerPointsLastRoundMap(playerIds, managers);
+        Map<Long, Integer> playerPositionChangeMap = buildPlayerPositionChangeMap(playerIds, managers);
         
         return managers.stream()
-            .map(m -> convertToDto(m, latestPlayerRanks, latestManagerRanks, allManagerRanks))
+            .map(m -> convertToDto(m, latestPlayerRanks, latestManagerRanks, allManagerRanks, 
+                                   playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap))
             .collect(Collectors.toList());
     }
 
@@ -141,6 +149,86 @@ public class ManagerService {
             });
         }
         return latestRanks;
+    }
+    
+    private Map<Long, Integer> buildPlayerPointsLastRoundMap(Set<Long> playerIds, List<Manager> managers) {
+        if (playerIds.isEmpty() || managers.isEmpty()) {
+            return Map.of();
+        }
+        
+        Season season = managers.get(0).getSeason();
+        if (season == null || season.getCurrentMatchday() == null) {
+            return Map.of();
+        }
+        
+        Integer currentMatchday = season.getCurrentMatchday();
+        List<PlayerRank> ranks = playerRankRepository.findByPlayerIdIn(new ArrayList<>(playerIds));
+        
+        Map<Long, Integer> result = new HashMap<>();
+        for (PlayerRank rank : ranks) {
+            if (rank.getRound() != null && rank.getRound().getNumber() == currentMatchday) {
+                result.put(rank.getPlayer().getId(), rank.getPointsRound());
+            }
+        }
+        return result;
+    }
+    
+    private Map<Long, Integer> buildPlayerPositionMap(Set<Long> playerIds, List<Manager> managers) {
+        if (playerIds.isEmpty() || managers.isEmpty()) {
+            return Map.of();
+        }
+        
+        Season season = managers.get(0).getSeason();
+        if (season == null || season.getCurrentMatchday() == null) {
+            return Map.of();
+        }
+        
+        Integer currentMatchday = season.getCurrentMatchday();
+        List<PlayerRank> ranks = playerRankRepository.findByPlayerIdIn(new ArrayList<>(playerIds));
+        
+        Map<Long, Integer> result = new HashMap<>();
+        for (PlayerRank rank : ranks) {
+            if (rank.getRound() != null && rank.getRound().getNumber() == currentMatchday) {
+                result.put(rank.getPlayer().getId(), rank.getPositionTotal());
+            }
+        }
+        return result;
+    }
+    
+    private Map<Long, Integer> buildPlayerPositionChangeMap(Set<Long> playerIds, List<Manager> managers) {
+        if (playerIds.isEmpty() || managers.isEmpty()) {
+            return Map.of();
+        }
+        
+        Season season = managers.get(0).getSeason();
+        if (season == null || season.getCurrentMatchday() == null) {
+            return Map.of();
+        }
+        
+        Integer currentMatchday = season.getCurrentMatchday();
+        List<PlayerRank> ranks = playerRankRepository.findByPlayerIdIn(new ArrayList<>(playerIds));
+        
+        Map<Long, Map<Integer, PlayerRank>> playerRanksByRound = new HashMap<>();
+        for (PlayerRank rank : ranks) {
+            Long playerId = rank.getPlayer().getId();
+            playerRanksByRound.computeIfAbsent(playerId, k -> new HashMap<>())
+                .put(rank.getRound().getNumber(), rank);
+        }
+        
+        Map<Long, Integer> result = new HashMap<>();
+        for (Long playerId : playerIds) {
+            Map<Integer, PlayerRank> ranksByRound = playerRanksByRound.get(playerId);
+            if (ranksByRound != null) {
+                PlayerRank currentRank = ranksByRound.get(currentMatchday);
+                PlayerRank previousRank = ranksByRound.get(currentMatchday - 1);
+                if (currentRank != null && previousRank != null 
+                    && currentRank.getPositionTotal() != null 
+                    && previousRank.getPositionTotal() != null) {
+                    result.put(playerId, previousRank.getPositionTotal() - currentRank.getPositionTotal());
+                }
+            }
+        }
+        return result;
     }
 
     private Map<Long, ManagerRank> loadLatestManagerRanks(List<Long> managerIds, List<Manager> managers) {
@@ -191,9 +279,12 @@ public class ManagerService {
     }
 
     private ManagerDto convertToDto(Manager manager, 
-                                    Map<Long, PlayerRank> latestPlayerRanks, 
-                                    Map<Long, ManagerRank> latestManagerRanks,
-                                    Map<Long, List<ManagerRank>> allManagerRanks) {
+                                     Map<Long, PlayerRank> latestPlayerRanks, 
+                                     Map<Long, ManagerRank> latestManagerRanks,
+                                     Map<Long, List<ManagerRank>> allManagerRanks,
+                                     Map<Long, Integer> playerPositionMap,
+                                     Map<Long, Integer> playerPointsLastRoundMap,
+                                     Map<Long, Integer> playerPositionChangeMap) {
         Hibernate.initialize(manager.getUser());
         Hibernate.initialize(manager.getSeason());
         
@@ -216,56 +307,73 @@ public class ManagerService {
         }
         
         if (manager.getPlayerGoalkeeper() != null) {
-            dto.setPlayerGoalkeeper(convertPlayer(manager.getPlayerGoalkeeper(), latestPlayerRanks));
+            dto.setPlayerGoalkeeper(convertPlayer(manager.getPlayerGoalkeeper(), latestPlayerRanks, 
+                                                   playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerDefender1() != null) {
-            dto.setPlayerDefender1(convertPlayer(manager.getPlayerDefender1(), latestPlayerRanks));
+            dto.setPlayerDefender1(convertPlayer(manager.getPlayerDefender1(), latestPlayerRanks,
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerDefender2() != null) {
-            dto.setPlayerDefender2(convertPlayer(manager.getPlayerDefender2(), latestPlayerRanks));
+            dto.setPlayerDefender2(convertPlayer(manager.getPlayerDefender2(), latestPlayerRanks,
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerDefender3() != null) {
-            dto.setPlayerDefender3(convertPlayer(manager.getPlayerDefender3(), latestPlayerRanks));
+            dto.setPlayerDefender3(convertPlayer(manager.getPlayerDefender3(), latestPlayerRanks,
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerMidfield1() != null) {
-            dto.setPlayerMidfield1(convertPlayer(manager.getPlayerMidfield1(), latestPlayerRanks));
+            dto.setPlayerMidfield1(convertPlayer(manager.getPlayerMidfield1(), latestPlayerRanks,
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerMidfield2() != null) {
-            dto.setPlayerMidfield2(convertPlayer(manager.getPlayerMidfield2(), latestPlayerRanks));
+            dto.setPlayerMidfield2(convertPlayer(manager.getPlayerMidfield2(), latestPlayerRanks,
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerMidfield3() != null) {
-            dto.setPlayerMidfield3(convertPlayer(manager.getPlayerMidfield3(), latestPlayerRanks));
+            dto.setPlayerMidfield3(convertPlayer(manager.getPlayerMidfield3(), latestPlayerRanks,
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerStriker1() != null) {
-            dto.setPlayerStriker1(convertPlayer(manager.getPlayerStriker1(), latestPlayerRanks));
+            dto.setPlayerStriker1(convertPlayer(manager.getPlayerStriker1(), latestPlayerRanks,
+                                                 playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerStriker2() != null) {
-            dto.setPlayerStriker2(convertPlayer(manager.getPlayerStriker2(), latestPlayerRanks));
+            dto.setPlayerStriker2(convertPlayer(manager.getPlayerStriker2(), latestPlayerRanks,
+                                                 playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerStriker3() != null) {
-            dto.setPlayerStriker3(convertPlayer(manager.getPlayerStriker3(), latestPlayerRanks));
+            dto.setPlayerStriker3(convertPlayer(manager.getPlayerStriker3(), latestPlayerRanks,
+                                                 playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerFreeChoice() != null) {
-            dto.setPlayerFreeChoice(convertPlayer(manager.getPlayerFreeChoice(), latestPlayerRanks));
+            dto.setPlayerFreeChoice(convertPlayer(manager.getPlayerFreeChoice(), latestPlayerRanks,
+                                                   playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         
         if (manager.getPlayerExchangedOld1() != null) {
-            dto.setPlayerExchangedOld1(convertPlayer(manager.getPlayerExchangedOld1(), latestPlayerRanks));
+            dto.setPlayerExchangedOld1(convertPlayer(manager.getPlayerExchangedOld1(), latestPlayerRanks,
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerExchangedOld2() != null) {
-            dto.setPlayerExchangedOld2(convertPlayer(manager.getPlayerExchangedOld2(), latestPlayerRanks));
+            dto.setPlayerExchangedOld2(convertPlayer(manager.getPlayerExchangedOld2(), latestPlayerRanks,
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerExchangedOld3() != null) {
-            dto.setPlayerExchangedOld3(convertPlayer(manager.getPlayerExchangedOld3(), latestPlayerRanks));
+            dto.setPlayerExchangedOld3(convertPlayer(manager.getPlayerExchangedOld3(), latestPlayerRanks,
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerExchangedNew1() != null) {
-            dto.setPlayerExchangedNew1(convertPlayer(manager.getPlayerExchangedNew1(), latestPlayerRanks));
+            dto.setPlayerExchangedNew1(convertPlayer(manager.getPlayerExchangedNew1(), latestPlayerRanks,
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerExchangedNew2() != null) {
-            dto.setPlayerExchangedNew2(convertPlayer(manager.getPlayerExchangedNew2(), latestPlayerRanks));
+            dto.setPlayerExchangedNew2(convertPlayer(manager.getPlayerExchangedNew2(), latestPlayerRanks,
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         if (manager.getPlayerExchangedNew3() != null) {
-            dto.setPlayerExchangedNew3(convertPlayer(manager.getPlayerExchangedNew3(), latestPlayerRanks));
+            dto.setPlayerExchangedNew3(convertPlayer(manager.getPlayerExchangedNew3(), latestPlayerRanks,
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
         }
         
         int teamValue = calculateTeamValue(manager);
@@ -337,7 +445,11 @@ public class ManagerService {
         return player != null ? player.getPrize() : 0;
     }
 
-    private PlayerDto convertPlayer(Player player, Map<Long, PlayerRank> latestPlayerRanks) {
+    private PlayerDto convertPlayer(Player player, 
+                                      Map<Long, PlayerRank> latestPlayerRanks,
+                                      Map<Long, Integer> playerPositionMap,
+                                      Map<Long, Integer> playerPointsLastRoundMap,
+                                      Map<Long, Integer> playerPositionChangeMap) {
         if (player == null) return null;
         
         Hibernate.initialize(player.getTeams());
@@ -350,6 +462,10 @@ public class ManagerService {
         } else {
             dto.setPoints(0);
         }
+        
+        dto.setPositionTotal(playerPositionMap.get(player.getId()));
+        dto.setPointsLastRound(playerPointsLastRoundMap.getOrDefault(player.getId(), 0));
+        dto.setPositionChange(playerPositionChangeMap.get(player.getId()));
         
         return dto;
     }

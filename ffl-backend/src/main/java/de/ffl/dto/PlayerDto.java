@@ -22,6 +22,7 @@ public class PlayerDto {
     private Integer points;
     private Integer positionTotal;
     private Integer pointsLastRound;
+    private Integer positionChange;
 
     public static PlayerDto fromEntity(Player player) {
         PlayerDto dto = new PlayerDto();
@@ -34,7 +35,7 @@ public class PlayerDto {
         dto.setPictureUrl(player.getPictureUrl());
         if (player.getTeams() != null) {
             dto.setTeams(player.getTeams().stream()
-                .map(t -> new TeamInfo(t.getId(), t.getName(), t.getLogoXxlUrl()))
+                .map(t -> new TeamInfo(t.getId(), t.getName(), t.getLogoXxlUrl(), t.getLogoSUrl()))
                 .collect(Collectors.toList()));
         }
         return dto;
@@ -117,16 +118,20 @@ public class PlayerDto {
     public void setPositionTotal(Integer positionTotal) { this.positionTotal = positionTotal; }
     public Integer getPointsLastRound() { return pointsLastRound; }
     public void setPointsLastRound(Integer pointsLastRound) { this.pointsLastRound = pointsLastRound; }
+    public Integer getPositionChange() { return positionChange; }
+    public void setPositionChange(Integer positionChange) { this.positionChange = positionChange; }
 
     public static class TeamInfo {
         private Long id;
         private String name;
         private String logoUrl;
+        private String logoSUrl;
 
-        public TeamInfo(Long id, String name, String logoUrl) {
+        public TeamInfo(Long id, String name, String logoUrl, String logoSUrl) {
             this.id = id;
             this.name = name;
             this.logoUrl = logoUrl;
+            this.logoSUrl = logoSUrl;
         }
 
         public Long getId() { return id; }
@@ -135,6 +140,8 @@ public class PlayerDto {
         public void setName(String name) { this.name = name; }
         public String getLogoUrl() { return logoUrl; }
         public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+        public String getLogoSUrl() { return logoSUrl; }
+        public void setLogoSUrl(String logoSUrl) { this.logoSUrl = logoSUrl; }
     }
 
     public static class ManagerInfo {

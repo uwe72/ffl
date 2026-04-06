@@ -78,3 +78,11 @@ export const useRoundStats = (seasonId: number) => {
     enabled: !!seasonId,
   })
 }
+
+export const useManagerCurrentPlayers = (id: number) => {
+  return useQuery({
+    queryKey: ['manager', id, 'current-players'],
+    queryFn: () => managerApi.getCurrentPlayers(id).then(res => res.data),
+    enabled: !!id,
+  })
+}

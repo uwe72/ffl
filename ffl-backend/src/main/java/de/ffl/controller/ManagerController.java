@@ -80,6 +80,12 @@ public class ManagerController {
         return ResponseEntity.ok(details);
     }
 
+    @GetMapping("/{id}/current-players")
+    public ResponseEntity<List<RoundDetailDto.PlayerPointDto>> getCurrentPlayers(@PathVariable Long id) {
+        List<RoundDetailDto.PlayerPointDto> players = managerRoundService.getCurrentPlayersForManager(id);
+        return ResponseEntity.ok(players);
+    }
+
     @GetMapping("/debug/points-count")
     public ResponseEntity<Long> getPointsCount() {
         return ResponseEntity.ok(pointsRepository.count());

@@ -5,6 +5,7 @@ import de.ffl.dto.RoundDetailDto;
 import de.ffl.repository.*;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,12 +17,18 @@ public class ManagerRoundService {
     private final ManagerRankRepository managerRankRepository;
     private final GameRepository gameRepository;
     private final PointsRepository pointsRepository;
+    private final PlayerRankRepository playerRankRepository;
+    private final ManagerRepository managerRepositoryForCount;
+    private final RoundRepository roundRepository;
 
-    public ManagerRoundService(ManagerRepository managerRepository, ManagerRankRepository managerRankRepository, GameRepository gameRepository, PointsRepository pointsRepository) {
+    public ManagerRoundService(ManagerRepository managerRepository, ManagerRankRepository managerRankRepository, GameRepository gameRepository, PointsRepository pointsRepository, PlayerRankRepository playerRankRepository, ManagerRepository managerRepositoryForCount, RoundRepository roundRepository) {
         this.managerRepository = managerRepository;
         this.managerRankRepository = managerRankRepository;
         this.gameRepository = gameRepository;
         this.pointsRepository = pointsRepository;
+        this.playerRankRepository = playerRankRepository;
+        this.managerRepositoryForCount = managerRepositoryForCount;
+        this.roundRepository = roundRepository;
     }
 
     public List<RoundDetailDto> getRoundDetailsForManager(Long managerId) {
@@ -34,6 +41,9 @@ public class ManagerRoundService {
         Set<Long> exchangedNewIds = getExchangedNewPlayerIds(manager);
         
         int transferRound = findTransferRound(manager, managerRanks);
+        
+        Season season = manager.getSeason();
+        Integer currentMatchday = season != null ? season.getCurrentMatchday() : null;
 
         return managerRanks.stream().map(rank -> {
             RoundDetailDto dto = new RoundDetailDto();
@@ -48,14 +58,32 @@ public class ManagerRoundService {
             List<Player> activePlayers = getActivePlayersForRound(manager, rank.getRound().getNumber(), transferRound, exchangedOldIds, exchangedNewIds);
             
             List<Game> games = gameRepository.findByRoundId(rank.getRound().getId());
+            List<Long> gameIds = games.stream().map(Game::getId).toList();
+            
+            Set<Long> playerIds = activePlayers.stream().map(Player::getId).collect(Collectors.toSet());
+            Map<Long, PlayerRank> playerRanks = loadPlayerRanksForRound(playerIds, rank.getRound().getId());
+            
+            Round previousRound = null;
+            Map<Long, PlayerRank> previousPlayerRanks = Map.of();
+            if (rank.getRound().getNumber() > 1) {
+                previousRound = roundRepository.findBySeasonIdAndNumber(season.getId(), rank.getRound().getNumber() - 1).orElse(null);
+                if (previousRound != null) {
+                    previousPlayerRanks = loadPlayerRanksForRound(playerIds, previousRound.getId());
+                }
+            }
+            
+            Map<Long, Integer> managerCountMap = buildManagerCountMap(playerIds);
+            
+            Map<Long, Map<Long, List<Points>>> pointsByPlayerAndGame = loadPointsForPlayersAndGames(playerIds, gameIds);
             
             List<RoundDetailDto.PlayerPointDto> playerPoints = new ArrayList<>();
             for (Player player : activePlayers) {
                 int totalPoints = 0;
                 List<RoundDetailDto.RulePointDto> rulePoints = new ArrayList<>();
                 
+                Map<Long, List<Points>> pointsByGame = pointsByPlayerAndGame.getOrDefault(player.getId(), Map.of());
                 for (Game game : games) {
-                    List<Points> pointsList = pointsRepository.findByPlayerIdAndGameId(player.getId(), game.getId());
+                    List<Points> pointsList = pointsByGame.getOrDefault(game.getId(), List.of());
                     for (Points p : pointsList) {
                         int pointsForRule = p.getNumber();
                         totalPoints += pointsForRule;
@@ -74,6 +102,30 @@ public class ManagerRoundService {
                     pp.setPlayerId(player.getId());
                     pp.setPlayerName(player.getNameKicker());
                     pp.setPoints(totalPoints);
+                    
+                    pp.setPosition(player.getPosition() != null ? player.getPosition().name() : null);
+                    pp.setPrize(player.getPrize());
+                    
+                    Hibernate.initialize(player.getTeams());
+                    if (player.getTeams() != null && !player.getTeams().isEmpty()) {
+                        Team team = player.getTeams().get(player.getTeams().size() - 1);
+                        pp.setTeamName(team.getName());
+                        pp.setTeamLogoUrl(team.getLogoSUrl());
+                    }
+                    
+                    PlayerRank playerRank = playerRanks.get(player.getId());
+                    if (playerRank != null) {
+                        pp.setPositionTotal(playerRank.getPositionTotal());
+                        pp.setPointsLastRound(playerRank.getPointsRound());
+                        pp.setPointsTotal(playerRank.getPointsTotal());
+                        
+                        PlayerRank previousPlayerRank = previousPlayerRanks.get(player.getId());
+                        if (previousPlayerRank != null) {
+                            int positionChange = previousPlayerRank.getPositionTotal() - playerRank.getPositionTotal();
+                            pp.setPositionChange(positionChange);
+                        }
+                    }
+                    pp.setManagerCount(managerCountMap.getOrDefault(player.getId(), 0));
                     
                     Map<String, RoundDetailDto.RulePointDto> mergedRules = new LinkedHashMap<>();
                     for (RoundDetailDto.RulePointDto rp : rulePoints) {
@@ -95,6 +147,49 @@ public class ManagerRoundService {
 
             return dto;
         }).collect(Collectors.toList());
+    }
+    
+    private Map<Long, PlayerRank> loadPlayerRanksForRound(Set<Long> playerIds, Long roundId) {
+        if (playerIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, PlayerRank> result = new HashMap<>();
+        List<PlayerRank> ranks = playerRankRepository.findByPlayerIdInAndRoundId(new ArrayList<>(playerIds), roundId);
+        for (PlayerRank rank : ranks) {
+            result.put(rank.getPlayer().getId(), rank);
+        }
+        return result;
+    }
+    
+    private Map<Long, Map<Long, List<Points>>> loadPointsForPlayersAndGames(Set<Long> playerIds, List<Long> gameIds) {
+        if (playerIds.isEmpty() || gameIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, Map<Long, List<Points>>> result = new HashMap<>();
+        List<Points> allPoints = pointsRepository.findByPlayerIdInAndGameIdIn(new ArrayList<>(playerIds), gameIds);
+        for (Points p : allPoints) {
+            result.computeIfAbsent(p.getPlayer().getId(), k -> new HashMap<>())
+                  .computeIfAbsent(p.getGame().getId(), k -> new ArrayList<>())
+                  .add(p);
+        }
+        return result;
+    }
+    
+    private Map<Long, Integer> buildManagerCountMap(Set<Long> playerIds) {
+        if (playerIds.isEmpty()) {
+            return Map.of();
+        }
+        List<Object[]> counts = managerRepositoryForCount.countManagersByPlayerIdIn(new ArrayList<>(playerIds));
+        Map<Long, Integer> result = new HashMap<>();
+        for (Object[] row : counts) {
+            Long playerId = ((Number) row[0]).longValue();
+            Integer count = ((Number) row[1]).intValue();
+            result.put(playerId, count);
+        }
+        for (Long playerId : playerIds) {
+            result.putIfAbsent(playerId, 0);
+        }
+        return result;
     }
 
     private String getRuleLabel(Rule rule) {
@@ -188,5 +283,87 @@ public class ManagerRoundService {
         }
         
         return players;
+    }
+
+    @Transactional(readOnly = true)
+    public List<RoundDetailDto.PlayerPointDto> getCurrentPlayersForManager(Long managerId) {
+        Manager manager = managerRepository.findById(managerId).orElse(null);
+        if (manager == null) return List.of();
+        
+        Season season = manager.getSeason();
+        if (season == null || season.getCurrentMatchday() == null) return List.of();
+        
+        int transferRound = findTransferRound(manager, List.of());
+        Set<Long> exchangedOldIds = getExchangedOldPlayerIds(manager);
+        
+        List<Player> currentPlayers = getActivePlayersForRound(manager, season.getCurrentMatchday(), transferRound, exchangedOldIds, Set.of());
+        if (currentPlayers.isEmpty()) return List.of();
+        
+        Round currentRound = roundRepository.findBySeasonIdAndNumber(season.getId(), season.getCurrentMatchday()).orElse(null);
+        if (currentRound == null) return List.of();
+        
+        Round previousRound = null;
+        if (season.getCurrentMatchday() > 1) {
+            previousRound = roundRepository.findBySeasonIdAndNumber(season.getId(), season.getCurrentMatchday() - 1).orElse(null);
+        }
+        
+        Set<Long> playerIds = currentPlayers.stream().map(Player::getId).collect(Collectors.toSet());
+        Map<Long, PlayerRank> currentPlayerRanks = loadPlayerRanksForRound(playerIds, currentRound.getId());
+        Map<Long, PlayerRank> previousPlayerRanks = previousRound != null ? loadPlayerRanksForRound(playerIds, previousRound.getId()) : Map.of();
+        
+        List<Game> games = gameRepository.findByRoundId(currentRound.getId());
+        List<Long> gameIds = games.stream().map(Game::getId).toList();
+        Map<Long, Map<Long, List<Points>>> pointsByPlayerAndGame = loadPointsForPlayersAndGames(playerIds, gameIds);
+        Map<Long, Integer> managerCountMap = buildManagerCountMap(playerIds);
+        
+        List<RoundDetailDto.PlayerPointDto> result = new ArrayList<>();
+        for (Player player : currentPlayers) {
+            RoundDetailDto.PlayerPointDto pp = new RoundDetailDto.PlayerPointDto();
+            pp.setPlayerId(player.getId());
+            pp.setPlayerName(player.getNameKicker());
+            pp.setPosition(player.getPosition() != null ? player.getPosition().name() : null);
+            pp.setPrize(player.getPrize());
+            
+            Hibernate.initialize(player.getTeams());
+            if (player.getTeams() != null && !player.getTeams().isEmpty()) {
+                Team team = player.getTeams().get(player.getTeams().size() - 1);
+                pp.setTeamName(team.getName());
+                pp.setTeamLogoUrl(team.getLogoSUrl());
+            }
+            
+            int roundPoints = 0;
+            Map<Long, List<Points>> pointsByGame = pointsByPlayerAndGame.getOrDefault(player.getId(), Map.of());
+            for (Game game : games) {
+                List<Points> pointsList = pointsByGame.getOrDefault(game.getId(), List.of());
+                for (Points p : pointsList) {
+                    roundPoints += p.getNumber();
+                }
+            }
+            pp.setPoints(roundPoints);
+            
+            PlayerRank playerRank = currentPlayerRanks.get(player.getId());
+            if (playerRank != null) {
+                pp.setPositionTotal(playerRank.getPositionTotal());
+                pp.setPointsTotal(playerRank.getPointsTotal());
+                pp.setPointsLastRound(playerRank.getPointsRound());
+                
+                PlayerRank previousRank = previousPlayerRanks.get(player.getId());
+                if (previousRank != null) {
+                    int positionChange = previousRank.getPositionTotal() - playerRank.getPositionTotal();
+                    pp.setPositionChange(positionChange);
+                }
+            }
+            
+            pp.setManagerCount(managerCountMap.getOrDefault(player.getId(), 0));
+            result.add(pp);
+        }
+        
+        result.sort((a, b) -> {
+            int posOrder = (a.getPositionTotal() != null ? a.getPositionTotal() : 999) - (b.getPositionTotal() != null ? b.getPositionTotal() : 999);
+            if (posOrder != 0) return posOrder;
+            return a.getPlayerName().compareToIgnoreCase(b.getPlayerName());
+        });
+        
+        return result;
     }
 }

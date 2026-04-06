@@ -31,6 +31,15 @@ public class RoundDetailDto {
         private String playerName;
         private Integer points;
         private List<RulePointDto> rules;
+        private String position;
+        private Integer prize;
+        private String teamName;
+        private String teamLogoUrl;
+        private Integer positionTotal;
+        private Integer positionChange;
+        private Integer pointsLastRound;
+        private Integer pointsTotal;
+        private Integer managerCount;
 
         public Long getPlayerId() { return playerId; }
         public void setPlayerId(Long playerId) { this.playerId = playerId; }
@@ -40,6 +49,24 @@ public class RoundDetailDto {
         public void setPoints(Integer points) { this.points = points; }
         public List<RulePointDto> getRules() { return rules; }
         public void setRules(List<RulePointDto> rules) { this.rules = rules; }
+        public String getPosition() { return position; }
+        public void setPosition(String position) { this.position = position; }
+        public Integer getPrize() { return prize; }
+        public void setPrize(Integer prize) { this.prize = prize; }
+        public String getTeamName() { return teamName; }
+        public void setTeamName(String teamName) { this.teamName = teamName; }
+        public String getTeamLogoUrl() { return teamLogoUrl; }
+        public void setTeamLogoUrl(String teamLogoUrl) { this.teamLogoUrl = teamLogoUrl; }
+        public Integer getPositionTotal() { return positionTotal; }
+        public void setPositionTotal(Integer positionTotal) { this.positionTotal = positionTotal; }
+        public Integer getPositionChange() { return positionChange; }
+        public void setPositionChange(Integer positionChange) { this.positionChange = positionChange; }
+        public Integer getPointsLastRound() { return pointsLastRound; }
+        public void setPointsLastRound(Integer pointsLastRound) { this.pointsLastRound = pointsLastRound; }
+        public Integer getPointsTotal() { return pointsTotal; }
+        public void setPointsTotal(Integer pointsTotal) { this.pointsTotal = pointsTotal; }
+        public Integer getManagerCount() { return managerCount; }
+        public void setManagerCount(Integer managerCount) { this.managerCount = managerCount; }
     }
 
     public static class RulePointDto {

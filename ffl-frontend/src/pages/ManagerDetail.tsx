@@ -1,10 +1,24 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { Card, Chip } from '@heroui/react'
-import { useState, useMemo } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
+import { useState, useMemo, useEffect } from 'react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts'
 import { useManager, useManagerRoundDetails, useManagerGroups } from '../hooks/useManagers'
+import { useManagerGroupsWithStats } from '../hooks/useManagerGroups'
 import { positionLabels, positionColors } from './Players'
 import type { Player, ManagerGroup, RulePoint } from '../types'
+
+const LINE_COLORS = [
+  '#f97316',
+  '#22c55e', 
+  '#3b82f6', 
+  '#a855f7',
+  '#ec4899',
+  '#14b8a6',
+  '#eab308',
+  '#ef4444',
+  '#06b6d4',
+  '#8b5cf6'
+]
 
 const paymentStateLabels = {
   PAID: 'Bezahlt',
@@ -270,6 +284,53 @@ export default function ManagerDetail() {
   const { data: manager, isLoading, error } = useManager(Number(id))
   const { data: roundDetails } = useManagerRoundDetails(Number(id))
   const { data: managerGroups } = useManagerGroups(Number(id))
+  const { data: managerGroupsWithStats } = useManagerGroupsWithStats(Number(id), true)
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('')
+
+  useEffect(() => {
+    if (managerGroupsWithStats && managerGroupsWithStats.length > 0 && !selectedGroupId) {
+      setSelectedGroupId(managerGroupsWithStats[0].groupId.toString())
+    }
+  }, [managerGroupsWithStats, selectedGroupId])
+
+  const selectedGroup = useMemo(() => {
+    if (!managerGroupsWithStats || !selectedGroupId) return null
+    return managerGroupsWithStats.find(g => g.groupId.toString() === selectedGroupId)
+  }, [managerGroupsWithStats, selectedGroupId])
+
+  const groupLineChartData = useMemo(() => {
+    if (!selectedGroup || selectedGroup.managers.length === 0) return []
+    
+    const maxRound = Math.max(...selectedGroup.managers.flatMap(m => m.roundData.map(rd => rd.round)))
+    
+    const data = []
+    for (let round = 1; round <= maxRound; round++) {
+      const roundPoint: Record<string, number | string> = { round }
+      selectedGroup.managers.forEach(m => {
+        const rd = m.roundData.find(r => r.round === round)
+        roundPoint[m.shortName || m.managerName] = rd?.pointsCumulative ?? 0
+      })
+      data.push(roundPoint)
+    }
+    return data
+  }, [selectedGroup])
+
+  const GroupCustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-[#1a2028] border border-[#2d3748] rounded-lg p-3 shadow-lg">
+          <p className="text-[#c9a66b] font-medium mb-2">Spieltag {label}</p>
+          {payload.map((entry, index) => (
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
+              {entry.name}: {entry.value} Punkte
+            </p>
+          ))}
+        </div>
+      )
+    }
+    return null
+  }
 
   if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
   if (error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
@@ -468,6 +529,54 @@ export default function ManagerDetail() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+          </div>
+        )}
+
+        {managerGroupsWithStats && managerGroupsWithStats.length > 0 && (
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-[#f5f5f5]">Punkte-Entwicklung in Gruppe</h2>
+              <select
+                value={selectedGroupId}
+                onChange={(e) => setSelectedGroupId(e.target.value)}
+                className="bg-[#242d38] border border-[#3d4a5c] text-[#f5f5f5] rounded-lg px-4 py-2 focus:outline-none focus:border-[#c9a66b]"
+              >
+                <option value="">Gruppe wählen</option>
+                {managerGroupsWithStats.map((group) => (
+                  <option key={group.groupId} value={group.groupId}>
+                    {group.groupName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            {selectedGroup && groupLineChartData.length > 0 ? (
+              <div className="bg-[#1a2028] p-4 rounded-lg border border-[#2d3748]">
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={groupLineChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                    <XAxis dataKey="round" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
+                    <RechartsTooltip content={<GroupCustomTooltip />} />
+                    <Legend wrapperStyle={{ color: '#a0aec0' }} />
+                    {selectedGroup.managers.map((m, index) => (
+                      <Line
+                        key={m.managerId}
+                        type="monotone"
+                        dataKey={m.shortName || m.managerName}
+                        stroke={m.isCurrentUser ? '#c9a66b' : LINE_COLORS[index % LINE_COLORS.length]}
+                        strokeWidth={m.isCurrentUser ? 3 : 2}
+                        dot={{ r: 3 }}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="text-[#6b7280] text-center py-8">
+                Wähle eine Gruppe aus, um die Punkte-Entwicklung zu sehen.
+              </p>
+            )}
           </div>
         )}
       </Card>

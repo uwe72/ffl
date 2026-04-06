@@ -17,7 +17,7 @@ export const positionColors: Record<string, 'warning' | 'accent' | 'success' | '
   STRIKER: 'danger'
 }
 
-type SortKey = 'positionTotal' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position'
+type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position'
 type SortOrder = 'asc' | 'desc'
 
 export default function Players() {
@@ -60,6 +60,9 @@ export default function Players() {
       switch (sortKey) {
         case 'positionTotal':
           comparison = (a.positionTotal ?? 999) - (b.positionTotal ?? 999)
+          break
+        case 'positionChange':
+          comparison = (a.positionChange ?? 0) - (b.positionChange ?? 0)
           break
         case 'nameKicker':
           comparison = a.nameKicker.localeCompare(b.nameKicker)
@@ -130,6 +133,9 @@ export default function Players() {
                 <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionTotal')}>
                   Pos<SortIcon column="positionTotal" />
                 </Table.Column>
+                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionChange')}>
+                  +-<SortIcon column="positionChange" />
+                </Table.Column>
                 <Table.Column className="text-[#c9a66b] cursor-pointer hover:text-[#f5f5f5]" onClick={() => handleSort('nameKicker')}>
                   Name<SortIcon column="nameKicker" />
                 </Table.Column>
@@ -156,6 +162,15 @@ export default function Players() {
                     <Table.Row key={player.id} className="hover:bg-[#242d38]">
                       <Table.Cell className="text-center font-medium text-[#f5f5f5]">
                         {player.positionTotal ? `${player.positionTotal}.` : '-'}
+                      </Table.Cell>
+                      <Table.Cell className="text-center">
+                        {player.positionChange != null && player.positionChange !== 0 ? (
+                          <span className={`font-medium ${player.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
+                          </span>
+                        ) : (
+                          <span className="text-[#6b7280]">-</span>
+                        )}
                       </Table.Cell>
                       <Table.Cell>
                         <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-[#f5f5f5] link">
@@ -202,10 +217,17 @@ export default function Players() {
                       </Table.Cell>
                       <Table.Cell className="text-[#a0aec0]">
                         {player.teams.length > 0 ? (
-                          <span>
+                          <span className="flex items-center gap-3">
                             {player.teams.map((team, index) => (
-                              <span key={team.id}>
+                              <span key={team.id} className="flex items-center gap-1">
                                 {index > 0 && ', '}
+                                {team.logoSUrl && (
+                                  <img 
+                                    src={team.logoSUrl} 
+                                    alt={team.name} 
+                                    className="w-5 h-5 object-contain flex-shrink-0"
+                                  />
+                                )}
                                 {index === player.teams.length - 1 ? (
                                   <span className="font-semibold text-[#f5f5f5]">{team.name}</span>
                                 ) : (
@@ -220,7 +242,7 @@ export default function Players() {
                   ))
                 ) : (
                   <Table.Row>
-                    <Table.Cell colSpan={8} className="text-center text-[#6b7280] py-8">
+                    <Table.Cell colSpan={9} className="text-center text-[#6b7280] py-8">
                       Keine Spieler gefunden
                     </Table.Cell>
                   </Table.Row>

@@ -1,31 +1,15 @@
 import { Link as RouterLink } from 'react-router-dom'
 import { Card, Chip } from '@heroui/react'
-import { useState, useMemo, useEffect } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { useCurrentManager, useManagersBySeason, useManagerRoundDetails } from '../hooks/useManagers'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import { useCurrentManager, useManagersBySeason, useManagerCurrentPlayers } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
-import { useMyGroupsWithStats, useManagerGroupsWithStats } from '../hooks/useManagerGroups'
-import type { Player } from '../types'
-
-const LINE_COLORS = [
-  '#f97316',
-  '#22c55e', 
-  '#3b82f6', 
-  '#a855f7',
-  '#ec4899',
-  '#14b8a6',
-  '#eab308',
-  '#ef4444',
-  '#06b6d4',
-  '#8b5cf6'
-]
 
 const positionLabels: Record<string, string> = {
-  GOALKEEPER: 'TW',
-  DEFENDER: 'VT',
-  MIDFIELD: 'MF',
-  STRIKER: 'ST'
+  GOALKEEPER: 'Torwart',
+  DEFENDER: 'Verteidiger',
+  MIDFIELD: 'Mittelfeld',
+  STRIKER: 'Stürmer'
 }
 
 const positionColors: Record<string, 'success' | 'warning' | 'accent' | 'danger'> = {
@@ -34,6 +18,14 @@ const positionColors: Record<string, 'success' | 'warning' | 'accent' | 'danger'
   MIDFIELD: 'accent',
   STRIKER: 'danger'
 }
+
+const paymentStateLabels: Record<string, string> = {
+  PAID: 'Bezahlt',
+  NOT_PAID: 'Nicht bezahlt'
+}
+
+type ManagerSortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue' | 'paymentState'
+type PlayerSortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position' | 'team'
 
 export default function Home() {
   const { isAuthenticated, user } = useAuth()
@@ -44,122 +36,158 @@ export default function Home() {
   const isAdmin = user?.role === 'ADMIN'
   const uwe72Manager = managers?.find(m => m.shortName === 'uwe72')
   const displayManager = isAdmin ? uwe72Manager : currentManager
-  
-  const { data: myGroupsWithStats } = useMyGroupsWithStats(!isAdmin)
-  const { data: uwe72GroupsWithStats } = useManagerGroupsWithStats(uwe72Manager?.id ?? 0, isAdmin && !!uwe72Manager)
-  const groupsWithStats = isAdmin ? uwe72GroupsWithStats : myGroupsWithStats
 
-  const [selectedGroupId, setSelectedGroupId] = useState<string>('')
+  const { data: currentPlayers } = useManagerCurrentPlayers(displayManager?.id ?? 0)
 
-  const { data: roundDetails } = useManagerRoundDetails(displayManager?.id ?? 0)
+  const [showAllPlayers, setShowAllPlayers] = useState(false)
+  const [showAllManagers, setShowAllManagers] = useState(false)
+  const [managerFilter, setManagerFilter] = useState('')
+  const [managerSortKey, setManagerSortKey] = useState<ManagerSortKey>('positionTotal')
+  const [managerSortOrder, setManagerSortOrder] = useState<'asc' | 'desc'>('asc')
+const [playerSortKey, setPlayerSortKey] = useState<PlayerSortKey>('position')
+const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
+
+  const currentManagerRowRef = useRef<HTMLTableRowElement>(null)
 
   useEffect(() => {
-    if (groupsWithStats && groupsWithStats.length > 0 && !selectedGroupId) {
-      setSelectedGroupId(groupsWithStats[0].groupId.toString())
+    if (!showAllManagers && currentManagerRowRef.current) {
+      currentManagerRowRef.current.scrollIntoView({ block: 'center' })
     }
-  }, [groupsWithStats, selectedGroupId])
+  }, [managers, displayManager, showAllManagers])
 
   const sortedManagers = useMemo(() => {
     if (!managers) return []
-    return [...managers].sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999))
-  }, [managers])
-
-  const managerRankChange = useMemo(() => {
-    if (!roundDetails || !season?.currentMatchday) return null
-    const currentMatchday = season.currentMatchday
-    const currentRound = roundDetails.find(r => r.roundNumber === currentMatchday)
-    const previousRound = roundDetails.find(r => r.roundNumber === currentMatchday - 1)
-    if (!currentRound || !previousRound) return null
-    if (currentRound.positionTotal == null || previousRound.positionTotal == null) return null
-    return previousRound.positionTotal - currentRound.positionTotal
-  }, [roundDetails, season])
-
-  const nearbyManagers = useMemo(() => {
-    if (!sortedManagers.length || !displayManager?.positionTotal) return []
-    const currentPos = displayManager.positionTotal
-    return sortedManagers.filter(m => {
-      const pos = m.positionTotal ?? 999
-      return pos >= currentPos - 2 && pos <= currentPos + 2
-    })
-  }, [sortedManagers, displayManager])
-
-  const lastRoundPlayerPoints = useMemo(() => {
-    if (!roundDetails || roundDetails.length === 0) return []
-    const lastRound = roundDetails[roundDetails.length - 1]
-    return lastRound?.playerPoints || []
-  }, [roundDetails])
-
-  const displayManagerPlayers = useMemo((): Player[] => {
-    if (!displayManager) return []
-    return [
-      displayManager.playerGoalkeeper,
-      displayManager.playerDefender1,
-      displayManager.playerDefender2,
-      displayManager.playerDefender3,
-      displayManager.playerMidfield1,
-      displayManager.playerMidfield2,
-      displayManager.playerMidfield3,
-      displayManager.playerStriker1,
-      displayManager.playerStriker2,
-      displayManager.playerStriker3,
-      displayManager.playerFreeChoice
-    ].filter(Boolean) as Player[]
-  }, [displayManager])
-
-  const enrichedPlayerPoints = useMemo(() => {
-    return lastRoundPlayerPoints.map(pp => {
-      const player = displayManagerPlayers.find(p => p.id === pp.playerId)
-      return {
-        ...pp,
-        player
+    return [...managers].sort((a, b) => {
+      let comparison = 0
+      switch (managerSortKey) {
+        case 'positionTotal':
+          comparison = (a.positionTotal ?? 999) - (b.positionTotal ?? 999)
+          break
+        case 'positionChange':
+          comparison = (a.positionChange ?? 0) - (b.positionChange ?? 0)
+          break
+        case 'shortName':
+          comparison = (a.shortName || '').localeCompare(b.shortName || '')
+          break
+        case 'pointsTotal':
+          comparison = (b.pointsTotal ?? 0) - (a.pointsTotal ?? 0)
+          break
+        case 'pointsLastRound':
+          comparison = (b.pointsLastRound ?? 0) - (a.pointsLastRound ?? 0)
+          break
+        case 'firstName':
+          comparison = (a.firstName || '').localeCompare(b.firstName || '')
+          break
+        case 'lastName':
+          comparison = (a.lastName || '').localeCompare(b.lastName || '')
+          break
+        case 'teamValue':
+          comparison = (a.teamValue ?? 0) - (b.teamValue ?? 0)
+          break
+        case 'paymentState':
+          comparison = (a.paymentState || '').localeCompare(b.paymentState || '')
+          break
       }
+      return managerSortOrder === 'asc' ? comparison : -comparison
     })
-  }, [lastRoundPlayerPoints, displayManagerPlayers])
+  }, [managers, managerSortKey, managerSortOrder])
 
-  const selectedGroup = useMemo(() => {
-    if (!groupsWithStats || !selectedGroupId) return null
-    return groupsWithStats.find(g => g.groupId.toString() === selectedGroupId)
-  }, [groupsWithStats, selectedGroupId])
+  const filteredManagers = useMemo(() => {
+    if (!managerFilter.trim()) return sortedManagers
+    const filter = managerFilter.toLowerCase()
+    return sortedManagers.filter(m => 
+      m.shortName?.toLowerCase().includes(filter) ||
+      m.firstName?.toLowerCase().includes(filter) ||
+      m.lastName?.toLowerCase().includes(filter)
+    )
+  }, [sortedManagers, managerFilter])
 
-  const lineChartData = useMemo(() => {
-    if (!selectedGroup || selectedGroup.managers.length === 0) return []
-    
-    const maxRound = Math.max(...selectedGroup.managers.flatMap(m => m.roundData.map(rd => rd.round)))
-    
-    const data = []
-    for (let round = 1; round <= maxRound; round++) {
-      const roundPoint: Record<string, number | string> = { round }
-      selectedGroup.managers.forEach(m => {
-        const rd = m.roundData.find(r => r.round === round)
-        roundPoint[m.shortName || m.managerName] = rd?.pointsCumulative ?? 0
-      })
-      data.push(roundPoint)
+  const filteredPlayers = useMemo(() => {
+    if (!currentPlayers) return []
+    if (showAllPlayers) return currentPlayers
+    return currentPlayers.filter(p => p.points > 0)
+  }, [currentPlayers, showAllPlayers])
+
+  const sortedPlayerPoints = useMemo(() => {
+    return [...filteredPlayers].sort((a, b) => {
+      let comparison = 0
+      switch (playerSortKey) {
+        case 'positionTotal':
+          comparison = (a.positionTotal ?? 999) - (b.positionTotal ?? 999)
+          break
+        case 'positionChange':
+          comparison = (a.positionChange ?? 0) - (b.positionChange ?? 0)
+          break
+        case 'nameKicker':
+          comparison = a.playerName.localeCompare(b.playerName)
+          break
+        case 'points':
+          comparison = (b.pointsTotal ?? 0) - (a.pointsTotal ?? 0)
+          break
+        case 'pointsLastRound':
+          comparison = (a.pointsLastRound ?? 0) - (b.pointsLastRound ?? 0)
+          break
+        case 'managerCount':
+          comparison = (a.managerCount ?? 0) - (b.managerCount ?? 0)
+          break
+        case 'prize':
+          comparison = (a.prize ?? 0) - (b.prize ?? 0)
+          break
+        case 'position':
+          const posOrder: Record<string, number> = { GOALKEEPER: 0, DEFENDER: 1, MIDFIELD: 2, STRIKER: 3 }
+          comparison = (posOrder[a.position || ''] ?? 999) - (posOrder[b.position || ''] ?? 999)
+          break
+        case 'team':
+          comparison = (a.teamName || '').localeCompare(b.teamName || '')
+          break
+      }
+      return playerSortOrder === 'asc' ? comparison : -comparison
+    })
+  }, [filteredPlayers, playerSortKey, playerSortOrder])
+
+  const handleManagerSort = (key: ManagerSortKey) => {
+    if (managerSortKey === key) {
+      setManagerSortOrder(managerSortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setManagerSortKey(key)
+      setManagerSortOrder('asc')
     }
-    return data
-  }, [selectedGroup])
+  }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-[#1a2028] border border-[#2d3748] rounded-lg p-3 shadow-lg">
-          <p className="text-[#c9a66b] font-medium mb-2">Spieltag {label}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {entry.value} Punkte
-            </p>
-          ))}
+  const handlePlayerSort = (key: PlayerSortKey) => {
+    if (playerSortKey === key) {
+      setPlayerSortOrder(playerSortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setPlayerSortKey(key)
+      setPlayerSortOrder('desc')
+    }
+  }
+
+  const ManagerSortIcon = ({ column }: { column: ManagerSortKey }) => {
+    if (managerSortKey !== column) return <span className="text-[#6b7280] ml-1">⇅</span>
+    return <span className="text-[#c9a66b] ml-1">{managerSortOrder === 'asc' ? '↑' : '↓'}</span>
+  }
+
+  const PlayerSortIcon = ({ column }: { column: PlayerSortKey }) => {
+    if (playerSortKey !== column) return <span className="text-[#6b7280] ml-1">⇅</span>
+    return <span className="text-[#c9a66b] ml-1">{playerSortOrder === 'asc' ? '↑' : '↓'}</span>
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="py-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-[#f5f5f5] mb-2">Willkommen bei FFL</h1>
+          <p className="text-[#a0aec0]">Bitte anmelden, um das Dashboard zu sehen.</p>
         </div>
-      )
-    }
-    return null
+      </div>
+    )
   }
 
   return (
     <div className="py-6">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-[#f5f5f5] mb-2">
-          Willkommen bei FFL
-        </h1>
+        <h1 className="text-3xl font-bold text-[#f5f5f5] mb-2">Willkommen bei FFL</h1>
         {season && (
           <p className="text-[#a0aec0]">
             Saison {season.name} · {season.seasonState === 'RUNNING_HINRUNDE' ? 'Hinrunde' : season.seasonState === 'RUNNING_RUECKRUNDE' ? 'Rückrunde' : 'Vor Saison'}
@@ -168,210 +196,276 @@ export default function Home() {
         )}
       </div>
 
-      {isAuthenticated && displayManager && (
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748] mb-8">
-          <h3 className="text-lg font-semibold text-[#f5f5f5] mb-4">
-            {isAdmin ? 'Uwe Clement (Admin)' : (displayManager.shortName || displayManager.name)}
-          </h3>
-          
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="text-center p-3 bg-[#242d38] rounded-lg border border-[#3d4a5c]">
-              <p className="text-2xl font-bold text-[#f5f5f5]">{displayManager.positionTotal ? `${displayManager.positionTotal}.` : '-'}</p>
-              <p className="text-xs text-[#6b7280] mt-1">Platz</p>
-            </div>
-            <div className="text-center p-3 bg-[#242d38] rounded-lg border border-[#3d4a5c]">
-              {managerRankChange !== null && managerRankChange !== 0 ? (
-                <div className="flex items-center justify-center gap-1">
-                  <span className={`text-2xl font-bold ${managerRankChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {managerRankChange > 0 ? '↑' : '↓'}
-                  </span>
-                  <span className={`text-xl font-bold ${managerRankChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {Math.abs(managerRankChange)}
-                  </span>
-                </div>
-              ) : (
-                <p className="text-2xl font-bold text-[#f5f5f5]">-</p>
-              )}
-              <p className="text-xs text-[#6b7280] mt-1">Platz-Änderung</p>
-            </div>
-            <div className="text-center p-3 bg-[#242d38] rounded-lg border border-[#3d4a5c]">
-              <p className="text-2xl font-bold text-[#c9a66b]">{displayManager.pointsTotal ?? '-'}</p>
-              <p className="text-xs text-[#6b7280] mt-1">Punkte gesamt</p>
-            </div>
-            <div className="text-center p-3 bg-[#242d38] rounded-lg border border-[#3d4a5c]">
-              <p className="text-2xl font-bold text-[#c9a66b]">+{displayManager.pointsLastRound ?? '-'}</p>
-              <p className="text-xs text-[#6b7280] mt-1">Letzter Spieltag</p>
-            </div>
-          </div>
-
-          {nearbyManagers.length > 0 && (
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-[#a0aec0] mb-2">Manager im Umfeld</h4>
-              <div className="overflow-x-auto rounded-lg border border-[#2d3748]">
-                <table className="w-full">
-                  <thead className="bg-[#242d38]">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium">Manager</th>
-                      <th className="px-3 py-2 text-right text-xs text-[#a0aec0] font-medium">Pkt</th>
-                      <th className="px-3 py-2 text-right text-xs text-[#a0aec0] font-medium">Letzter ST</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-[#1a2028]">
-                    {nearbyManagers.map(m => (
-                      <tr 
-                        key={m.id} 
-                        className={`border-b border-[#2d3748] hover:bg-[#242d38] ${m.id === displayManager.id ? 'bg-[#2d3748]' : ''}`}
-                      >
-                        <td className="px-3 py-2 text-[#f5f5f5] font-medium">{m.positionTotal ? `${m.positionTotal}.` : '-'}</td>
-                        <td className="px-3 py-2">
-                          <RouterLink 
-                            to={`/managers/${m.id}`} 
-                            className={`hover:text-[#c9a66b] link ${m.id === displayManager.id ? 'text-[#c9a66b] font-semibold' : 'text-[#f5f5f5]'}`}
-                          >
-                            {m.shortName || m.name}
-                          </RouterLink>
-                        </td>
-                        <td className="px-3 py-2 text-right font-medium text-[#c9a66b]">{m.pointsTotal ?? '-'}</td>
-                        <td className="px-3 py-2 text-right text-[#a0aec0]">+{m.pointsLastRound ?? '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+      {displayManager && (
+        <>
+          <Card className="p-6 bg-[#1a2028] border border-[#2d3748] mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <h3 className="text-lg font-semibold text-[#f5f5f5]">
+                {displayManager?.positionTotal ? `${displayManager.positionTotal}. Platz` : 'Platzierung'} am {season?.currentMatchday ? `${season.currentMatchday}. Spieltag` : 'Spieltag'}
+              </h3>
+              <div className="flex-1" />
+              <input
+                type="text"
+                placeholder="Manager suchen..."
+                value={managerFilter}
+                onChange={(e) => setManagerFilter(e.target.value)}
+                className="w-48 px-3 py-2 rounded-lg bg-[#242d38] border border-[#2d3748] text-[#f5f5f5] placeholder-[#6b7280] focus:outline-none focus:border-[#c9a66b]"
+              />
+              <div className="flex gap-2">
+                <label
+                  className={`px-4 py-2 rounded-lg cursor-pointer transition-all ${
+                    !showAllManagers ? 'bg-[#c9a66b] text-[#0f1419]' : 'bg-[#242d38] text-[#a0aec0] hover:bg-[#3d4a5c]'
+                  }`}
+                  onClick={() => setShowAllManagers(false)}
+                >
+                  Ausschnitt
+                </label>
+                <label
+                  className={`px-4 py-2 rounded-lg cursor-pointer transition-all ${
+                    showAllManagers ? 'bg-[#c9a66b] text-[#0f1419]' : 'bg-[#242d38] text-[#a0aec0] hover:bg-[#3d4a5c]'
+                  }`}
+                  onClick={() => setShowAllManagers(true)}
+                >
+                  Alle
+                </label>
               </div>
             </div>
-          )}
-
-          {enrichedPlayerPoints.length > 0 && (
-            <div>
-              <h4 className="text-sm font-medium text-[#a0aec0] mb-2">Spielerpunkte letzte Runde</h4>
-              <div className="overflow-x-auto rounded-lg border border-[#2d3748]">
-                <table className="w-full">
-                  <thead className="bg-[#242d38]">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium">Spieler</th>
-                      <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium">Team</th>
-                      <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium">Pos</th>
-                      <th className="px-3 py-2 text-right text-xs text-[#a0aec0] font-medium">Wert</th>
-                      <th className="px-3 py-2 text-right text-xs text-[#a0aec0] font-medium">Punkte</th>
+            <div className={`overflow-x-auto rounded-lg border border-[#2d3748] ${!showAllManagers ? 'max-h-[264px] overflow-y-auto' : ''}`}>
+              <table className="w-full">
+                <thead className="bg-[#242d38]">
+                  <tr>
+                    <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('positionTotal')}>
+                      Pos<ManagerSortIcon column="positionTotal" />
+                    </th>
+                    <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('positionChange')}>
+                      +-<ManagerSortIcon column="positionChange" />
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('shortName')}>
+                      Manager<ManagerSortIcon column="shortName" />
+                    </th>
+                    <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('pointsTotal')}>
+                      Pkt<ManagerSortIcon column="pointsTotal" />
+                    </th>
+                    <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('pointsLastRound')}>
+                      Letzter Spieltag<ManagerSortIcon column="pointsLastRound" />
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('firstName')}>
+                      Vorname<ManagerSortIcon column="firstName" />
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('lastName')}>
+                      Nachname<ManagerSortIcon column="lastName" />
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('paymentState')}>
+                      Status<ManagerSortIcon column="paymentState" />
+                    </th>
+                    <th className="px-3 py-2 text-right text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('teamValue')}>
+                      Teamwert<ManagerSortIcon column="teamValue" />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-[#1a2028]">
+                  {filteredManagers.map(m => (
+                    <tr 
+                      key={m.id} 
+                      ref={m.id === displayManager?.id ? currentManagerRowRef : null}
+                      className={`border-b border-[#2d3748] hover:bg-[#242d38] ${m.id === displayManager?.id ? 'border-l-4 border-l-[#c9a66b] bg-[#2d3748]' : ''}`}
+                    >
+                      <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
+                        {m.positionTotal ? `${m.positionTotal}.` : '-'}
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        {m.positionChange != null && m.positionChange !== 0 ? (
+                          <span className={`font-medium ${m.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {m.positionChange > 0 ? `↑${m.positionChange}` : `↓${Math.abs(m.positionChange)}`}
+                          </span>
+                        ) : (
+                          <span className="text-[#6b7280]">-</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <RouterLink 
+                          to={`/managers/${m.id}`} 
+                          className="hover:text-[#c9a66b] link font-medium text-[#c9a66b]"
+                        >
+                          {m.shortName || '-'}
+                        </RouterLink>
+                      </td>
+                      <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
+                        {m.pointsTotal ?? '-'}
+                      </td>
+                      <td className="px-3 py-2 text-center text-[#a0aec0]">
+                        {m.pointsLastRound ?? '-'}
+                      </td>
+                      <td className="px-3 py-2 text-[#a0aec0]">
+                        {m.firstName || '-'}
+                      </td>
+                      <td className="px-3 py-2 text-[#a0aec0]">
+                        {m.lastName || '-'}
+                      </td>
+                      <td className="px-3 py-2">
+                        <Chip
+                          size="sm"
+                          color={m.paymentState === 'PAID' ? 'success' : 'danger'}
+                          variant="soft"
+                        >
+                          {paymentStateLabels[m.paymentState as keyof typeof paymentStateLabels] || m.paymentState}
+                        </Chip>
+                      </td>
+                      <td className="px-3 py-2 text-right font-medium text-[#f5f5f5]">
+                        {m.teamValue ? (m.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="bg-[#1a2028]">
-                    {enrichedPlayerPoints
-                      .sort((a, b) => b.points - a.points)
-                      .map(pp => {
-                        const player = pp.player
-                        const currentTeam = player?.teams?.[player.teams.length - 1]
-                        const rulesText = pp.rules && pp.rules.length > 0 
-                          ? pp.rules.map(r => `${r.ruleLabel}${r.count > 1 ? ` (${r.count}x)` : ''}`).join(', ')
-                          : '-'
-                        return (
-                          <tr key={pp.playerId} className="border-b border-[#2d3748] hover:bg-[#242d38]">
-                            <td className="px-3 py-2">
-                              <RouterLink
-                                to={`/players/${pp.playerId}`}
-                                className="hover:text-[#c9a66b] link text-[#f5f5f5]"
-                              >
-                                {pp.playerName}
-                              </RouterLink>
-                            </td>
-                            <td className="px-3 py-2">
-                              {currentTeam?.logoSUrl && (
-                                <img 
-                                  src={currentTeam.logoSUrl} 
-                                  alt={currentTeam.name}
-                                  className="w-5 h-5 object-contain inline-block mr-1"
-                                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                                />
-                              )}
-                              <span className="text-[#a0aec0] text-sm">{currentTeam?.name || '-'}</span>
-                            </td>
-                            <td className="px-3 py-2">
-                              {player && (
-                                <Chip size="sm" color={positionColors[player.position]} variant="soft">
-                                  {positionLabels[player.position]}
-                                </Chip>
-                              )}
-                            </td>
-                            <td className="px-3 py-2 text-right text-sm font-medium text-[#c9a66b]">
-                              {player ? `${(player.prize / 1000000).toFixed(1)}M` : '-'}
-                            </td>
-                            <td className="px-3 py-2 text-right">
-                              <span 
-                                className="font-medium text-[#c9a66b] cursor-help text-sm" 
-                                title={rulesText}
-                              >
-                                {pp.points}
-                              </span>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          <RouterLink 
-            to={`/managers/${displayManager.id}`} 
-            className="block mt-4 text-center text-[#c9a66b] hover:text-[#d4b77a] link text-sm"
-          >
-            Zur Manager-Übersicht →
-          </RouterLink>
-        </Card>
-      )}
-
-      {groupsWithStats && groupsWithStats.length > 0 && (
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748] mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-[#f5f5f5]">
-              Punkte-Entwicklung in Gruppe
-            </h3>
-            <select
-              value={selectedGroupId}
-              onChange={(e) => setSelectedGroupId(e.target.value)}
-              className="bg-[#242d38] border border-[#3d4a5c] text-[#f5f5f5] rounded-lg px-4 py-2 focus:outline-none focus:border-[#c9a66b]"
-            >
-              <option value="">Gruppe wählen</option>
-              {groupsWithStats.map((group) => (
-                <option key={group.groupId} value={group.groupId}>
-                  {group.groupName}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          {selectedGroup && lineChartData.length > 0 ? (
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={lineChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
-                  <XAxis dataKey="round" stroke="#6b7280" />
-                  <YAxis stroke="#6b7280" />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend wrapperStyle={{ color: '#a0aec0' }} />
-                  {selectedGroup.managers.map((m, index) => (
-                    <Line
-                      key={m.managerId}
-                      type="monotone"
-                      dataKey={m.shortName || m.managerName}
-                      stroke={m.isCurrentUser ? '#c9a66b' : LINE_COLORS[index % LINE_COLORS.length]}
-                      strokeWidth={m.isCurrentUser ? 3 : 2}
-                      dot={{ r: 3 }}
-                    />
                   ))}
-                </LineChart>
-              </ResponsiveContainer>
+                </tbody>
+              </table>
             </div>
-          ) : (
-            <p className="text-[#6b7280] text-center py-8">
-              Wähle eine Gruppe aus, um die Punkte-Entwicklung zu sehen.
-            </p>
-          )}
-        </Card>
-      )}
+          </Card>
 
+          {currentPlayers && currentPlayers.length > 0 && (
+            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-[#f5f5f5]">
+                  {(() => {
+                    const totalPoints = currentPlayers?.reduce((sum, p) => sum + (p.pointsLastRound ?? 0), 0) ?? 0
+                    const matchday = season?.currentMatchday ?? 0
+                    return `${totalPoints} Punkte am ${matchday}. Spieltag`
+                  })()}
+                </h3>
+                <div className="flex gap-2">
+                  <label
+                    className={`px-4 py-2 rounded-lg cursor-pointer transition-all ${
+                      !showAllPlayers ? 'bg-[#c9a66b] text-[#0f1419]' : 'bg-[#242d38] text-[#a0aec0] hover:bg-[#3d4a5c]'
+                    }`}
+                    onClick={() => setShowAllPlayers(false)}
+                  >
+                    Nur Punktende
+                  </label>
+                  <label
+                    className={`px-4 py-2 rounded-lg cursor-pointer transition-all ${
+                      showAllPlayers ? 'bg-[#c9a66b] text-[#0f1419]' : 'bg-[#242d38] text-[#a0aec0] hover:bg-[#3d4a5c]'
+                    }`}
+                    onClick={() => setShowAllPlayers(true)}
+                  >
+                    Alle
+                  </label>
+                </div>
+              </div>
+              <div className="overflow-x-auto rounded-lg border border-[#2d3748]">
+                <table className="w-full">
+<thead className="bg-[#242d38] sticky top-0">
+                    <tr>
+                      <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('positionTotal')}>
+                        Pos<PlayerSortIcon column="positionTotal" />
+                      </th>
+                      <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('positionChange')}>
+                        +-<PlayerSortIcon column="positionChange" />
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('nameKicker')}>
+                        Name<PlayerSortIcon column="nameKicker" />
+                      </th>
+                      <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('points')}>
+                        Pkt<PlayerSortIcon column="points" />
+                      </th>
+                      <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('pointsLastRound')}>
+                        Letzter Spieltag<PlayerSortIcon column="pointsLastRound" />
+                      </th>
+                      <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('managerCount')}>
+                        Manager<PlayerSortIcon column="managerCount" />
+                      </th>
+                      <th className="px-3 py-2 text-right text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('prize')}>
+                        Preis<PlayerSortIcon column="prize" />
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('position')}>
+                        Position<PlayerSortIcon column="position" />
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('team')}>
+                        Team<PlayerSortIcon column="team" />
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-[#1a2028]">
+                    {sortedPlayerPoints.map(pp => {
+                      return (
+                        <tr 
+                          key={pp.playerId} 
+                          className={`border-b border-[#2d3748] hover:bg-[#242d38] ${
+                            showAllPlayers && (pp.pointsLastRound ?? 0) > 0 
+                              ? 'border-l-4 border-l-[#c9a66b]' 
+                              : ''
+                          }`}
+                        >
+                          <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
+                            {pp.positionTotal ? `${pp.positionTotal}.` : '-'}
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            {pp.positionChange != null && pp.positionChange !== 0 ? (
+                              <span className={`font-medium ${pp.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {pp.positionChange > 0 ? `↑${pp.positionChange}` : `↓${Math.abs(pp.positionChange)}`}
+                              </span>
+                            ) : (
+                              <span className="text-[#6b7280]">-</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2">
+                            <RouterLink
+                              to={`/players/${pp.playerId}`}
+                              className="hover:text-[#c9a66b] link text-[#c9a66b] font-medium"
+                            >
+                              {pp.playerName}
+                            </RouterLink>
+                          </td>
+                          <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
+                            {pp.pointsTotal ?? '-'}
+                          </td>
+                          <td className="px-3 py-2 text-center text-[#a0aec0]">
+                            {pp.pointsLastRound ?? '-'}
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            <RouterLink to={`/players/${pp.playerId}`}>
+                              <Chip 
+                                size="sm" 
+                                variant="soft" 
+                                color={pp.managerCount && pp.managerCount > 0 ? 'accent' : 'default'}
+                                className="cursor-pointer hover:opacity-80"
+                              >
+                                {pp.managerCount ?? 0}
+                              </Chip>
+                            </RouterLink>
+                          </td>
+                          <td className="px-3 py-2 text-right font-medium text-[#f5f5f5]">
+                            {pp.prize ? pp.prize.toLocaleString() : '-'} €
+                          </td>
+                          <td className="px-3 py-2">
+                            {pp.position && (
+                              <Chip size="sm" color={positionColors[pp.position]} variant="soft">
+                                {positionLabels[pp.position]}
+                              </Chip>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-[#a0aec0]">
+                            {pp.teamName && (
+                              <span className="flex items-center gap-2">
+                                {pp.teamLogoUrl && (
+                                  <img 
+                                    src={pp.teamLogoUrl} 
+                                    alt={pp.teamName} 
+                                    className="w-5 h-5 object-contain flex-shrink-0"
+                                  />
+                                )}
+                                <span className="font-semibold text-[#f5f5f5]">{pp.teamName}</span>
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+        </>
+      )}
     </div>
   )
 }
