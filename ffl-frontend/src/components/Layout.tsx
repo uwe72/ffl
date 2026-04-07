@@ -2,23 +2,21 @@ import { Outlet, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { Button } from '@heroui/react'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
+import { useSystemInfo } from '../hooks/useSystemInfo'
 import { getVersionString } from '../version'
-
-const seasonStateLabels: Record<string, string> = {
-  BEFORE_SEASON: 'Vor Saison',
-  RUNNING_HINRUNDE: 'Hinrunde',
-  RUNNING_RUECKRUNDE: 'Rückrunde'
-}
 
 export default function Layout() {
   const { user, isAuthenticated, logout } = useAuth()
   const { data: season } = useCurrentSeason()
+  const { data: systemInfo } = useSystemInfo()
   const navigate = useNavigate()
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
+
+  const envColor = systemInfo?.environment === 'PROD' ? 'text-blue-400' : 'text-red-400'
 
   return (
     <div className="min-h-screen bg-[#0f1419]" style={!isAuthenticated ? { backgroundImage: "url('/background.png')", backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
@@ -100,8 +98,9 @@ export default function Layout() {
                   </>
                 )}
               </div>
-              <span className="text-xs text-[#6b7280] mt-1 tracking-widest">
-                {getVersionString()}
+              <span className="text-xs mt-1 tracking-widest">
+                <span className={envColor}>{systemInfo?.environment || 'TEST'}</span>
+                <span className="text-[#6b7280] ml-2">{getVersionString()}</span>
               </span>
             </div>
           </div>
