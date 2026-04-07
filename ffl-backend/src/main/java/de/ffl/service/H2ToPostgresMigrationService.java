@@ -23,9 +23,9 @@ public class H2ToPostgresMigrationService {
     @Autowired
     public H2ToPostgresMigrationService(
             @Qualifier("h2JdbcTemplate") JdbcTemplate h2JdbcTemplate,
-            @Qualifier("postgresJdbcTemplate") JdbcTemplate postgresJdbcTemplate) {
+            JdbcTemplate jdbcTemplate) {
         this.h2JdbcTemplate = h2JdbcTemplate;
-        this.postgresJdbcTemplate = postgresJdbcTemplate;
+        this.postgresJdbcTemplate = jdbcTemplate;
     }
 
     public boolean isH2Available() {

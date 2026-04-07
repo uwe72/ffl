@@ -48,7 +48,7 @@ spring:
     console:
       enabled: false
   datasource.h2:
-    url: jdbc:h2:file:/app/data/ffl;ACCESS_MODE_DATA=r
+    url: jdbc:h2:file:/app/data/ffl
     driver-class-name: org.h2.Driver
     username: sa
     password:
