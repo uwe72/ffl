@@ -261,7 +261,7 @@ public class H2ToPostgresMigrationService {
                     "player_free_choice_id, " +
                     "player_exchanged_old1_id, player_exchanged_old2_id, player_exchanged_old3_id, " +
                     "player_exchanged_new1_id, player_exchanged_new2_id, player_exchanged_new3_id) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     manager.get("id"),
                     manager.get("name"),
                     manager.get("short_name"),
