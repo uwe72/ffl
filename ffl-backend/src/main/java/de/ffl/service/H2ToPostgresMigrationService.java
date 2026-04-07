@@ -89,22 +89,32 @@ public class H2ToPostgresMigrationService {
 
     private void clearPostgresTables() {
         log.info("Clearing PostgreSQL tables...");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE manager_2_player CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE manager_group_2_manager CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE season_2_team CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE game_2_players_host CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE game_2_players_visitor CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE ffl_points CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE ffl_player_rank CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE ffl_manager_rank CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE ffl_manager_group CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE ffl_game CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE ffl_round CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE ffl_manager CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE ffl_player CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE ffl_season CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE ffl_team CASCADE");
-        postgresJdbcTemplate.execute("TRUNCATE TABLE ffl_user CASCADE");
+        String[] tables = {
+            "manager_2_player",
+            "manager_group_2_manager", 
+            "season_2_team",
+            "game_2_players_host",
+            "game_2_players_visitor",
+            "ffl_points",
+            "ffl_player_rank",
+            "ffl_manager_rank",
+            "ffl_manager_group",
+            "ffl_game",
+            "ffl_round",
+            "ffl_manager",
+            "ffl_player",
+            "ffl_season",
+            "ffl_team",
+            "ffl_user"
+        };
+        
+        for (String table : tables) {
+            try {
+                postgresJdbcTemplate.execute("TRUNCATE TABLE " + table + " CASCADE");
+            } catch (Exception e) {
+                log.debug("Could not truncate {}: {}", table, e.getMessage());
+            }
+        }
         log.info("PostgreSQL tables cleared");
     }
 
