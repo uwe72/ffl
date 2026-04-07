@@ -17,6 +17,7 @@ import Users from './pages/Users'
 import UserDetail from './pages/UserDetail'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import System from './pages/System'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -55,6 +56,11 @@ function App() {
             <Route path="games/:id" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <GameDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="system" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <System />
               </ProtectedRoute>
             } />
           </Route>

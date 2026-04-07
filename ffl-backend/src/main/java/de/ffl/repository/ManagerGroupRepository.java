@@ -32,4 +32,16 @@ public interface ManagerGroupRepository extends JpaRepository<ManagerGroup, Long
     @org.springframework.data.jpa.repository.Modifying
     @Query("UPDATE ManagerGroup mg SET mg.createdBy = null WHERE mg.createdBy.id = :userId")
     void clearCreatedByForUser(@Param("userId") Long userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM manager_group_2_manager", nativeQuery = true)
+    void deleteAllManagerRelations();
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "INSERT INTO manager_group_2_manager (manager_group_id, manager_id) VALUES (:managerGroupId, :managerId)", nativeQuery = true)
+    void addManagerRelation(Long managerGroupId, Long managerId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "SELECT setval('ffl_manager_group_seq', (SELECT COALESCE(MAX(id), 0) FROM ffl_manager_group), true)", nativeQuery = true)
+    void resetSequence();
 }
