@@ -77,3 +77,26 @@ Frontend läuft auf http://localhost:5173
 - Punkte-System basierend auf echten Bundesligaspielen
 - Rankings und Statistiken
 - Mini-Ligen (Manager Groups)
+
+## Deployment
+
+Die Anwendung kann mit Docker deployed werden. Eine ausführliche Anleitung befindet sich in der [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+### Quick Start (Docker)
+
+```bash
+# Repository klonen
+git clone https://github.com/uwe72/ffl.git
+cd ffl
+
+# Docker Compose starten
+docker-compose up -d
+
+# Anwendung erreichbar unter
+# http://localhost:8080
+```
+
+### Login
+
+- **Benutzer:** admin
+- **Passwort:** admin123
