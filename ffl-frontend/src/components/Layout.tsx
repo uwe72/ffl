@@ -2,6 +2,7 @@ import { Outlet, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { Button } from '@heroui/react'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
+import { getVersionString } from '../version'
 
 const seasonStateLabels: Record<string, string> = {
   BEFORE_SEASON: 'Vor Saison',
@@ -39,7 +40,7 @@ export default function Layout() {
               </div>
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-[#c9a66b] group-hover:text-[#d4b77a] transition-colors tracking-wide">
-                  FFL
+                  FFL{season && <span className="text-[#6b7280]"> {season.name}</span>}
                 </span>
                 <span className="text-xs text-[#6b7280] -mt-1 tracking-widest">
                   FANTASY FOOTBALL LEAGUE
@@ -99,11 +100,9 @@ export default function Layout() {
                   </>
                 )}
               </div>
-              {season && (
-                <span className="text-xs text-[#6b7280] mt-1 tracking-widest">
-                  SAISON: {season.name} ({seasonStateLabels[season.seasonState] || season.seasonState})
-                </span>
-              )}
+              <span className="text-xs text-[#6b7280] mt-1 tracking-widest">
+                {getVersionString()}
+              </span>
             </div>
           </div>
         </div>

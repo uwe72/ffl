@@ -19,12 +19,7 @@ const positionColors: Record<string, 'success' | 'warning' | 'accent' | 'danger'
   STRIKER: 'danger'
 }
 
-const paymentStateLabels: Record<string, string> = {
-  PAID: 'Bezahlt',
-  NOT_PAID: 'Nicht bezahlt'
-}
-
-type ManagerSortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue' | 'paymentState'
+type ManagerSortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue'
 type PlayerSortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position' | 'team'
 
 export default function Home() {
@@ -90,9 +85,6 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
           break
         case 'teamValue':
           comparison = (a.teamValue ?? 0) - (b.teamValue ?? 0)
-          break
-        case 'paymentState':
-          comparison = (a.paymentState || '').localeCompare(b.paymentState || '')
           break
       }
       return managerSortOrder === 'asc' ? comparison : -comparison
@@ -243,16 +235,13 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                       Pkt<ManagerSortIcon column="pointsTotal" />
                     </th>
                     <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('pointsLastRound')}>
-                      Letzter Spieltag<ManagerSortIcon column="pointsLastRound" />
+                      Spieltag<ManagerSortIcon column="pointsLastRound" />
                     </th>
                     <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('firstName')}>
                       Vorname<ManagerSortIcon column="firstName" />
                     </th>
                     <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('lastName')}>
                       Nachname<ManagerSortIcon column="lastName" />
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('paymentState')}>
-                      Status<ManagerSortIcon column="paymentState" />
                     </th>
                     <th className="px-3 py-2 text-right text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('teamValue')}>
                       Teamwert<ManagerSortIcon column="teamValue" />
@@ -297,15 +286,6 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                       </td>
                       <td className="px-3 py-2 text-[#a0aec0]">
                         {m.lastName || '-'}
-                      </td>
-                      <td className="px-3 py-2">
-                        <Chip
-                          size="sm"
-                          color={m.paymentState === 'PAID' ? 'success' : 'danger'}
-                          variant="soft"
-                        >
-                          {paymentStateLabels[m.paymentState as keyof typeof paymentStateLabels] || m.paymentState}
-                        </Chip>
                       </td>
                       <td className="px-3 py-2 text-right font-medium text-[#f5f5f5]">
                         {m.teamValue ? (m.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
