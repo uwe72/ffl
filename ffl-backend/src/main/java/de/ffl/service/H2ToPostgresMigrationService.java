@@ -23,7 +23,7 @@ public class H2ToPostgresMigrationService {
     @Autowired
     public H2ToPostgresMigrationService(
             @Qualifier("h2JdbcTemplate") JdbcTemplate h2JdbcTemplate,
-            JdbcTemplate jdbcTemplate) {
+            @Qualifier("postgresJdbcTemplate") JdbcTemplate jdbcTemplate) {
         this.h2JdbcTemplate = h2JdbcTemplate;
         this.jdbcTemplate = jdbcTemplate;
     }
