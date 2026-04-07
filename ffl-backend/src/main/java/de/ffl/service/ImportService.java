@@ -9,7 +9,6 @@ import de.ffl.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
@@ -52,7 +51,6 @@ public class ImportService {
         return doImport(zipData, true);
     }
 
-    @Transactional
     public ImportResult importData(byte[] zipData) {
         return doImport(zipData, false);
     }
