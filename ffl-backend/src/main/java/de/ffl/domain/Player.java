@@ -51,5 +51,6 @@ public class Player {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "season_id")
+    @JsonIgnore
     private Season season;
 }

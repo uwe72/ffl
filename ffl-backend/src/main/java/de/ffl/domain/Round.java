@@ -1,5 +1,6 @@
 package de.ffl.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,5 +23,6 @@ public class Round {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "season_id", nullable = false)
+    @JsonIgnore
     private Season season;
 }

@@ -1,5 +1,6 @@
 package de.ffl.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,10 +29,12 @@ public class ManagerGroup {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "season_id", nullable = false)
+    @JsonIgnore
     private Season season;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_user_id")
+    @JsonIgnore
     private User createdBy;
 
     @Enumerated(EnumType.STRING)
@@ -46,6 +49,7 @@ public class ManagerGroup {
         inverseJoinColumns = @JoinColumn(name = "manager_id")
     )
     @Builder.Default
+    @JsonIgnore
     private Set<Manager> managers = new HashSet<>();
 
     public enum EmailToOption {

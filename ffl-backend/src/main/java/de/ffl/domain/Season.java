@@ -1,5 +1,6 @@
 package de.ffl.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -52,13 +53,16 @@ public class Season {
 
     @OneToMany(mappedBy = "season", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private Set<Manager> managers = new HashSet<>();
 
     @OneToMany(mappedBy = "season", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private Set<Player> players = new HashSet<>();
 
     @OneToMany(mappedBy = "season", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private Set<Round> rounds = new HashSet<>();
 }

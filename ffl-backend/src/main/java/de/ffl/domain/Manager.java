@@ -1,5 +1,6 @@
 package de.ffl.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,10 +28,12 @@ public class Manager {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "season_id", nullable = false)
+    @JsonIgnore
     private Season season;
 
     @Column(nullable = false)
@@ -50,6 +53,7 @@ public class Manager {
         inverseJoinColumns = @JoinColumn(name = "player_id")
     )
     @Builder.Default
+    @JsonIgnore
     private Set<Player> players = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -116,5 +120,6 @@ public class Manager {
 
     @ManyToMany(mappedBy = "managers")
     @Builder.Default
+    @JsonIgnore
     private Set<ManagerGroup> managerGroups = new HashSet<>();
 }
