@@ -11,7 +11,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import javax.sql.DataSource;
 
 @Configuration
-@ConditionalOnProperty(name = "spring.datasource.h2.url")
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "docker")
 public class SecondaryDataSourceConfig {
 
     @Value("${spring.datasource.h2.url}")
