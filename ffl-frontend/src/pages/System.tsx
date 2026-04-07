@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@heroui/react'
 
 interface ImportResult {
@@ -26,6 +26,7 @@ export default function System() {
   const [result, setResult] = useState<ImportResult | null>(null)
   const [showConfirm, setShowConfirm] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleExport = async () => {
     setExporting(true)
@@ -68,12 +69,21 @@ export default function System() {
     }
   }
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelectFile = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       setSelectedFile(file)
-      setShowConfirm(true)
+      setResult(null)
     }
+  }
+
+  const handleImportClick = () => {
+    if (!selectedFile) return
+    setShowConfirm(true)
   }
 
   const handleImport = async () => {
@@ -97,12 +107,25 @@ export default function System() {
 
       const data: ImportResult = await response.json()
       setResult(data)
+      if (data.success && !data.dryRun) {
+        setSelectedFile(null)
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
+      }
     } catch (error) {
       console.error('Import error:', error)
       alert('Import fehlgeschlagen')
     } finally {
       setImporting(false)
-      setSelectedFile(null)
+    }
+  }
+
+  const handleCancelSelection = () => {
+    setSelectedFile(null)
+    setResult(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
   }
 
@@ -145,14 +168,47 @@ export default function System() {
             </label>
           </div>
 
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".zip"
+            onChange={handleFileChange}
+            className="hidden"
+            disabled={importing}
+          />
+
           <div className="flex items-center gap-4">
-            <input
-              type="file"
-              accept=".zip"
-              onChange={handleFileSelect}
-              className="text-[#a0aec0]"
-              disabled={importing}
-            />
+            {!selectedFile ? (
+              <Button
+                onPress={handleSelectFile}
+                className="bg-[#c9a66b] hover:bg-[#d4b77a] text-[#0f1419]"
+              >
+                Datei auswählen
+              </Button>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 text-[#f5f5f5] bg-[#2d3748] px-4 py-2 rounded">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#c9a66b]" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 4.586L15.414 8A2 2 0 0116 9.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                  </svg>
+                  <span>{selectedFile.name}</span>
+                </div>
+                <Button
+                  onPress={handleImportClick}
+                  isDisabled={importing}
+                  className="bg-[#c9a66b] hover:bg-[#d4b77a] text-[#0f1419]"
+                >
+                  {importing ? 'Importiere...' : 'Import starten'}
+                </Button>
+                <Button
+                  onPress={handleCancelSelection}
+                  isDisabled={importing}
+                  className="bg-[#4a5568] hover:bg-[#5a6578] text-[#f5f5f5]"
+                >
+                  Abbrechen
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -168,10 +224,7 @@ export default function System() {
             </p>
             <div className="flex justify-end gap-4">
               <Button
-                onPress={() => {
-                  setShowConfirm(false)
-                  setSelectedFile(null)
-                }}
+                onPress={() => setShowConfirm(false)}
                 className="bg-[#4a5568] hover:bg-[#5a6578] text-[#f5f5f5]"
               >
                 Abbrechen
