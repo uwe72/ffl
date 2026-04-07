@@ -18,14 +18,14 @@ public class H2ToPostgresMigrationService {
     private static final Logger log = LoggerFactory.getLogger(H2ToPostgresMigrationService.class);
 
     private final JdbcTemplate h2JdbcTemplate;
-    private final JdbcTemplate postgresJdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     @Autowired
     public H2ToPostgresMigrationService(
             @Qualifier("h2JdbcTemplate") JdbcTemplate h2JdbcTemplate,
-            @Qualifier("postgresJdbcTemplate") JdbcTemplate postgresJdbcTemplate) {
+            JdbcTemplate jdbcTemplate) {
         this.h2JdbcTemplate = h2JdbcTemplate;
-        this.postgresJdbcTemplate = postgresJdbcTemplate;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     public boolean isH2Available() {
@@ -40,7 +40,7 @@ public class H2ToPostgresMigrationService {
 
     public boolean hasPostgresData() {
         try {
-            Integer count = postgresJdbcTemplate.queryForObject(
+            Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM ffl_user", Integer.class);
             return count != null && count > 0;
         } catch (Exception e) {
@@ -90,7 +90,7 @@ public class H2ToPostgresMigrationService {
     private void clearPostgresTables() {
         log.info("Clearing PostgreSQL tables...");
         try {
-            postgresJdbcTemplate.execute("SET CONSTRAINTS ALL DEFERRED");
+            jdbcTemplate.execute("SET CONSTRAINTS ALL DEFERRED");
             
             String[] tables = {
                 "manager_2_player",
@@ -113,14 +113,14 @@ public class H2ToPostgresMigrationService {
             
             for (String table : tables) {
                 try {
-                    int deleted = postgresJdbcTemplate.update("DELETE FROM " + table);
+                    int deleted = jdbcTemplate.update("DELETE FROM " + table);
                     log.debug("Deleted {} rows from {}", deleted, table);
                 } catch (Exception e) {
                     log.debug("Could not delete from {}: {}", table, e.getMessage());
                 }
             }
             
-            postgresJdbcTemplate.execute("SET CONSTRAINTS ALL IMMEDIATE");
+            jdbcTemplate.execute("SET CONSTRAINTS ALL IMMEDIATE");
             log.info("PostgreSQL tables cleared");
         } catch (Exception e) {
             log.error("Error clearing tables: {}", e.getMessage());
@@ -134,7 +134,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT id, login, password, email, first_name, last_name, street, city, birthday, role FROM ffl_user");
             
             for (Map<String, Object> user : users) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO ffl_user (id, login, password, email, first_name, last_name, street, city, birthday, role) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     user.get("id"),
@@ -164,7 +164,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT id, name, short_name, logo_xxl_url, logosurl FROM ffl_team");
             
             for (Map<String, Object> team : teams) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO ffl_team (id, name, short_name, logo_xxl_url, logosurl) VALUES (?, ?, ?, ?, ?)",
                     team.get("id"),
                     team.get("name"),
@@ -188,7 +188,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT id, name, budget, season_state, final_registration_date, start_round_rueckrunde, current_matchday FROM ffl_season");
             
             for (Map<String, Object> season : seasons) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO ffl_season (id, name, budget, season_state, final_registration_date, start_round_rueckrunde, current_matchday) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?)",
                     season.get("id"),
@@ -215,7 +215,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT id, name_kicker, name_kicker_alt1, name_kicker_alt2, name_kicker_alt3, first_name, last_name, position, prize, picture_url, season_id FROM ffl_player");
             
             for (Map<String, Object> player : players) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO ffl_player (id, name_kicker, name_kicker_alt1, name_kicker_alt2, name_kicker_alt3, first_name, last_name, position, prize, picture_url, season_id) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     player.get("id"),
@@ -253,7 +253,7 @@ public class H2ToPostgresMigrationService {
                 "FROM ffl_manager");
             
             for (Map<String, Object> manager : managers) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO ffl_manager (id, name, short_name, budget, payment_state, description, season_id, user_id, " +
                     "player_goalkeeper_id, player_defender1_id, player_defender2_id, player_defender3_id, " +
                     "player_midfield1_id, player_midfield2_id, player_midfield3_id, " +
@@ -304,7 +304,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT id, number, season_id FROM ffl_round");
             
             for (Map<String, Object> round : rounds) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO ffl_round (id, number, season_id) VALUES (?, ?, ?)",
                     round.get("id"),
                     round.get("number"),
@@ -326,7 +326,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT id, name, host_id, visitor_id, goal_host, goal_visitor, round_id FROM ffl_game");
             
             for (Map<String, Object> game : games) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO ffl_game (id, name, host_id, visitor_id, goal_host, goal_visitor, round_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
                     game.get("id"),
                     game.get("name"),
@@ -352,7 +352,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT id, number, rule, game_id, player_id FROM ffl_points");
             
             for (Map<String, Object> point : points) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO ffl_points (id, number, rule, game_id, player_id) VALUES (?, ?, ?, ?, ?)",
                     point.get("id"),
                     point.get("number"),
@@ -376,7 +376,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT id, number_matches, played, points_round, points_total, position_round, position_total, player_id, round_id FROM ffl_player_rank");
             
             for (Map<String, Object> playerRank : playerRanks) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO ffl_player_rank (id, number_matches, played, points_round, points_total, position_round, position_total, player_id, round_id) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     playerRank.get("id"),
@@ -405,7 +405,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT id, points_round, points_total, position_round, position_total, manager_id, round_id FROM ffl_manager_rank");
             
             for (Map<String, Object> managerRank : managerRanks) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO ffl_manager_rank (id, points_round, points_total, position_round, position_total, manager_id, round_id) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?)",
                     managerRank.get("id"),
@@ -432,7 +432,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT id, name, description, season_id FROM ffl_manager_group");
             
             for (Map<String, Object> managerGroup : managerGroups) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO ffl_manager_group (id, name, description, season_id) VALUES (?, ?, ?, ?)",
                     managerGroup.get("id"),
                     managerGroup.get("name"),
@@ -455,7 +455,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT manager_group_id, manager_id FROM manager_group_2_manager");
             
             for (Map<String, Object> member : members) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO manager_group_2_manager (manager_group_id, manager_id) VALUES (?, ?)",
                     member.get("manager_group_id"),
                     member.get("manager_id")
@@ -476,7 +476,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT manager_id, player_id FROM manager_2_player");
             
             for (Map<String, Object> mp : managerPlayers) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO manager_2_player (manager_id, player_id) VALUES (?, ?)",
                     mp.get("manager_id"),
                     mp.get("player_id")
@@ -497,7 +497,7 @@ public class H2ToPostgresMigrationService {
                 "SELECT season_id, team_id FROM season_2_team");
             
             for (Map<String, Object> st : seasonTeams) {
-                postgresJdbcTemplate.update(
+                jdbcTemplate.update(
                     "INSERT INTO season_2_team (season_id, team_id) VALUES (?, ?)",
                     st.get("season_id"),
                     st.get("team_id")
@@ -523,10 +523,10 @@ public class H2ToPostgresMigrationService {
             for (String table : tables) {
                 String sequenceName = table + "_seq";
                 try {
-                    Integer maxId = postgresJdbcTemplate.queryForObject(
+                    Integer maxId = jdbcTemplate.queryForObject(
                         "SELECT COALESCE(MAX(id), 0) FROM " + table, Integer.class);
                     if (maxId != null && maxId > 0) {
-                        postgresJdbcTemplate.execute(
+                        jdbcTemplate.execute(
                             "SELECT setval('" + sequenceName + "', " + maxId + ", true)");
                     }
                 } catch (Exception e) {
