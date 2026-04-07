@@ -89,33 +89,42 @@ public class H2ToPostgresMigrationService {
 
     private void clearPostgresTables() {
         log.info("Clearing PostgreSQL tables...");
-        String[] tables = {
-            "manager_2_player",
-            "manager_group_2_manager", 
-            "season_2_team",
-            "game_2_players_host",
-            "game_2_players_visitor",
-            "ffl_points",
-            "ffl_player_rank",
-            "ffl_manager_rank",
-            "ffl_manager_group",
-            "ffl_game",
-            "ffl_round",
-            "ffl_manager",
-            "ffl_player",
-            "ffl_season",
-            "ffl_team",
-            "ffl_user"
-        };
-        
-        for (String table : tables) {
-            try {
-                postgresJdbcTemplate.execute("TRUNCATE TABLE " + table + " CASCADE");
-            } catch (Exception e) {
-                log.debug("Could not truncate {}: {}", table, e.getMessage());
+        try {
+            postgresJdbcTemplate.execute("SET CONSTRAINTS ALL DEFERRED");
+            
+            String[] tables = {
+                "manager_2_player",
+                "manager_group_2_manager", 
+                "season_2_team",
+                "game_2_players_host",
+                "game_2_players_visitor",
+                "ffl_points",
+                "ffl_player_rank",
+                "ffl_manager_rank",
+                "ffl_manager_group",
+                "ffl_game",
+                "ffl_round",
+                "ffl_manager",
+                "ffl_player",
+                "ffl_season",
+                "ffl_team",
+                "ffl_user"
+            };
+            
+            for (String table : tables) {
+                try {
+                    int deleted = postgresJdbcTemplate.update("DELETE FROM " + table);
+                    log.debug("Deleted {} rows from {}", deleted, table);
+                } catch (Exception e) {
+                    log.debug("Could not delete from {}: {}", table, e.getMessage());
+                }
             }
+            
+            postgresJdbcTemplate.execute("SET CONSTRAINTS ALL IMMEDIATE");
+            log.info("PostgreSQL tables cleared");
+        } catch (Exception e) {
+            log.error("Error clearing tables: {}", e.getMessage());
         }
-        log.info("PostgreSQL tables cleared");
     }
 
     private void migrateUsers(MigrationResult result) {
