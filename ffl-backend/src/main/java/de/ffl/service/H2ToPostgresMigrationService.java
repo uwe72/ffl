@@ -52,6 +52,15 @@ public class H2ToPostgresMigrationService {
     public MigrationResult migrateAll(boolean clearExisting) {
         MigrationResult result = new MigrationResult();
 
+        try {
+            String postgresUrl = jdbcTemplate.queryForObject("SELECT current_database()", String.class);
+            String h2Url = h2JdbcTemplate.queryForObject("SELECT DATABASE()", String.class);
+            log.info("PostgreSQL jdbcTemplate connected to: {}", postgresUrl);
+            log.info("H2 jdbcTemplate connected to: {}", h2Url);
+        } catch (Exception e) {
+            log.error("Failed to log database URLs: {}", e.getMessage());
+        }
+
         if (!isH2Available()) {
             result.errors.add("H2 database not available");
             return result;
