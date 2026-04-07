@@ -1,0 +1,36 @@
+package de.ffl.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import javax.sql.DataSource;
+
+@Configuration
+@ConditionalOnProperty(name = "spring.datasource.h2.url")
+public class SecondaryDataSourceConfig {
+
+    @Value("${spring.datasource.h2.url}")
+    private String h2Url;
+
+    @Value("${spring.datasource.h2.driver-class-name}")
+    private String h2DriverClassName;
+
+    @Bean(name = "h2DataSource")
+    public DataSource h2DataSource() {
+        return DataSourceBuilder.create()
+                .url(h2Url)
+                .driverClassName(h2DriverClassName)
+                .username("sa")
+                .password("")
+                .build();
+    }
+
+    @Bean(name = "h2JdbcTemplate")
+    public JdbcTemplate h2JdbcTemplate() {
+        return new JdbcTemplate(h2DataSource());
+    }
+}
