@@ -8,6 +8,7 @@ import de.ffl.dto.ImportResult;
 import de.ffl.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -28,6 +29,7 @@ public class ImportService {
     private final RoundRepository roundRepository;
     private final GameRepository gameRepository;
     private final ManagerGroupRepository managerGroupRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     public ImportService(UserRepository userRepository,
                          TeamRepository teamRepository,
@@ -36,7 +38,8 @@ public class ImportService {
                          ManagerRepository managerRepository,
                          RoundRepository roundRepository,
                          GameRepository gameRepository,
-                         ManagerGroupRepository managerGroupRepository) {
+                         ManagerGroupRepository managerGroupRepository,
+                         JdbcTemplate jdbcTemplate) {
         this.userRepository = userRepository;
         this.teamRepository = teamRepository;
         this.seasonRepository = seasonRepository;
@@ -45,6 +48,7 @@ public class ImportService {
         this.roundRepository = roundRepository;
         this.gameRepository = gameRepository;
         this.managerGroupRepository = managerGroupRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     public ImportResult validateImport(byte[] zipData) {
@@ -137,7 +141,7 @@ public class ImportService {
     private void clearAllTables() {
         log.info("Clearing all tables...");
 
-        clearRelationTables();
+        clearRelationTablesWithJdbc();
 
         managerGroupRepository.deleteAll();
         log.info("Cleared manager_groups");
@@ -166,11 +170,12 @@ public class ImportService {
         log.info("All tables cleared");
     }
 
-    private void clearRelationTables() {
-        managerRepository.deleteAllPlayerRelations();
-        managerGroupRepository.deleteAllManagerRelations();
-        seasonRepository.deleteAllTeamRelations();
-        log.info("Cleared relation tables");
+    private void clearRelationTablesWithJdbc() {
+        log.info("Clearing relation tables with JDBC...");
+        jdbcTemplate.execute("DELETE FROM manager_2_player");
+        jdbcTemplate.execute("DELETE FROM manager_group_2_manager");
+        jdbcTemplate.execute("DELETE FROM season_2_team");
+        log.info("Relation tables cleared");
     }
 
     private void importAllData(ExportDataDto data, ImportResult result) {
@@ -184,9 +189,9 @@ public class ImportService {
         importRounds(data, result);
         importGames(data, result);
         importManagerGroups(data, result);
-        importManagerPlayerRelations(data, result);
-        importManagerGroupMemberRelations(data, result);
-        importSeasonTeamRelations(data, result);
+        importManagerPlayerRelationsWithJdbc(data, result);
+        importManagerGroupMemberRelationsWithJdbc(data, result);
+        importSeasonTeamRelationsWithJdbc(data, result);
 
         log.info("Data import complete");
     }
@@ -255,40 +260,62 @@ public class ImportService {
         log.info("Imported {} manager groups", saved.size());
     }
 
-    private void importManagerPlayerRelations(ExportDataDto data, ImportResult result) {
+    private void importManagerPlayerRelationsWithJdbc(ExportDataDto data, ImportResult result) {
+        int count = 0;
         for (ExportDataDto.ManagerPlayerRelation rel : data.getManagerPlayers()) {
-            managerRepository.addPlayerRelation(rel.getManagerId(), rel.getPlayerId());
+            jdbcTemplate.update("INSERT INTO manager_2_player (manager_id, player_id) VALUES (?, ?)", 
+                rel.getManagerId(), rel.getPlayerId());
+            count++;
         }
-        result.setManagerPlayersImported(data.getManagerPlayers().size());
-        log.info("Imported {} manager-player relations", data.getManagerPlayers().size());
+        result.setManagerPlayersImported(count);
+        log.info("Imported {} manager-player relations", count);
     }
 
-    private void importManagerGroupMemberRelations(ExportDataDto data, ImportResult result) {
+    private void importManagerGroupMemberRelationsWithJdbc(ExportDataDto data, ImportResult result) {
+        int count = 0;
         for (ExportDataDto.ManagerGroupMemberRelation rel : data.getManagerGroupMembers()) {
-            managerGroupRepository.addManagerRelation(rel.getManagerGroupId(), rel.getManagerId());
+            jdbcTemplate.update("INSERT INTO manager_group_2_manager (manager_group_id, manager_id) VALUES (?, ?)", 
+                rel.getManagerGroupId(), rel.getManagerId());
+            count++;
         }
-        result.setManagerGroupMembersImported(data.getManagerGroupMembers().size());
-        log.info("Imported {} manager group member relations", data.getManagerGroupMembers().size());
+        result.setManagerGroupMembersImported(count);
+        log.info("Imported {} manager group member relations", count);
     }
 
-    private void importSeasonTeamRelations(ExportDataDto data, ImportResult result) {
+    private void importSeasonTeamRelationsWithJdbc(ExportDataDto data, ImportResult result) {
+        int count = 0;
         for (ExportDataDto.SeasonTeamRelation rel : data.getSeasonTeams()) {
-            seasonRepository.addTeamRelation(rel.getSeasonId(), rel.getTeamId());
+            jdbcTemplate.update("INSERT INTO season_2_team (season_id, team_id) VALUES (?, ?)", 
+                rel.getSeasonId(), rel.getTeamId());
+            count++;
         }
-        result.setSeasonTeamsImported(data.getSeasonTeams().size());
-        log.info("Imported {} season-team relations", data.getSeasonTeams().size());
+        result.setSeasonTeamsImported(count);
+        log.info("Imported {} season-team relations", count);
     }
 
     private void resetSequences() {
-        log.info("Resetting sequences...");
-        userRepository.resetSequence();
-        teamRepository.resetSequence();
-        seasonRepository.resetSequence();
-        playerRepository.resetSequence();
-        managerRepository.resetSequence();
-        roundRepository.resetSequence();
-        gameRepository.resetSequence();
-        managerGroupRepository.resetSequence();
+        log.info("Resetting sequences with JDBC...");
+        resetSequence("ffl_user_seq", "ffl_user");
+        resetSequence("ffl_team_seq", "ffl_team");
+        resetSequence("ffl_season_seq", "ffl_season");
+        resetSequence("ffl_player_seq", "ffl_player");
+        resetSequence("ffl_manager_seq", "ffl_manager");
+        resetSequence("ffl_round_seq", "ffl_round");
+        resetSequence("ffl_game_seq", "ffl_game");
+        resetSequence("ffl_manager_group_seq", "ffl_manager_group");
         log.info("Sequences reset");
+    }
+
+    private void resetSequence(String sequenceName, String tableName) {
+        try {
+            Integer maxId = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(MAX(id), 0) FROM " + tableName, Integer.class);
+            if (maxId != null && maxId > 0) {
+                jdbcTemplate.execute("SELECT setval('" + sequenceName + "', " + maxId + ", true)");
+                log.debug("Reset {} to {}", sequenceName, maxId);
+            }
+        } catch (Exception e) {
+            log.warn("Could not reset sequence {}: {}", sequenceName, e.getMessage());
+        }
     }
 }
