@@ -134,22 +134,10 @@ public interface ManagerRepository extends JpaRepository<Manager, Long> {
     List<Manager> findAllByUserId(Long userId);
 
     @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM manager_2_player WHERE manager_id = :managerId", nativeQuery = true)
+    @Query(value = "DELETE FROM manager_2_player WHERE manager_id = :managerId", nativeQuery = true)
     void deletePlayerRelationsByManagerId(@Param("managerId") Long managerId);
 
     @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM manager_group_2_manager WHERE manager_id = :managerId", nativeQuery = true)
+    @Query(value = "DELETE FROM manager_group_2_manager WHERE manager_id = :managerId", nativeQuery = true)
     void deleteGroupRelationsByManagerId(@Param("managerId") Long managerId);
-
-    @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM manager_2_player", nativeQuery = true)
-    void deleteAllPlayerRelations();
-
-    @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.data.jpa.repository.Query(value = "INSERT INTO manager_2_player (manager_id, player_id) VALUES (:managerId, :playerId)", nativeQuery = true)
-    void addPlayerRelation(Long managerId, Long playerId);
-
-    @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.data.jpa.repository.Query(value = "SELECT setval('ffl_manager_seq', (SELECT COALESCE(MAX(id), 0) FROM ffl_manager), true)", nativeQuery = true)
-    void resetSequence();
 }

@@ -3,7 +3,6 @@ package de.ffl.repository;
 import de.ffl.domain.Game;
 import de.ffl.domain.Round;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -21,8 +20,4 @@ public interface GameRepository extends JpaRepository<Game, Long> {
            "WHERE g.round.season.id = :seasonId " +
            "AND ((g.formationExtern IS NOT NULL AND g.formationExtern != '') OR p.id IS NOT NULL)")
     Integer findMaxRoundWithFormationOrPoints(@Param("seasonId") Long seasonId);
-
-    @Modifying
-    @Query(value = "SELECT setval('ffl_game_seq', (SELECT COALESCE(MAX(id), 0) FROM ffl_game), true)", nativeQuery = true)
-    void resetSequence();
 }

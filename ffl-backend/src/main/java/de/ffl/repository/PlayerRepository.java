@@ -4,7 +4,6 @@ import de.ffl.domain.Player;
 import de.ffl.domain.Position;
 import de.ffl.domain.Season;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -40,8 +39,4 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
 
     @Query("SELECT DISTINCT p FROM Player p LEFT JOIN FETCH p.teams t WHERE t.id = :teamId AND p.season.id = :seasonId")
     List<Player> findByTeamIdAndSeasonId(@Param("teamId") Long teamId, @Param("seasonId") Long seasonId);
-
-    @Modifying
-    @Query(value = "SELECT setval('ffl_player_seq', (SELECT COALESCE(MAX(id), 0) FROM ffl_player), true)", nativeQuery = true)
-    void resetSequence();
 }
