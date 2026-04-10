@@ -19,6 +19,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192.png', 'icon-512.png'],
+      devOptions: {
+        enabled: true
+      },
       manifest: {
         name: 'FFL - Fantasy Football League',
         short_name: 'FFL',
@@ -30,19 +33,34 @@ export default defineConfig({
         theme_color: '#c9a66b',
         icons: [
           {
-            src: 'icon-192.png',
+            src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'icon-512.png',
+            src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png'
+          },
+          {
+            src: '/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: '/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
-        ]
+        ],
+        categories: ['sports', 'entertainment'],
+        screenshots: []
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globIgnores: ['**/background.png'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/ffl\.ipv64\.de\/api/,
