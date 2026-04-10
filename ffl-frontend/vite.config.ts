@@ -27,10 +27,12 @@ export default defineConfig({
         short_name: 'FFL',
         description: 'Fantasy Football League Dashboard',
         start_url: '/',
+        scope: '/',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#0f1419',
         theme_color: '#c9a66b',
+        prefer_related_applications: false,
         icons: [
           {
             src: '/icon-192.png',

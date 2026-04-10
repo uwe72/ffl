@@ -3,12 +3,14 @@ import { Button } from '@heroui/react'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useSystemInfo } from '../hooks/useSystemInfo'
+import { usePWAInstall } from '../hooks/usePWAInstall'
 import { getVersionString } from '../version'
 
 export default function Layout() {
   const { user, isAuthenticated, logout } = useAuth()
   const { data: season } = useCurrentSeason()
   const { data: systemInfo } = useSystemInfo()
+  const { isInstallable, install } = usePWAInstall()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -74,6 +76,11 @@ export default function Layout() {
             </nav>
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-2 md:gap-4">
+                {isInstallable && (
+                  <Button size="sm" variant="primary" onPress={install} className="h-7 px-3 text-xs">
+                    Installieren
+                  </Button>
+                )}
                 {isAuthenticated ? (
                   <>
                     <span className="hidden md:inline text-sm text-[#a0aec0]">{user?.login} ({user?.role === 'ADMIN' ? 'Admin' : 'User'})</span>

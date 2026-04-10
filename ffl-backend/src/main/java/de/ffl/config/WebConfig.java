@@ -22,8 +22,16 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/**")
+        registry.addResourceHandler("/assets/**")
+                .addResourceLocations("classpath:/static/assets/")
+                .setCachePeriod(31536000);
+
+        registry.addResourceHandler("/*.png", "/*.svg", "/*.ico", "/*.jpg", "/*.jpeg", "/*.gif", "/*.woff", "/*.woff2", "/*.ttf", "/*.eot")
                 .addResourceLocations("classpath:/static/")
                 .setCachePeriod(31536000);
+
+        registry.addResourceHandler("/manifest.webmanifest", "/sw.js", "/index.html", "/")
+                .addResourceLocations("classpath:/static/")
+                .setCachePeriod(0);
     }
 }
