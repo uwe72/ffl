@@ -47,3 +47,7 @@ spring:
   h2:
     console:
       enabled: false
+
+app:
+  jwt:
+    expiration: 31536000000
