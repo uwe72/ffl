@@ -37,15 +37,15 @@ export default function Layout() {
                 </svg>
               </div>
               <div className="flex flex-col">
-                <span className="text-2xl font-bold text-[#c9a66b] group-hover:text-[#d4b77a] transition-colors tracking-wide">
+                <span className="text-xl md:text-2xl font-bold text-[#c9a66b] group-hover:text-[#d4b77a] transition-colors tracking-wide">
                   FFL{season && <span className="text-[#6b7280]"> {season.name}</span>}
                 </span>
-                <span className="text-xs text-[#6b7280] -mt-1 tracking-widest">
+                <span className="hidden md:block text-xs text-[#6b7280] -mt-1 tracking-widest">
                   FANTASY FOOTBALL LEAGUE
                 </span>
               </div>
             </RouterLink>
-            <nav className="flex gap-6 items-center">
+            <nav className="hidden md:flex gap-6 items-center">
               {isAuthenticated && user?.role === 'ADMIN' && (
                 <>
                   <RouterLink to="/season" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
@@ -73,10 +73,11 @@ export default function Layout() {
               </RouterLink>
             </nav>
             <div className="flex flex-col items-end">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 md:gap-4">
                 {isAuthenticated ? (
                   <>
-                    <span className="text-sm text-[#a0aec0]">{user?.login} ({user?.role === 'ADMIN' ? 'Admin' : 'User'})</span>
+                    <span className="hidden md:inline text-sm text-[#a0aec0]">{user?.login} ({user?.role === 'ADMIN' ? 'Admin' : 'User'})</span>
+                    <span className="md:hidden text-xs text-[#a0aec0]">{user?.login}</span>
                     <Button size="sm" variant="secondary" onPress={handleLogout} className="h-7 px-3 text-xs">
                       Abmelden
                     </Button>
@@ -98,7 +99,7 @@ export default function Layout() {
                   </>
                 )}
               </div>
-              <span className="text-xs mt-1 tracking-widest">
+              <span className="hidden md:block text-xs mt-1 tracking-widest">
                 <span className={envColor}>{systemInfo?.environment || 'TEST'}</span>
                 <span className="text-[#6b7280] ml-2">{getVersionString()}</span>
               </span>

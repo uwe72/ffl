@@ -5,6 +5,17 @@ import { useCurrentManager, useManagersBySeason, useManagerCurrentPlayers } from
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+  return isMobile
+}
+
 const positionLabels: Record<string, string> = {
   GOALKEEPER: 'Torwart',
   DEFENDER: 'Verteidiger',
@@ -23,6 +34,7 @@ type ManagerSortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'points
 type PlayerSortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position' | 'team'
 
 export default function Home() {
+  const isMobile = useIsMobile()
   const { isAuthenticated, user } = useAuth()
   const { data: season } = useCurrentSeason()
   const { data: currentManager } = useCurrentManager()
@@ -186,20 +198,21 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
 
       {displayManager && (
         <>
-          <Card className="p-6 bg-[#1a2028] border border-[#2d3748] mb-8">
-            <div className="flex items-center gap-4 mb-4">
+          <Card className="p-4 md:p-6 bg-[#1a2028] border border-[#2d3748] mb-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
               <h3 className="text-lg font-semibold text-[#f5f5f5]">
                 {displayManager?.positionTotal ? `${displayManager.positionTotal}. Platz` : 'Platzierung'} am {season?.currentMatchday ? `${season.currentMatchday}. Spieltag` : 'Spieltag'}
               </h3>
               <div className="flex-1" />
-              <input
-                type="text"
-                placeholder="Manager suchen..."
-                value={managerFilter}
-                onChange={(e) => setManagerFilter(e.target.value)}
-                className="w-48 px-3 py-2 rounded-lg bg-[#242d38] border border-[#2d3748] text-[#f5f5f5] placeholder-[#6b7280] focus:outline-none focus:border-[#c9a66b]"
-              />
-              <div className="flex gap-2">
+              <div className="flex flex-col md:flex-row gap-2 md:gap-4">
+                <input
+                  type="text"
+                  placeholder="Manager suchen..."
+                  value={managerFilter}
+                  onChange={(e) => setManagerFilter(e.target.value)}
+                  className="w-full md:w-48 px-3 py-2 rounded-lg bg-[#242d38] border border-[#2d3748] text-[#f5f5f5] placeholder-[#6b7280] focus:outline-none focus:border-[#c9a66b]"
+                />
+                <div className="flex gap-2">
                 <label
                   className={`px-4 py-2 rounded-lg cursor-pointer transition-all ${
                     !showAllManagers ? 'bg-[#c9a66b] text-[#0f1419]' : 'bg-[#242d38] text-[#a0aec0] hover:bg-[#3d4a5c]'
@@ -216,6 +229,7 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                 >
                   Alle
                 </label>
+                </div>
               </div>
             </div>
             <div className={`overflow-x-auto rounded-lg border border-[#2d3748] ${!showAllManagers ? 'max-h-[264px] overflow-y-auto' : ''}`}>
@@ -237,15 +251,19 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                     <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('pointsLastRound')}>
                       Spieltag<ManagerSortIcon column="pointsLastRound" />
                     </th>
-                    <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('firstName')}>
-                      Vorname<ManagerSortIcon column="firstName" />
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('lastName')}>
-                      Nachname<ManagerSortIcon column="lastName" />
-                    </th>
-                    <th className="px-3 py-2 text-right text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('teamValue')}>
-                      Teamwert<ManagerSortIcon column="teamValue" />
-                    </th>
+                    {!isMobile && (
+                      <>
+                        <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('firstName')}>
+                          Vorname<ManagerSortIcon column="firstName" />
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('lastName')}>
+                          Nachname<ManagerSortIcon column="lastName" />
+                        </th>
+                        <th className="px-3 py-2 text-right text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('teamValue')}>
+                          Teamwert<ManagerSortIcon column="teamValue" />
+                        </th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="bg-[#1a2028]">
@@ -268,12 +286,16 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                         )}
                       </td>
                       <td className="px-3 py-2">
-                        <RouterLink 
-                          to={`/managers/${m.id}`} 
-                          className="hover:text-[#c9a66b] link font-medium text-[#c9a66b]"
-                        >
-                          {m.shortName || '-'}
-                        </RouterLink>
+                        {isMobile ? (
+                          <span className="font-medium text-[#c9a66b]">{m.shortName || '-'}</span>
+                        ) : (
+                          <RouterLink 
+                            to={`/managers/${m.id}`} 
+                            className="hover:text-[#c9a66b] link font-medium text-[#c9a66b]"
+                          >
+                            {m.shortName || '-'}
+                          </RouterLink>
+                        )}
                       </td>
                       <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
                         {m.pointsTotal ?? '-'}
@@ -281,15 +303,19 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                       <td className="px-3 py-2 text-center text-[#a0aec0]">
                         {m.pointsLastRound ?? '-'}
                       </td>
-                      <td className="px-3 py-2 text-[#a0aec0]">
-                        {m.firstName || '-'}
-                      </td>
-                      <td className="px-3 py-2 text-[#a0aec0]">
-                        {m.lastName || '-'}
-                      </td>
-                      <td className="px-3 py-2 text-right font-medium text-[#f5f5f5]">
-                        {m.teamValue ? (m.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
-                      </td>
+                      {!isMobile && (
+                        <>
+                          <td className="px-3 py-2 text-[#a0aec0]">
+                            {m.firstName || '-'}
+                          </td>
+                          <td className="px-3 py-2 text-[#a0aec0]">
+                            {m.lastName || '-'}
+                          </td>
+                          <td className="px-3 py-2 text-right font-medium text-[#f5f5f5]">
+                            {m.teamValue ? (m.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
+                          </td>
+                        </>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -298,8 +324,8 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
           </Card>
 
           {currentPlayers && currentPlayers.length > 0 && (
-            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-              <div className="flex items-center justify-between mb-4">
+            <Card className="p-4 md:p-6 bg-[#1a2028] border border-[#2d3748]">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                 <h3 className="text-lg font-semibold text-[#f5f5f5]">
                   {(() => {
                     const totalPoints = currentPlayers?.reduce((sum, p) => sum + (p.pointsLastRound ?? 0), 0) ?? 0
@@ -345,12 +371,16 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                       <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('pointsLastRound')}>
                         Spieltag<PlayerSortIcon column="pointsLastRound" />
                       </th>
-                      <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('managerCount')}>
-                        Manager<PlayerSortIcon column="managerCount" />
-                      </th>
-                      <th className="px-3 py-2 text-right text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('prize')}>
-                        Preis<PlayerSortIcon column="prize" />
-                      </th>
+                      {!isMobile && (
+                        <>
+                          <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('managerCount')}>
+                            Manager<PlayerSortIcon column="managerCount" />
+                          </th>
+                          <th className="px-3 py-2 text-right text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('prize')}>
+                            Preis<PlayerSortIcon column="prize" />
+                          </th>
+                        </>
+                      )}
                       <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handlePlayerSort('position')}>
                         Position<PlayerSortIcon column="position" />
                       </th>
@@ -383,12 +413,16 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                             )}
                           </td>
                           <td className="px-3 py-2">
-                            <RouterLink
-                              to={`/players/${pp.playerId}`}
-                              className="hover:text-[#c9a66b] link text-[#c9a66b] font-medium"
-                            >
-                              {pp.playerName}
-                            </RouterLink>
+                            {isMobile ? (
+                              <span className="text-[#c9a66b] font-medium">{pp.playerName}</span>
+                            ) : (
+                              <RouterLink
+                                to={`/players/${pp.playerId}`}
+                                className="hover:text-[#c9a66b] link text-[#c9a66b] font-medium"
+                              >
+                                {pp.playerName}
+                              </RouterLink>
+                            )}
                           </td>
                           <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
                             {pp.pointsTotal ?? '-'}
@@ -396,21 +430,25 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                           <td className="px-3 py-2 text-center text-[#a0aec0]">
                             {pp.pointsLastRound ?? '-'}
                           </td>
-                          <td className="px-3 py-2 text-center">
-                            <RouterLink to={`/players/${pp.playerId}`}>
-                              <Chip 
-                                size="sm" 
-                                variant="soft" 
-                                color={pp.managerCount && pp.managerCount > 0 ? 'accent' : 'default'}
-                                className="cursor-pointer hover:opacity-80"
-                              >
-                                {pp.managerCount ?? 0}
-                              </Chip>
-                            </RouterLink>
-                          </td>
-                          <td className="px-3 py-2 text-right font-medium text-[#f5f5f5]">
-                            {pp.prize ? pp.prize.toLocaleString() : '-'} €
-                          </td>
+                          {!isMobile && (
+                            <>
+                              <td className="px-3 py-2 text-center">
+                                <RouterLink to={`/players/${pp.playerId}`}>
+                                  <Chip 
+                                    size="sm" 
+                                    variant="soft" 
+                                    color={pp.managerCount && pp.managerCount > 0 ? 'accent' : 'default'}
+                                    className="cursor-pointer hover:opacity-80"
+                                  >
+                                    {pp.managerCount ?? 0}
+                                  </Chip>
+                                </RouterLink>
+                              </td>
+                              <td className="px-3 py-2 text-right font-medium text-[#f5f5f5]">
+                                {pp.prize ? pp.prize.toLocaleString() : '-'} €
+                              </td>
+                            </>
+                          )}
                           <td className="px-3 py-2">
                             {pp.position && (
                               <Chip size="sm" color={positionColors[pp.position]} variant="soft">
