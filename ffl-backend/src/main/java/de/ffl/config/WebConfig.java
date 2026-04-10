@@ -30,7 +30,15 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/static/")
                 .setCachePeriod(31536000);
 
-        registry.addResourceHandler("/manifest.webmanifest", "/sw.js", "/index.html", "/")
+        registry.addResourceHandler("/manifest.webmanifest")
+                .addResourceLocations("classpath:/static/")
+                .setCachePeriod(0);
+
+        registry.addResourceHandler("/sw.js")
+                .addResourceLocations("classpath:/static/")
+                .setCachePeriod(0);
+
+        registry.addResourceHandler("/index.html")
                 .addResourceLocations("classpath:/static/")
                 .setCachePeriod(0);
     }
