@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/seasons/**").permitAll()
                 .requestMatchers("/api/managers/**").permitAll()
                 .requestMatchers("/api/games/**").authenticated()
-                .requestMatchers("/", "/index.html", "/assets/**", "/*.js", "/*.css", "/*.png", "/*.jpg", "/*.svg", "/*.ico").permitAll()
+                .requestMatchers("/", "/index.html", "/assets/**", "/*.js", "/*.css", "/*.png", "/*.jpg", "/*.svg", "/*.ico", "/*.webmanifest", "/sw.js").permitAll()
                 .requestMatchers("/login", "/players", "/teams", "/seasons", "/managers", "/users", "/games").permitAll()
                 .requestMatchers("/players/**", "/teams/**", "/seasons/**", "/managers/**", "/users/**", "/games/**").permitAll()
                 .anyRequest().authenticated()

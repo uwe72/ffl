@@ -45,6 +45,8 @@ public class SpaForwardFilter implements Filter {
                path.endsWith(".woff2") ||
                path.endsWith(".ttf") ||
                path.endsWith(".eot") ||
+               path.endsWith(".webmanifest") ||
+               path.equals("/sw.js") ||
                path.equals("/index.html") ||
                path.equals("/");
     }
