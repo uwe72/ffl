@@ -233,22 +233,22 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
               </div>
             </div>
             <div className={`overflow-x-auto rounded-lg border border-[#2d3748] ${!showAllManagers ? 'max-h-[264px] overflow-y-auto' : ''}`}>
-              <table className="w-full">
+              <table className={`w-full ${isMobile ? 'min-w-[500px]' : ''}`}>
                 <thead className="bg-[#242d38]">
                   <tr>
-                    <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('positionTotal')}>
+                    <th className={`px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748] ${isMobile ? 'sticky left-0 w-[50px] bg-[#242d38] z-10' : ''}`} onClick={() => handleManagerSort('positionTotal')}>
                       Pos<ManagerSortIcon column="positionTotal" />
                     </th>
-                    <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('positionChange')}>
+                    <th className={`px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748] ${isMobile ? 'sticky left-[50px] w-[50px] bg-[#242d38] z-10' : ''}`} onClick={() => handleManagerSort('positionChange')}>
                       +-<ManagerSortIcon column="positionChange" />
                     </th>
-                    <th className="px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('shortName')}>
+                    <th className={`px-3 py-2 text-left text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748] ${isMobile ? 'min-w-[120px]' : ''}`} onClick={() => handleManagerSort('shortName')}>
                       Manager<ManagerSortIcon column="shortName" />
                     </th>
-                    <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('pointsTotal')}>
+                    <th className={`px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748] ${isMobile ? 'sticky right-[70px] w-[60px] bg-[#242d38] z-10' : ''}`} onClick={() => handleManagerSort('pointsTotal')}>
                       Pkt<ManagerSortIcon column="pointsTotal" />
                     </th>
-                    <th className="px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]" onClick={() => handleManagerSort('pointsLastRound')}>
+                    <th className={`px-3 py-2 text-center text-xs text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748] ${isMobile ? 'sticky right-0 w-[70px] bg-[#242d38] z-10' : ''}`} onClick={() => handleManagerSort('pointsLastRound')}>
                       Spieltag<ManagerSortIcon column="pointsLastRound" />
                     </th>
                     {!isMobile && (
@@ -267,57 +267,61 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                   </tr>
                 </thead>
                 <tbody className="bg-[#1a2028]">
-                  {filteredManagers.map(m => (
-                    <tr 
-                      key={m.id} 
-                      ref={m.id === displayManager?.id ? currentManagerRowRef : null}
-                      className={`border-b border-[#2d3748] hover:bg-[#242d38] ${m.id === displayManager?.id ? 'border-l-4 border-l-[#c9a66b] bg-[#2d3748]' : ''}`}
-                    >
-                      <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
-                        {m.positionTotal ? `${m.positionTotal}.` : '-'}
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        {m.positionChange != null && m.positionChange !== 0 ? (
-                          <span className={`font-medium ${m.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {m.positionChange > 0 ? `↑${m.positionChange}` : `↓${Math.abs(m.positionChange)}`}
-                          </span>
-                        ) : (
-                          <span className="text-[#6b7280]">-</span>
+                  {filteredManagers.map(m => {
+                    const isCurrentManager = m.id === displayManager?.id
+                    const stickyBg = isCurrentManager ? 'bg-[#2d3748]' : 'bg-[#1a2028]'
+                    return (
+                      <tr 
+                        key={m.id} 
+                        ref={m.id === displayManager?.id ? currentManagerRowRef : null}
+                        className={`border-b border-[#2d3748] hover:bg-[#242d38] ${isCurrentManager ? 'border-l-4 border-l-[#c9a66b] bg-[#2d3748]' : ''}`}
+                      >
+                        <td className={`px-3 py-2 text-center font-medium text-[#f5f5f5] ${isMobile ? `sticky left-0 w-[50px] ${stickyBg} z-10` : ''}`}>
+                          {m.positionTotal ? `${m.positionTotal}.` : '-'}
+                        </td>
+                        <td className={`px-3 py-2 text-center ${isMobile ? `sticky left-[50px] w-[50px] ${stickyBg} z-10` : ''}`}>
+                          {m.positionChange != null && m.positionChange !== 0 ? (
+                            <span className={`font-medium ${m.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {m.positionChange > 0 ? `↑${m.positionChange}` : `↓${Math.abs(m.positionChange)}`}
+                            </span>
+                          ) : (
+                            <span className="text-[#6b7280]">-</span>
+                          )}
+                        </td>
+                        <td className={`px-3 py-2 ${isMobile ? 'min-w-[120px]' : ''}`}>
+                          {isMobile ? (
+                            <span className="font-medium text-[#c9a66b]">{m.shortName || '-'}</span>
+                          ) : (
+                            <RouterLink 
+                              to={`/managers/${m.id}`} 
+                              className="hover:text-[#c9a66b] link font-medium text-[#c9a66b]"
+                            >
+                              {m.shortName || '-'}
+                            </RouterLink>
+                          )}
+                        </td>
+                        <td className={`px-3 py-2 text-center font-medium text-[#f5f5f5] ${isMobile ? `sticky right-[70px] w-[60px] ${stickyBg} z-10` : ''}`}>
+                          {m.pointsTotal ?? '-'}
+                        </td>
+                        <td className={`px-3 py-2 text-center text-[#a0aec0] ${isMobile ? `sticky right-0 w-[70px] ${stickyBg} z-10` : ''}`}>
+                          {m.pointsLastRound ?? '-'}
+                        </td>
+                        {!isMobile && (
+                          <>
+                            <td className="px-3 py-2 text-[#a0aec0]">
+                              {m.firstName || '-'}
+                            </td>
+                            <td className="px-3 py-2 text-[#a0aec0]">
+                              {m.lastName || '-'}
+                            </td>
+                            <td className="px-3 py-2 text-right font-medium text-[#f5f5f5]">
+                              {m.teamValue ? (m.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
+                            </td>
+                          </>
                         )}
-                      </td>
-                      <td className="px-3 py-2">
-                        {isMobile ? (
-                          <span className="font-medium text-[#c9a66b]">{m.shortName || '-'}</span>
-                        ) : (
-                          <RouterLink 
-                            to={`/managers/${m.id}`} 
-                            className="hover:text-[#c9a66b] link font-medium text-[#c9a66b]"
-                          >
-                            {m.shortName || '-'}
-                          </RouterLink>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
-                        {m.pointsTotal ?? '-'}
-                      </td>
-                      <td className="px-3 py-2 text-center text-[#a0aec0]">
-                        {m.pointsLastRound ?? '-'}
-                      </td>
-                      {!isMobile && (
-                        <>
-                          <td className="px-3 py-2 text-[#a0aec0]">
-                            {m.firstName || '-'}
-                          </td>
-                          <td className="px-3 py-2 text-[#a0aec0]">
-                            {m.lastName || '-'}
-                          </td>
-                          <td className="px-3 py-2 text-right font-medium text-[#f5f5f5]">
-                            {m.teamValue ? (m.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))}
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
