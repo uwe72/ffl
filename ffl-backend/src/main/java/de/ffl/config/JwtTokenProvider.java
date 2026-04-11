@@ -18,8 +18,11 @@ public class JwtTokenProvider {
     @Value("${app.jwt.secret:mySecretKeyForJwtTokenGenerationThatShouldBeAtLeast256BitsLong}")
     private String jwtSecret;
 
-    @Value("${app.jwt.expiration:86400000}")
+    @Value("${app.jwt.expiration:3600000}")
     private long jwtExpiration;
+
+    @Value("${app.jwt.refresh-expiration:2592000000}")
+    private long jwtRefreshExpiration;
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
@@ -40,6 +43,21 @@ public class JwtTokenProvider {
         return Jwts.builder()
             .subject(userPrincipal.getUsername())
             .claim("roles", authorities)
+            .claim("type", "access")
+            .issuedAt(now)
+            .expiration(expiryDate)
+            .signWith(getSigningKey())
+            .compact();
+    }
+
+    public String generateRefreshToken(String login, String role) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtRefreshExpiration);
+
+        return Jwts.builder()
+            .subject(login)
+            .claim("roles", role)
+            .claim("type", "refresh")
             .issuedAt(now)
             .expiration(expiryDate)
             .signWith(getSigningKey())
@@ -56,6 +74,16 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
+    public String getRoleFromToken(String token) {
+        Claims claims = Jwts.parser()
+            .verifyWith(getSigningKey())
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+
+        return claims.get("roles", String.class);
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
@@ -63,6 +91,20 @@ public class JwtTokenProvider {
                 .build()
                 .parseSignedClaims(token);
             return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public boolean validateRefreshToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+            String type = claims.get("type", String.class);
+            return "refresh".equals(type);
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }

@@ -197,6 +197,7 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
   token: string
+  refreshToken: string
   type: string
   login: string
   role: string
@@ -209,6 +210,7 @@ export interface AuthContextType {
   login: (credentials: LoginRequest) => Promise<void>
   register: (data: RegisterRequest) => Promise<void>
   logout: () => void
+  refreshAccessToken: () => Promise<boolean>
 }
 
 export interface ManagerInGroup {

@@ -16,6 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         localStorage.removeItem('user')
         localStorage.removeItem('token')
+        localStorage.removeItem('refreshToken')
       }
     }
     setIsLoading(false)
@@ -24,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (credentials: LoginRequest) => {
     const response = await authApi.login(credentials)
     localStorage.setItem('token', response.token)
+    localStorage.setItem('refreshToken', response.refreshToken)
     const userData = { login: response.login, role: response.role }
     localStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
@@ -32,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (data: RegisterRequest) => {
     const response = await authApi.register(data)
     localStorage.setItem('token', response.token)
+    localStorage.setItem('refreshToken', response.refreshToken)
     const userData = { login: response.login, role: response.role }
     localStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
@@ -39,8 +42,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
     setUser(null)
+  }
+
+  const refreshAccessToken = async (): Promise<boolean> => {
+    const refreshToken = localStorage.getItem('refreshToken')
+    if (!refreshToken) {
+      logout()
+      return false
+    }
+
+    try {
+      const response = await authApi.refresh(refreshToken)
+      localStorage.setItem('token', response.token)
+      localStorage.setItem('refreshToken', response.refreshToken)
+      const userData = { login: response.login, role: response.role }
+      localStorage.setItem('user', JSON.stringify(userData))
+      setUser(userData)
+      return true
+    } catch {
+      logout()
+      return false
+    }
   }
 
   return (
@@ -52,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        refreshAccessToken,
       }}
     >
       {children}

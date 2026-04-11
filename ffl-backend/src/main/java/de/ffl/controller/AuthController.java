@@ -5,6 +5,7 @@ import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.AuthResponse;
 import de.ffl.dto.LoginRequest;
+import de.ffl.dto.RefreshRequest;
 import de.ffl.dto.RegisterRequest;
 import de.ffl.repository.UserRepository;
 import jakarta.validation.Valid;
@@ -43,9 +44,11 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken(authentication);
+        String refreshToken = tokenProvider.generateRefreshToken(request.getLogin(), 
+            userRepository.findByLogin(request.getLogin()).orElseThrow().getRole().name());
 
         User user = userRepository.findByLogin(request.getLogin()).orElseThrow();
-        return ResponseEntity.ok(new AuthResponse(jwt, user.getLogin(), user.getRole().name()));
+        return ResponseEntity.ok(new AuthResponse(jwt, refreshToken, user.getLogin(), user.getRole().name()));
     }
 
     @PostMapping("/register")
@@ -74,6 +77,31 @@ public class AuthController {
         );
 
         String jwt = tokenProvider.generateToken(authentication);
-        return ResponseEntity.ok(new AuthResponse(jwt, user.getLogin(), user.getRole().name()));
+        String refreshToken = tokenProvider.generateRefreshToken(request.getLogin(), UserRole.NORMAL.name());
+        return ResponseEntity.ok(new AuthResponse(jwt, refreshToken, user.getLogin(), user.getRole().name()));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@Valid @RequestBody RefreshRequest request) {
+        String refreshToken = request.getRefreshToken();
+        
+        if (!tokenProvider.validateRefreshToken(refreshToken)) {
+            return ResponseEntity.status(401).body("Ungültiger oder abgelaufener Refresh-Token");
+        }
+
+        String login = tokenProvider.getUsernameFromToken(refreshToken);
+        String role = tokenProvider.getRoleFromToken(refreshToken);
+
+        User user = userRepository.findByLogin(login).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Benutzer nicht gefunden");
+        }
+
+        String newAccessToken = tokenProvider.generateToken(
+            new UsernamePasswordAuthenticationToken(login, null, java.util.Collections.emptyList())
+        );
+        String newRefreshToken = tokenProvider.generateRefreshToken(login, role);
+
+        return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken, login, role));
     }
 }
