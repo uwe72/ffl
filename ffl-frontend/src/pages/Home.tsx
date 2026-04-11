@@ -101,12 +101,10 @@ function PlayerCardDashboard({ player }: { player: PlayerPoint }) {
             <span className="text-[#6b7280]">Manager: </span>
             <span className="font-medium text-[#f5f5f5]">{player.managerCount ?? 0}</span>
           </div>
-          <div></div>
-        </div>
-
-        <div className="mt-3 pt-3 border-t border-[#2d3748]">
-          <span className="text-[#6b7280] text-sm">Preis: </span>
-          <span className="font-bold text-[#f5f5f5]">{player.prize ? player.prize.toLocaleString() : '-'} €</span>
+          <div>
+            <span className="text-[#6b7280]">Preis: </span>
+            <span className="font-medium text-[#f5f5f5]">{player.prize ? player.prize.toLocaleString() : '-'} €</span>
+          </div>
         </div>
       </Card>
     </RouterLink>
