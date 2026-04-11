@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { Table, Button, Chip, Card, Avatar } from '@heroui/react'
 import { usePlayers } from '../hooks/usePlayers'
-import type { Team } from '../types'
+import type { Team, Player } from '../types'
 
 export const positionLabels: Record<string, string> = {
   GOALKEEPER: 'Torwart',
@@ -80,6 +80,88 @@ function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
         </div>
       )}
     </div>
+  )
+}
+
+function PlayerCard({ player }: { player: Player }) {
+  return (
+    <RouterLink to={`/players/${player.id}`} className="block">
+      <Card className="p-4 bg-[#1a2028] border border-[#2d3748] hover:border-[#3d4a5c] transition-colors">
+        <div className="flex gap-4">
+          {player.pictureUrl ? (
+            <img 
+              src={player.pictureUrl} 
+              alt={player.nameKicker}
+              className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-[#242d38] flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl text-[#6b7280]">👤</span>
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-[#c9a66b] truncate">{player.nameKicker}</div>
+            {player.firstName && player.lastName && (
+              <div className="text-sm text-[#6b7280] truncate">
+                {player.firstName} {player.lastName}
+              </div>
+            )}
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              {player.teams.length > 0 && player.teams[0].logoSUrl && (
+                <img 
+                  src={player.teams[0].logoSUrl} 
+                  alt={player.teams[0].name}
+                  className="w-5 h-5 object-contain"
+                />
+              )}
+              {player.teams.length > 0 && (
+                <span className="text-sm text-[#f5f5f5] truncate">{player.teams[0].name}</span>
+              )}
+            </div>
+          </div>
+          <Chip size="sm" color={positionColors[player.position]} variant="soft" className="flex-shrink-0">
+            {positionLabels[player.position]}
+          </Chip>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 mt-4 text-sm">
+          <div>
+            <span className="text-[#6b7280]">Pos: </span>
+            <span className="font-medium text-[#f5f5f5]">
+              {player.positionTotal ? `${player.positionTotal}.` : '-'}
+            </span>
+          </div>
+          <div>
+            <span className="text-[#6b7280]">Pkt: </span>
+            <span className="font-medium text-[#f5f5f5]">{player.points ?? '-'}</span>
+          </div>
+          <div>
+            <span className="text-[#6b7280]">Spieltag: </span>
+            <span className="font-medium text-[#f5f5f5]">{player.pointsLastRound ?? '-'}</span>
+          </div>
+          <div>
+            <span className="text-[#6b7280]">+-: </span>
+            {player.positionChange != null && player.positionChange !== 0 ? (
+              <span className={`font-medium ${player.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
+              </span>
+            ) : (
+              <span className="text-[#6b7280]">-</span>
+            )}
+          </div>
+          <div>
+            <span className="text-[#6b7280]">Manager: </span>
+            <span className="font-medium text-[#f5f5f5]">{player.managerCount ?? 0}</span>
+          </div>
+          <div></div>
+        </div>
+
+        <div className="mt-3 pt-3 border-t border-[#2d3748]">
+          <span className="text-[#6b7280] text-sm">Preis: </span>
+          <span className="font-bold text-[#f5f5f5]">{player.prize.toLocaleString()} €</span>
+        </div>
+      </Card>
+    </RouterLink>
   )
 }
 
@@ -206,7 +288,7 @@ export default function Players() {
           </div>
         </div>
 
-        <Table>
+        <Table className="hidden md:block">
           <Table.ScrollContainer>
             <Table.Content aria-label="Spieler-Tabelle">
               <Table.Header>
@@ -327,6 +409,18 @@ export default function Players() {
             </Table.Content>
           </Table.ScrollContainer>
         </Table>
+
+        <div className="md:hidden grid gap-4 mt-4">
+          {filteredPlayers && filteredPlayers.length > 0 ? (
+            filteredPlayers.map((player) => (
+              <PlayerCard key={player.id} player={player} />
+            ))
+          ) : (
+            <div className="text-center text-[#6b7280] py-8">
+              Keine Spieler gefunden
+            </div>
+          )}
+        </div>
 
         {filteredPlayers && (
           <div className="mt-4 text-sm text-[#6b7280]">
