@@ -110,7 +110,11 @@ function PlayerCard({ player }: { player: Player }) {
           )}
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-[#c9a66b] truncate">{player.nameKicker}</div>
-            <div className="text-sm text-[#a0aec0]">{positionLabels[player.position]}</div>
+            <div className="mt-1">
+              <Chip size="sm" color={positionColors[player.position]} variant="soft" className="text-xs py-0.5">
+                {positionLabels[player.position]}
+              </Chip>
+            </div>
           </div>
           {player.teams.length > 0 && player.teams[0].logoSUrl && (
             <img 
