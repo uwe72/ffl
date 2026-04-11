@@ -83,6 +83,15 @@ function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
   )
 }
 
+function formatPrice(price: number | undefined): string {
+  if (!price) return '- €'
+  if (price >= 1_000_000) {
+    const millions = price / 1_000_000
+    return `${millions % 1 === 0 ? millions : millions.toFixed(1)}M €`
+  }
+  return `${Math.round(price / 1_000)}K €`
+}
+
 function PlayerCard({ player }: { player: Player }) {
   return (
     <RouterLink to={`/players/${player.id}`} className="block">
@@ -155,7 +164,7 @@ function PlayerCard({ player }: { player: Player }) {
           </div>
           <div>
             <span className="text-[#6b7280]">Preis: </span>
-            <span className="font-medium text-[#f5f5f5]">{player.prize.toLocaleString()} €</span>
+            <span className="font-medium text-[#f5f5f5]">{formatPrice(player.prize)}</span>
           </div>
         </div>
       </Card>
