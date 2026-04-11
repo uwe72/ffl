@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { useCurrentManager, useManagersBySeason, useManagerCurrentPlayers } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
+import type { PlayerPoint } from '../types'
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false)
@@ -32,6 +33,85 @@ const positionColors: Record<string, 'success' | 'warning' | 'accent' | 'danger'
 
 type ManagerSortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue'
 type PlayerSortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position' | 'team'
+
+function PlayerCardDashboard({ player }: { player: PlayerPoint }) {
+  return (
+    <RouterLink to={`/players/${player.playerId}`} className="block">
+      <Card className="p-4 bg-[#1a2028] border border-[#2d3748] hover:border-[#3d4a5c] transition-colors">
+        <div className="flex gap-4">
+          {player.pictureUrl ? (
+            <img 
+              src={player.pictureUrl} 
+              alt={player.playerName}
+              className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-[#242d38] flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl text-[#6b7280]">👤</span>
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-[#c9a66b] truncate">{player.playerName}</div>
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              {player.teamLogoUrl && (
+                <img 
+                  src={player.teamLogoUrl} 
+                  alt={player.teamName}
+                  className="w-5 h-5 object-contain"
+                />
+              )}
+              {player.teamName && (
+                <span className="text-sm text-[#f5f5f5] truncate">{player.teamName}</span>
+              )}
+            </div>
+          </div>
+          {player.position && (
+            <Chip size="sm" color={positionColors[player.position]} variant="soft" className="flex-shrink-0">
+              {positionLabels[player.position]}
+            </Chip>
+          )}
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 mt-4 text-sm">
+          <div>
+            <span className="text-[#6b7280]">Pos: </span>
+            <span className="font-medium text-[#f5f5f5]">
+              {player.positionTotal ? `${player.positionTotal}.` : '-'}
+            </span>
+          </div>
+          <div>
+            <span className="text-[#6b7280]">Pkt: </span>
+            <span className="font-medium text-[#f5f5f5]">{player.pointsTotal ?? '-'}</span>
+          </div>
+          <div>
+            <span className="text-[#6b7280]">Spieltag: </span>
+            <span className="font-medium text-[#f5f5f5]">{player.pointsLastRound ?? '-'}</span>
+          </div>
+          <div>
+            <span className="text-[#6b7280]">+-: </span>
+            {player.positionChange != null && player.positionChange !== 0 ? (
+              <span className={`font-medium ${player.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
+              </span>
+            ) : (
+              <span className="text-[#6b7280]">-</span>
+            )}
+          </div>
+          <div>
+            <span className="text-[#6b7280]">Manager: </span>
+            <span className="font-medium text-[#f5f5f5]">{player.managerCount ?? 0}</span>
+          </div>
+          <div></div>
+        </div>
+
+        <div className="mt-3 pt-3 border-t border-[#2d3748]">
+          <span className="text-[#6b7280] text-sm">Preis: </span>
+          <span className="font-bold text-[#f5f5f5]">{player.prize ? player.prize.toLocaleString() : '-'} €</span>
+        </div>
+      </Card>
+    </RouterLink>
+  )
+}
 
 export default function Home() {
   const isMobile = useIsMobile()
@@ -356,7 +436,7 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                   </label>
                 </div>
               </div>
-              <div className="overflow-x-auto rounded-lg border border-[#2d3748]">
+              <div className="overflow-x-auto rounded-lg border border-[#2d3748] hidden md:block">
                 <table className="w-full">
 <thead className="bg-[#242d38] sticky top-0">
                     <tr>
@@ -479,6 +559,12 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="md:hidden grid gap-4 mt-4">
+                {sortedPlayerPoints.map(pp => (
+                  <PlayerCardDashboard key={pp.playerId} player={pp} />
+                ))}
               </div>
             </Card>
           )}

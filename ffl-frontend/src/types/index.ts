@@ -111,6 +111,7 @@ export interface PlayerPoint {
   pointsLastRound?: number
   pointsTotal?: number
   managerCount?: number
+  pictureUrl?: string
 }
 
 export interface ManagerRank {

@@ -323,6 +323,7 @@ public class ManagerRoundService {
             pp.setPlayerName(player.getNameKicker());
             pp.setPosition(player.getPosition() != null ? player.getPosition().name() : null);
             pp.setPrize(player.getPrize());
+            pp.setPictureUrl(player.getPictureUrl());
             
             Hibernate.initialize(player.getTeams());
             if (player.getTeams() != null && !player.getTeams().isEmpty()) {

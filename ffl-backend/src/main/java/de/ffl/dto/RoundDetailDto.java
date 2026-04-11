@@ -40,6 +40,7 @@ public class RoundDetailDto {
         private Integer pointsLastRound;
         private Integer pointsTotal;
         private Integer managerCount;
+        private String pictureUrl;
 
         public Long getPlayerId() { return playerId; }
         public void setPlayerId(Long playerId) { this.playerId = playerId; }
@@ -67,6 +68,8 @@ public class RoundDetailDto {
         public void setPointsTotal(Integer pointsTotal) { this.pointsTotal = pointsTotal; }
         public Integer getManagerCount() { return managerCount; }
         public void setManagerCount(Integer managerCount) { this.managerCount = managerCount; }
+        public String getPictureUrl() { return pictureUrl; }
+        public void setPictureUrl(String pictureUrl) { this.pictureUrl = pictureUrl; }
     }
 
     public static class RulePointDto {
