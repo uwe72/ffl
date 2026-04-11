@@ -52,34 +52,31 @@ function PlayerCardDashboard({ player }: { player: PlayerPoint }) {
             <img 
               src={player.pictureUrl} 
               alt={player.playerName}
-              className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+              className="w-14 h-14 rounded-full object-cover flex-shrink-0"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-[#242d38] flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl text-[#6b7280]">👤</span>
+            <div className="w-14 h-14 rounded-full bg-[#242d38] flex items-center justify-center flex-shrink-0">
+              <span className="text-xl text-[#6b7280]">👤</span>
             </div>
           )}
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-[#c9a66b] truncate">{player.playerName}</div>
-            <div className="mt-2 flex items-center gap-2 flex-wrap">
-              {player.teamLogoUrl && (
-                <img 
-                  src={player.teamLogoUrl} 
-                  alt={player.teamName}
-                  className="w-5 h-5 object-contain"
-                />
-              )}
-              {player.teamName && (
-                <span className="text-sm text-[#f5f5f5] truncate">{player.teamName}</span>
-              )}
-            </div>
+          <div className="flex-1 min-w-0 flex items-center gap-2">
+            <span className="font-semibold text-[#c9a66b] truncate">{player.playerName}</span>
+            {player.teamLogoUrl && (
+              <img 
+                src={player.teamLogoUrl} 
+                alt={player.teamName}
+                className="w-5 h-5 object-contain flex-shrink-0"
+              />
+            )}
           </div>
-          {player.position && (
-            <Chip size="sm" color={positionColors[player.position]} variant="soft" className="flex-shrink-0">
+        </div>
+        {player.position && (
+          <div className="mt-2">
+            <Chip size="sm" color={positionColors[player.position]} variant="soft" className="text-xs py-0.5">
               {positionLabels[player.position]}
             </Chip>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-3 gap-2 mt-4 text-sm">
           <div>

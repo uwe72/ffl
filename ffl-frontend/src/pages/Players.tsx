@@ -101,34 +101,26 @@ function PlayerCard({ player }: { player: Player }) {
             <img 
               src={player.pictureUrl} 
               alt={player.nameKicker}
-              className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+              className="w-14 h-14 rounded-full object-cover flex-shrink-0"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-[#242d38] flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl text-[#6b7280]">👤</span>
+            <div className="w-14 h-14 rounded-full bg-[#242d38] flex items-center justify-center flex-shrink-0">
+              <span className="text-xl text-[#6b7280]">👤</span>
             </div>
           )}
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-[#c9a66b] truncate">{player.nameKicker}</div>
-            {player.firstName && player.lastName && (
-              <div className="text-sm text-[#6b7280] truncate">
-                {player.firstName} {player.lastName}
-              </div>
+          <div className="flex-1 min-w-0 flex items-center gap-2">
+            <span className="font-semibold text-[#c9a66b] truncate">{player.nameKicker}</span>
+            {player.teams.length > 0 && player.teams[0].logoSUrl && (
+              <img 
+                src={player.teams[0].logoSUrl} 
+                alt={player.teams[0].name}
+                className="w-5 h-5 object-contain flex-shrink-0"
+              />
             )}
-            <div className="mt-2 flex items-center gap-2 flex-wrap">
-              {player.teams.length > 0 && player.teams[0].logoSUrl && (
-                <img 
-                  src={player.teams[0].logoSUrl} 
-                  alt={player.teams[0].name}
-                  className="w-5 h-5 object-contain"
-                />
-              )}
-              {player.teams.length > 0 && (
-                <span className="text-sm text-[#f5f5f5] truncate">{player.teams[0].name}</span>
-              )}
-            </div>
           </div>
-          <Chip size="sm" color={positionColors[player.position]} variant="soft" className="flex-shrink-0">
+        </div>
+        <div className="mt-2">
+          <Chip size="sm" color={positionColors[player.position]} variant="soft" className="text-xs py-0.5">
             {positionLabels[player.position]}
           </Chip>
         </div>
