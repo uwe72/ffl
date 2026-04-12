@@ -231,7 +231,8 @@ public class FormationConverterService {
             
             if (!Character.isAlphabetic(trimmed.charAt(0))) continue;
             if (trimmed.startsWith("Rechtsschuss") || trimmed.startsWith("Linksschuss") || 
-                trimmed.startsWith("Kopfball") || trimmed.startsWith("Brust")) continue;
+                trimmed.startsWith("Kopfball") || trimmed.startsWith("Brust") ||
+                trimmed.startsWith("linke Hand") || trimmed.startsWith("rechte Hand")) continue;
             if (trimmed.contains("(Eigentor)")) continue;
             if (trimmed.equals(":")) continue;
             
