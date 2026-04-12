@@ -45,22 +45,21 @@ function formatPrice(price: number | undefined): string {
 
 function PlayerCardDashboard({ player }: { player: PlayerPoint }) {
   return (
-    <RouterLink to={`/players/${player.playerId}`} className="block">
-      <Card className="p-4 bg-[#1a2028] border border-[#2d3748] hover:border-[#3d4a5c] transition-colors">
-        <div className="flex gap-4 items-center">
-          {player.pictureUrl ? (
-            <img 
-              src={player.pictureUrl} 
-              alt={player.playerName}
-              className="w-14 h-14 rounded-full object-cover flex-shrink-0"
-            />
-          ) : (
-            <div className="w-14 h-14 rounded-full bg-[#242d38] flex items-center justify-center flex-shrink-0">
-              <span className="text-xl text-[#6b7280]">👤</span>
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-[#c9a66b] truncate">{player.playerName}</div>
+    <Card className="p-4 bg-[#1a2028] border border-[#2d3748]">
+      <div className="flex gap-4 items-center">
+        {player.pictureUrl ? (
+          <img 
+            src={player.pictureUrl} 
+            alt={player.playerName}
+            className="w-14 h-14 rounded-full object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="w-14 h-14 rounded-full bg-[#242d38] flex items-center justify-center flex-shrink-0">
+            <span className="text-xl text-[#6b7280]">👤</span>
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-[#f5f5f5] truncate">{player.playerName}</div>
             {player.position && (
               <div className="mt-1">
                 <Chip size="sm" color={positionColors[player.position]} variant="soft" className="text-xs py-0.5">
@@ -113,9 +112,8 @@ function PlayerCardDashboard({ player }: { player: PlayerPoint }) {
           </div>
         </div>
       </Card>
-    </RouterLink>
-  )
-}
+    )
+  }
 
 export default function Home() {
   const isMobile = useIsMobile()
@@ -536,7 +534,7 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
                         </td>
                         <td className={`px-3 py-2 ${isMobile ? 'min-w-[120px]' : ''}`}>
                           {isMobile ? (
-                            <span className="font-medium text-[#c9a66b]">{m.shortName || '-'}</span>
+                            <span className="font-medium text-[#f5f5f5]">{m.shortName || '-'}</span>
                           ) : (
                             <RouterLink 
                               to={`/managers/${m.id}`} 
