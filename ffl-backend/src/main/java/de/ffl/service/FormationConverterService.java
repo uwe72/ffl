@@ -209,8 +209,18 @@ public class FormationConverterService {
         if (toreStart < 0) return scorers;
         
         String toreSection = formation.substring(toreStart + 4);
-        int endMarker = toreSection.indexOf("Aufstellung");
-        if (endMarker < 0) endMarker = toreSection.indexOf("Besondere Vorkommnisse");
+        int endMarkerAufstellung = toreSection.indexOf("Aufstellung");
+        int endMarkerBesondere = toreSection.indexOf("Besondere Vorkommnisse");
+        int endMarker = -1;
+        
+        if (endMarkerAufstellung >= 0 && endMarkerBesondere >= 0) {
+            endMarker = Math.min(endMarkerAufstellung, endMarkerBesondere);
+        } else if (endMarkerAufstellung >= 0) {
+            endMarker = endMarkerAufstellung;
+        } else {
+            endMarker = endMarkerBesondere;
+        }
+        
         if (endMarker > 0) toreSection = toreSection.substring(0, endMarker);
         
         String[] lines = toreSection.split(FFL_LINE_BREAK);
