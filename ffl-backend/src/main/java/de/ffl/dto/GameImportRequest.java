@@ -13,6 +13,7 @@ import java.util.Map;
 @Builder
 public class GameImportRequest {
     private Map<String, Long> playerMappings;
+    private String formationExtern;
 
     @Data
     @NoArgsConstructor

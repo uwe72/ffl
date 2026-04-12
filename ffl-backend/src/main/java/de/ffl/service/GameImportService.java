@@ -23,6 +23,7 @@ public class GameImportService {
     private final PlayerRankRepository playerRankRepository;
     private final SeasonCalculationService seasonCalculationService;
     private final SeasonRepository seasonRepository;
+    private final FormationConverterService formationConverterService;
 
     public GameImportService(
             GameRepository gameRepository,
@@ -31,7 +32,8 @@ public class GameImportService {
             PointsRepository pointsRepository,
             PlayerRankRepository playerRankRepository,
             SeasonCalculationService seasonCalculationService,
-            SeasonRepository seasonRepository) {
+            SeasonRepository seasonRepository,
+            FormationConverterService formationConverterService) {
         this.gameRepository = gameRepository;
         this.teamRepository = teamRepository;
         this.playerRepository = playerRepository;
@@ -39,6 +41,7 @@ public class GameImportService {
         this.playerRankRepository = playerRankRepository;
         this.seasonCalculationService = seasonCalculationService;
         this.seasonRepository = seasonRepository;
+        this.formationConverterService = formationConverterService;
     }
 
     @Transactional
@@ -131,7 +134,7 @@ public class GameImportService {
     }
 
     @Transactional
-    public GameImportResult processGameImport(Long gameId, Map<String, Long> playerMappings) {
+    public GameImportResult processGameImport(Long gameId, Map<String, Long> playerMappings, String formationExtern) {
         Game game = gameRepository.findById(gameId)
             .orElse(null);
         
@@ -161,6 +164,14 @@ public class GameImportService {
                 player.setNameKickerAlt3(altName);
             }
             playerRepository.save(player);
+        }
+
+        if (formationExtern != null && !formationExtern.isEmpty()) {
+            String formationIntern = formationConverterService.convertToIntern(formationExtern);
+            game.setFormationExtern(formationExtern);
+            game.setFormationIntern(formationIntern);
+            game.setFormation(formationIntern);
+            gameRepository.save(game);
         }
 
         return validateAndImport(gameId);

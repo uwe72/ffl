@@ -167,7 +167,7 @@ export default function FormationImportDialog({
     setError(null)
     try {
       if (Object.keys(mappings).length > 0) {
-        await gameApi.importWithMappings(gameId, mappings)
+        await gameApi.importWithMappings(gameId, mappings, formationExtern)
       } else {
         await gameApi.importFormation(gameId, formationExtern)
       }

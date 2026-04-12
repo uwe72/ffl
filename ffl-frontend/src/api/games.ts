@@ -16,8 +16,8 @@ export const gameApi = {
     api.post<ValidationResult>(`/games/${id}/validate-formation`, formationExtern, { headers: { 'Content-Type': 'text/plain' } }),
   delete: (id: number) => api.delete(`/games/${id}`),
   import: (id: number) => api.post<GameImportResult>(`/games/${id}/import`),
-  importWithMappings: (id: number, playerMappings: Record<string, number>) => 
-    api.post<GameImportResult>(`/games/${id}/import-with-mappings`, { playerMappings }),
+  importWithMappings: (id: number, playerMappings: Record<string, number>, formationExtern: string) => 
+    api.post<GameImportResult>(`/games/${id}/import-with-mappings`, { playerMappings, formationExtern }),
   createPlayer: (id: number, playerName: string, teamId: number, position?: string) =>
     api.post<GameImportResult>(`/games/${id}/create-player`, { 
       playerName, 

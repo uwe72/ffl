@@ -145,7 +145,11 @@ public class GameController {
     public ResponseEntity<GameImportResult> importGameWithMappings(
             @PathVariable Long id,
             @RequestBody GameImportRequest request) {
-        GameImportResult result = gameImportService.processGameImport(id, request.getPlayerMappings());
+        GameImportResult result = gameImportService.processGameImport(
+            id, 
+            request.getPlayerMappings(), 
+            request.getFormationExtern()
+        );
         return ResponseEntity.ok(result);
     }
 
