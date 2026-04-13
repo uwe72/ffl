@@ -28,11 +28,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
-            <Route path="season" element={
-              <ProtectedRoute requiredRole="ADMIN">
-                <Season />
-              </ProtectedRoute>
-            } />
+            <Route path="season" element={<Season />} />
             <Route path="teams" element={<Teams />} />
             <Route path="teams/:id" element={<TeamDetail />} />
             <Route path="players" element={<Players />} />
