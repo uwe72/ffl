@@ -6,6 +6,7 @@ import de.ffl.repository.SeasonRepository;
 import de.ffl.service.SeasonService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -45,11 +46,13 @@ public class SeasonController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Season createSeason(@RequestBody Season season) {
         return seasonRepository.save(season);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Season> updateSeason(@PathVariable Long id, @RequestBody Season season) {
         return seasonRepository.findById(id)
             .map(existing -> {
@@ -64,6 +67,7 @@ public class SeasonController {
     }
 
     @PutMapping("/{id}/state")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Season> updateSeasonState(@PathVariable Long id, @RequestBody SeasonStateUpdate request) {
         return seasonRepository.findById(id)
             .map(existing -> {
@@ -75,6 +79,7 @@ public class SeasonController {
     }
 
     @PostMapping("/{id}/calculate")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SeasonService.CalculationResult> calculateSeason(@PathVariable Long id) {
         if (!seasonRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
@@ -84,11 +89,13 @@ public class SeasonController {
     }
 
     @GetMapping(value = "/{id}/calculate-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     public SseEmitter calculateSeasonStream(@PathVariable Long id) {
         return seasonService.calculateSeasonStream(id);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteSeason(@PathVariable Long id) {
         if (seasonRepository.existsById(id)) {
             seasonRepository.deleteById(id);
