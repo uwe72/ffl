@@ -1,7 +1,7 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { Card, Chip, Avatar } from '@heroui/react'
 import { useState, useMemo, useEffect } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { useManager, useManagerRoundDetails, useManagerGroups } from '../hooks/useManagers'
 import { useManagerGroupsWithStats } from '../hooks/useManagerGroups'
 import { positionLabels, positionColors } from './Players'
@@ -374,6 +374,15 @@ export default function ManagerDetail() {
     return managerGroupsWithStats.find(g => g.groupId.toString() === selectedGroupId)
   }, [managerGroupsWithStats, selectedGroupId])
 
+  const sortedGroupManagers = useMemo(() => {
+    if (!selectedGroup || selectedGroup.managers.length === 0) return []
+    return [...selectedGroup.managers].sort((a, b) => {
+      const aLastRound = a.roundData[a.roundData.length - 1]?.pointsCumulative ?? 0
+      const bLastRound = b.roundData[b.roundData.length - 1]?.pointsCumulative ?? 0
+      return bLastRound - aLastRound
+    })
+  }, [selectedGroup])
+
   const groupLineChartData = useMemo(() => {
     if (!selectedGroup || selectedGroup.managers.length === 0) return []
     
@@ -390,6 +399,24 @@ export default function ManagerDetail() {
     }
     return data
   }, [selectedGroup])
+
+  const GroupLegend = ({ managers }: { managers: typeof sortedGroupManagers }) => {
+    return (
+      <div className="flex flex-wrap justify-center gap-4 mt-4">
+        {managers.map((m, index) => (
+          <div key={m.managerId} className="flex items-center gap-2">
+            <span
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: m.isCurrentUser ? '#c9a66b' : LINE_COLORS[index % LINE_COLORS.length] }}
+            />
+            <span className="text-[#a0aec0] text-sm">
+              {index + 1}. {m.shortName || m.managerName}
+            </span>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   const GroupCustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) => {
     if (active && payload && payload.length) {
@@ -633,8 +660,7 @@ export default function ManagerDetail() {
                     <XAxis dataKey="round" stroke="#6b7280" />
                     <YAxis stroke="#6b7280" />
                     <RechartsTooltip content={<GroupCustomTooltip />} />
-                    <Legend wrapperStyle={{ color: '#a0aec0' }} />
-                    {selectedGroup.managers.map((m, index) => (
+                    {sortedGroupManagers.map((m, index) => (
                       <Line
                         key={m.managerId}
                         type="monotone"
@@ -646,6 +672,7 @@ export default function ManagerDetail() {
                     ))}
                   </LineChart>
                 </ResponsiveContainer>
+                <GroupLegend managers={sortedGroupManagers} />
               </div>
             ) : (
               <p className="text-[#6b7280] text-center py-8">
