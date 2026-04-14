@@ -396,7 +396,7 @@ export default function ManagerDetail() {
       return (
         <div className="bg-[#1a2028] border border-[#2d3748] rounded-lg p-3 shadow-lg">
           <p className="text-[#c9a66b] font-medium mb-2">Spieltag {label}</p>
-          {payload.map((entry, index) => (
+          {[...payload].sort((a, b) => b.value - a.value).map((entry, index) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
               {entry.name}: {entry.value} Punkte
             </p>
