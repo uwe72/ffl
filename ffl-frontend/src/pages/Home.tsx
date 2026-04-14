@@ -269,7 +269,7 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
   return (
     <div className="py-6">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-[#f5f5f5] mb-2">Willkommen {displayManager?.firstName || 'bei FFL'}!</h1>
+        <h1 className="text-3xl font-bold text-[#f5f5f5] mb-2">Hallo {displayManager?.firstName || 'bei FFL'}!</h1>
         {season && (
           <p className="text-[#a0aec0]">
             Saison {season.name} · {season.seasonState === 'RUNNING_HINRUNDE' ? 'Hinrunde' : season.seasonState === 'RUNNING_RUECKRUNDE' ? 'Rückrunde' : 'Vor Saison'}
