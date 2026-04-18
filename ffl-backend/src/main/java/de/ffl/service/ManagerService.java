@@ -296,8 +296,9 @@ public class ManagerService {
         if (manager.getUser() != null) {
             dto.setFirstName(manager.getUser().getFirstName());
             dto.setLastName(manager.getUser().getLastName());
+            dto.setEmail(manager.getUser().getEmail());
         }
-        
+
         dto.setPaymentState(manager.getPaymentState().name());
         dto.setDescription(manager.getDescription());
         

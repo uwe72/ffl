@@ -3,6 +3,9 @@ export interface SystemConfig {
   gmailAppPassword?: string
   gmailSmtpServer?: string
   gmailSmtpPort?: number
+  openrouterApiKey?: string
+  openrouterModel?: string
+  matchdayMailPrompt?: string
 }
 
 export interface Season {
@@ -54,6 +57,7 @@ export interface ManagerInfo {
   shortName?: string
   firstName?: string
   lastName?: string
+  email?: string
   teamValue?: number
   paymentState?: string
   positionTotal?: number
@@ -137,6 +141,7 @@ export interface Manager {
   shortName?: string
   firstName?: string
   lastName?: string
+  email?: string
   teamValue?: number
   paymentState: string
   description?: string

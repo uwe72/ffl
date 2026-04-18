@@ -1,29 +1,51 @@
 package de.ffl.controller;
 
 import de.ffl.dto.SystemConfigDto;
+import de.ffl.service.MatchdayMailService;
 import de.ffl.service.SystemConfigService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/system")
-@PreAuthorize("hasRole('ADMIN')")
 public class SystemConfigController {
 
     private final SystemConfigService configService;
+    private final MatchdayMailService matchdayMailService;
 
-    public SystemConfigController(SystemConfigService configService) {
+    public SystemConfigController(SystemConfigService configService,
+                                  MatchdayMailService matchdayMailService) {
         this.configService = configService;
+        this.matchdayMailService = matchdayMailService;
     }
 
     @GetMapping("/config")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SystemConfigDto> getConfig() {
         return ResponseEntity.ok(configService.getConfig());
     }
 
     @PutMapping("/config")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SystemConfigDto> updateConfig(@RequestBody SystemConfigDto updateData) {
         return ResponseEntity.ok(configService.updateConfig(updateData));
+    }
+
+    /**
+     * SSE-Stream fuer den Versand der Spieltagsmail. Token wird per Query-Parameter
+     * akzeptiert, da EventSource keine Custom-Header unterstuetzt (analog Season).
+     */
+    @GetMapping(value = "/matchday-mail/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public SseEmitter streamMatchdayMail(@RequestParam Long seasonId,
+                                         @RequestParam Integer roundNumber,
+                                         @RequestParam List<Long> managerIds,
+                                         @RequestParam(required = false) String token) {
+        return matchdayMailService.streamMatchdayMail(seasonId, roundNumber, managerIds);
     }
 }

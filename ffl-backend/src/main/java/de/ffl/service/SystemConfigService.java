@@ -44,6 +44,15 @@ public class SystemConfigService {
         if (updateData.getGmailSmtpPort() != null) {
             config.setGmailSmtpPort(updateData.getGmailSmtpPort());
         }
+        if (updateData.getOpenrouterApiKey() != null && !updateData.getOpenrouterApiKey().isBlank()) {
+            config.setOpenrouterApiKey(updateData.getOpenrouterApiKey());
+        }
+        if (updateData.getOpenrouterModel() != null) {
+            config.setOpenrouterModel(updateData.getOpenrouterModel());
+        }
+        if (updateData.getMatchdayMailPrompt() != null) {
+            config.setMatchdayMailPrompt(updateData.getMatchdayMailPrompt());
+        }
 
         config = configRepository.save(config);
         return SystemConfigDto.fromEntity(config);
