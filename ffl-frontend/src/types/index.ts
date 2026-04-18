@@ -1,3 +1,10 @@
+export interface SystemConfig {
+  gmailSenderEmail?: string
+  gmailAppPassword?: string
+  gmailSmtpServer?: string
+  gmailSmtpPort?: number
+}
+
 export interface Season {
   id: number
   name: string

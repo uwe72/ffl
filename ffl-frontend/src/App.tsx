@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import Season from './pages/Season'
+import System from './pages/System'
 import Teams from './pages/Teams'
 import TeamDetail from './pages/TeamDetail'
 import Players from './pages/Players'
@@ -59,6 +60,11 @@ function App() {
             <Route path="games/:id" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <GameDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="system" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <System />
               </ProtectedRoute>
             } />
           </Route>

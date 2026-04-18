@@ -59,6 +59,9 @@ export default function Layout() {
                   <RouterLink to="/users" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
                     Benutzer
                   </RouterLink>
+                  <RouterLink to="/system" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
+                    System
+                  </RouterLink>
                 </>
               )}
               <RouterLink to="/teams" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
