@@ -4,11 +4,13 @@ import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerRank;
 import de.ffl.domain.Player;
 import de.ffl.domain.PlayerRank;
+import de.ffl.domain.Round;
 import de.ffl.domain.Season;
 import de.ffl.domain.SystemConfig;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.PlayerRankRepository;
+import de.ffl.repository.RoundRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.SystemConfigRepository;
 import jakarta.mail.internet.MimeMessage;
@@ -42,6 +44,7 @@ public class MatchdayMailService {
     private final ManagerRepository managerRepository;
     private final ManagerRankRepository managerRankRepository;
     private final PlayerRankRepository playerRankRepository;
+    private final RoundRepository roundRepository;
     private final LlmService llmService;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -51,12 +54,14 @@ public class MatchdayMailService {
                                ManagerRepository managerRepository,
                                ManagerRankRepository managerRankRepository,
                                PlayerRankRepository playerRankRepository,
+                               RoundRepository roundRepository,
                                LlmService llmService) {
         this.systemConfigRepository = systemConfigRepository;
         this.seasonRepository = seasonRepository;
         this.managerRepository = managerRepository;
         this.managerRankRepository = managerRankRepository;
         this.playerRankRepository = playerRankRepository;
+        this.roundRepository = roundRepository;
         this.llmService = llmService;
     }
 
@@ -149,6 +154,26 @@ public class MatchdayMailService {
                       + (topScorerPoints != null ? " mit " + topScorerPoints + " Punkten" : "") + ".";
             }
 
+            // --- Round-ID einmal aufloesen (um Lazy-Proxy auf PlayerRank.round zu vermeiden) ---
+            Round round = roundRepository.findBySeasonIdAndNumber(seasonId, roundNumber)
+                .orElseThrow(() -> new RuntimeException("Spieltag " + roundNumber + " in Saison " + seasonId + " nicht gefunden"));
+            Long roundId = round.getId();
+
+            // --- Spieler-Ranks fuer alle selektierten Manager auf einmal laden ---
+            List<Long> allPlayerIds = new ArrayList<>();
+            for (Long mid : managerIds) {
+                Manager m = allManagersInSeason.stream().filter(x -> x.getId().equals(mid)).findFirst().orElse(null);
+                if (m == null) continue;
+                collectPlayerIds(m, allPlayerIds);
+            }
+            Map<Long, PlayerRank> playerRankByPlayerId = new HashMap<>();
+            if (!allPlayerIds.isEmpty()) {
+                List<PlayerRank> prs = playerRankRepository.findByPlayerIdInAndRoundId(allPlayerIds, roundId);
+                for (PlayerRank pr : prs) {
+                    playerRankByPlayerId.put(pr.getPlayer().getId(), pr);
+                }
+            }
+
             // --- Mailer konfigurieren ---
             JavaMailSenderImpl mailSender = buildMailSender(config);
             send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
@@ -173,7 +198,8 @@ public class MatchdayMailService {
                 }
                 try {
                     String html = buildHtmlForManager(manager, season, roundNumber, intro,
-                        dayRankByManagerId.get(managerId), topScorerName, topScorerPoints);
+                        dayRankByManagerId.get(managerId), topScorerName, topScorerPoints,
+                        playerRankByPlayerId);
 
                     MimeMessage msg = mailSender.createMimeMessage();
                     MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
@@ -235,8 +261,22 @@ public class MatchdayMailService {
         return m.getName();
     }
 
+    private static void collectPlayerIds(Manager m, List<Long> out) {
+        Player[] players = new Player[] {
+            m.getPlayerGoalkeeper(),
+            m.getPlayerDefender1(), m.getPlayerDefender2(), m.getPlayerDefender3(),
+            m.getPlayerMidfield1(), m.getPlayerMidfield2(), m.getPlayerMidfield3(),
+            m.getPlayerStriker1(), m.getPlayerStriker2(), m.getPlayerStriker3(),
+            m.getPlayerFreeChoice()
+        };
+        for (Player p : players) {
+            if (p != null) out.add(p.getId());
+        }
+    }
+
     private String buildHtmlForManager(Manager manager, Season season, Integer roundNumber, String intro,
-                                       ManagerRank ownDayRank, String topScorerName, Integer topScorerPoints) {
+                                       ManagerRank ownDayRank, String topScorerName, Integer topScorerPoints,
+                                       Map<Long, PlayerRank> playerRankByPlayerId) {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></head>");
         sb.append("<body style=\"background:#0f1419;color:#f5f5f5;font-family:Arial,Helvetica,sans-serif;padding:20px;\">");
@@ -273,17 +313,17 @@ public class MatchdayMailService {
           .append("<th style=\"padding:8px;text-align:right;\">Punkte gesamt</th>")
           .append("</tr></thead><tbody>");
 
-        appendPlayerRow(sb, "TW", manager.getPlayerGoalkeeper(), roundNumber);
-        appendPlayerRow(sb, "ABW", manager.getPlayerDefender1(), roundNumber);
-        appendPlayerRow(sb, "ABW", manager.getPlayerDefender2(), roundNumber);
-        appendPlayerRow(sb, "ABW", manager.getPlayerDefender3(), roundNumber);
-        appendPlayerRow(sb, "MF", manager.getPlayerMidfield1(), roundNumber);
-        appendPlayerRow(sb, "MF", manager.getPlayerMidfield2(), roundNumber);
-        appendPlayerRow(sb, "MF", manager.getPlayerMidfield3(), roundNumber);
-        appendPlayerRow(sb, "ST", manager.getPlayerStriker1(), roundNumber);
-        appendPlayerRow(sb, "ST", manager.getPlayerStriker2(), roundNumber);
-        appendPlayerRow(sb, "ST", manager.getPlayerStriker3(), roundNumber);
-        appendPlayerRow(sb, "FREI", manager.getPlayerFreeChoice(), roundNumber);
+        appendPlayerRow(sb, "TW", manager.getPlayerGoalkeeper(), playerRankByPlayerId);
+        appendPlayerRow(sb, "ABW", manager.getPlayerDefender1(), playerRankByPlayerId);
+        appendPlayerRow(sb, "ABW", manager.getPlayerDefender2(), playerRankByPlayerId);
+        appendPlayerRow(sb, "ABW", manager.getPlayerDefender3(), playerRankByPlayerId);
+        appendPlayerRow(sb, "MF", manager.getPlayerMidfield1(), playerRankByPlayerId);
+        appendPlayerRow(sb, "MF", manager.getPlayerMidfield2(), playerRankByPlayerId);
+        appendPlayerRow(sb, "MF", manager.getPlayerMidfield3(), playerRankByPlayerId);
+        appendPlayerRow(sb, "ST", manager.getPlayerStriker1(), playerRankByPlayerId);
+        appendPlayerRow(sb, "ST", manager.getPlayerStriker2(), playerRankByPlayerId);
+        appendPlayerRow(sb, "ST", manager.getPlayerStriker3(), playerRankByPlayerId);
+        appendPlayerRow(sb, "FREI", manager.getPlayerFreeChoice(), playerRankByPlayerId);
 
         sb.append("</tbody></table>");
 
@@ -301,17 +341,15 @@ public class MatchdayMailService {
         return sb.toString();
     }
 
-    private void appendPlayerRow(StringBuilder sb, String posLabel, Player player, Integer roundNumber) {
+    private void appendPlayerRow(StringBuilder sb, String posLabel, Player player,
+                                 Map<Long, PlayerRank> playerRankByPlayerId) {
         if (player == null) return;
         Integer pointsRound = null;
         Integer pointsTotal = null;
-        List<PlayerRank> ranks = playerRankRepository.findByPlayerId(player.getId());
-        for (PlayerRank r : ranks) {
-            if (r.getRound() != null && roundNumber.equals(r.getRound().getNumber())) {
-                pointsRound = r.getPointsRound();
-                pointsTotal = r.getPointsTotal();
-                break;
-            }
+        PlayerRank pr = playerRankByPlayerId.get(player.getId());
+        if (pr != null) {
+            pointsRound = pr.getPointsRound();
+            pointsTotal = pr.getPointsTotal();
         }
         String teamName = "";
         if (player.getTeams() != null && !player.getTeams().isEmpty()) {
