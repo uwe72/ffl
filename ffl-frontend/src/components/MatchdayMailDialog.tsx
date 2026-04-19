@@ -82,9 +82,9 @@ export default function MatchdayMailDialog({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <Card className="p-6 bg-[#1a2028] border border-[#2d3748] w-full max-w-3xl max-h-[80vh] flex flex-col">
-        <h2 className="text-xl font-bold text-[#f5f5f5] mb-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <Card className="p-4 md:p-6 bg-[#1a2028] border border-[#2d3748] w-full max-w-3xl max-h-[90vh] md:max-h-[80vh] flex flex-col">
+        <h2 className="text-lg md:text-xl font-bold text-[#f5f5f5] mb-4">
           {isComplete
             ? error
               ? 'Fehler beim Versand'
@@ -94,7 +94,7 @@ export default function MatchdayMailDialog({
 
         <div
           ref={logContainerRef}
-          className="flex-1 overflow-y-auto bg-[#0f1419] border border-[#2d3748] rounded-lg p-4 font-mono text-sm text-[#a0aec0] min-h-[390px] max-h-[520px]"
+          className="flex-1 overflow-y-auto bg-[#0f1419] border border-[#2d3748] rounded-lg p-3 md:p-4 font-mono text-xs md:text-sm text-[#a0aec0] min-h-[280px] md:min-h-[390px] max-h-[400px] md:max-h-[520px]"
         >
           {logs.map((log, index) => (
             <div key={index} className="whitespace-pre-wrap">

@@ -16,7 +16,7 @@ public class SystemConfigDto {
     public static SystemConfigDto fromEntity(SystemConfig config) {
         SystemConfigDto dto = new SystemConfigDto();
         dto.setGmailSenderEmail(config.getGmailSenderEmail());
-        // Passwoerter/Keys werden NICHT zurueckgegeben (Sicherheit)
+        dto.setGmailAppPassword(config.getGmailAppPassword());
         dto.setGmailSmtpServer(config.getGmailSmtpServer());
         dto.setGmailSmtpPort(config.getGmailSmtpPort());
         dto.setOpenrouterModel(config.getOpenrouterModel());

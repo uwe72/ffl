@@ -19,3 +19,9 @@ export function useUpdateSystemConfig() {
     },
   })
 }
+
+export function useSendTestMail() {
+  return useMutation({
+    mutationFn: (to: string) => systemApi.sendTestMail(to).then(res => res.data),
+  })
+}

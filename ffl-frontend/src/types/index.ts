@@ -8,6 +8,15 @@ export interface SystemConfig {
   matchdayMailPrompt?: string
 }
 
+export interface TestMailResult {
+  success: boolean
+  message: string
+  usedEmail: string
+  usedPassword: string
+  usedSmtpServer: string
+  usedSmtpPort: number
+}
+
 export interface Season {
   id: number
   name: string
@@ -142,6 +151,7 @@ export interface Manager {
   firstName?: string
   lastName?: string
   email?: string
+  login?: string
   teamValue?: number
   paymentState: string
   description?: string

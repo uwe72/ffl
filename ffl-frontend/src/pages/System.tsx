@@ -10,26 +10,30 @@ import {
   Tab,
   TabPanel,
 } from '@heroui/react'
-import { useSystemConfig, useUpdateSystemConfig } from '../hooks/useSystemConfig'
-import type { SystemConfig } from '../types'
+import { useSystemConfig, useUpdateSystemConfig, useSendTestMail } from '../hooks/useSystemConfig'
+import type { SystemConfig, TestMailResult } from '../types'
 import MatchdayMailPanel from '../components/MatchdayMailPanel'
 
 export default function System() {
   const { data: config, isLoading, error } = useSystemConfig()
   const updateConfig = useUpdateSystemConfig()
+  const sendTestMail = useSendTestMail()
 
   const [formData, setFormData] = useState<Partial<SystemConfig>>({})
   const [hasChanges, setHasChanges] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+  const [testMailTo, setTestMailTo] = useState('')
+  const [testMailResult, setTestMailResult] = useState<TestMailResult | null>(null)
 
   useEffect(() => {
     if (config) {
       setFormData({
         gmailSenderEmail: config.gmailSenderEmail || '',
-        gmailAppPassword: '',
+        gmailAppPassword: config.gmailAppPassword || '',
         gmailSmtpServer: config.gmailSmtpServer || 'smtp.gmail.com',
         gmailSmtpPort: config.gmailSmtpPort || 587,
       })
+      setTestMailTo(config.gmailSenderEmail || '')
       setHasChanges(false)
     }
   }, [config])
@@ -43,13 +47,36 @@ export default function System() {
   const handleSave = async () => {
     if (!hasChanges) return
     try {
-      await updateConfig.mutateAsync(formData)
+      const result = await updateConfig.mutateAsync(formData)
+      setFormData({
+        gmailSenderEmail: result.gmailSenderEmail || '',
+        gmailAppPassword: result.gmailAppPassword || '',
+        gmailSmtpServer: result.gmailSmtpServer || 'smtp.gmail.com',
+        gmailSmtpPort: result.gmailSmtpPort || 587,
+      })
       setHasChanges(false)
-      setFormData((prev) => ({ ...prev, gmailAppPassword: '' }))
       setSaveMessage('Konfiguration gespeichert')
       setTimeout(() => setSaveMessage(''), 3000)
     } catch {
       setSaveMessage('Fehler beim Speichern')
+    }
+  }
+
+  const handleSendTestMail = async () => {
+    if (!testMailTo) return
+    setTestMailResult(null)
+    try {
+      const result = await sendTestMail.mutateAsync(testMailTo)
+      setTestMailResult(result)
+    } catch {
+      setTestMailResult({
+        success: false,
+        message: 'Fehler beim Senden der Test-Mail',
+        usedEmail: '',
+        usedPassword: '',
+        usedSmtpServer: '',
+        usedSmtpPort: 0,
+      })
     }
   }
 
@@ -77,41 +104,31 @@ export default function System() {
         </TabList>
 
         <TabPanel id="mail">
-          <div className="max-w-2xl">
+          <div>
             <h2 className="text-xl font-semibold text-[#c9a66b] mb-4">Gmail Sende-Account</h2>
 
             <div className="grid gap-4">
               <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-                <TextField name="gmailSenderEmail">
-                  <Label className="text-[#a0aec0]">Absender E-Mail</Label>
-                  <Input
-                    type="email"
-                    value={formData.gmailSenderEmail || ''}
-                    onChange={(e) => handleChange('gmailSenderEmail', e.target.value)}
-                    placeholder="example@gmail.com"
-                    className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-                  />
-                </TextField>
-              </Card>
-
-              <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-                <TextField name="gmailAppPassword">
-                  <Label className="text-[#a0aec0]">App-Passwort</Label>
-                  <Input
-                    type="password"
-                    value={formData.gmailAppPassword || ''}
-                    onChange={(e) => handleChange('gmailAppPassword', e.target.value)}
-                    placeholder="Neues Passwort eingeben zum Ändern"
-                    className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-                  />
-                </TextField>
-                <p className="text-xs text-[#6b7280] mt-2">
-                  Erstelle ein App-Passwort unter myaccount.google.com → Sicherheit → App-Passwörter
-                </p>
-              </Card>
-
-              <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 grid-cols-4">
+                  <TextField name="gmailSenderEmail">
+                    <Label className="text-[#a0aec0]">Absender E-Mail</Label>
+                    <Input
+                      type="email"
+                      value={formData.gmailSenderEmail || ''}
+                      onChange={(e) => handleChange('gmailSenderEmail', e.target.value)}
+                      placeholder="example@gmail.com"
+                      className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+                    />
+                  </TextField>
+                  <TextField name="gmailAppPassword">
+                    <Label className="text-[#a0aec0]">App-Passwort</Label>
+                    <Input
+                      value={formData.gmailAppPassword || ''}
+                      onChange={(e) => handleChange('gmailAppPassword', e.target.value)}
+                      placeholder="16-stellig"
+                      className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+                    />
+                  </TextField>
                   <TextField name="gmailSmtpServer">
                     <Label className="text-[#a0aec0]">SMTP Server</Label>
                     <Input
@@ -132,6 +149,9 @@ export default function System() {
                     />
                   </TextField>
                 </div>
+                <p className="text-xs text-[#6b7280] mt-2">
+                  Erstelle ein App-Passwort unter myaccount.google.com → Sicherheit → App-Passwörter
+                </p>
               </Card>
             </div>
 
@@ -151,6 +171,49 @@ export default function System() {
                 >
                   {saveMessage}
                 </span>
+              )}
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-[#2d3748]">
+              <h3 className="text-lg font-semibold text-[#c9a66b] mb-4">Test-Mail senden</h3>
+              <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <TextField name="testMailTo">
+                      <Label className="text-[#a0aec0]">Empfänger</Label>
+                      <Input
+                        type="email"
+                        value={testMailTo}
+                        onChange={(e) => setTestMailTo(e.target.value)}
+                        placeholder="empfaenger@example.com"
+                        className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+                      />
+                    </TextField>
+                  </div>
+                  <Button
+                    onPress={handleSendTestMail}
+                    isDisabled={!testMailTo || sendTestMail.isPending}
+                    className="bg-[#c9a66b] text-[#0f1419] font-semibold px-6 py-2 rounded hover:bg-[#d4b87a] disabled:opacity-50"
+                  >
+                    {sendTestMail.isPending ? 'Sende...' : 'Test-Mail senden'}
+                  </Button>
+                </div>
+              </Card>
+
+              {testMailResult && (
+                <Card className="mt-4 p-6 bg-[#1a2028] border border-[#2d3748]">
+                  <div className="mb-4">
+                    <span className={testMailResult.success ? 'text-[#48bb78]' : 'text-[#e05252]'}>
+                      {testMailResult.success ? '✓ ' : '✗ '}{testMailResult.message}
+                    </span>
+                  </div>
+                  <div className="text-sm text-[#a0aec0] space-y-1">
+                    <p><span className="text-[#6b7280]">Verwendete Email:</span> {testMailResult.usedEmail || '-'}</p>
+                    <p><span className="text-[#6b7280]">Verwendetes Passwort:</span> {testMailResult.usedPassword || '-'}</p>
+                    <p><span className="text-[#6b7280]">SMTP Server:</span> {testMailResult.usedSmtpServer || '-'}</p>
+                    <p><span className="text-[#6b7280]">SMTP Port:</span> {testMailResult.usedSmtpPort || '-'}</p>
+                  </div>
+                </Card>
               )}
             </div>
           </div>

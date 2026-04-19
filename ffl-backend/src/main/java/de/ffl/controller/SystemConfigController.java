@@ -1,6 +1,7 @@
 package de.ffl.controller;
 
 import de.ffl.dto.SystemConfigDto;
+import de.ffl.dto.TestMailResultDto;
 import de.ffl.service.MatchdayMailService;
 import de.ffl.service.SystemConfigService;
 import org.springframework.http.MediaType;
@@ -36,6 +37,12 @@ public class SystemConfigController {
         return ResponseEntity.ok(configService.updateConfig(updateData));
     }
 
+    @PostMapping("/test-mail")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TestMailResultDto> sendTestMail(@RequestParam String to) {
+        return ResponseEntity.ok(matchdayMailService.sendTestMail(to));
+    }
+
     /**
      * SSE-Stream fuer den Versand der Spieltagsmail. Token wird per Query-Parameter
      * akzeptiert, da EventSource keine Custom-Header unterstuetzt (analog Season).
@@ -44,8 +51,13 @@ public class SystemConfigController {
     @PreAuthorize("hasRole('ADMIN')")
     public SseEmitter streamMatchdayMail(@RequestParam Long seasonId,
                                          @RequestParam Integer roundNumber,
-                                         @RequestParam List<Long> managerIds,
+                                         @RequestParam String managerIds,
                                          @RequestParam(required = false) String token) {
-        return matchdayMailService.streamMatchdayMail(seasonId, roundNumber, managerIds);
+        List<Long> managerIdList = java.util.Arrays.stream(managerIds.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .map(Long::parseLong)
+            .collect(java.util.stream.Collectors.toList());
+        return matchdayMailService.streamMatchdayMail(seasonId, roundNumber, managerIdList);
     }
 }

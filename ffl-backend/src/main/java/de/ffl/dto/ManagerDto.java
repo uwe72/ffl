@@ -10,6 +10,7 @@ public class ManagerDto {
     private String firstName;
     private String lastName;
     private String email;
+    private String login;
     private Integer teamValue;
     private String paymentState;
     private String description;
@@ -49,6 +50,7 @@ public class ManagerDto {
             dto.setFirstName(manager.getUser().getFirstName());
             dto.setLastName(manager.getUser().getLastName());
             dto.setEmail(manager.getUser().getEmail());
+            dto.setLogin(manager.getUser().getLogin());
         }
         
         dto.setPaymentState(manager.getPaymentState().name());
@@ -147,6 +149,8 @@ public class ManagerDto {
     public void setLastName(String lastName) { this.lastName = lastName; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+    public String getLogin() { return login; }
+    public void setLogin(String login) { this.login = login; }
     public Integer getTeamValue() { return teamValue; }
     public void setTeamValue(Integer teamValue) { this.teamValue = teamValue; }
     public String getPaymentState() { return paymentState; }

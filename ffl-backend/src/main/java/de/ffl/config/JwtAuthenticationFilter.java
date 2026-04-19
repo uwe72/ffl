@@ -66,10 +66,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
-        // Fallback: EventSource kann keine Custom-Header setzen, daher per Query-Param
         String tokenParam = request.getParameter("token");
         if (StringUtils.hasText(tokenParam)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Token from query parameter found for request: " + request.getRequestURI());
+            }
             return tokenParam;
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("No token found for request: " + request.getRequestURI());
         }
         return null;
     }
