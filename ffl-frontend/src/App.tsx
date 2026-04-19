@@ -18,6 +18,7 @@ import Users from './pages/Users'
 import UserDetail from './pages/UserDetail'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Feedback from './pages/Feedback'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
             <Route path="managers/:id" element={<ManagerDetail />} />
             <Route path="manager-groups" element={<ManagerGroups />} />
             <Route path="manager-groups/:id" element={<ManagerGroupDetail />} />
+            <Route path="feedback" element={<Feedback />} />
             <Route path="users" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Users />

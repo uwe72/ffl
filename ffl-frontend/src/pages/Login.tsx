@@ -3,12 +3,14 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import { Button, Card, Alert, TextField, Label, Input } from '@heroui/react'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
+import FeedbackDialog from '../components/FeedbackDialog'
 
 export default function Login() {
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
   const { login: authLogin } = useAuth()
   const { data: season } = useCurrentSeason()
   const navigate = useNavigate()
@@ -78,8 +80,18 @@ export default function Login() {
               </RouterLink>
             </div>
           )}
+          <div className="text-center pt-2 border-t border-[#2d3748]/50">
+            <button
+              type="button"
+              onClick={() => setFeedbackOpen(true)}
+              className="text-sm text-[#a0aec0] hover:text-[#c9a66b] link transition-colors"
+            >
+              Feedback senden
+            </button>
+          </div>
         </form>
       </Card>
+      <FeedbackDialog isOpen={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </div>
   )
 }
