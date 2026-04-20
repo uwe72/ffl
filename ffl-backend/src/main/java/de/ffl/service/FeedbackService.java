@@ -64,13 +64,14 @@ public class FeedbackService {
 
         try {
             MimeMessage msg = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(msg, false, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
             helper.setFrom(config.getGmailSenderEmail());
             helper.setTo(config.getGmailSenderEmail());
+            helper.setCc(request.getEmail());
             helper.setBcc(adminEmails.toArray(new String[0]));
             helper.setReplyTo(request.getEmail());
             helper.setSubject("[FFL-Feedback] " + request.getSubject());
-            helper.setText(buildBody(request), false);
+            helper.setText(buildHtmlBody(request), true);
             mailSender.send(msg);
         } catch (RuntimeException e) {
             throw e;
@@ -79,13 +80,48 @@ public class FeedbackService {
         }
     }
 
-    private String buildBody(FeedbackRequest r) {
-        return "Neues Feedback über die FFL-Website\n\n"
-            + "Name:    " + r.getName() + "\n"
-            + "E-Mail:  " + r.getEmail() + "\n"
-            + "Betreff: " + r.getSubject() + "\n"
-            + "\n--- Nachricht ---\n"
-            + r.getMessage() + "\n";
+    private String buildHtmlBody(FeedbackRequest r) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>");
+        sb.append("<body style=\"background:#0f1419;color:#f5f5f5;font-family:Arial,Helvetica,sans-serif;padding:16px;margin:0;\">");
+        sb.append("<div style=\"max-width:480px;margin:0 auto;\">");
+
+        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:16px;\">");
+        sb.append("<h1 style=\"color:#c9a66b;margin:0 0 4px 0;font-size:20px;\">FFL Feedback</h1>");
+        sb.append("<div style=\"color:#a0aec0;font-size:14px;\">Neue Nachricht von einem Benutzer</div>");
+        sb.append("</div>");
+
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-bottom:16px;\"><tr>");
+        sb.append("<td width=\"50%\" style=\"padding-right:4px;\">");
+        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:12px;\">");
+        sb.append("<div style=\"font-size:12px;color:#a0aec0;\">Name</div>");
+        sb.append("<div style=\"font-size:16px;font-weight:600;color:#f5f5f5;margin-top:4px;\">").append(escape(r.getName())).append("</div>");
+        sb.append("</div></td>");
+        sb.append("<td width=\"50%\" style=\"padding-left:4px;\">");
+        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:12px;\">");
+        sb.append("<div style=\"font-size:12px;color:#a0aec0;\">E-Mail</div>");
+        sb.append("<div style=\"font-size:14px;font-weight:600;color:#f5f5f5;margin-top:4px;\">").append(escape(r.getEmail())).append("</div>");
+        sb.append("</div></td>");
+        sb.append("</tr></table>");
+
+        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:12px;margin-bottom:16px;\">");
+        sb.append("<div style=\"font-size:12px;color:#a0aec0;\">Betreff</div>");
+        sb.append("<div style=\"font-size:16px;font-weight:600;color:#f5f5f5;margin-top:4px;\">").append(escape(r.getSubject())).append("</div>");
+        sb.append("</div>");
+
+        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:16px;\">");
+        sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-bottom:8px;\">Nachricht</div>");
+        sb.append("<div style=\"font-size:14px;line-height:1.6;color:#f5f5f5;\">").append(escape(r.getMessage()).replace("\n", "<br>")).append("</div>");
+        sb.append("</div>");
+
+        sb.append("<div style=\"color:#6b7280;font-size:12px;text-align:center;\">FFL — Fantasy Football League</div>");
+        sb.append("</div></body></html>");
+        return sb.toString();
+    }
+
+    private String escape(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
 
     private JavaMailSenderImpl buildMailSender(SystemConfig config) {

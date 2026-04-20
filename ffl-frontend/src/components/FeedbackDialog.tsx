@@ -25,7 +25,12 @@ export default function FeedbackDialog({ isOpen, onClose, initialName, initialEm
             Schließen
           </Button>
         </div>
-        <FeedbackForm initialName={initialName} initialEmail={initialEmail} />
+        <FeedbackForm 
+          initialName={initialName} 
+          initialEmail={initialEmail} 
+          onSuccess={onClose}
+          onCancel={onClose}
+        />
       </Card>
     </div>
   )
