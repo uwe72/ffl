@@ -206,7 +206,10 @@ public class MatchdayMailTransactionService {
                     MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
                     helper.setFrom(config.getGmailSenderEmail());
                     helper.setTo(recipientEmail);
-                    helper.setSubject("FFL " + season.getName() + " — Spieltag " + roundNumber);
+                    String managerName = manager.getName();
+                    String fullName = buildManagerDisplayName(manager);
+                    String subject = "FFL | " + season.getName() + " | " + roundNumber + ". Spieltag | " + fullName + " (" + managerName + ")";
+                    helper.setSubject(subject);
 
                     String html = buildHtmlForManager(manager, season, roundNumber, intro,
                         dayRankByManagerId.get(managerId), topScorerName, topScorerPoints,
@@ -344,10 +347,10 @@ public class MatchdayMailTransactionService {
         appendPlayerCard(sb, "MF", "#c9a66b", manager.getPlayerMidfield1(), playerRankByPlayerId, teamsByPlayerId);
         appendPlayerCard(sb, "MF", "#c9a66b", manager.getPlayerMidfield2(), playerRankByPlayerId, teamsByPlayerId);
         appendPlayerCard(sb, "MF", "#c9a66b", manager.getPlayerMidfield3(), playerRankByPlayerId, teamsByPlayerId);
-        appendPlayerCard(sb, "ST", "#f56565", manager.getPlayerStriker1(), playerRankByPlayerId, teamsByPlayerId);
-        appendPlayerCard(sb, "ST", "#f56565", manager.getPlayerStriker2(), playerRankByPlayerId, teamsByPlayerId);
-        appendPlayerCard(sb, "ST", "#f56565", manager.getPlayerStriker3(), playerRankByPlayerId, teamsByPlayerId);
-        appendPlayerCard(sb, "FREI", "#a0aec0", manager.getPlayerFreeChoice(), playerRankByPlayerId, teamsByPlayerId);
+        appendPlayerCard(sb, "ST", "#a0aec0", manager.getPlayerStriker1(), playerRankByPlayerId, teamsByPlayerId);
+        appendPlayerCard(sb, "ST", "#a0aec0", manager.getPlayerStriker2(), playerRankByPlayerId, teamsByPlayerId);
+        appendPlayerCard(sb, "ST", "#a0aec0", manager.getPlayerStriker3(), playerRankByPlayerId, teamsByPlayerId);
+        appendPlayerCard(sb, "FREI", "#f56565", manager.getPlayerFreeChoice(), playerRankByPlayerId, teamsByPlayerId);
 
         sb.append("<div style=\"margin-top:16px;padding:12px;background:#242d38;border-radius:6px;color:#a0aec0;font-size:14px;\">")
           .append("Tagessieger Spieltag ").append(roundNumber).append(": <strong style=\"color:#c9a66b;\">")
@@ -481,13 +484,14 @@ public class MatchdayMailTransactionService {
         }
 
         String posLabel = getPositionLabel(player, manager);
+        String posColor = getPositionColor(player, manager);
 
-        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:12px;\">");
+        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid ").append(posColor).append(";border-radius:8px;padding:12px;\">");
         
         sb.append("<div style=\"font-weight:600;color:#f5f5f5;font-size:14px;\">").append(escape(player.getNameKicker())).append("</div>");
         
         sb.append("<table cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top:4px;\"><tr>");
-        sb.append("<td style=\"background:#c9a66b;color:#0f1419;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;\">")
+        sb.append("<td style=\"background:").append(posColor).append(";color:#0f1419;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;\">")
           .append(escape(posLabel)).append("</td>");
         if (!teamName.isEmpty()) {
             sb.append("<td style=\"padding-left:6px;color:#6b7280;font-size:11px;\">").append(escape(teamName)).append("</td>");
@@ -526,7 +530,7 @@ public class MatchdayMailTransactionService {
 
     private String getRuleColor(Rule rule) {
         return switch (rule) {
-            case GOAL_STRIKER -> "#f56565";
+            case GOAL_STRIKER -> "#a0aec0";
             case GOAL_MIDFIELDER -> "#c9a66b";
             case GOAL_DEFENDER -> "#ed8936";
             case GOAL_GOALKEEPER -> "#48bb78";
@@ -549,6 +553,21 @@ public class MatchdayMailTransactionService {
         if (player.equals(manager.getPlayerStriker3())) return "ST";
         if (player.equals(manager.getPlayerFreeChoice())) return "FREI";
         return "SP";
+    }
+
+    private String getPositionColor(Player player, Manager manager) {
+        if (player.equals(manager.getPlayerGoalkeeper())) return "#48bb78";
+        if (player.equals(manager.getPlayerDefender1())) return "#ed8936";
+        if (player.equals(manager.getPlayerDefender2())) return "#ed8936";
+        if (player.equals(manager.getPlayerDefender3())) return "#ed8936";
+        if (player.equals(manager.getPlayerMidfield1())) return "#c9a66b";
+        if (player.equals(manager.getPlayerMidfield2())) return "#c9a66b";
+        if (player.equals(manager.getPlayerMidfield3())) return "#c9a66b";
+        if (player.equals(manager.getPlayerStriker1())) return "#a0aec0";
+        if (player.equals(manager.getPlayerStriker2())) return "#a0aec0";
+        if (player.equals(manager.getPlayerStriker3())) return "#a0aec0";
+        if (player.equals(manager.getPlayerFreeChoice())) return "#f56565";
+        return "#6b7280";
     }
 
     private String getRuleLabel(Rule rule) {
