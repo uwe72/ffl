@@ -6,6 +6,7 @@ export interface SystemConfig {
   openrouterApiKey?: string
   openrouterModel?: string
   matchdayMailPrompt?: string
+  webUrl?: string
 }
 
 export interface TestMailResult {

@@ -53,6 +53,9 @@ public class SystemConfigService {
         if (updateData.getMatchdayMailPrompt() != null) {
             config.setMatchdayMailPrompt(updateData.getMatchdayMailPrompt());
         }
+        if (updateData.getWebUrl() != null) {
+            config.setWebUrl(updateData.getWebUrl().isBlank() ? null : updateData.getWebUrl().trim());
+        }
 
         config = configRepository.save(config);
         return SystemConfigDto.fromEntity(config);

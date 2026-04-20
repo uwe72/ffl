@@ -10,6 +10,7 @@ public class SystemConfigDto {
     private String openrouterApiKey;
     private String openrouterModel;
     private String matchdayMailPrompt;
+    private String webUrl;
 
     public SystemConfigDto() {}
 
@@ -21,6 +22,7 @@ public class SystemConfigDto {
         dto.setGmailSmtpPort(config.getGmailSmtpPort());
         dto.setOpenrouterModel(config.getOpenrouterModel());
         dto.setMatchdayMailPrompt(config.getMatchdayMailPrompt());
+        dto.setWebUrl(config.getWebUrl());
         return dto;
     }
 
@@ -38,4 +40,6 @@ public class SystemConfigDto {
     public void setOpenrouterModel(String openrouterModel) { this.openrouterModel = openrouterModel; }
     public String getMatchdayMailPrompt() { return matchdayMailPrompt; }
     public void setMatchdayMailPrompt(String matchdayMailPrompt) { this.matchdayMailPrompt = matchdayMailPrompt; }
+    public String getWebUrl() { return webUrl; }
+    public void setWebUrl(String webUrl) { this.webUrl = webUrl; }
 }

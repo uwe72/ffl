@@ -38,4 +38,7 @@ public class SystemConfig {
 
     @Column(name = "matchday_mail_prompt", length = 4000)
     private String matchdayMailPrompt;
+
+    @Column(name = "web_url")
+    private String webUrl;
 }

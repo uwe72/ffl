@@ -32,6 +32,7 @@ export default function System() {
         gmailAppPassword: config.gmailAppPassword || '',
         gmailSmtpServer: config.gmailSmtpServer || 'smtp.gmail.com',
         gmailSmtpPort: config.gmailSmtpPort || 587,
+        webUrl: config.webUrl || '',
       })
       setTestMailTo(config.gmailSenderEmail || '')
       setHasChanges(false)
@@ -53,6 +54,7 @@ export default function System() {
         gmailAppPassword: result.gmailAppPassword || '',
         gmailSmtpServer: result.gmailSmtpServer || 'smtp.gmail.com',
         gmailSmtpPort: result.gmailSmtpPort || 587,
+        webUrl: result.webUrl || '',
       })
       setHasChanges(false)
       setSaveMessage('Konfiguration gespeichert')
@@ -90,6 +92,12 @@ export default function System() {
       <TabsRoot>
         <TabList className="flex gap-2 border-b border-[#2d3748] mb-6">
           <Tab
+            id="general"
+            className="px-4 py-2 text-[#a0aec0] cursor-pointer data-[selected]:text-[#c9a66b] data-[selected]:border-b-2 data-[selected]:border-[#c9a66b] outline-none"
+          >
+            Allgemein
+          </Tab>
+          <Tab
             id="mail"
             className="px-4 py-2 text-[#a0aec0] cursor-pointer data-[selected]:text-[#c9a66b] data-[selected]:border-b-2 data-[selected]:border-[#c9a66b] outline-none"
           >
@@ -102,6 +110,41 @@ export default function System() {
             Spieltagsmail
           </Tab>
         </TabList>
+
+        <TabPanel id="general">
+          <div>
+            <h2 className="text-xl font-semibold text-[#c9a66b] mb-4">Allgemeine Einstellungen</h2>
+            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
+              <TextField name="webUrl">
+                <Label className="text-[#a0aec0]">Web-URL der FFL-Seite</Label>
+                <Input
+                  type="url"
+                  value={formData.webUrl || ''}
+                  onChange={(e) => handleChange('webUrl', e.target.value)}
+                  placeholder="https://ffl.example.com"
+                  className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+                />
+              </TextField>
+              <p className="text-xs text-[#6b7280] mt-2">
+                Öffentliche Basis-URL der FFL-Seite (z.B. für Links in Mails). Ohne abschließenden Slash.
+              </p>
+            </Card>
+            <div className="mt-6 flex items-center gap-4">
+              <Button
+                onPress={handleSave}
+                isDisabled={!hasChanges || updateConfig.isPending}
+                className="bg-[#c9a66b] text-[#0f1419] font-semibold px-6 py-2 rounded hover:bg-[#d4b87a] disabled:opacity-50"
+              >
+                {updateConfig.isPending ? 'Speichern...' : 'Speichern'}
+              </Button>
+              {saveMessage && (
+                <span className={saveMessage.includes('Fehler') ? 'text-[#e05252]' : 'text-[#48bb78]'}>
+                  {saveMessage}
+                </span>
+              )}
+            </div>
+          </div>
+        </TabPanel>
 
         <TabPanel id="mail">
           <div>
