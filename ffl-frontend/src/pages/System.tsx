@@ -12,7 +12,6 @@ import {
 } from '@heroui/react'
 import { useSystemConfig, useUpdateSystemConfig, useSendTestMail } from '../hooks/useSystemConfig'
 import type { SystemConfig, TestMailResult } from '../types'
-import MatchdayMailPanel from '../components/MatchdayMailPanel'
 
 export default function System() {
   const { data: config, isLoading, error } = useSystemConfig()
@@ -33,6 +32,8 @@ export default function System() {
         gmailSmtpServer: config.gmailSmtpServer || 'smtp.gmail.com',
         gmailSmtpPort: config.gmailSmtpPort || 587,
         webUrl: config.webUrl || '',
+        openrouterApiKey: '',
+        openrouterModel: config.openrouterModel || 'openai/gpt-4o-mini',
       })
       setTestMailTo(config.gmailSenderEmail || '')
       setHasChanges(false)
@@ -55,6 +56,8 @@ export default function System() {
         gmailSmtpServer: result.gmailSmtpServer || 'smtp.gmail.com',
         gmailSmtpPort: result.gmailSmtpPort || 587,
         webUrl: result.webUrl || '',
+        openrouterApiKey: '',
+        openrouterModel: result.openrouterModel || 'openai/gpt-4o-mini',
       })
       setHasChanges(false)
       setSaveMessage('Konfiguration gespeichert')
@@ -103,12 +106,6 @@ export default function System() {
           >
             Mailkonfiguration
           </Tab>
-          <Tab
-            id="matchday"
-            className="px-4 py-2 text-[#a0aec0] cursor-pointer data-[selected]:text-[#c9a66b] data-[selected]:border-b-2 data-[selected]:border-[#c9a66b] outline-none"
-          >
-            Spieltagsmail
-          </Tab>
         </TabList>
 
         <TabPanel id="general">
@@ -129,6 +126,32 @@ export default function System() {
                 Öffentliche Basis-URL der FFL-Seite (z.B. für Links in Mails). Ohne abschließenden Slash.
               </p>
             </Card>
+
+            <h2 className="text-xl font-semibold text-[#c9a66b] mt-6 mb-4">LLM (OpenRouter)</h2>
+            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                <TextField name="openrouterApiKey">
+                  <Label className="text-[#a0aec0]">OpenRouter API-Key</Label>
+                  <Input
+                    type="password"
+                    value={formData.openrouterApiKey || ''}
+                    onChange={(e) => handleChange('openrouterApiKey', e.target.value)}
+                    placeholder="Nur eingeben zum Ändern"
+                    className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+                  />
+                </TextField>
+                <TextField name="openrouterModel">
+                  <Label className="text-[#a0aec0]">Modell</Label>
+                  <Input
+                    value={formData.openrouterModel || ''}
+                    onChange={(e) => handleChange('openrouterModel', e.target.value)}
+                    placeholder="openai/gpt-4o-mini"
+                    className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+                  />
+                </TextField>
+              </div>
+            </Card>
+
             <div className="mt-6 flex items-center gap-4">
               <Button
                 onPress={handleSave}
@@ -262,9 +285,6 @@ export default function System() {
           </div>
         </TabPanel>
 
-        <TabPanel id="matchday">
-          <MatchdayMailPanel />
-        </TabPanel>
       </TabsRoot>
     </div>
   )

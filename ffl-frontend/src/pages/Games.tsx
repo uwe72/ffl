@@ -4,6 +4,7 @@ import { useGames, useGame } from '../hooks/useGames'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useQueryClient } from '@tanstack/react-query'
 import FormationImportDialog from '../components/FormationImportDialog'
+import MatchdayMailSendDialog from '../components/MatchdayMailSendDialog'
 
 type SortKey = 'roundNumber' | 'name' | 'hostName' | 'visitorName' | 'goalHost' | 'goalVisitor'
 type SortOrder = 'asc' | 'desc'
@@ -15,6 +16,7 @@ export default function Games() {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [selectedRound, setSelectedRound] = useState<number | null>(null)
   const [importGameId, setImportGameId] = useState<number | null>(null)
+  const [mailDialogOpen, setMailDialogOpen] = useState(false)
   const queryClient = useQueryClient()
   
   const { data: importGame } = useGame(importGameId || 0)
@@ -124,6 +126,13 @@ export default function Games() {
           title="Nächster Spieltag"
         >
           →
+        </button>
+        <button
+          onClick={() => setMailDialogOpen(true)}
+          disabled={!selectedRound || !currentSeason?.id}
+          className="ml-2 px-3 py-2 rounded-lg bg-[#c9a66b] text-[#0f1419] font-semibold hover:bg-[#d4b87a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          Spieltagsmail
         </button>
       </div>
 
@@ -237,6 +246,15 @@ export default function Games() {
         gameId={importGameId || 0}
         game={importGame}
       />
+
+      {currentSeason?.id && selectedRound && (
+        <MatchdayMailSendDialog
+          isOpen={mailDialogOpen}
+          onClose={() => setMailDialogOpen(false)}
+          seasonId={currentSeason.id}
+          roundNumber={selectedRound}
+        />
+      )}
     </div>
   )
 }
