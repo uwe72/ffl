@@ -76,9 +76,9 @@ export default function Layout() {
               <RouterLink to="/manager-groups" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
                 Gruppen
               </RouterLink>
-              <RouterLink to="/feedback" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
+              <a href="/feedback" target="_blank" rel="noopener noreferrer" className="text-[#a0aec0] hover:text-[#c9a66b] link transition-colors">
                 Feedback
-              </RouterLink>
+              </a>
             </nav>
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-2 md:gap-4">

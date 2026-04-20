@@ -18,21 +18,11 @@ export default function FeedbackForm({ initialName = '', initialEmail = '', onSu
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [countdown, setCountdown] = useState(3)
 
   useEffect(() => {
     setName(initialName)
     setEmail(initialEmail)
   }, [initialName, initialEmail])
-
-  useEffect(() => {
-    if (success && countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-      return () => clearTimeout(timer)
-    } else if (success && countdown === 0) {
-      onSuccess?.()
-    }
-  }, [success, countdown, onSuccess])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,7 +34,6 @@ export default function FeedbackForm({ initialName = '', initialEmail = '', onSu
       setSuccess(true)
       setSubject('')
       setMessage('')
-      setCountdown(3)
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         setError('Zu viele Anfragen. Bitte später erneut versuchen.')
@@ -58,15 +47,35 @@ export default function FeedbackForm({ initialName = '', initialEmail = '', onSu
     }
   }
 
+  const handleClose = () => {
+    if (onSuccess) {
+      onSuccess()
+    } else {
+      window.close()
+    }
+  }
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel()
+    } else {
+      window.close()
+    }
+  }
+
   if (success) {
     return (
       <div className="text-center py-8">
         <div className="text-6xl text-green-400 mb-4">✓</div>
         <h3 className="text-2xl font-bold text-[#c9a66b] mb-2">Vielen Dank!</h3>
         <p className="text-[#a0aec0]">Dein Feedback wurde versendet.</p>
-        <p className="text-[#6b7280] text-sm mt-4">
-          Dialog schließt automatisch in {countdown} Sekunde{countdown !== 1 ? 'n' : ''}...
-        </p>
+        <Button
+          variant="primary"
+          className="mt-6 bg-[#c9a66b] text-[#0f1419] hover:bg-[#d4b77a]"
+          onPress={handleClose}
+        >
+          Fenster schließen
+        </Button>
       </div>
     )
   }
@@ -120,17 +129,15 @@ export default function FeedbackForm({ initialName = '', initialEmail = '', onSu
         />
       </div>
       <div className="flex gap-3">
-        {onCancel && (
-          <Button
-            type="button"
-            variant="secondary"
-            className="flex-1"
-            onPress={onCancel}
-            isDisabled={isLoading}
-          >
-            Abbrechen
-          </Button>
-        )}
+        <Button
+          type="button"
+          variant="secondary"
+          className="flex-1"
+          onPress={handleCancel}
+          isDisabled={isLoading}
+        >
+          Abbrechen
+        </Button>
         <Button
           type="submit"
           variant="primary"
