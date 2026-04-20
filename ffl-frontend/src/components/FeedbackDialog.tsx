@@ -4,11 +4,9 @@ import FeedbackForm from './FeedbackForm'
 interface Props {
   isOpen: boolean
   onClose: () => void
-  initialName?: string
-  initialEmail?: string
 }
 
-export default function FeedbackDialog({ isOpen, onClose, initialName, initialEmail }: Props) {
+export default function FeedbackDialog({ isOpen, onClose }: Props) {
   if (!isOpen) return null
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -26,8 +24,6 @@ export default function FeedbackDialog({ isOpen, onClose, initialName, initialEm
           </Button>
         </div>
         <FeedbackForm 
-          initialName={initialName} 
-          initialEmail={initialEmail} 
           onSuccess={onClose}
           onCancel={onClose}
         />

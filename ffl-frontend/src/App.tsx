@@ -28,6 +28,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/feedback" element={<Feedback />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="season" element={
@@ -43,7 +44,6 @@ function App() {
             <Route path="managers/:id" element={<ManagerDetail />} />
             <Route path="manager-groups" element={<ManagerGroups />} />
             <Route path="manager-groups/:id" element={<ManagerGroupDetail />} />
-            <Route path="feedback" element={<Feedback />} />
             <Route path="users" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Users />

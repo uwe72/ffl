@@ -1,28 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button, Alert, TextField, Label, Input } from '@heroui/react'
 import axios from 'axios'
 import api from '../api/client'
 
 interface Props {
-  initialName?: string
-  initialEmail?: string
   onSuccess?: () => void
   onCancel?: () => void
 }
 
-export default function FeedbackForm({ initialName = '', initialEmail = '', onSuccess, onCancel }: Props) {
+export default function FeedbackForm({ onSuccess, onCancel }: Props) {
   const [subject, setSubject] = useState('')
-  const [name, setName] = useState(initialName)
-  const [email, setEmail] = useState(initialEmail)
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-
-  useEffect(() => {
-    setName(initialName)
-    setEmail(initialEmail)
-  }, [initialName, initialEmail])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
