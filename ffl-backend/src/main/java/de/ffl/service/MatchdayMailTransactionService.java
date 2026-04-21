@@ -104,6 +104,15 @@ public class MatchdayMailTransactionService {
                 topScorerPoints = topScorerRank.getPointsRound();
             }
 
+            Map<Long, ManagerRank> prevRankByManagerId = new HashMap<>();
+            if (roundNumber > 1) {
+                List<ManagerRank> prevRanks = managerRankRepository.findByManagerIdInAndRoundNumber(
+                    allManagerIds, roundNumber - 1);
+                for (ManagerRank mr : prevRanks) {
+                    prevRankByManagerId.put(mr.getManager().getId(), mr);
+                }
+            }
+
             send(emitter, "Generiere LLM-Einleitung…");
             List<Map<String, Object>> managerPoints = new ArrayList<>();
             for (Manager m : allManagersInSeason) {
@@ -213,7 +222,8 @@ public class MatchdayMailTransactionService {
 
                     String html = buildHtmlForManager(manager, season, roundNumber, intro,
                         dayRankByManagerId.get(managerId), topScorerName, topScorerPoints,
-                        playerRankByPlayerId, teamsByPlayerId, playerById, pointsByPlayerId);
+                        playerRankByPlayerId, teamsByPlayerId, playerById, pointsByPlayerId,
+                        prevRankByManagerId);
 
                     helper.setText(html, true);
                     mailSender.send(msg);
@@ -269,16 +279,12 @@ public class MatchdayMailTransactionService {
                                         Map<Long, PlayerRank> playerRankByPlayerId,
                                         Map<Long, List<Team>> teamsByPlayerId,
                                         Map<Long, Player> playerById,
-                                        Map<Long, List<Points>> pointsByPlayerId) {
+                                        Map<Long, List<Points>> pointsByPlayerId,
+                                        Map<Long, ManagerRank> prevRankByManagerId) {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>");
         sb.append("<body style=\"background:#0f1419;color:#f5f5f5;font-family:Arial,Helvetica,sans-serif;padding:16px;margin:0;\">");
         sb.append("<div style=\"max-width:480px;margin:0 auto;\">");
-
-        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:16px;\">");
-        sb.append("<h1 style=\"color:#c9a66b;margin:0 0 4px 0;font-size:20px;\">FFL ").append(escape(season.getName())).append("</h1>");
-        sb.append("<div style=\"color:#a0aec0;font-size:14px;\">").append(roundNumber).append(". Spieltag</div>");
-        sb.append("</div>");
 
         sb.append("<p style=\"color:#f5f5f5;font-size:15px;line-height:1.5;margin:0 0 16px 0;\">Hallo ")
           .append(escape(manager.getUser() != null ? Optional.ofNullable(manager.getUser().getFirstName()).orElse(manager.getName()) : manager.getName()))
@@ -288,35 +294,56 @@ public class MatchdayMailTransactionService {
           .append(escape(intro)).append("</div>");
 
         if (ownDayRank != null) {
-            sb.append("<h2 style=\"color:#c9a66b;font-size:16px;margin:0 0 12px 0;\">Dein Spieltag</h2>");
             sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-bottom:16px;\"><tr>");
+            
             sb.append("<td width=\"50%\" style=\"padding-right:4px;\">");
             sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:16px;\">");
-            sb.append("<div style=\"font-size:24px;font-weight:700;color:#c9a66b;\">").append(nz(ownDayRank.getPositionTotal())).append(".</div>");
+            sb.append("<div style=\"font-size:24px;font-weight:700;color:#c9a66b;\">FFL ").append(escape(season.getName())).append("</div>");
+            sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-top:4px;\">").append(roundNumber).append(". Spieltag</div>");
+            sb.append("</div></td>");
+            
+            sb.append("<td width=\"50%\" style=\"padding-left:4px;\">");
+            sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:16px;\">");
+            sb.append("<div style=\"font-size:24px;font-weight:700;color:#c9a66b;\">").append(nz(ownDayRank.getPointsTotal()));
+            if (ownDayRank.getPointsRound() != null && ownDayRank.getPointsRound() > 0) {
+                sb.append(" <span style=\"font-size:14px;color:#48bb78;\">+").append(ownDayRank.getPointsRound()).append("</span>");
+            }
+            sb.append("</div>");
+            sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-top:4px;\">Punkte gesamt</div>");
+            sb.append("</div></td>");
+            
+            sb.append("</tr><tr>");
+            
+            sb.append("<td width=\"50%\" style=\"padding-right:4px;padding-top:8px;\">");
+            sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:16px;\">");
+            sb.append("<div style=\"font-size:24px;font-weight:700;color:#c9a66b;\">").append(nz(ownDayRank.getPositionTotal())).append(".");
+            ManagerRank prevRank = prevRankByManagerId.get(manager.getId());
+            if (prevRank != null && prevRank.getPositionTotal() != null) {
+                int diff = prevRank.getPositionTotal() - ownDayRank.getPositionTotal();
+                if (diff > 0) {
+                    sb.append(" <span style=\"font-size:14px;color:#48bb78;\">↑").append(diff).append("</span>");
+                } else if (diff < 0) {
+                    sb.append(" <span style=\"font-size:14px;color:#f56565;\">↓").append(Math.abs(diff)).append("</span>");
+                }
+            }
+            sb.append("</div>");
             sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-top:4px;\">Position gesamt</div>");
             sb.append("</div></td>");
-            sb.append("<td width=\"50%\" style=\"padding-left:4px;\">");
+            
+            sb.append("<td width=\"50%\" style=\"padding-left:4px;padding-top:8px;\">");
             sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #6b7280;border-radius:8px;padding:16px;\">");
             sb.append("<div style=\"font-size:24px;font-weight:700;color:#f5f5f5;\">").append(nz(ownDayRank.getPositionRound())).append(".</div>");
             sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-top:4px;\">Position Spieltag</div>");
             sb.append("</div></td>");
-            sb.append("</tr><tr>");
-            sb.append("<td width=\"50%\" style=\"padding-right:4px;padding-top:8px;\">");
-            sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:16px;\">");
-            sb.append("<div style=\"font-size:24px;font-weight:700;color:#c9a66b;\">").append(nz(ownDayRank.getPointsTotal())).append("</div>");
-            sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-top:4px;\">Punkte gesamt</div>");
-            sb.append("</div></td>");
-            sb.append("<td width=\"50%\" style=\"padding-left:4px;padding-top:8px;\">");
-            sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #6b7280;border-radius:8px;padding:16px;\">");
-            sb.append("<div style=\"font-size:24px;font-weight:700;color:#f5f5f5;\">").append(nz(ownDayRank.getPointsRound())).append("</div>");
-            sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-top:4px;\">Punkte Spieltag</div>");
-            sb.append("</div></td>");
+            
             sb.append("</tr></table>");
         }
 
         List<Player> scoringPlayers = collectScoringPlayers(manager, playerRankByPlayerId, pointsByPlayerId);
         if (!scoringPlayers.isEmpty()) {
-            sb.append("<h2 style=\"color:#c9a66b;font-size:16px;margin:16px 0 12px 0;\">Deine punktende Spieler</h2>");
+            sb.append("<h2 style=\"color:#c9a66b;font-size:16px;margin:16px 0 12px 0;\">")
+              .append(ownDayRank != null ? nz(ownDayRank.getPointsRound()) : 0).append(" Punkte am ")
+              .append(roundNumber).append(". Spieltag</h2>");
             sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">");
             int col = 0;
             for (Player player : scoringPlayers) {
