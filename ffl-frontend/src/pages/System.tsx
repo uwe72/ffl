@@ -32,7 +32,7 @@ export default function System() {
         gmailSmtpServer: config.gmailSmtpServer || 'smtp.gmail.com',
         gmailSmtpPort: config.gmailSmtpPort || 587,
         webUrl: config.webUrl || '',
-        openrouterApiKey: '',
+        openrouterApiKey: config.openrouterApiKey || '',
         openrouterModel: config.openrouterModel || 'openai/gpt-4o-mini',
       })
       setTestMailTo(config.gmailSenderEmail || '')
@@ -56,7 +56,7 @@ export default function System() {
         gmailSmtpServer: result.gmailSmtpServer || 'smtp.gmail.com',
         gmailSmtpPort: result.gmailSmtpPort || 587,
         webUrl: result.webUrl || '',
-        openrouterApiKey: '',
+        openrouterApiKey: result.openrouterApiKey || '',
         openrouterModel: result.openrouterModel || 'openai/gpt-4o-mini',
       })
       setHasChanges(false)
@@ -133,11 +133,10 @@ export default function System() {
                 <TextField name="openrouterApiKey">
                   <Label className="text-[#a0aec0]">OpenRouter API-Key</Label>
                   <Input
-                    type="password"
+                    type="text"
                     value={formData.openrouterApiKey || ''}
                     onChange={(e) => handleChange('openrouterApiKey', e.target.value)}
-                    placeholder="Nur eingeben zum Ändern"
-                    className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+                    className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] font-mono"
                   />
                 </TextField>
                 <TextField name="openrouterModel">

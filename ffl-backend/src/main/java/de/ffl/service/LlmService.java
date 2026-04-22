@@ -49,8 +49,35 @@ public class LlmService {
         String effectiveModel = (model != null && !model.isBlank()) ? model : "openai/gpt-4o-mini";
         String effectiveStyle = (promptStyle != null && !promptStyle.isBlank())
             ? promptStyle
-            : "Schreibe 2-3 Saetze auf Deutsch ueber den Fantasy-Football-Spieltag. "
-              + "Hebe den Tagessieger hervor und nenne Besonderheiten. Lockerer, motivierender Ton.";
+            : "Du schreibst die Einleitung einer Spieltagsmail fuer eine Fantasy-Football-Liga auf Deutsch.\n"
+              + "Ton: locker, pointiert, leicht humorvoll, ABER durchgehend konkret.\n"
+              + "Laenge: 3-5 Saetze, ein Absatz, keine Aufzaehlungszeichen, keine Anrede, kein Gruss.\n\n"
+              + "STRIKT VERBOTEN (solche Saetze sofort streichen):\n"
+              + "- Einleitungsfloskeln wie \"Willkommen zum ...\", \"Was fuer ein Spieltag\", \"Aufregend\", \"Spannend\".\n"
+              + "- Leere Ankuendigungen wie \"Lasst uns die Highlights genauer betrachten\", "
+              + "\"werfen wir einen Blick\", \"unter die Lupe nehmen\", \"es gab einige Besonderheiten\".\n"
+              + "- Bewertungen ohne Zahl (\"grossartig\", \"stark\", \"ordentlich ins Zeug gelegt\").\n"
+              + "- Keine Wiederholung der Saison/Spieltagsnummer im Text - das steht schon im Betreff.\n\n"
+              + "PFLICHT-INHALT (konkret, mit Zahlen aus dem JSON):\n"
+              + "1) Tagessieger (topScorer) mit seiner Punktzahl (topScorerPoints).\n"
+              + "2) Mindestens EIN konkreter Spieler aus topPlayers ODER topScorersAll: "
+              + "Name, Tagespunkte, und in Klammern ownerCount, Format: "
+              + "\"Max Mueller (14 Pkt, in 3 Kadern)\". Bevorzugt aus topPlayers, sonst aus topScorersAll.\n"
+              + "3) Mindestens EIN konkreter Mover aus bigMovers ODER topMovers: "
+              + "Name, Richtung und Plaetze, Format: "
+              + "\"Anna Schmidt kletterte 17 Plaetze nach oben\" oder \"Tom Fischer rutschte 8 Plaetze ab\" "
+              + "(positives deltaTotal = gestiegen, negatives = gefallen). "
+              + "Bevorzugt aus bigMovers, sonst aus topMovers.\n\n"
+              + "Arbeite ausschliesslich mit den uebergebenen JSON-Daten. Erfinde keine Namen oder Zahlen. "
+              + "Wenn topPlayers/bigMovers leer sind, nutze topScorersAll/topMovers. "
+              + "Wenn auch diese leer oder 0 sind, schreibe nur 2 kurze Saetze zum Tagessieger - "
+              + "KEINE hohlen Anmoderationen.\n\n"
+              + "FORMATIERUNG: Hebe die wichtigsten Schluesselwoerter mit Markdown-Bold hervor, "
+              + "indem du sie in **...** einschliesst. Genau diese hervorheben: Manager-Namen, "
+              + "Spieler-Namen, Punktzahlen, Platzzahlen. Beispiel: "
+              + "\"Tagessieger **Eric Erdmann** mit **23 Punkten**, **Max Mueller** holte **14 Punkte** "
+              + "(in **3 Kadern**) und **Anna Schmidt** kletterte **17 Plaetze** nach oben.\" "
+              + "Keine anderen Markdown-Zeichen verwenden, nur **bold**.";
 
         String jsonData;
         try {
@@ -61,6 +88,8 @@ public class LlmService {
 
         Map<String, Object> body = Map.of(
             "model", effectiveModel,
+            "temperature", 0.7,
+            "max_tokens", 400,
             "messages", List.of(
                 Map.of("role", "system", "content", effectiveStyle),
                 Map.of("role", "user", "content",

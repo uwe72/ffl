@@ -76,6 +76,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
   const [sendDialogOpen, setSendDialogOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [adminFilter, setAdminFilter] = useState(false)
+  const [comment, setComment] = useState('')
 
   useEffect(() => {
     if (config) {
@@ -324,6 +325,19 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           </div>
         </Card>
 
+        <Card className="p-4 md:p-6 bg-[#1a2028] border border-[#2d3748] mb-4">
+          <label className="text-base md:text-lg font-semibold text-[#c9a66b] block mb-2">
+            Kommentar (optional)
+          </label>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={4}
+            placeholder="Optionaler Kommentar, der als eigene Kachel vor &quot;Deine punktenden Spieler&quot; in der Mail angezeigt wird."
+            className="w-full bg-[#242d38] border border-[#3d4a5c] rounded-md text-[#f5f5f5] p-2 text-sm"
+          />
+        </Card>
+
         <div className="flex items-center gap-4">
           <Button
             onPress={() => setSendDialogOpen(true)}
@@ -340,6 +354,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           seasonId={seasonId}
           roundNumber={roundNumber}
           managerIds={selectedManagerIds}
+          comment={comment}
         />
       </Card>
     </div>

@@ -52,12 +52,13 @@ public class SystemConfigController {
     public SseEmitter streamMatchdayMail(@RequestParam Long seasonId,
                                          @RequestParam Integer roundNumber,
                                          @RequestParam String managerIds,
-                                         @RequestParam(required = false) String token) {
+                                         @RequestParam(required = false) String token,
+                                         @RequestParam(required = false) String comment) {
         List<Long> managerIdList = java.util.Arrays.stream(managerIds.split(","))
             .map(String::trim)
             .filter(s -> !s.isEmpty())
             .map(Long::parseLong)
             .collect(java.util.stream.Collectors.toList());
-        return matchdayMailService.streamMatchdayMail(seasonId, roundNumber, managerIdList);
+        return matchdayMailService.streamMatchdayMail(seasonId, roundNumber, managerIdList, comment);
     }
 }

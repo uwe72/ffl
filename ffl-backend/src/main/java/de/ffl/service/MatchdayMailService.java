@@ -102,7 +102,7 @@ public class MatchdayMailService {
         }
     }
 
-    public SseEmitter streamMatchdayMail(Long seasonId, Integer roundNumber, List<Long> managerIds) {
+    public SseEmitter streamMatchdayMail(Long seasonId, Integer roundNumber, List<Long> managerIds, String comment) {
         SseEmitter emitter = new SseEmitter(600_000L);
         executor.execute(() -> {
             try {
@@ -117,7 +117,7 @@ public class MatchdayMailService {
                 }
 
                 JavaMailSenderImpl mailSender = buildMailSender(config);
-                transactionService.runMailJob(emitter, seasonId, roundNumber, managerIds, mailSender, config);
+                transactionService.runMailJob(emitter, seasonId, roundNumber, managerIds, mailSender, config, comment);
             } catch (Exception e) {
                 try {
                     emitter.send(SseEmitter.event().name("error").data("FEHLER: " + e.getMessage()));

@@ -20,6 +20,7 @@ public class SystemConfigDto {
         dto.setGmailAppPassword(config.getGmailAppPassword());
         dto.setGmailSmtpServer(config.getGmailSmtpServer());
         dto.setGmailSmtpPort(config.getGmailSmtpPort());
+        dto.setOpenrouterApiKey(config.getOpenrouterApiKey());
         dto.setOpenrouterModel(config.getOpenrouterModel());
         dto.setMatchdayMailPrompt(config.getMatchdayMailPrompt());
         dto.setWebUrl(config.getWebUrl());
