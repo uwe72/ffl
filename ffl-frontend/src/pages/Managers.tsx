@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Table, Input, Chip, Card } from '@heroui/react'
+import { Table, Input, Chip, Card, Button } from '@heroui/react'
+import * as XLSX from 'xlsx'
 import { useManagers } from '../hooks/useManagers'
 import { useAuth } from '../context/AuthContext'
 
@@ -28,11 +29,6 @@ export default function Managers() {
       setSortKey(key)
       setSortOrder('asc')
     }
-  }
-
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-[#6b7280] ml-1">⇅</span>
-    return <span className="text-[#c9a66b] ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
   const filteredManagers = useMemo(() => {
@@ -77,6 +73,39 @@ export default function Managers() {
     })
   }, [managers, searchTerm, sortKey, sortOrder])
 
+  const exportToExcel = () => {
+    if (!filteredManagers || filteredManagers.length === 0) return
+
+    const data = filteredManagers.map(manager => {
+      const row: Record<string, string | number> = {
+        'Pos.': manager.positionTotal ?? '-',
+        '+-': manager.positionChange != null && manager.positionChange !== 0
+          ? (manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`)
+          : '-',
+        'Manager': manager.shortName || '-',
+        'Pkt.': manager.pointsTotal ?? '-',
+        'Spieltag': manager.pointsLastRound ?? '-',
+        'Vorname': manager.firstName || '-',
+        'Nachname': manager.lastName || '-',
+      }
+      if (isAdmin) {
+        row['Status'] = paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState || '-'
+      }
+      row['Teamwert (Mio.)'] = manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'
+      return row
+    })
+
+    const ws = XLSX.utils.json_to_sheet(data)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Manager')
+    XLSX.writeFile(wb, 'manager-export.xlsx')
+  }
+
+  const SortIcon = ({ column }: { column: SortKey }) => {
+    if (sortKey !== column) return <span className="text-[#6b7280] ml-1">⇅</span>
+    return <span className="text-[#c9a66b] ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+  }
+
   if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
   if (error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
 
@@ -85,13 +114,20 @@ export default function Managers() {
       <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Manager</h1>
 
       <Card className="p-4 bg-[#1a2028] border border-[#2d3748]">
-        <div className="mb-4">
+        <div className="mb-4 flex gap-4 items-center">
           <Input
             placeholder="Manager suchen..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-md bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
           />
+          <Button
+            variant="secondary"
+            onPress={exportToExcel}
+            isDisabled={!filteredManagers || filteredManagers.length === 0}
+          >
+            Excel Export
+          </Button>
         </div>
 
         <Table>

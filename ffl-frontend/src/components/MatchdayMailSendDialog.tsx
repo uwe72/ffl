@@ -167,23 +167,6 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
 
           {promptOpen && (
             <div className="px-4 md:px-6 pb-6 pt-2 grid gap-4">
-              <div>
-                <label className="text-[#a0aec0] text-sm block mb-1">
-                  Stil-Anweisung (Prompt)
-                </label>
-                <textarea
-                  value={promptForm.matchdayMailPrompt || ''}
-                  onChange={(e) =>
-                    setPromptForm((prev) => ({ ...prev, matchdayMailPrompt: e.target.value }))
-                  }
-                  rows={6}
-                  className="w-full bg-[#242d38] border border-[#3d4a5c] rounded-md text-[#f5f5f5] p-2 font-mono text-sm"
-                />
-                <p className="text-xs text-[#6b7280] mt-1">
-                  Das Backend haengt die Spieltags-Daten als JSON an diese Anweisung an.
-                </p>
-              </div>
-
               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
                 <Button
                   onPress={handlePromptSave}
@@ -201,6 +184,23 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                     {promptMessage}
                   </span>
                 )}
+              </div>
+
+              <div>
+                <label className="text-[#a0aec0] text-sm block mb-1">
+                  Stil-Anweisung (Prompt)
+                </label>
+                <textarea
+                  value={promptForm.matchdayMailPrompt || ''}
+                  onChange={(e) =>
+                    setPromptForm((prev) => ({ ...prev, matchdayMailPrompt: e.target.value }))
+                  }
+                  rows={12}
+                  className="w-full bg-[#242d38] border border-[#3d4a5c] rounded-md text-[#f5f5f5] p-2 font-mono text-sm resize-y"
+                />
+                <p className="text-xs text-[#6b7280] mt-1">
+                  Das Backend haengt die Spieltags-Daten als JSON an diese Anweisung an.
+                </p>
               </div>
             </div>
           )}

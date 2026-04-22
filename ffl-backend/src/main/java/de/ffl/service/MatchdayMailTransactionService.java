@@ -414,7 +414,7 @@ public class MatchdayMailTransactionService {
             
             sb.append("<td width=\"50%\" style=\"padding-right:4px;\">");
             sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:16px;\">");
-            sb.append("<div style=\"font-size:24px;font-weight:700;color:#c9a66b;\">FFL ").append(escape(season.getName())).append("</div>");
+            sb.append("<div style=\"font-size:24px;font-weight:700;color:#c9a66b;\">").append(escape(season.getName())).append("</div>");
             sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-top:4px;\">").append(roundNumber).append(". Spieltag</div>");
             sb.append("</div></td>");
             
@@ -666,7 +666,7 @@ public class MatchdayMailTransactionService {
         if (groupRanks.isEmpty()) return;
         groupRanks.sort(Comparator.comparingInt(ManagerRank::getPositionTotal));
 
-        sb.append("<h2 style=\"color:#c9a66b;font-size:16px;margin:16px 0 12px 0;\">Gruppe: ")
+        sb.append("<h2 style=\"color:#c9a66b;font-size:16px;margin:16px 0 12px 0;\">")
           .append(escape(group.getName())).append("</h2>");
         sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;font-size:13px;\">");
         sb.append("<tr style=\"background:#242d38;color:#a0aec0;font-size:11px;\">");
@@ -949,13 +949,9 @@ public class MatchdayMailTransactionService {
         
         sb.append("<div style=\"font-weight:600;color:#f5f5f5;font-size:14px;\">").append(escape(player.getNameKicker())).append("</div>");
         
-        sb.append("<table cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top:4px;\"><tr>");
-        sb.append("<td style=\"background:").append(posColor).append(";color:#0f1419;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;\">")
-          .append(escape(posLabel)).append("</td>");
         if (!teamName.isEmpty()) {
-            sb.append("<td style=\"padding-left:6px;color:#6b7280;font-size:11px;\">").append(escape(teamName)).append("</td>");
+            sb.append("<div style=\"margin-top:2px;color:#6b7280;font-size:11px;\">").append(escape(teamName)).append("</div>");
         }
-        sb.append("</tr></table>");
 
         sb.append("<div style=\"margin-top:8px;font-size:18px;font-weight:700;color:#c9a66b;\">").append(pointsRound).append(" Pkt</div>");
 
@@ -964,8 +960,12 @@ public class MatchdayMailTransactionService {
         for (Points p : playerPoints) {
             ruleCounts.merge(p.getRule(), 1, Integer::sum);
         }
+
+        sb.append("<div style=\"margin-top:6px;\">");
+        sb.append("<span style=\"display:inline-block;background:").append(posColor)
+          .append(";color:#0f1419;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;margin-right:4px;margin-bottom:2px;\">")
+          .append(escape(posLabel)).append("</span>");
         if (!ruleCounts.isEmpty()) {
-            sb.append("<div style=\"margin-top:6px;\">");
             List<Map.Entry<Rule, Integer>> sortedRules = ruleCounts.entrySet().stream()
                 .sorted((a, b) -> Integer.compare(b.getKey().getPoints() * b.getValue(), a.getKey().getPoints() * a.getValue()))
                 .toList();
@@ -981,8 +981,8 @@ public class MatchdayMailTransactionService {
                 }
                 sb.append("</span>");
             }
-            sb.append("</div>");
         }
+        sb.append("</div>");
 
         sb.append("</div>");
     }
@@ -1031,13 +1031,13 @@ public class MatchdayMailTransactionService {
 
     private String getRuleLabel(Rule rule) {
         return switch (rule) {
-            case GOAL_STRIKER -> "Tor Stürmer";
-            case GOAL_MIDFIELDER -> "Tor Mittelfeld";
-            case GOAL_DEFENDER -> "Tor Verteidiger";
-            case TO_NULL_GOALKEEPER -> "Zu Null Torwart";
-            case TO_NULL_DEFENDER -> "Zu Null Verteidiger";
-            case GOAL_GOALKEEPER -> "Tor Torwart";
-            case GOAL_GOALKEEPER_BY_PENALTY -> "Tor Torwart (Elfmeter)";
+            case GOAL_STRIKER -> "Tor ST";
+            case GOAL_MIDFIELDER -> "Tor MF";
+            case GOAL_DEFENDER -> "Tor ABW";
+            case TO_NULL_GOALKEEPER -> "Zu Null TW";
+            case TO_NULL_DEFENDER -> "Zu Null ABW";
+            case GOAL_GOALKEEPER -> "Tor TW";
+            case GOAL_GOALKEEPER_BY_PENALTY -> "Tor TW (Elfer)";
         };
     }
 
