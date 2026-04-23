@@ -942,8 +942,8 @@ public class MatchdayMailTransactionService {
             teamName = teams.get(teams.size() - 1).getName();
         }
 
-        String posLabel = getPositionLabel(player, manager);
-        String posColor = getPositionColor(player, manager);
+        String posLabel = positionLabelFromEnum(player.getPosition());
+        String posColor = positionColorFromEnum(player.getPosition());
 
         sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid ").append(posColor).append(";border-radius:8px;padding:12px;\">");
         

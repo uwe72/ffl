@@ -111,7 +111,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
         />
       </TextField>
       <div>
-        <label className="block text-sm text-[#a0aec0] mb-1">Nachricht</label>
+        <label className="block text-sm text-[#a0aec0] mb-1">Nachricht *</label>
         <textarea
           required
           rows={6}
