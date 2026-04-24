@@ -399,8 +399,8 @@ public class MatchdayMailTransactionService {
                                         String comment) {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>");
-        sb.append("<body style=\"background:#e5e5ea;color:#1c1c1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;padding:20px 12px;margin:0;\">");
-        sb.append("<div style=\"max-width:480px;margin:0 auto;\">");
+        sb.append("<body style=\"background:#e5e5ea;color:#1c1c1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;padding:20px 4px;margin:0;\">");
+        sb.append("<div style=\"max-width:560px;margin:0 auto;\">");
 
         sb.append("<p style=\"color:#1c1c1e;font-size:15px;font-weight:700;line-height:1.5;margin:0 0 14px 0;\">Hallo ")
           .append(escape(manager.getUser() != null ? Optional.ofNullable(manager.getUser().getFirstName()).orElse(manager.getName()) : manager.getName()))
@@ -467,30 +467,6 @@ public class MatchdayMailTransactionService {
               .append(escape(comment)).append("</div>");
         }
 
-        List<Player> scoringPlayers = collectScoringPlayers(manager, playerRankByPlayerId, pointsByPlayerId, roundNumber, transferRound);
-        if (!scoringPlayers.isEmpty()) {
-            sb.append("<div style=\"color:#4a4a4a;font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine punktenden Spieler</div>");
-            sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">");
-            int col = 0;
-            for (Player player : scoringPlayers) {
-                if (col == 0) {
-                    sb.append("<tr>");
-                }
-                sb.append("<td width=\"50%\" style=\"padding-right:6px;padding-bottom:12px;vertical-align:top;\">");
-                appendScoringPlayerCard(sb, player, manager, playerRankByPlayerId, teamsByPlayerId, pointsByPlayerId);
-                sb.append("</td>");
-                col++;
-                if (col == 2) {
-                    sb.append("</tr>");
-                    col = 0;
-                }
-            }
-            if (col == 1) {
-                sb.append("<td width=\"50%\" style=\"padding-left:6px;padding-bottom:12px;\"></td></tr>");
-            }
-            sb.append("</table>");
-        }
-
         if (rankingExcerpt != null && !rankingExcerpt.isEmpty()) {
             appendRankingTable(sb, rankingExcerpt, manager.getId(), prevRankByManagerId, managersById);
             if (webUrl != null && !webUrl.isBlank()) {
@@ -502,9 +478,6 @@ public class MatchdayMailTransactionService {
         }
 
         List<RosterEntry> roster = collectFullRoster(manager, playerById);
-        sb.append("<div style=\"color:#4a4a4a;font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine ")
-          .append(roster.size()).append(" Spieler</div>");
-
         Map<Long, Integer> mePointsByPlayer = new HashMap<>();
         for (RosterEntry e : roster) {
             mePointsByPlayer.put(e.player.getId(),
@@ -513,22 +486,7 @@ public class MatchdayMailTransactionService {
         roster.sort((a, b) -> Integer.compare(
             mePointsByPlayer.getOrDefault(b.player.getId(), 0),
             mePointsByPlayer.getOrDefault(a.player.getId(), 0)));
-
-        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">");
-        int rcol = 0;
-        for (RosterEntry e : roster) {
-            if (rcol == 0) sb.append("<tr>");
-            sb.append("<td width=\"50%\" style=\"padding-right:6px;padding-bottom:12px;vertical-align:top;\">");
-            appendRosterCard(sb, e, mePointsByPlayer.getOrDefault(e.player.getId(), 0),
-                playerRankByPlayerId, teamsByPlayerId);
-            sb.append("</td>");
-            rcol++;
-            if (rcol == 2) { sb.append("</tr>"); rcol = 0; }
-        }
-        if (rcol == 1) {
-            sb.append("<td width=\"50%\" style=\"padding-left:6px;padding-bottom:12px;\"></td></tr>");
-        }
-        sb.append("</table>");
+        appendRosterTable(sb, roster, mePointsByPlayer, playerRankByPlayerId, teamsByPlayerId, roundNumber, transferRound);
 
         if (managerGroups != null && !managerGroups.isEmpty()) {
             List<ManagerGroup> sortedGroups = managerGroups.stream()
@@ -690,9 +648,7 @@ public class MatchdayMailTransactionService {
         sb.append("<th align=\"right\" style=\"padding:10px 10px 10px 6px;font-weight:500;\">Sp.</th>");
         sb.append("</tr>");
 
-        int groupPos = 0;
         for (ManagerRank mr : groupRanks) {
-            groupPos++;
             Manager m = managersById.get(mr.getManager().getId());
             boolean isOwn = mr.getManager().getId().equals(ownManagerId);
             String rowBg = isOwn ? "background:#FFD60A;" : "";
@@ -704,7 +660,7 @@ public class MatchdayMailTransactionService {
 
             sb.append("<tr style=\"").append(rowBg).append("\">");
             sb.append("<td align=\"center\" style=\"padding:10px 6px;color:").append(textColor).append(";font-weight:").append(fontWeight).append(";").append(firstCell).append("\">")
-              .append(groupPos).append(".</td>");
+              .append(mr.getPositionTotal()).append(".</td>");
 
             sb.append("<td align=\"center\" style=\"padding:10px 6px;\">");
             ManagerRank prev = prevRankByManagerId.get(mr.getManager().getId());
@@ -844,6 +800,182 @@ public class MatchdayMailTransactionService {
             case MIDFIELD -> "#FFD60A";
             case STRIKER -> "#0A84FF";
         };
+    }
+
+    private static String shortenPlayerName(String full) {
+        if (full == null) return "";
+        String trimmed = full.trim();
+        if (trimmed.isEmpty()) return trimmed;
+        String[] parts = trimmed.split("\\s+");
+        if (parts.length < 2) return trimmed;
+        String first = parts[0];
+        String initial = first.substring(0, 1).toUpperCase() + ".";
+        StringBuilder rest = new StringBuilder();
+        for (int i = 1; i < parts.length; i++) {
+            if (i > 1) rest.append(" ");
+            rest.append(parts[i]);
+        }
+        return initial + " " + rest.toString();
+    }
+
+    private String positionDarkBgFromHex(String hex) {
+        return switch (hex) {
+            case "#30D158" -> "#0F3D1E";
+            case "#FF9F0A" -> "#3D2806";
+            case "#FFD60A" -> "#3D3306";
+            case "#0A84FF" -> "#062A4D";
+            case "#BF5AF2" -> "#2D1347";
+            default -> "#2a2a2a";
+        };
+    }
+
+    private void appendRosterTable(StringBuilder sb, List<RosterEntry> roster,
+                                    Map<Long, Integer> mePointsByPlayer,
+                                    Map<Long, PlayerRank> playerRankByPlayerId,
+                                    Map<Long, List<Team>> teamsByPlayerId,
+                                    int roundNumber, int transferRound) {
+        boolean isRueckrundeCurrent = roundNumber >= transferRound;
+        sb.append("<div style=\"color:#4a4a4a;font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine ")
+          .append(roster.size()).append(" Spieler</div>");
+        sb.append("<div style=\"background:#1c1c1e;border-radius:18px;padding:6px;\">");
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;\">");
+        sb.append("<tr style=\"color:#9a9a9a;font-size:11px;\">");
+        sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">#</th>");
+        sb.append("<th align=\"left\" style=\"padding:10px 8px;font-weight:500;\">Spieler</th>");
+        sb.append("<th align=\"right\" style=\"padding:10px 6px;font-weight:500;\">Pkt</th>");
+        sb.append("<th align=\"right\" style=\"padding:10px 10px 10px 6px;font-weight:500;\">Sp.</th>");
+        sb.append("</tr>");
+
+        for (RosterEntry e : roster) {
+            Player player = e.player;
+            PlayerRank pr = playerRankByPlayerId.get(player.getId());
+            Integer pointsTotal = pr != null ? pr.getPointsTotal() : null;
+            Integer positionTotal = pr != null ? pr.getPositionTotal() : null;
+            int mePoints = mePointsByPlayer.getOrDefault(player.getId(), 0);
+            boolean partial = !(e.activeHinrunde && e.activeRueckrunde);
+            boolean activeNow = isRueckrundeCurrent ? e.activeRueckrunde : e.activeHinrunde;
+            int pointsRound = activeNow && pr != null && pr.getPointsRound() != null ? pr.getPointsRound() : 0;
+            boolean scoredToday = pointsRound > 0;
+
+            String textColor = "#ffffff";
+            String secondary = "#9a9a9a";
+            String fontWeight = "500";
+
+            String teamName = "";
+            List<Team> teams = teamsByPlayerId.get(player.getId());
+            if (teams != null && !teams.isEmpty()) {
+                teamName = teams.get(teams.size() - 1).getName();
+            }
+
+            String darkBg = positionDarkBgFromHex(e.posColor);
+
+            sb.append("<tr style=\"\">");
+
+            // # = Gesamtposition des Spielers
+            sb.append("<td align=\"center\" style=\"padding:10px 6px;color:").append(textColor)
+              .append(";font-weight:").append(fontWeight).append(";\">");
+            if (positionTotal != null) {
+                sb.append(positionTotal).append(".");
+            } else {
+                sb.append("\u2013");
+            }
+            sb.append("</td>");
+
+            // Spieler + Verein stacked, links-bündig; Position-Badge + Hin/Rück inline hinter Namen
+            sb.append("<td align=\"left\" style=\"padding:10px 8px;\">");
+            sb.append("<div style=\"color:").append(textColor).append(";font-weight:600;font-size:13px;line-height:1.2;white-space:nowrap;\">")
+              .append("<span style=\"vertical-align:middle;\">")
+              .append(escape(shortenPlayerName(player.getNameKicker())))
+              .append("</span>");
+            sb.append("<span style=\"display:inline-block;background:").append(darkBg)
+              .append(";color:").append(e.posColor)
+              .append(";padding:3px 8px;border-radius:9px;font-size:10px;font-weight:700;line-height:1.2;letter-spacing:0.3px;margin-left:6px;vertical-align:middle;\">")
+              .append(escape(e.posLabel)).append("</span>");
+            if (e.activeHinrunde && !e.activeRueckrunde) {
+                sb.append("<span style=\"display:inline-block;background:#0A84FF;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;margin-left:6px;vertical-align:middle;\">Hin</span>");
+            } else if (e.activeRueckrunde && !e.activeHinrunde) {
+                sb.append("<span style=\"display:inline-block;background:#BF5AF2;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;margin-left:6px;vertical-align:middle;\">R&uuml;ck</span>");
+            }
+            sb.append("</div>");
+            if (!teamName.isEmpty()) {
+                sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;margin-top:2px;line-height:1.2;\">")
+                  .append(escape(teamName))
+                  .append("</div>");
+            }
+            sb.append("</td>");
+
+            // Pkt (Gesamt) — plain number, optional (totalVal) inline
+            int totalVal = pointsTotal != null ? pointsTotal : 0;
+            sb.append("<td align=\"right\" style=\"padding:10px 6px;color:").append(textColor)
+              .append(";font-weight:").append(fontWeight).append(";white-space:nowrap;\">")
+              .append(mePoints);
+            if (partial) {
+                sb.append(" <span style=\"color:").append(secondary).append(";font-weight:500;white-space:nowrap;\">(")
+                  .append(totalVal).append(")</span>");
+            }
+            sb.append("</td>");
+
+            // Tag-Punkte — gelber Chip bei scoredToday
+            sb.append("<td align=\"right\" style=\"padding:10px 10px 10px 6px;\">");
+            if (scoredToday) {
+                sb.append("<span style=\"display:inline-block;background:#FFD60A;color:#000;font-weight:700;padding:2px 8px;border-radius:9px;font-size:12px;\">+")
+                  .append(pointsRound).append("</span>");
+            }
+            sb.append("</td>");
+            sb.append("</tr>");
+        }
+        sb.append("</table>");
+        sb.append("</div>");
+    }
+
+    private void appendScoringPlayersTable(StringBuilder sb, List<Player> scoringPlayers, Manager manager,
+                                            Map<Long, PlayerRank> playerRankByPlayerId,
+                                            Map<Long, List<Team>> teamsByPlayerId) {
+        sb.append("<div style=\"color:#4a4a4a;font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine punktenden Spieler</div>");
+        sb.append("<div style=\"background:#1c1c1e;border-radius:18px;padding:6px;\">");
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;\">");
+        sb.append("<tr style=\"color:#9a9a9a;font-size:11px;\">");
+        sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">Pos</th>");
+        sb.append("<th align=\"left\" style=\"padding:10px 8px;font-weight:500;\">Spieler</th>");
+        sb.append("<th align=\"right\" style=\"padding:10px 10px 10px 6px;font-weight:500;\">Pkt</th>");
+        sb.append("</tr>");
+
+        for (Player player : scoringPlayers) {
+            PlayerRank pr = playerRankByPlayerId.get(player.getId());
+            int pointsRound = pr != null && pr.getPointsRound() != null ? pr.getPointsRound() : 0;
+            if (pointsRound == 0) continue;
+
+            String teamName = "";
+            List<Team> teams = teamsByPlayerId.get(player.getId());
+            if (teams != null && !teams.isEmpty()) {
+                teamName = teams.get(teams.size() - 1).getName();
+            }
+
+            String posLabel = positionLabelFromEnum(player.getPosition());
+            String posColor = positionColorFromEnum(player.getPosition());
+
+            sb.append("<tr>");
+            sb.append("<td align=\"center\" style=\"padding:10px 6px;vertical-align:top;\">");
+            sb.append("<span style=\"display:inline-block;background:").append(posColor)
+              .append(";color:#000000;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;line-height:1.2;\">")
+              .append(escape(posLabel)).append("</span>");
+            sb.append("</td>");
+
+            sb.append("<td align=\"left\" style=\"padding:10px 8px;vertical-align:top;\">");
+            sb.append("<div style=\"color:#ffffff;font-weight:600;font-size:13px;\">")
+              .append(escape(player.getNameKicker())).append("</div>");
+            if (!teamName.isEmpty()) {
+                sb.append("<div style=\"color:#9a9a9a;font-size:11px;margin-top:2px;\">")
+                  .append(escape(teamName)).append("</div>");
+            }
+            sb.append("</td>");
+
+            sb.append("<td align=\"right\" style=\"padding:10px 10px 10px 6px;vertical-align:top;color:#FFD60A;font-weight:700;font-size:16px;\">")
+              .append(pointsRound).append("</td>");
+            sb.append("</tr>");
+        }
+        sb.append("</table>");
+        sb.append("</div>");
     }
 
     private void appendRosterCard(StringBuilder sb, RosterEntry e, int mePoints,

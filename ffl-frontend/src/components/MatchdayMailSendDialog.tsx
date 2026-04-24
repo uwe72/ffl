@@ -71,6 +71,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
 
   const [promptOpen, setPromptOpen] = useState(false)
   const [promptForm, setPromptForm] = useState<Partial<SystemConfig>>({})
+  const [promptDraft, setPromptDraft] = useState('')
   const [promptMessage, setPromptMessage] = useState('')
   const [selectedManagerIds, setSelectedManagerIds] = useState<number[]>([])
   const [sendDialogOpen, setSendDialogOpen] = useState(false)
@@ -88,10 +89,19 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
     }
   }, [config])
 
+  const openPromptDialog = () => {
+    setPromptDraft(promptForm.matchdayMailPrompt || '')
+    setPromptMessage('')
+    setPromptOpen(true)
+  }
+
   const handlePromptSave = async () => {
     try {
-      await updateConfig.mutateAsync(promptForm)
+      const next = { ...promptForm, matchdayMailPrompt: promptDraft }
+      await updateConfig.mutateAsync(next)
+      setPromptForm(next)
       setPromptMessage('Prompt gespeichert')
+      setPromptOpen(false)
       setTimeout(() => setPromptMessage(''), 3000)
     } catch {
       setPromptMessage('Fehler beim Speichern')
@@ -146,105 +156,65 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-4">
-          <div>
+          <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-[#f5f5f5]">Spieltagsmail</h2>
-            <p className="text-[#a0aec0] text-sm mt-1">Spieltag {roundNumber}</p>
+            <span className="px-2 py-1 rounded-md bg-[#c9a66b] text-[#0f1419] text-xs font-semibold">
+              {roundNumber}. Spieltag
+            </span>
           </div>
-          <Button size="sm" variant="secondary" onPress={onClose} className="h-7 px-3 text-xs">
-            Schließen
-          </Button>
-        </div>
-
-        <Card className="p-0 bg-[#1a2028] border border-[#2d3748] mb-4">
-          <button
-            type="button"
-            onClick={() => setPromptOpen((v) => !v)}
-            className="w-full text-left px-4 md:px-6 py-4 flex items-center justify-between hover:bg-[#242d38] transition-colors"
-          >
-            <span className="text-base md:text-lg font-semibold text-[#c9a66b]">Prompt</span>
-            <span className="text-[#a0aec0]">{promptOpen ? '▲' : '▼'}</span>
-          </button>
-
-          {promptOpen && (
-            <div className="px-4 md:px-6 pb-6 pt-2 grid gap-4">
-              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                <Button
-                  onPress={handlePromptSave}
-                  isDisabled={updateConfig.isPending}
-                  className="bg-[#c9a66b] text-[#0f1419] font-semibold px-6 py-2 rounded hover:bg-[#d4b87a] disabled:opacity-50"
-                >
-                  {updateConfig.isPending ? 'Speichern…' : 'Prompt speichern'}
-                </Button>
-                {promptMessage && (
-                  <span
-                    className={
-                      promptMessage.includes('Fehler') ? 'text-[#e05252]' : 'text-[#48bb78]'
-                    }
-                  >
-                    {promptMessage}
-                  </span>
-                )}
-              </div>
-
-              <div>
-                <label className="text-[#a0aec0] text-sm block mb-1">
-                  Stil-Anweisung (Prompt)
-                </label>
-                <textarea
-                  value={promptForm.matchdayMailPrompt || ''}
-                  onChange={(e) =>
-                    setPromptForm((prev) => ({ ...prev, matchdayMailPrompt: e.target.value }))
-                  }
-                  rows={12}
-                  className="w-full bg-[#242d38] border border-[#3d4a5c] rounded-md text-[#f5f5f5] p-2 font-mono text-sm resize-y"
-                />
-                <p className="text-xs text-[#6b7280] mt-1">
-                  Das Backend haengt die Spieltags-Daten als JSON an diese Anweisung an.
-                </p>
-              </div>
-            </div>
-          )}
-        </Card>
-
-        <Card className="p-4 md:p-6 bg-[#1a2028] border border-[#2d3748] mb-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-            <h3 className="text-base md:text-lg font-semibold text-[#c9a66b]">Empfänger</h3>
+          <div className="flex items-center gap-2">
             <Button
               size="sm"
-              onPress={toggleAll}
-              isDisabled={eligibleManagers.length === 0}
-              className="bg-[#3d4a5c] text-[#f5f5f5] px-3 py-1"
+              onPress={openPromptDialog}
+              className="h-7 px-3 text-xs bg-[#3d4a5c] text-[#f5f5f5]"
             >
-              {allSelected ? 'Alle abwählen' : 'Alle selektieren'}
+              Prompt anpassen
+            </Button>
+            <Button size="sm" variant="secondary" onPress={onClose} className="h-7 px-3 text-xs">
+              Schließen
             </Button>
           </div>
+        </div>
 
+        {promptMessage && (
+          <div
+            className={`mb-4 text-sm ${
+              promptMessage.includes('Fehler') ? 'text-[#e05252]' : 'text-[#48bb78]'
+            }`}
+          >
+            {promptMessage}
+          </div>
+        )}
+
+        <Card className="p-4 md:p-6 bg-[#1a2028] border border-[#2d3748] mb-4">
           <div className="mb-4 flex flex-col md:flex-row gap-3 md:gap-4 md:items-center">
+            <h3 className="text-base md:text-lg font-semibold text-[#c9a66b] md:whitespace-nowrap">Empfänger</h3>
             <Input
               placeholder="Manager suchen..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full md:max-w-md bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
             />
-            <div className="flex gap-2">
-              <label
-                onClick={() => setAdminFilter(!adminFilter)}
-                className={`px-4 py-2 rounded-lg cursor-pointer transition-all ${
+            <div className="flex gap-2 md:ml-auto">
+              <Button
+                size="sm"
+                onPress={() => setAdminFilter(!adminFilter)}
+                className={`px-3 py-1 ${
                   adminFilter
                     ? 'bg-[#c9a66b] text-[#0f1419]'
-                    : 'bg-[#242d38] text-[#a0aec0] hover:bg-[#3d4a5c]'
+                    : 'bg-[#3d4a5c] text-[#f5f5f5]'
                 }`}
               >
-                Admins
-              </label>
-              {adminFilter && (
-                <label
-                  onClick={() => setAdminFilter(false)}
-                  className="px-4 py-2 rounded-lg cursor-pointer bg-[#242d38] text-[#a0aec0] hover:bg-[#3d4a5c] transition-all"
-                >
-                  Zurück
-                </label>
-              )}
+                Admins selektieren
+              </Button>
+              <Button
+                size="sm"
+                onPress={toggleAll}
+                isDisabled={eligibleManagers.length === 0}
+                className="bg-[#3d4a5c] text-[#f5f5f5] px-3 py-1"
+              >
+                {allSelected ? 'Alle abwählen' : 'Alle selektieren'}
+              </Button>
             </div>
           </div>
 
@@ -269,7 +239,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
               )}
             </div>
           ) : (
-            <div className="max-h-[200px] overflow-y-auto">
+            <div className="max-h-[504px] overflow-y-auto">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-[#1a2028]">
                   <tr className="text-left text-[#a0aec0] border-b border-[#2d3748]">
@@ -357,6 +327,57 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           comment={comment}
         />
       </Card>
+
+      {promptOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4"
+          onClick={() => setPromptOpen(false)}
+        >
+          <Card
+            className="p-4 md:p-6 bg-[#1a2028] border border-[#2d3748] w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-lg md:text-xl font-semibold text-[#c9a66b]">Prompt anpassen</h3>
+              <Button
+                size="sm"
+                variant="secondary"
+                onPress={() => setPromptOpen(false)}
+                className="h-7 px-3 text-xs"
+              >
+                ✕
+              </Button>
+            </div>
+
+            <label className="text-[#a0aec0] text-sm block mb-1">Stil-Anweisung (Prompt)</label>
+            <textarea
+              value={promptDraft}
+              onChange={(e) => setPromptDraft(e.target.value)}
+              rows={14}
+              className="w-full bg-[#242d38] border border-[#3d4a5c] rounded-md text-[#f5f5f5] p-2 font-mono text-sm resize-y"
+            />
+            <p className="text-xs text-[#6b7280] mt-1">
+              Das Backend haengt die Spieltags-Daten als JSON an diese Anweisung an.
+            </p>
+
+            <div className="flex flex-col md:flex-row md:justify-end gap-2 mt-4">
+              <Button
+                onPress={() => setPromptOpen(false)}
+                className="bg-[#3d4a5c] text-[#f5f5f5] font-semibold px-6 py-2 rounded hover:bg-[#4a5a70]"
+              >
+                Abbrechen
+              </Button>
+              <Button
+                onPress={handlePromptSave}
+                isDisabled={updateConfig.isPending}
+                className="bg-[#c9a66b] text-[#0f1419] font-semibold px-6 py-2 rounded hover:bg-[#d4b87a] disabled:opacity-50"
+              >
+                {updateConfig.isPending ? 'Speichern…' : 'Speichern'}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }
