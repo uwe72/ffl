@@ -399,77 +399,84 @@ public class MatchdayMailTransactionService {
                                         String comment) {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>");
-        sb.append("<body style=\"background:#0f1419;color:#f5f5f5;font-family:Arial,Helvetica,sans-serif;padding:16px;margin:0;\">");
+        sb.append("<body style=\"background:#e5e5ea;color:#1c1c1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;padding:20px 12px;margin:0;\">");
         sb.append("<div style=\"max-width:480px;margin:0 auto;\">");
 
-        sb.append("<p style=\"color:#f5f5f5;font-size:15px;line-height:1.5;margin:0 0 16px 0;\">Hallo ")
+        sb.append("<p style=\"color:#1c1c1e;font-size:15px;font-weight:700;line-height:1.5;margin:0 0 14px 0;\">Hallo ")
           .append(escape(manager.getUser() != null ? Optional.ofNullable(manager.getUser().getFirstName()).orElse(manager.getName()) : manager.getName()))
           .append("!</p>");
 
-        sb.append("<div style=\"background:#242d38;border-left:3px solid #ed8936;padding:12px 16px;margin:0 0 16px 0;color:#e2e8f0;font-style:italic;border-radius:8px;\">")
+        sb.append("<div style=\"background:#2a2a2a;padding:16px 18px;margin:0 0 14px 0;color:#ffffff;font-size:14px;line-height:1.5;border-radius:18px;\">")
+          .append("<span style=\"color:#FFD60A;margin-right:6px;\">\u2605</span>")
           .append(renderIntroMarkdown(intro)).append("</div>");
 
         if (ownDayRank != null) {
-            sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-bottom:16px;\"><tr>");
-            
-            sb.append("<td width=\"50%\" style=\"padding-right:4px;\">");
-            sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:16px;\">");
-            sb.append("<div style=\"font-size:24px;font-weight:700;color:#c9a66b;\">").append(escape(season.getName())).append("</div>");
-            sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-top:4px;\">").append(roundNumber).append(". Spieltag</div>");
+            String cardStyle = "background:#1c1c1e;border-radius:18px;padding:16px;";
+            String bigNum = "font-size:28px;font-weight:700;color:#FFD60A;line-height:1.1;";
+            String label = "font-size:11px;color:#9a9a9a;margin-top:6px;text-transform:uppercase;letter-spacing:0.5px;";
+            String badgeUp = "display:inline-block;background:rgba(48,209,88,0.18);color:#30D158;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;margin-left:6px;vertical-align:middle;";
+            String badgeDown = "display:inline-block;background:rgba(255,69,58,0.18);color:#FF453A;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;margin-left:6px;vertical-align:middle;";
+
+            sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-bottom:14px;\"><tr>");
+
+            sb.append("<td width=\"50%\" style=\"padding-right:6px;\">");
+            sb.append("<div style=\"").append(cardStyle).append("\">");
+            sb.append("<div style=\"").append(bigNum).append("\">").append(escape(season.getName())).append("</div>");
+            sb.append("<div style=\"").append(label).append("\">").append(roundNumber).append(". Spieltag</div>");
             sb.append("</div></td>");
-            
-            sb.append("<td width=\"50%\" style=\"padding-left:4px;\">");
-            sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:16px;\">");
-            sb.append("<div style=\"font-size:24px;font-weight:700;color:#c9a66b;\">").append(nz(ownDayRank.getPointsTotal()));
+
+            sb.append("<td width=\"50%\" style=\"padding-left:6px;\">");
+            sb.append("<div style=\"").append(cardStyle).append("\">");
+            sb.append("<div style=\"").append(bigNum).append("\">").append(nz(ownDayRank.getPointsTotal()));
             if (ownDayRank.getPointsRound() != null && ownDayRank.getPointsRound() > 0) {
-                sb.append(" <span style=\"font-size:14px;color:#48bb78;\">↑").append(ownDayRank.getPointsRound()).append("</span>");
+                sb.append("<span style=\"").append(badgeUp).append("\">\u2191").append(ownDayRank.getPointsRound()).append("</span>");
             }
             sb.append("</div>");
-            sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-top:4px;\">Punkte gesamt</div>");
+            sb.append("<div style=\"").append(label).append("\">Punkte gesamt</div>");
             sb.append("</div></td>");
-            
+
             sb.append("</tr><tr>");
-            
-            sb.append("<td width=\"50%\" style=\"padding-right:4px;padding-top:8px;\">");
-            sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:16px;\">");
-            sb.append("<div style=\"font-size:24px;font-weight:700;color:#c9a66b;\">").append(nz(ownDayRank.getPositionTotal())).append(".");
+
+            sb.append("<td width=\"50%\" style=\"padding-right:6px;padding-top:12px;\">");
+            sb.append("<div style=\"").append(cardStyle).append("\">");
+            sb.append("<div style=\"").append(bigNum).append("\">").append(nz(ownDayRank.getPositionTotal())).append(".");
             ManagerRank prevRank = prevRankByManagerId.get(manager.getId());
             if (prevRank != null && prevRank.getPositionTotal() != null) {
                 int diff = prevRank.getPositionTotal() - ownDayRank.getPositionTotal();
                 if (diff > 0) {
-                    sb.append(" <span style=\"font-size:14px;color:#48bb78;\">↑").append(diff).append("</span>");
+                    sb.append("<span style=\"").append(badgeUp).append("\">\u2191").append(diff).append("</span>");
                 } else if (diff < 0) {
-                    sb.append(" <span style=\"font-size:14px;color:#f56565;\">↓").append(Math.abs(diff)).append("</span>");
+                    sb.append("<span style=\"").append(badgeDown).append("\">\u2193").append(Math.abs(diff)).append("</span>");
                 }
             }
             sb.append("</div>");
-            sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-top:4px;\">Position gesamt</div>");
+            sb.append("<div style=\"").append(label).append("\">Position gesamt</div>");
             sb.append("</div></td>");
-            
-            sb.append("<td width=\"50%\" style=\"padding-left:4px;padding-top:8px;\">");
-            sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #6b7280;border-radius:8px;padding:16px;\">");
-            sb.append("<div style=\"font-size:24px;font-weight:700;color:#f5f5f5;\">").append(nz(ownDayRank.getPositionRound())).append(".</div>");
-            sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-top:4px;\">Position Spieltag</div>");
+
+            sb.append("<td width=\"50%\" style=\"padding-left:6px;padding-top:12px;\">");
+            sb.append("<div style=\"").append(cardStyle).append("\">");
+            sb.append("<div style=\"font-size:28px;font-weight:700;color:#ffffff;line-height:1.1;\">").append(nz(ownDayRank.getPositionRound())).append(".</div>");
+            sb.append("<div style=\"").append(label).append("\">Position Spieltag</div>");
             sb.append("</div></td>");
-            
+
             sb.append("</tr></table>");
         }
 
         if (comment != null && !comment.isBlank()) {
-            sb.append("<div style=\"background:#242d38;border-left:3px solid #ed8936;border-radius:8px;padding:12px 16px;margin:16px 0;color:#e2e8f0;font-size:14px;line-height:1.5;white-space:pre-wrap;\">")
+            sb.append("<div style=\"background:#2a2a2a;border-radius:18px;padding:16px 18px;margin:0 0 14px 0;color:#ffffff;font-size:14px;line-height:1.5;white-space:pre-wrap;\">")
               .append(escape(comment)).append("</div>");
         }
 
         List<Player> scoringPlayers = collectScoringPlayers(manager, playerRankByPlayerId, pointsByPlayerId, roundNumber, transferRound);
         if (!scoringPlayers.isEmpty()) {
-            sb.append("<h2 style=\"color:#c9a66b;font-size:16px;margin:16px 0 12px 0;\">Deine punktenden Spieler</h2>");
+            sb.append("<div style=\"color:#4a4a4a;font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine punktenden Spieler</div>");
             sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">");
             int col = 0;
             for (Player player : scoringPlayers) {
                 if (col == 0) {
                     sb.append("<tr>");
                 }
-                sb.append("<td width=\"50%\" style=\"padding-right:4px;padding-bottom:8px;vertical-align:top;\">");
+                sb.append("<td width=\"50%\" style=\"padding-right:6px;padding-bottom:12px;vertical-align:top;\">");
                 appendScoringPlayerCard(sb, player, manager, playerRankByPlayerId, teamsByPlayerId, pointsByPlayerId);
                 sb.append("</td>");
                 col++;
@@ -479,7 +486,7 @@ public class MatchdayMailTransactionService {
                 }
             }
             if (col == 1) {
-                sb.append("<td width=\"50%\" style=\"padding-left:4px;padding-bottom:8px;\"></td></tr>");
+                sb.append("<td width=\"50%\" style=\"padding-left:6px;padding-bottom:12px;\"></td></tr>");
             }
             sb.append("</table>");
         }
@@ -489,14 +496,14 @@ public class MatchdayMailTransactionService {
             if (webUrl != null && !webUrl.isBlank()) {
                 String base = webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
                 sb.append("<div style=\"margin-top:8px;text-align:right;font-size:12px;\">")
-                  .append("<a href=\"").append(escape(base)).append("/managers\" style=\"color:#60a5fa;text-decoration:underline;\">")
+                  .append("<a href=\"").append(escape(base)).append("/managers\" style=\"color:#0A84FF;text-decoration:none;\">")
                   .append("Gesamtrangliste</a></div>");
             }
         }
 
         List<RosterEntry> roster = collectFullRoster(manager, playerById);
-        sb.append("<h2 style=\"color:#c9a66b;font-size:16px;margin:16px 0 12px 0;\">Deine ")
-          .append(roster.size()).append(" Spieler</h2>");
+        sb.append("<div style=\"color:#4a4a4a;font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine ")
+          .append(roster.size()).append(" Spieler</div>");
 
         Map<Long, Integer> mePointsByPlayer = new HashMap<>();
         for (RosterEntry e : roster) {
@@ -511,7 +518,7 @@ public class MatchdayMailTransactionService {
         int rcol = 0;
         for (RosterEntry e : roster) {
             if (rcol == 0) sb.append("<tr>");
-            sb.append("<td width=\"50%\" style=\"padding-right:4px;padding-bottom:8px;vertical-align:top;\">");
+            sb.append("<td width=\"50%\" style=\"padding-right:6px;padding-bottom:12px;vertical-align:top;\">");
             appendRosterCard(sb, e, mePointsByPlayer.getOrDefault(e.player.getId(), 0),
                 playerRankByPlayerId, teamsByPlayerId);
             sb.append("</td>");
@@ -519,7 +526,7 @@ public class MatchdayMailTransactionService {
             if (rcol == 2) { sb.append("</tr>"); rcol = 0; }
         }
         if (rcol == 1) {
-            sb.append("<td width=\"50%\" style=\"padding-left:4px;padding-bottom:8px;\"></td></tr>");
+            sb.append("<td width=\"50%\" style=\"padding-left:6px;padding-bottom:12px;\"></td></tr>");
         }
         sb.append("</table>");
 
@@ -533,10 +540,10 @@ public class MatchdayMailTransactionService {
             }
         }
 
-        sb.append("<div style=\"margin-top:16px;color:#6b7280;font-size:12px;text-align:center;\">");
+        sb.append("<div style=\"margin-top:24px;color:#6b6b6b;font-size:12px;text-align:center;\">");
         if (webUrl != null && !webUrl.isBlank()) {
-            sb.append("<div style=\"font-size:10px;color:#f5f5f5;margin-bottom:2px;\">Webseite</div>");
-            sb.append("<a href=\"").append(escape(webUrl)).append("\" style=\"color:#60a5fa;text-decoration:underline;\">FFL - Fantasy Football League</a>");
+            sb.append("<div style=\"font-size:10px;font-weight:700;color:#4a4a4a;margin-bottom:2px;\">Webseite</div>");
+            sb.append("<a href=\"").append(escape(webUrl)).append("\" style=\"color:#0A84FF;font-weight:700;text-decoration:none;\">FFL - Fantasy Football League</a>");
         } else {
             sb.append("FFL - Fantasy Football League");
         }
@@ -592,64 +599,69 @@ public class MatchdayMailTransactionService {
     private void appendRankingTable(StringBuilder sb, List<RankingRow> rows, Long ownManagerId,
                                      Map<Long, ManagerRank> prevRankByManagerId,
                                      Map<Long, Manager> managersById) {
-        sb.append("<h2 style=\"color:#c9a66b;font-size:16px;margin:16px 0 12px 0;\">Gesamtrangliste (Ausschnitt)</h2>");
-        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;font-size:13px;\">");
-        sb.append("<tr style=\"background:#242d38;color:#a0aec0;font-size:11px;\">");
-        sb.append("<th align=\"center\" style=\"padding:8px 4px;font-weight:500;border-bottom:1px solid #2d3748;\">Pos</th>");
-        sb.append("<th align=\"center\" style=\"padding:8px 4px;font-weight:500;border-bottom:1px solid #2d3748;\">+/-</th>");
-        sb.append("<th align=\"left\" style=\"padding:8px 8px;font-weight:500;border-bottom:1px solid #2d3748;\">Manager</th>");
-        sb.append("<th align=\"right\" style=\"padding:8px 4px;font-weight:500;border-bottom:1px solid #2d3748;\">Pkt</th>");
-        sb.append("<th align=\"right\" style=\"padding:8px 8px 8px 4px;font-weight:500;border-bottom:1px solid #2d3748;\">Sp.</th>");
+        sb.append("<div style=\"color:#4a4a4a;font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">Gesamtrangliste (Ausschnitt)</div>");
+        sb.append("<div style=\"background:#1c1c1e;border-radius:18px;padding:6px;\">");
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;\">");
+        sb.append("<tr style=\"color:#9a9a9a;font-size:11px;\">");
+        sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">Pos</th>");
+        sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">+/-</th>");
+        sb.append("<th align=\"left\" style=\"padding:10px 8px;font-weight:500;\">Manager</th>");
+        sb.append("<th align=\"right\" style=\"padding:10px 6px;font-weight:500;\">Pkt</th>");
+        sb.append("<th align=\"right\" style=\"padding:10px 10px 10px 6px;font-weight:500;\">Sp.</th>");
         sb.append("</tr>");
 
         for (RankingRow row : rows) {
             if (row.isGap) {
-                sb.append("<tr><td colspan=\"5\" align=\"center\" style=\"padding:4px;color:#6b7280;font-size:14px;border-bottom:1px solid #2d3748;\">…</td></tr>");
+                sb.append("<tr><td colspan=\"5\" align=\"center\" style=\"padding:4px;color:#6b6b6b;font-size:14px;\">\u2026</td></tr>");
                 continue;
             }
             ManagerRank mr = row.rank;
             Manager m = managersById.get(mr.getManager().getId());
             boolean isOwn = mr.getManager().getId().equals(ownManagerId);
-            String bg = isOwn ? "background:#2d3748;border-left:3px solid #c9a66b;" : "";
-            String nameColor = isOwn ? "#c9a66b" : "#f5f5f5";
+            String rowBg = isOwn ? "background:#FFD60A;" : "";
+            String textColor = isOwn ? "#000000" : "#ffffff";
+            String secondary = isOwn ? "#000000" : "#9a9a9a";
             String fontWeight = isOwn ? "700" : "500";
+            String firstCell = isOwn ? "border-top-left-radius:12px;border-bottom-left-radius:12px;" : "";
+            String lastCell = isOwn ? "border-top-right-radius:12px;border-bottom-right-radius:12px;" : "";
 
-            sb.append("<tr style=\"").append(bg).append("\">");
-            sb.append("<td align=\"center\" style=\"padding:6px 4px;color:#f5f5f5;font-weight:").append(fontWeight).append(";border-bottom:1px solid #2d3748;\">")
+            sb.append("<tr style=\"").append(rowBg).append("\">");
+            sb.append("<td align=\"center\" style=\"padding:10px 6px;color:").append(textColor).append(";font-weight:").append(fontWeight).append(";").append(firstCell).append("\">")
               .append(nz(mr.getPositionTotal())).append(".</td>");
 
-            sb.append("<td align=\"center\" style=\"padding:6px 4px;border-bottom:1px solid #2d3748;\">");
+            sb.append("<td align=\"center\" style=\"padding:10px 6px;\">");
             ManagerRank prev = prevRankByManagerId.get(mr.getManager().getId());
             if (prev != null && prev.getPositionTotal() != null && mr.getPositionTotal() != null) {
                 int diff = prev.getPositionTotal() - mr.getPositionTotal();
                 if (diff > 0) {
-                    sb.append("<span style=\"color:#48bb78;font-size:12px;\">↑").append(diff).append("</span>");
+                    sb.append("<span style=\"color:").append(isOwn ? "#000000" : "#30D158").append(";font-size:12px;font-weight:600;\">\u2191").append(diff).append("</span>");
                 } else if (diff < 0) {
-                    sb.append("<span style=\"color:#f56565;font-size:12px;\">↓").append(Math.abs(diff)).append("</span>");
+                    sb.append("<span style=\"color:").append(isOwn ? "#000000" : "#FF453A").append(";font-size:12px;font-weight:600;\">\u2193").append(Math.abs(diff)).append("</span>");
                 } else {
-                    sb.append("<span style=\"color:#6b7280;\">–</span>");
+                    sb.append("<span style=\"color:").append(secondary).append(";\">\u2013</span>");
                 }
             } else {
-                sb.append("<span style=\"color:#6b7280;\">–</span>");
+                sb.append("<span style=\"color:").append(secondary).append(";\">\u2013</span>");
             }
             sb.append("</td>");
 
             String displayName = m != null && m.getShortName() != null && !m.getShortName().isBlank()
                 ? m.getShortName()
                 : (m != null ? m.getName() : "?");
-            sb.append("<td align=\"left\" style=\"padding:6px 8px;color:").append(nameColor)
-              .append(";font-weight:").append(fontWeight).append(";border-bottom:1px solid #2d3748;\">")
+            sb.append("<td align=\"left\" style=\"padding:10px 8px;color:").append(textColor)
+              .append(";font-weight:").append(fontWeight).append(";\">")
               .append(escape(displayName)).append("</td>");
 
-            sb.append("<td align=\"right\" style=\"padding:6px 4px;color:#f5f5f5;font-weight:").append(fontWeight).append(";border-bottom:1px solid #2d3748;\">")
+            sb.append("<td align=\"right\" style=\"padding:10px 6px;color:").append(textColor).append(";font-weight:").append(fontWeight).append(";\">")
               .append(nz(mr.getPointsTotal())).append("</td>");
 
-            sb.append("<td align=\"right\" style=\"padding:6px 8px 6px 4px;color:#a0aec0;border-bottom:1px solid #2d3748;\">")
+            sb.append("<td align=\"right\" style=\"padding:10px 10px 10px 6px;color:").append(secondary).append(";").append(lastCell).append("\">")
               .append(nz(mr.getPointsRound())).append("</td>");
 
             sb.append("</tr>");
         }
         sb.append("</table>");
+        sb.append("</div>");
     }
 
     private void appendManagerGroupTable(StringBuilder sb, ManagerGroup group, Long ownManagerId,
@@ -666,15 +678,16 @@ public class MatchdayMailTransactionService {
         if (groupRanks.isEmpty()) return;
         groupRanks.sort(Comparator.comparingInt(ManagerRank::getPositionTotal));
 
-        sb.append("<h2 style=\"color:#c9a66b;font-size:16px;margin:16px 0 12px 0;\">")
-          .append(escape(group.getName())).append("</h2>");
-        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;font-size:13px;\">");
-        sb.append("<tr style=\"background:#242d38;color:#a0aec0;font-size:11px;\">");
-        sb.append("<th align=\"center\" style=\"padding:8px 4px;font-weight:500;border-bottom:1px solid #2d3748;\">Pos</th>");
-        sb.append("<th align=\"center\" style=\"padding:8px 4px;font-weight:500;border-bottom:1px solid #2d3748;\">+/-</th>");
-        sb.append("<th align=\"left\" style=\"padding:8px 8px;font-weight:500;border-bottom:1px solid #2d3748;\">Manager</th>");
-        sb.append("<th align=\"right\" style=\"padding:8px 4px;font-weight:500;border-bottom:1px solid #2d3748;\">Pkt</th>");
-        sb.append("<th align=\"right\" style=\"padding:8px 8px 8px 4px;font-weight:500;border-bottom:1px solid #2d3748;\">Sp.</th>");
+        sb.append("<div style=\"color:#4a4a4a;font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">")
+          .append(escape(group.getName())).append("</div>");
+        sb.append("<div style=\"background:#1c1c1e;border-radius:18px;padding:6px;\">");
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;\">");
+        sb.append("<tr style=\"color:#9a9a9a;font-size:11px;\">");
+        sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">Pos</th>");
+        sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">+/-</th>");
+        sb.append("<th align=\"left\" style=\"padding:10px 8px;font-weight:500;\">Manager</th>");
+        sb.append("<th align=\"right\" style=\"padding:10px 6px;font-weight:500;\">Pkt</th>");
+        sb.append("<th align=\"right\" style=\"padding:10px 10px 10px 6px;font-weight:500;\">Sp.</th>");
         sb.append("</tr>");
 
         int groupPos = 0;
@@ -682,46 +695,50 @@ public class MatchdayMailTransactionService {
             groupPos++;
             Manager m = managersById.get(mr.getManager().getId());
             boolean isOwn = mr.getManager().getId().equals(ownManagerId);
-            String bg = isOwn ? "background:#2d3748;border-left:3px solid #c9a66b;" : "";
-            String nameColor = isOwn ? "#c9a66b" : "#f5f5f5";
+            String rowBg = isOwn ? "background:#FFD60A;" : "";
+            String textColor = isOwn ? "#000000" : "#ffffff";
+            String secondary = isOwn ? "#000000" : "#9a9a9a";
             String fontWeight = isOwn ? "700" : "500";
+            String firstCell = isOwn ? "border-top-left-radius:12px;border-bottom-left-radius:12px;" : "";
+            String lastCell = isOwn ? "border-top-right-radius:12px;border-bottom-right-radius:12px;" : "";
 
-            sb.append("<tr style=\"").append(bg).append("\">");
-            sb.append("<td align=\"center\" style=\"padding:6px 4px;color:#f5f5f5;font-weight:").append(fontWeight).append(";border-bottom:1px solid #2d3748;\">")
+            sb.append("<tr style=\"").append(rowBg).append("\">");
+            sb.append("<td align=\"center\" style=\"padding:10px 6px;color:").append(textColor).append(";font-weight:").append(fontWeight).append(";").append(firstCell).append("\">")
               .append(groupPos).append(".</td>");
 
-            sb.append("<td align=\"center\" style=\"padding:6px 4px;border-bottom:1px solid #2d3748;\">");
+            sb.append("<td align=\"center\" style=\"padding:10px 6px;\">");
             ManagerRank prev = prevRankByManagerId.get(mr.getManager().getId());
             if (prev != null && prev.getPositionTotal() != null && mr.getPositionTotal() != null) {
                 int diff = prev.getPositionTotal() - mr.getPositionTotal();
                 if (diff > 0) {
-                    sb.append("<span style=\"color:#48bb78;font-size:12px;\">↑").append(diff).append("</span>");
+                    sb.append("<span style=\"color:").append(isOwn ? "#000000" : "#30D158").append(";font-size:12px;font-weight:600;\">\u2191").append(diff).append("</span>");
                 } else if (diff < 0) {
-                    sb.append("<span style=\"color:#f56565;font-size:12px;\">↓").append(Math.abs(diff)).append("</span>");
+                    sb.append("<span style=\"color:").append(isOwn ? "#000000" : "#FF453A").append(";font-size:12px;font-weight:600;\">\u2193").append(Math.abs(diff)).append("</span>");
                 } else {
-                    sb.append("<span style=\"color:#6b7280;\">–</span>");
+                    sb.append("<span style=\"color:").append(secondary).append(";\">\u2013</span>");
                 }
             } else {
-                sb.append("<span style=\"color:#6b7280;\">–</span>");
+                sb.append("<span style=\"color:").append(secondary).append(";\">\u2013</span>");
             }
             sb.append("</td>");
 
             String displayName = m != null && m.getShortName() != null && !m.getShortName().isBlank()
                 ? m.getShortName()
                 : (m != null ? m.getName() : "?");
-            sb.append("<td align=\"left\" style=\"padding:6px 8px;color:").append(nameColor)
-              .append(";font-weight:").append(fontWeight).append(";border-bottom:1px solid #2d3748;\">")
+            sb.append("<td align=\"left\" style=\"padding:10px 8px;color:").append(textColor)
+              .append(";font-weight:").append(fontWeight).append(";\">")
               .append(escape(displayName)).append("</td>");
 
-            sb.append("<td align=\"right\" style=\"padding:6px 4px;color:#f5f5f5;font-weight:").append(fontWeight).append(";border-bottom:1px solid #2d3748;\">")
+            sb.append("<td align=\"right\" style=\"padding:10px 6px;color:").append(textColor).append(";font-weight:").append(fontWeight).append(";\">")
               .append(nz(mr.getPointsTotal())).append("</td>");
 
-            sb.append("<td align=\"right\" style=\"padding:6px 8px 6px 4px;color:#a0aec0;border-bottom:1px solid #2d3748;\">")
+            sb.append("<td align=\"right\" style=\"padding:10px 10px 10px 6px;color:").append(secondary).append(";").append(lastCell).append("\">")
               .append(nz(mr.getPointsRound())).append("</td>");
 
             sb.append("</tr>");
         }
         sb.append("</table>");
+        sb.append("</div>");
     }
 
     private static final class RosterEntry {
@@ -753,8 +770,8 @@ public class MatchdayMailTransactionService {
             "TW", "ABW", "ABW", "ABW", "MF", "MF", "MF", "ST", "ST", "ST", "FREI"
         };
         String[] colors = new String[] {
-            "#48bb78", "#ed8936", "#ed8936", "#ed8936", "#c9a66b", "#c9a66b", "#c9a66b",
-            "#a0aec0", "#a0aec0", "#a0aec0", "#f56565"
+            "#30D158", "#FF9F0A", "#FF9F0A", "#FF9F0A", "#FFD60A", "#FFD60A", "#FFD60A",
+            "#0A84FF", "#0A84FF", "#0A84FF", "#BF5AF2"
         };
         for (int i = 0; i < base.length; i++) {
             Player p = base[i];
@@ -820,12 +837,12 @@ public class MatchdayMailTransactionService {
     }
 
     private String positionColorFromEnum(Position pos) {
-        if (pos == null) return "#6b7280";
+        if (pos == null) return "#6b6b6b";
         return switch (pos) {
-            case GOALKEEPER -> "#48bb78";
-            case DEFENDER -> "#ed8936";
-            case MIDFIELD -> "#c9a66b";
-            case STRIKER -> "#a0aec0";
+            case GOALKEEPER -> "#30D158";
+            case DEFENDER -> "#FF9F0A";
+            case MIDFIELD -> "#FFD60A";
+            case STRIKER -> "#0A84FF";
         };
     }
 
@@ -842,35 +859,34 @@ public class MatchdayMailTransactionService {
             teamName = teams.get(teams.size() - 1).getName();
         }
 
-        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid ")
-          .append(e.posColor).append(";border-radius:8px;padding:12px;\">");
+        sb.append("<div style=\"background:#1c1c1e;border-radius:16px;padding:14px;\">");
 
-        sb.append("<div style=\"font-weight:600;color:#f5f5f5;font-size:14px;\">")
+        sb.append("<div style=\"font-weight:600;color:#ffffff;font-size:15px;\">")
           .append(escape(truncate(player.getNameKicker(), 22))).append("</div>");
 
         if (!teamName.isEmpty()) {
-            sb.append("<div style=\"margin-top:2px;color:#6b7280;font-size:11px;\">")
+            sb.append("<div style=\"margin-top:2px;color:#9a9a9a;font-size:12px;\">")
               .append(escape(truncate(teamName, 22))).append("</div>");
         }
 
-        sb.append("<table cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top:6px;\"><tr>");
+        sb.append("<table cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top:8px;\"><tr>");
         sb.append("<td><span style=\"display:inline-block;background:").append(e.posColor)
-          .append(";color:#0f1419;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;line-height:1.2;\">")
+          .append(";color:#000000;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:600;line-height:1.2;\">")
           .append(escape(e.posLabel)).append("</span></td>");
         if (e.activeHinrunde && !e.activeRueckrunde) {
-            sb.append("<td style=\"padding-left:4px;\"><span style=\"display:inline-block;background:#3b82f6;color:#0f1419;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;line-height:1.2;\">Nur Hin</span></td>");
+            sb.append("<td style=\"padding-left:4px;\"><span style=\"display:inline-block;background:#0A84FF;color:#ffffff;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:600;line-height:1.2;\">Nur Hin</span></td>");
         } else if (e.activeRueckrunde && !e.activeHinrunde) {
-            sb.append("<td style=\"padding-left:4px;\"><span style=\"display:inline-block;background:#a855f7;color:#f5f5f5;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;line-height:1.2;\">Nur R&uuml;ck</span></td>");
+            sb.append("<td style=\"padding-left:4px;\"><span style=\"display:inline-block;background:#BF5AF2;color:#ffffff;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:600;line-height:1.2;\">Nur R&uuml;ck</span></td>");
         }
         sb.append("</tr></table>");
 
         int totalVal = pointsTotal != null ? pointsTotal : 0;
         boolean partial = !(e.activeHinrunde && e.activeRueckrunde);
-        sb.append("<div style=\"margin-top:8px;font-size:18px;font-weight:700;color:#c9a66b;\">")
-          .append(mePoints).append(" Pkt");
+        sb.append("<div style=\"margin-top:10px;font-size:22px;font-weight:700;color:#FFD60A;line-height:1.1;\">")
+          .append(mePoints).append("<span style=\"font-size:12px;font-weight:500;color:#9a9a9a;margin-left:4px;\">Pkt</span>");
         if (partial) {
-            sb.append(" <span style=\"font-size:11px;font-weight:600;color:#a0aec0;\">(")
-              .append(totalVal).append(" Pkt)</span>");
+            sb.append(" <span style=\"font-size:11px;font-weight:600;color:#9a9a9a;\">(")
+              .append(totalVal).append(")</span>");
         }
         sb.append("</div>");
 
@@ -945,15 +961,15 @@ public class MatchdayMailTransactionService {
         String posLabel = positionLabelFromEnum(player.getPosition());
         String posColor = positionColorFromEnum(player.getPosition());
 
-        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid ").append(posColor).append(";border-radius:8px;padding:12px;\">");
-        
-        sb.append("<div style=\"font-weight:600;color:#f5f5f5;font-size:14px;\">").append(escape(player.getNameKicker())).append("</div>");
-        
+        sb.append("<div style=\"background:#1c1c1e;border-radius:16px;padding:14px;\">");
+
+        sb.append("<div style=\"font-weight:600;color:#ffffff;font-size:15px;\">").append(escape(player.getNameKicker())).append("</div>");
+
         if (!teamName.isEmpty()) {
-            sb.append("<div style=\"margin-top:2px;color:#6b7280;font-size:11px;\">").append(escape(teamName)).append("</div>");
+            sb.append("<div style=\"margin-top:2px;color:#9a9a9a;font-size:12px;\">").append(escape(teamName)).append("</div>");
         }
 
-        sb.append("<div style=\"margin-top:8px;font-size:18px;font-weight:700;color:#c9a66b;\">").append(pointsRound).append(" Pkt</div>");
+        sb.append("<div style=\"margin-top:10px;font-size:22px;font-weight:700;color:#FFD60A;line-height:1.1;\">").append(pointsRound).append("<span style=\"font-size:12px;font-weight:500;color:#9a9a9a;margin-left:4px;\">Pkt</span></div>");
 
         List<Points> playerPoints = pointsByPlayerId.getOrDefault(player.getId(), List.of());
         Map<Rule, Integer> ruleCounts = new HashMap<>();
@@ -961,9 +977,9 @@ public class MatchdayMailTransactionService {
             ruleCounts.merge(p.getRule(), 1, Integer::sum);
         }
 
-        sb.append("<div style=\"margin-top:6px;\">");
+        sb.append("<div style=\"margin-top:8px;\">");
         sb.append("<span style=\"display:inline-block;background:").append(posColor)
-          .append(";color:#0f1419;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;margin-right:4px;margin-bottom:2px;\">")
+          .append(";color:#000000;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:600;margin-right:4px;margin-bottom:4px;\">")
           .append(escape(posLabel)).append("</span>");
         if (!ruleCounts.isEmpty()) {
             List<Map.Entry<Rule, Integer>> sortedRules = ruleCounts.entrySet().stream()
@@ -974,7 +990,7 @@ public class MatchdayMailTransactionService {
                 int count = entry.getValue();
                 String color = getRuleColor(rule);
                 sb.append("<span style=\"display:inline-block;background:").append(color)
-                  .append(";color:#0f1419;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;margin-right:4px;margin-bottom:2px;\">");
+                  .append(";color:#000000;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:600;margin-right:4px;margin-bottom:4px;\">");
                 sb.append(escape(getRuleLabel(rule)));
                 if (count > 1) {
                     sb.append(" x").append(count);
@@ -989,13 +1005,13 @@ public class MatchdayMailTransactionService {
 
     private String getRuleColor(Rule rule) {
         return switch (rule) {
-            case GOAL_STRIKER -> "#a0aec0";
-            case GOAL_MIDFIELDER -> "#c9a66b";
-            case GOAL_DEFENDER -> "#ed8936";
-            case GOAL_GOALKEEPER -> "#48bb78";
-            case GOAL_GOALKEEPER_BY_PENALTY -> "#68d391";
-            case TO_NULL_GOALKEEPER -> "#3b82f6";
-            case TO_NULL_DEFENDER -> "#06b6d4";
+            case GOAL_STRIKER -> "#0A84FF";
+            case GOAL_MIDFIELDER -> "#FFD60A";
+            case GOAL_DEFENDER -> "#FF9F0A";
+            case GOAL_GOALKEEPER -> "#30D158";
+            case GOAL_GOALKEEPER_BY_PENALTY -> "#30D158";
+            case TO_NULL_GOALKEEPER -> "#BF5AF2";
+            case TO_NULL_DEFENDER -> "#BF5AF2";
         };
     }
 
@@ -1015,17 +1031,17 @@ public class MatchdayMailTransactionService {
     }
 
     private String getPositionColor(Player player, Manager manager) {
-        if (player.equals(manager.getPlayerGoalkeeper())) return "#48bb78";
-        if (player.equals(manager.getPlayerDefender1())) return "#ed8936";
-        if (player.equals(manager.getPlayerDefender2())) return "#ed8936";
-        if (player.equals(manager.getPlayerDefender3())) return "#ed8936";
-        if (player.equals(manager.getPlayerMidfield1())) return "#c9a66b";
-        if (player.equals(manager.getPlayerMidfield2())) return "#c9a66b";
-        if (player.equals(manager.getPlayerMidfield3())) return "#c9a66b";
-        if (player.equals(manager.getPlayerStriker1())) return "#a0aec0";
-        if (player.equals(manager.getPlayerStriker2())) return "#a0aec0";
-        if (player.equals(manager.getPlayerStriker3())) return "#a0aec0";
-        if (player.equals(manager.getPlayerFreeChoice())) return "#f56565";
+        if (player.equals(manager.getPlayerGoalkeeper())) return "#30D158";
+        if (player.equals(manager.getPlayerDefender1())) return "#FF9F0A";
+        if (player.equals(manager.getPlayerDefender2())) return "#FF9F0A";
+        if (player.equals(manager.getPlayerDefender3())) return "#FF9F0A";
+        if (player.equals(manager.getPlayerMidfield1())) return "#FFD60A";
+        if (player.equals(manager.getPlayerMidfield2())) return "#FFD60A";
+        if (player.equals(manager.getPlayerMidfield3())) return "#FFD60A";
+        if (player.equals(manager.getPlayerStriker1())) return "#0A84FF";
+        if (player.equals(manager.getPlayerStriker2())) return "#0A84FF";
+        if (player.equals(manager.getPlayerStriker3())) return "#0A84FF";
+        if (player.equals(manager.getPlayerFreeChoice())) return "#BF5AF2";
         return positionColorFromEnum(player.getPosition());
     }
 
@@ -1052,6 +1068,6 @@ public class MatchdayMailTransactionService {
         if (s == null) return "";
         String escaped = escape(s);
         return escaped.replaceAll("\\*\\*(.+?)\\*\\*",
-            "<strong style=\"color:#f5f5f5;font-style:normal;\">$1</strong>");
+            "<strong style=\"color:#ffffff;font-style:normal;\">$1</strong>");
     }
 }
