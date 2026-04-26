@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 @Service
@@ -312,49 +313,81 @@ public class MatchdayMailTransactionService {
 
             send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
 
+            List<Long> sortedManagerIds = managerIds.stream().sorted().collect(Collectors.toList());
+            send(emitter, "Sende an " + sortedManagerIds.size() + " Manager (sortiert nach ID)...");
+
             int sent = 0;
             int failed = 0;
-            for (Long managerId : managerIds) {
+            int mailCount = 0;
+            JavaMailSenderImpl currentMailSender = mailSender;
+
+            for (Long managerId : sortedManagerIds) {
                 Manager manager = allManagersInSeason.stream()
                     .filter(m -> m.getId().equals(managerId))
                     .findFirst().orElse(null);
                 if (manager == null) {
-                    send(emitter, "✗ Manager-ID " + managerId + " nicht in Saison gefunden");
+                    send(emitter, "✗ ID " + managerId + ": Manager nicht in Saison gefunden");
                     failed++;
                     continue;
                 }
                 String recipientEmail = manager.getUser() != null ? manager.getUser().getEmail() : null;
                 if (recipientEmail == null || recipientEmail.isBlank()) {
-                    send(emitter, "✗ " + buildManagerDisplayName(manager) + " hat keine Mailadresse");
+                    send(emitter, "✗ ID " + managerId + ": " + buildManagerDisplayName(manager) + " hat keine Mailadresse");
                     failed++;
                     continue;
                 }
-                try {
-                    MimeMessage msg = mailSender.createMimeMessage();
-                    MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-                    helper.setFrom(config.getGmailSenderEmail());
-                    helper.setTo(recipientEmail);
-                    String managerName = manager.getName();
-                    String fullName = buildManagerDisplayName(manager);
-                    String subject = "FFL | " + season.getName() + " | " + roundNumber + ". Spieltag | " + fullName + " (" + managerName + ")";
-                    helper.setSubject(subject);
 
-                    List<RankingRow> rankingExcerpt = buildRankingExcerpt(dayRanksSorted, managerId);
-                    List<ManagerGroup> managerGroups = managerGroupRepository.findByManagerIdWithManagers(managerId);
+                boolean sentSuccessfully = false;
+                int retryCount = 0;
+                int maxRetries = 2;
 
-                    String html = buildHtmlForManager(manager, season, roundNumber, intro,
-                        dayRankByManagerId.get(managerId), topScorerName, topScorerPoints,
-                        playerRankByPlayerId, teamsByPlayerId, playerById, pointsByPlayerId,
-                        prevRankByManagerId, seasonRanksByPlayerId, transferRound, config.getWebUrl(),
-                        rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment);
+                while (!sentSuccessfully && retryCount <= maxRetries) {
+                    try {
+                        MimeMessage msg = currentMailSender.createMimeMessage();
+                        MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+                        helper.setFrom(config.getGmailSenderEmail());
+                        helper.setTo(recipientEmail);
+                        String managerName = manager.getName();
+                        String fullName = buildManagerDisplayName(manager);
+                        String subject = "FFL | " + season.getName() + " | " + roundNumber + ". Spieltag | " + fullName + " (" + managerName + ")";
+                        helper.setSubject(subject);
 
-                    helper.setText(html, true);
-                    mailSender.send(msg);
-                    send(emitter, "✓ " + buildManagerDisplayName(manager) + " (" + recipientEmail + ")");
-                    sent++;
-                } catch (Exception e) {
-                    send(emitter, "✗ " + buildManagerDisplayName(manager) + " (" + recipientEmail + "): " + e.getMessage());
-                    failed++;
+                        List<RankingRow> rankingExcerpt = buildRankingExcerpt(dayRanksSorted, managerId);
+                        List<ManagerGroup> managerGroups = managerGroupRepository.findByManagerIdWithManagers(managerId);
+
+                        String html = buildHtmlForManager(manager, season, roundNumber, intro,
+                            dayRankByManagerId.get(managerId), topScorerName, topScorerPoints,
+                            playerRankByPlayerId, teamsByPlayerId, playerById, pointsByPlayerId,
+                            prevRankByManagerId, seasonRanksByPlayerId, transferRound, config.getWebUrl(),
+                            rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment);
+
+                        helper.setText(html, true);
+                        currentMailSender.send(msg);
+                        send(emitter, "✓ ID " + managerId + ": " + buildManagerDisplayName(manager) + " (" + recipientEmail + ")");
+                        sent++;
+                        sentSuccessfully = true;
+                    } catch (Exception e) {
+                        retryCount++;
+                        if (retryCount <= maxRetries) {
+                            send(emitter, "⚠ ID " + managerId + ": SMTP-Fehler, Neuverbindung... (" + retryCount + "/" + maxRetries + ")");
+                            currentMailSender = buildMailSender(config);
+                        } else {
+                            send(emitter, "✗ ID " + managerId + ": " + buildManagerDisplayName(manager) + " (" + recipientEmail + "): " + e.getMessage());
+                            failed++;
+                        }
+                    }
+                }
+
+                if (sentSuccessfully) {
+                    mailCount++;
+                    Thread.sleep(100);
+
+                    if (mailCount % 30 == 0) {
+                        send(emitter, "⏸ Pause für 60 Sekunden nach " + mailCount + " Mails...");
+                        Thread.sleep(60000);
+                        send(emitter, "▶ Pause beendet, weiter mit Mail " + (mailCount + 1));
+                        currentMailSender = buildMailSender(config);
+                    }
                 }
             }
 
@@ -1264,5 +1297,23 @@ public class MatchdayMailTransactionService {
         String escaped = escape(s);
         return escaped.replaceAll("\\*\\*(.+?)\\*\\*",
             "<strong style=\"color:#ffffff;font-style:normal;\">$1</strong>");
+    }
+
+    private static JavaMailSenderImpl buildMailSender(SystemConfig config) {
+        JavaMailSenderImpl sender = new JavaMailSenderImpl();
+        sender.setHost(config.getGmailSmtpServer() != null ? config.getGmailSmtpServer() : "smtp.gmail.com");
+        sender.setPort(config.getGmailSmtpPort() != null ? config.getGmailSmtpPort() : 587);
+        sender.setUsername(config.getGmailSenderEmail());
+        sender.setPassword(config.getGmailAppPassword());
+
+        Properties props = sender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.starttls.required", "true");
+        props.put("mail.smtp.connectiontimeout", "30000");
+        props.put("mail.smtp.timeout", "120000");
+        props.put("mail.smtp.writetimeout", "120000");
+        return sender;
     }
 }

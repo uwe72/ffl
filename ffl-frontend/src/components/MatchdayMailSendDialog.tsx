@@ -40,7 +40,10 @@ function ManagerCard({
           className="w-5 h-5 accent-[#c9a66b] mt-1 flex-shrink-0"
         />
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-[#f5f5f5] truncate">{displayName}</div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[#6b7280] font-mono">#{manager.id}</span>
+            <div className="font-semibold text-[#f5f5f5] truncate">{displayName}</div>
+          </div>
           {manager.shortName && (
             <div className="text-sm text-[#c9a66b]">{manager.shortName}</div>
           )}
@@ -78,6 +81,8 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
   const [searchTerm, setSearchTerm] = useState('')
   const [adminFilter, setAdminFilter] = useState(false)
   const [comment, setComment] = useState('')
+  const [rangeFromId, setRangeFromId] = useState('')
+  const [rangeToId, setRangeToId] = useState('')
 
   useEffect(() => {
     if (config) {
@@ -110,7 +115,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
 
   const availableManagers = useMemo(() => {
     if (!managers) return []
-    return managers.filter((m) => {
+    const filtered = managers.filter((m) => {
       const matchesSearch = searchTerm === '' ||
         m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         m.shortName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -122,6 +127,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
 
       return matchesSearch && matchesAdmin
     })
+    return [...filtered].sort((a, b) => a.id - b.id)
   }, [managers, searchTerm, adminFilter])
 
   const eligibleManagers = useMemo(
@@ -140,6 +146,18 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
     setSelectedManagerIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     )
+  }
+
+  const selectRange = () => {
+    const fromId = parseInt(rangeFromId, 10)
+    const toId = parseInt(rangeToId, 10)
+    if (isNaN(fromId) || isNaN(toId)) return
+    const minId = Math.min(fromId, toId)
+    const maxId = Math.max(fromId, toId)
+    const idsToSelect = eligibleManagers
+      .filter((m) => m.id >= minId && m.id <= maxId)
+      .map((m) => m.id)
+    setSelectedManagerIds((prev) => [...new Set([...prev, ...idsToSelect])])
   }
 
   const canSend = selectedManagerIds.length > 0
@@ -218,6 +236,33 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
             </div>
           </div>
 
+          <div className="mb-4 flex flex-wrap gap-2 items-center">
+            <span className="text-sm text-[#a0aec0]">Bereich selektieren:</span>
+            <Input
+              type="number"
+              placeholder="Von ID"
+              value={rangeFromId}
+              onChange={(e) => setRangeFromId(e.target.value)}
+              className="w-24 bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+            />
+            <span className="text-[#a0aec0]">-</span>
+            <Input
+              type="number"
+              placeholder="Bis ID"
+              value={rangeToId}
+              onChange={(e) => setRangeToId(e.target.value)}
+              className="w-24 bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+            />
+            <Button
+              size="sm"
+              onPress={selectRange}
+              isDisabled={!rangeFromId || !rangeToId}
+              className="bg-[#3d4a5c] text-[#f5f5f5] px-3 py-1"
+            >
+              Selektieren
+            </Button>
+          </div>
+
           {isMobile ? (
             <div className="grid gap-3 max-h-[300px] overflow-y-auto">
               {availableManagers.map((m) => {
@@ -244,6 +289,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                 <thead className="sticky top-0 bg-[#1a2028]">
                   <tr className="text-left text-[#a0aec0] border-b border-[#2d3748]">
                     <th className="py-2 w-10"></th>
+                    <th className="py-2 w-14 text-center">ID</th>
                     <th className="py-2">Name</th>
                     <th className="py-2">Login</th>
                     <th className="py-2">E-Mail</th>
@@ -270,6 +316,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                             className="w-4 h-4 accent-[#c9a66b]"
                           />
                         </td>
+                        <td className="py-2 text-center text-[#6b7280] font-mono text-xs">{m.id}</td>
                         <td className="py-2 text-[#f5f5f5]">{displayName}</td>
                         <td className="py-2 text-[#a0aec0]">{m.login || '-'}</td>
                         <td className="py-2 text-[#a0aec0]">
@@ -280,7 +327,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                   })}
                   {availableManagers.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="py-4 text-center text-[#a0aec0]">
+                      <td colSpan={5} className="py-4 text-center text-[#a0aec0]">
                         Keine Manager gefunden.
                       </td>
                     </tr>

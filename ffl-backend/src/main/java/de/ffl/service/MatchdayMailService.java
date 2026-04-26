@@ -66,9 +66,9 @@ public class MatchdayMailService {
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.starttls.required", "true");
-            props.put("mail.smtp.connectiontimeout", "15000");
-            props.put("mail.smtp.timeout", "30000");
-            props.put("mail.smtp.writetimeout", "30000");
+            props.put("mail.smtp.connectiontimeout", "30000");
+            props.put("mail.smtp.timeout", "120000");
+            props.put("mail.smtp.writetimeout", "120000");
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"));
             String subject = "FFL Test-Mail";
@@ -141,9 +141,9 @@ public class MatchdayMailService {
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.connectiontimeout", "15000");
-        props.put("mail.smtp.timeout", "30000");
-        props.put("mail.smtp.writetimeout", "30000");
+        props.put("mail.smtp.connectiontimeout", "30000");
+        props.put("mail.smtp.timeout", "120000");
+        props.put("mail.smtp.writetimeout", "120000");
         return sender;
     }
 }
