@@ -291,6 +291,7 @@ public class SeasonCalculationService {
         for (String line : lines) {
             if (line == null || line.trim().isEmpty()) continue;
             if (!Character.isAlphabetic(line.charAt(0))) continue;
+            if (line.equals("Fehlanzeige")) continue;
             if (line.startsWith("Rechtsschuss") || line.startsWith("Linksschuss") || 
                 line.startsWith("Kopfball") || line.startsWith("Brust")) continue;
             if (line.contains("(Eigentor)")) continue;
@@ -320,6 +321,7 @@ public class SeasonCalculationService {
         for (String line : lines) {
             if (line == null || line.trim().isEmpty()) continue;
             if (!Character.isAlphabetic(line.charAt(0))) continue;
+            if (line.equals("Fehlanzeige")) continue;
             if (!line.contains("(Eigentor)")) continue;
 
             String playerName = line.replace("(Eigentor)", "").trim();
@@ -421,6 +423,7 @@ public class SeasonCalculationService {
         for (String line : lines) {
             if (line == null || line.trim().isEmpty()) continue;
             if (!Character.isAlphabetic(line.charAt(0))) continue;
+            if (line.equals("Fehlanzeige")) continue;
             if (line.startsWith("Rechtsschuss") || line.startsWith("Linksschuss") || 
                 line.startsWith("Kopfball") || line.startsWith("Brust")) continue;
             if (line.contains("(Eigentor)")) continue;

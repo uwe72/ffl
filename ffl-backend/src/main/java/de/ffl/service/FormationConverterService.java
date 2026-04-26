@@ -230,6 +230,7 @@ public class FormationConverterService {
             String trimmed = line.trim();
             
             if (!Character.isAlphabetic(trimmed.charAt(0))) continue;
+            if (trimmed.equals("Fehlanzeige")) continue;
             if (trimmed.startsWith("Rechtsschuss") || trimmed.startsWith("Linksschuss") || 
                 trimmed.startsWith("Kopfball") || trimmed.startsWith("Brust") ||
                 trimmed.startsWith("linke Hand") || trimmed.startsWith("rechte Hand")) continue;
