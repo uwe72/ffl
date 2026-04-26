@@ -54,7 +54,7 @@ public class MatchdayMailTransactionService {
     private final ManagerGroupRepository managerGroupRepository;
     private final LlmService llmService;
 
-    private static final String BG_BODY = "#161618";
+    private static final String BG_BODY = "#ffffff";
     private static final String BG_BOX = "#1c1c1e";
     private static final String BG_BOX_ALT = "#2a2a2a";
     private static final String DIVIDER = "#2a2a2a";
@@ -420,7 +420,7 @@ public class MatchdayMailTransactionService {
           .append(BG_BODY).append(";\"><tr><td align=\"center\" style=\"padding:16px 2px;\">");
         sb.append("<table role=\"presentation\" width=\"480\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width:100%;max-width:480px;\"><tr><td>");
 
-        sb.append("<div style=\"color:").append(TXT_PRIM).append(";font-size:15px;font-weight:700;margin:0 0 12px 0;\">Hallo ")
+        sb.append("<div style=\"color:").append(TXT_MUTED).append(";font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:0 0 12px 0;\">Hallo ")
           .append(escape(manager.getUser() != null ? Optional.ofNullable(manager.getUser().getFirstName()).orElse(manager.getName()) : manager.getName()))
           .append("!</div>");
 
@@ -940,7 +940,7 @@ public class MatchdayMailTransactionService {
 
             // Spieler + team + Hin/Rueck
             sb.append("<td align=\"left\" valign=\"middle\" style=\"padding:10px 4px 10px 8px;").append(border).append("\">");
-            sb.append("<div style=\"color:").append(textColor).append(";font-weight:700;font-size:14px;line-height:1.25;\">")
+            sb.append("<div style=\"color:").append(textColor).append(";font-weight:700;font-size:14px;line-height:1.25;white-space:nowrap;\">")
               .append("<span style=\"vertical-align:middle;\">")
               .append(escape(shortenPlayerName(player.getNameKicker())))
               .append("</span>")
@@ -949,7 +949,7 @@ public class MatchdayMailTransactionService {
               .append(";padding:2px 6px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:0.5px;line-height:1.2;margin-left:6px;vertical-align:middle;\">")
               .append(escape(e.posLabel)).append("</span></div>");
 
-            sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;margin-top:2px;line-height:1.3;\">");
+            sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;margin-top:2px;line-height:1.3;white-space:nowrap;\">");
             if (!teamName.isEmpty()) {
                 sb.append("<span style=\"vertical-align:middle;\">").append(escape(teamName)).append("</span>");
             }

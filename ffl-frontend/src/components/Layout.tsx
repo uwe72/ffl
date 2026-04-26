@@ -21,7 +21,7 @@ export default function Layout() {
   const envColor = systemInfo?.environment === 'PROD' ? 'text-blue-400' : 'text-red-400'
 
   return (
-    <div className="min-h-screen bg-[#0f1419]" style={!isAuthenticated ? { backgroundImage: "url('/hintergrundbild.png')", backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
+    <div className="min-h-screen bg-[#0f1419]" style={!isAuthenticated ? { backgroundImage: "url('/background.png')", backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#1a2028] border-b border-[#2d3748] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
