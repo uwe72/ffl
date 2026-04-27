@@ -32,25 +32,21 @@ public class GameController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public List<GameDto> getAllGames() {
         return gameService.findAll();
     }
 
     @GetMapping("/season/{seasonId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public List<GameDto> getGamesBySeason(@PathVariable Long seasonId) {
         return gameService.findBySeasonId(seasonId);
     }
 
     @GetMapping("/round/{roundId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public List<GameDto> getGamesByRound(@PathVariable Long roundId) {
         return gameService.findByRoundId(roundId);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GameDto> getGameById(@PathVariable Long id) {
         GameDto game = gameService.findById(id);
         if (game == null) {
@@ -60,7 +56,6 @@ public class GameController {
     }
 
     @GetMapping("/latest-completed-round")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Integer> getLatestCompletedRound() {
         Integer round = gameService.findLatestCompletedRound();
         return ResponseEntity.ok(round);

@@ -24,26 +24,22 @@ public class PlayerController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public List<PlayerDto> getAllPlayers() {
         return playerService.findAll();
     }
 
     @GetMapping("/season/{seasonId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public List<PlayerDto> getPlayersBySeason(@PathVariable Long seasonId) {
         return playerService.findBySeasonId(seasonId);
     }
 
     @GetMapping("/season/{seasonId}/position/{position}")
-    @PreAuthorize("hasRole('ADMIN')")
     public List<PlayerDto> getPlayersByPosition(@PathVariable Long seasonId, 
                                               @PathVariable Position position) {
         return playerService.findBySeasonAndPosition(seasonId, position);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PlayerDto> getPlayerById(@PathVariable Long id) {
         PlayerDto player = playerService.findByIdWithManagers(id);
         if (player == null) {
@@ -53,7 +49,6 @@ public class PlayerController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasRole('ADMIN')")
     public List<PlayerSearchDto> searchPlayers(
             @RequestParam Long seasonId,
             @RequestParam(required = false) String name) {
@@ -61,7 +56,6 @@ public class PlayerController {
     }
 
     @GetMapping("/team/{teamId}/season/{seasonId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public List<PlayerSearchDto> getPlayersByTeamAndSeason(
             @PathVariable Long teamId,
             @PathVariable Long seasonId) {
@@ -69,7 +63,6 @@ public class PlayerController {
     }
 
     @GetMapping("/season/{seasonId}/all")
-    @PreAuthorize("hasRole('ADMIN')")
     public List<PlayerSearchDto> getAllPlayersBySeason(@PathVariable Long seasonId) {
         return playerService.findBySeasonIdAsSearchDto(seasonId);
     }
@@ -101,7 +94,6 @@ public class PlayerController {
     }
 
     @GetMapping("/{id}/ranks")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PlayerRankDto>> getPlayerRanks(@PathVariable Long id) {
         List<PlayerRankDto> ranks = playerService.findRanksByPlayerId(id);
         if (ranks == null) {
