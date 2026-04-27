@@ -92,4 +92,17 @@ public class ManagerGroupController {
         }
         return ResponseEntity.ok(group);
     }
+
+    @PutMapping("/{id}/creator")
+    public ResponseEntity<ManagerGroupDto> changeCreator(@PathVariable Long id, @RequestBody java.util.Map<String, Long> request) {
+        Long newCreatorId = request.get("newCreatorId");
+        if (newCreatorId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        ManagerGroupDto group = managerGroupService.changeCreator(id, newCreatorId);
+        if (group == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(group);
+    }
 }

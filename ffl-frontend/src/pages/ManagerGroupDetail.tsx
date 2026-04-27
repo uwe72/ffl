@@ -1,9 +1,11 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { Card, Button, TextField, Label, Input } from '@heroui/react'
 import { useState, useMemo, useEffect } from 'react'
-import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup } from '../hooks/useManagerGroups'
+import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator } from '../hooks/useManagerGroups'
 import { useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
+import { useUsers } from '../hooks/useUsers'
+import { useAuth } from '../context/AuthContext'
 
 type SortKey = 'positionTotal' | 'shortName' | 'firstName' | 'lastName' | 'pointsTotal' | 'pointsLastRound'
 type SortOrder = 'asc' | 'desc'
@@ -15,23 +17,30 @@ const emailToOptions = [
 
 export default function ManagerGroupDetail() {
   const { id } = useParams<{ id: string }>()
+  const { user } = useAuth()
   const { data: group, isLoading, error } = useManagerGroup(Number(id))
   const { data: currentSeason } = useCurrentSeason()
   const { data: allManagers } = useManagersBySeason(currentSeason?.id || 0)
+  const { data: allUsers } = useUsers()
   
   const addManagerMutation = useAddManagerToGroup(Number(id))
   const removeManagerMutation = useRemoveManagerFromGroup(Number(id))
   const updateMutation = useUpdateManagerGroup(Number(id))
+  const changeCreatorMutation = useChangeCreator(Number(id))
   
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false)
+  const [creatorSearch, setCreatorSearch] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [managerFilter, setManagerFilter] = useState('')
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [editEmailTo, setEditEmailTo] = useState<string>('ALL_MANAGERS')
   const [hasChanges, setHasChanges] = useState(false)
+
+  const isAdmin = user?.role === 'ADMIN'
 
   useEffect(() => {
     if (group) {
@@ -108,6 +117,15 @@ export default function ManagerGroupDetail() {
     )
   }, [allManagers, group, searchTerm])
 
+  const filteredUsers = useMemo(() => {
+    if (!allUsers) return []
+    return allUsers.filter(u => 
+      u.login.toLowerCase().includes(creatorSearch.toLowerCase()) ||
+      u.firstName?.toLowerCase().includes(creatorSearch.toLowerCase()) ||
+      u.lastName?.toLowerCase().includes(creatorSearch.toLowerCase())
+    )
+  }, [allUsers, creatorSearch])
+
   const handleAddManager = async (managerId: number) => {
     await addManagerMutation.mutateAsync(managerId)
     setIsAddModalOpen(false)
@@ -118,6 +136,12 @@ export default function ManagerGroupDetail() {
     if (window.confirm('Möchten Sie diesen Manager wirklich aus der Gruppe entfernen?')) {
       await removeManagerMutation.mutateAsync(managerId)
     }
+  }
+
+  const handleChangeCreator = async (newCreatorId: number) => {
+    await changeCreatorMutation.mutateAsync(newCreatorId)
+    setIsCreatorModalOpen(false)
+    setCreatorSearch('')
   }
 
   const handleSaveChanges = async () => {
@@ -210,14 +234,24 @@ export default function ManagerGroupDetail() {
             </Card>
 
             <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-              <TextField name="creator" isReadOnly>
+              <div className="flex items-center justify-between mb-1">
                 <Label className="text-[#a0aec0]">Ersteller</Label>
-                <Input
-                  value={getCreatorDisplayName()}
-                  readOnly
-                  className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"
-                />
-              </TextField>
+                {isAdmin && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onPress={() => setIsCreatorModalOpen(true)}
+                    className="text-[#c9a66b] text-sm"
+                  >
+                    Ändern
+                  </Button>
+                )}
+              </div>
+              <Input
+                value={getCreatorDisplayName()}
+                readOnly
+                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"
+              />
             </Card>
           </>
         ) : (
@@ -461,6 +495,66 @@ export default function ManagerGroupDetail() {
               <Button
                 variant="ghost"
                 onPress={() => setIsAddModalOpen(false)}
+                className="text-[#a0aec0]"
+              >
+                Abbrechen
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {isCreatorModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <Card className="p-0 bg-[#1a2028] border border-[#2d3748] w-full max-w-lg overflow-hidden shadow-2xl">
+            <div className="bg-[#242d38] px-6 py-4 border-b border-[#2d3748]">
+              <h2 className="text-xl font-bold text-[#f5f5f5]">Ersteller ändern</h2>
+            </div>
+            <div className="p-6">
+              <Input
+                placeholder="User suchen..."
+                value={creatorSearch}
+                onChange={(e) => setCreatorSearch(e.target.value)}
+                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] mb-4"
+                autoFocus
+              />
+              <div className="max-h-80 overflow-y-auto rounded-lg border border-[#2d3748]">
+                {filteredUsers.length > 0 ? (
+                  <div className="divide-y divide-[#2d3748]">
+                    {filteredUsers.map(u => (
+                      <div
+                        key={u.id}
+                        onClick={() => handleChangeCreator(u.id)}
+                        className="p-4 hover:bg-[#242d38] cursor-pointer transition-colors flex items-center justify-between group"
+                      >
+                        <div>
+                          <div className="text-[#f5f5f5] font-medium group-hover:text-[#c9a66b]">
+                            {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.login}
+                          </div>
+                          <div className="text-[#6b7280] text-sm">
+                            {u.login}
+                          </div>
+                        </div>
+                        <div className="text-[#c9a66b] opacity-0 group-hover:opacity-100 transition-opacity">
+                          Auswählen
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-[#6b7280] py-8">
+                    Keine User gefunden
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-[#242d38] border-t border-[#2d3748] flex justify-end">
+              <Button
+                variant="ghost"
+                onPress={() => {
+                  setIsCreatorModalOpen(false)
+                  setCreatorSearch('')
+                }}
                 className="text-[#a0aec0]"
               >
                 Abbrechen

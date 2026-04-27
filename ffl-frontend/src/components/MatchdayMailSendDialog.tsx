@@ -83,6 +83,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
   const [comment, setComment] = useState('')
   const [rangeFromId, setRangeFromId] = useState('')
   const [rangeToId, setRangeToId] = useState('')
+  const [testMode, setTestMode] = useState(false)
 
   useEffect(() => {
     if (config) {
@@ -355,13 +356,30 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           />
         </Card>
 
+        <Card className="p-4 bg-[#1a2028] border border-[#2d3748] mb-4">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={testMode}
+              onChange={(e) => setTestMode(e.target.checked)}
+              className="w-5 h-5 accent-[#c9a66b]"
+            />
+            <div>
+              <span className="text-[#f5f5f5] font-medium">Test-Modus</span>
+              <p className="text-sm text-[#a0aec0]">
+                Alle Mails gehen an <span className="text-[#c9a66b]">{config?.gmailSenderEmail || 'Admin-Email'}</span> statt an die Manager
+              </p>
+            </div>
+          </label>
+        </Card>
+
         <div className="flex items-center gap-4">
           <Button
             onPress={() => setSendDialogOpen(true)}
             isDisabled={!canSend}
-            className="w-full md:w-auto bg-[#c9a66b] text-[#0f1419] font-semibold px-6 py-2 rounded hover:bg-[#d4b87a] disabled:opacity-50"
+            className={`w-full md:w-auto font-semibold px-6 py-2 rounded disabled:opacity-50 ${testMode ? 'bg-[#48bb78] text-[#0f1419] hover:bg-[#38a169]' : 'bg-[#c9a66b] text-[#0f1419] hover:bg-[#d4b87a]'}`}
           >
-            Spieltagsmail senden ({selectedManagerIds.length})
+            {testMode ? `Test-Mail senden (${selectedManagerIds.length})` : `Spieltagsmail senden (${selectedManagerIds.length})`}
           </Button>
         </div>
 
@@ -372,6 +390,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           roundNumber={roundNumber}
           managerIds={selectedManagerIds}
           comment={comment}
+          testMode={testMode}
         />
       </Card>
 

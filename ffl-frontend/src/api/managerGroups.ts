@@ -13,6 +13,8 @@ export const managerGroupApi = {
     api.post<ManagerGroup>(`/manager-groups/${groupId}/managers/${managerId}`),
   removeManager: (groupId: number, managerId: number) => 
     api.delete<ManagerGroup>(`/manager-groups/${groupId}/managers/${managerId}`),
+  changeCreator: (groupId: number, newCreatorId: number) => 
+    api.put<ManagerGroup>(`/manager-groups/${groupId}/creator`, { newCreatorId }),
   getMyGroupsWithStats: () => api.get<ManagerGroupRoundStats[]>('/manager-groups/my-groups-with-stats'),
   getGroupsWithStatsByManagerId: (managerId: number) => api.get<ManagerGroupRoundStats[]>(`/manager-groups/manager/${managerId}/with-stats`),
 }

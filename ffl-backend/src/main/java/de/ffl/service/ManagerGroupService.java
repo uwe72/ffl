@@ -212,6 +212,35 @@ public class ManagerGroupService {
         return dto;
     }
 
+    @Transactional
+    public ManagerGroupDto changeCreator(Long groupId, Long newCreatorId) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return null;
+        }
+
+        if (!currentUser.getRole().name().equals("ADMIN")) {
+            return null;
+        }
+
+        Optional<ManagerGroup> groupOpt = managerGroupRepository.findById(groupId);
+        if (groupOpt.isEmpty()) {
+            return null;
+        }
+
+        Optional<User> newCreatorOpt = userRepository.findById(newCreatorId);
+        if (newCreatorOpt.isEmpty()) {
+            return null;
+        }
+
+        ManagerGroup group = groupOpt.get();
+        group.setCreatedBy(newCreatorOpt.get());
+        ManagerGroup saved = managerGroupRepository.save(group);
+        ManagerGroupDto dto = toDtoWithRankData(saved);
+        dto.setEditable(true);
+        return dto;
+    }
+
     @Transactional(readOnly = true)
     public List<ManagerGroupDto> getGroupsForManager(Long managerId) {
         List<ManagerGroup> groups = managerGroupRepository.findByManagerIdWithManagers(managerId);

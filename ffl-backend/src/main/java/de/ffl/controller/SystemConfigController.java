@@ -53,12 +53,13 @@ public class SystemConfigController {
                                          @RequestParam Integer roundNumber,
                                          @RequestParam String managerIds,
                                          @RequestParam(required = false) String token,
-                                         @RequestParam(required = false) String comment) {
+                                         @RequestParam(required = false) String comment,
+                                         @RequestParam(required = false, defaultValue = "false") boolean testMode) {
         List<Long> managerIdList = java.util.Arrays.stream(managerIds.split(","))
             .map(String::trim)
             .filter(s -> !s.isEmpty())
             .map(Long::parseLong)
             .collect(java.util.stream.Collectors.toList());
-        return matchdayMailService.streamMatchdayMail(seasonId, roundNumber, managerIdList, comment);
+        return matchdayMailService.streamMatchdayMail(seasonId, roundNumber, managerIdList, comment, testMode);
     }
 }

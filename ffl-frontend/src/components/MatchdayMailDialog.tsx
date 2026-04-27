@@ -8,6 +8,7 @@ interface MatchdayMailDialogProps {
   roundNumber: number
   managerIds: number[]
   comment?: string
+  testMode?: boolean
 }
 
 export default function MatchdayMailDialog({
@@ -17,6 +18,7 @@ export default function MatchdayMailDialog({
   roundNumber,
   managerIds,
   comment,
+  testMode,
 }: MatchdayMailDialogProps) {
   const [logs, setLogs] = useState<string[]>([])
   const [isComplete, setIsComplete] = useState(false)
@@ -39,6 +41,7 @@ export default function MatchdayMailDialog({
     })
     if (token) params.set('token', token)
     if (comment && comment.trim()) params.set('comment', comment)
+    if (testMode) params.set('testMode', 'true')
 
     const url = `/api/system/matchday-mail/stream?${params.toString()}`
     const eventSource = new EventSource(url)

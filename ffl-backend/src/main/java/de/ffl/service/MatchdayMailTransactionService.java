@@ -94,7 +94,7 @@ public class MatchdayMailTransactionService {
 
     public void runMailJob(SseEmitter emitter, Long seasonId, Integer roundNumber,
                            List<Long> managerIds, JavaMailSenderImpl mailSender,
-                           SystemConfig config, String comment) {
+                           SystemConfig config, String comment, boolean testMode) {
         try {
             send(emitter, "Lade Spieltags-Daten…");
 
@@ -314,6 +314,9 @@ public class MatchdayMailTransactionService {
             send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
 
             List<Long> sortedManagerIds = managerIds.stream().sorted().collect(Collectors.toList());
+            if (testMode) {
+                send(emitter, "TEST-MODUS: Alle Mails gehen an " + config.getGmailSenderEmail());
+            }
             send(emitter, "Sende an " + sortedManagerIds.size() + " Manager (sortiert nach ID)...");
 
             int sent = 0;
@@ -330,12 +333,13 @@ public class MatchdayMailTransactionService {
                     failed++;
                     continue;
                 }
-                String recipientEmail = manager.getUser() != null ? manager.getUser().getEmail() : null;
-                if (recipientEmail == null || recipientEmail.isBlank()) {
+                String originalEmail = manager.getUser() != null ? manager.getUser().getEmail() : null;
+                if (originalEmail == null || originalEmail.isBlank()) {
                     send(emitter, "✗ ID " + managerId + ": " + buildManagerDisplayName(manager) + " hat keine Mailadresse");
                     failed++;
                     continue;
                 }
+                String recipientEmail = testMode ? config.getGmailSenderEmail() : originalEmail;
 
                 boolean sentSuccessfully = false;
                 int retryCount = 0;
@@ -353,13 +357,27 @@ public class MatchdayMailTransactionService {
                         helper.setSubject(subject);
 
                         List<RankingRow> rankingExcerpt = buildRankingExcerpt(dayRanksSorted, managerId);
-                        List<ManagerGroup> managerGroups = managerGroupRepository.findByManagerIdWithManagers(managerId);
+                        Long userId = manager.getUser() != null ? manager.getUser().getId() : null;
+                        List<ManagerGroup> managerGroups = userId != null 
+                            ? managerGroupRepository.findGroupsForMail(managerId, userId)
+                            : managerGroupRepository.findByManagerId(managerId).stream()
+                                .filter(g -> !"Alle".equals(g.getName()))
+                                .toList();
+                        List<Object[]> groupManagerPairs = userId != null
+                            ? managerGroupRepository.findGroupManagerIdsForMail(managerId, userId)
+                            : List.of();
+                        Map<Long, List<Long>> managerIdsByGroupId = new HashMap<>();
+                        for (Object[] row : groupManagerPairs) {
+                            Long groupId = ((Number) row[0]).longValue();
+                            Long mgrId = ((Number) row[1]).longValue();
+                            managerIdsByGroupId.computeIfAbsent(groupId, k -> new ArrayList<>()).add(mgrId);
+                        }
 
                         String html = buildHtmlForManager(manager, season, roundNumber, intro,
                             dayRankByManagerId.get(managerId), topScorerName, topScorerPoints,
                             playerRankByPlayerId, teamsByPlayerId, playerById, pointsByPlayerId,
                             prevRankByManagerId, seasonRanksByPlayerId, transferRound, config.getWebUrl(),
-                            rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment);
+                            rankingExcerpt, managersById, managerGroups, managerIdsByGroupId, dayRankByManagerId, comment);
 
                         helper.setText(html, true);
                         currentMailSender.send(msg);
@@ -443,6 +461,7 @@ public class MatchdayMailTransactionService {
                                         List<RankingRow> rankingExcerpt,
                                         Map<Long, Manager> managersById,
                                         List<ManagerGroup> managerGroups,
+                                        Map<Long, List<Long>> managerIdsByGroupId,
                                         Map<Long, ManagerRank> dayRankByManagerId,
                                         String comment) {
         StringBuilder sb = new StringBuilder();
@@ -464,7 +483,7 @@ public class MatchdayMailTransactionService {
           .append("<span style=\"color:").append(ACC_GOLD).append(";margin-right:6px;\">\u2605</span>")
           .append(renderIntroMarkdown(intro)).append("</div>");
 
-        // Stats 2x2 grid
+        // Stats 1x2 grid
         if (ownDayRank != null) {
             String cardStyle = "background:" + BG_BOX + ";border-radius:18px;padding:14px 12px;";
             String labelStyle = "font-size:10px;color:" + TXT_MUTED + ";text-transform:uppercase;letter-spacing:1px;font-weight:600;";
@@ -474,25 +493,6 @@ public class MatchdayMailTransactionService {
 
             sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin:0 0 12px 0;\">");
 
-            // Row 1: Saison | Punkte
-            sb.append("<tr>");
-            sb.append("<td width=\"50%\" valign=\"top\" style=\"padding:0 4px 8px 0;\"><div style=\"").append(cardStyle).append("\">");
-            sb.append("<div style=\"").append(labelStyle).append("\">Saison</div>");
-            sb.append("<div style=\"").append(valStyle).append("\">").append(escape(season.getName())).append("</div>");
-            sb.append("<div style=\"font-size:11px;color:").append(TXT_SEC).append(";margin-top:2px;\">")
-              .append(roundNumber).append(". Spieltag</div>");
-            sb.append("</div></td>");
-
-            sb.append("<td width=\"50%\" valign=\"top\" style=\"padding:0 0 8px 4px;\"><div style=\"").append(cardStyle).append("\">");
-            sb.append("<div style=\"").append(labelStyle).append("\">Punkte</div>");
-            sb.append("<div style=\"").append(valStyle).append("\">").append(nz(ownDayRank.getPointsTotal()));
-            if (ownDayRank.getPointsRound() != null && ownDayRank.getPointsRound() > 0) {
-                sb.append("<span style=\"").append(deltaUp).append("\">+").append(ownDayRank.getPointsRound()).append("</span>");
-            }
-            sb.append("</div></div></td>");
-            sb.append("</tr>");
-
-            // Row 2: Position | Spieltag
             sb.append("<tr>");
             sb.append("<td width=\"50%\" valign=\"top\" style=\"padding:0 4px 0 0;\"><div style=\"").append(cardStyle).append("\">");
             sb.append("<div style=\"").append(labelStyle).append("\">Position</div>");
@@ -509,9 +509,12 @@ public class MatchdayMailTransactionService {
             sb.append("</div></div></td>");
 
             sb.append("<td width=\"50%\" valign=\"top\" style=\"padding:0 0 0 4px;\"><div style=\"").append(cardStyle).append("\">");
-            sb.append("<div style=\"").append(labelStyle).append("\">Spieltag</div>");
-            sb.append("<div style=\"").append(valStyle).append("\">").append(nz(ownDayRank.getPositionRound())).append(".</div>");
-            sb.append("</div></td>");
+            sb.append("<div style=\"").append(labelStyle).append("\">Punkte</div>");
+            sb.append("<div style=\"").append(valStyle).append("\">").append(nz(ownDayRank.getPointsTotal()));
+            if (ownDayRank.getPointsRound() != null && ownDayRank.getPointsRound() > 0) {
+                sb.append("<span style=\"").append(deltaUp).append("\">+").append(ownDayRank.getPointsRound()).append("</span>");
+            }
+            sb.append("</div></div></td>");
             sb.append("</tr>");
 
             sb.append("</table>");
@@ -522,16 +525,6 @@ public class MatchdayMailTransactionService {
               .append(";border-radius:18px;padding:14px 16px;margin:0 0 12px 0;color:").append(TXT_PRIM)
               .append(";font-size:13px;line-height:1.5;white-space:pre-wrap;\">")
               .append(escape(comment)).append("</div>");
-        }
-
-        if (rankingExcerpt != null && !rankingExcerpt.isEmpty()) {
-            appendRankingTable(sb, rankingExcerpt, manager.getId(), prevRankByManagerId, managersById);
-            if (webUrl != null && !webUrl.isBlank()) {
-                String base = webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
-                sb.append("<div style=\"margin:-4px 0 12px 0;text-align:right;font-size:12px;\">")
-                  .append("<a href=\"").append(escape(base)).append("/managers\" style=\"color:").append(ACC_BLUE).append(";text-decoration:none;\">")
-                  .append("Gesamtrangliste &rarr;</a></div>");
-            }
         }
 
         List<RosterEntry> roster = collectFullRoster(manager, playerById);
@@ -558,12 +551,23 @@ public class MatchdayMailTransactionService {
         }
         appendRosterTable(sb, roster, playerRankByPlayerId, prevPlayerPosByPlayerId, teamsByPlayerId, roundNumber, transferRound);
 
+        if (rankingExcerpt != null && !rankingExcerpt.isEmpty()) {
+            appendRankingTable(sb, rankingExcerpt, manager.getId(), prevRankByManagerId, managersById);
+            if (webUrl != null && !webUrl.isBlank()) {
+                String base = webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
+                sb.append("<div style=\"margin:-4px 0 12px 0;text-align:right;font-size:12px;\">")
+                  .append("<a href=\"").append(escape(base)).append("/managers\" style=\"color:").append(ACC_BLUE).append(";text-decoration:none;\">")
+                  .append("Gesamtrangliste &rarr;</a></div>");
+            }
+        }
+
         if (managerGroups != null && !managerGroups.isEmpty()) {
             List<ManagerGroup> sortedGroups = managerGroups.stream()
                 .sorted(Comparator.comparing(g -> Optional.ofNullable(g.getName()).orElse("")))
                 .toList();
             for (ManagerGroup group : sortedGroups) {
-                appendManagerGroupTable(sb, group, manager.getId(), dayRankByManagerId,
+                List<Long> groupManagerIds = managerIdsByGroupId.getOrDefault(group.getId(), List.of());
+                appendManagerGroupTable(sb, group, groupManagerIds, manager.getId(), dayRankByManagerId,
                     prevRankByManagerId, managersById);
             }
         }
@@ -726,13 +730,13 @@ public class MatchdayMailTransactionService {
         sb.append("</tr>");
     }
 
-    private void appendManagerGroupTable(StringBuilder sb, ManagerGroup group, Long ownManagerId,
+    private void appendManagerGroupTable(StringBuilder sb, ManagerGroup group, List<Long> managerIds, Long ownManagerId,
                                           Map<Long, ManagerRank> dayRankByManagerId,
                                           Map<Long, ManagerRank> prevRankByManagerId,
                                           Map<Long, Manager> managersById) {
         List<ManagerRank> groupRanks = new ArrayList<>();
-        for (Manager gm : group.getManagers()) {
-            ManagerRank mr = dayRankByManagerId.get(gm.getId());
+        for (Long mgrId : managerIds) {
+            ManagerRank mr = dayRankByManagerId.get(mgrId);
             if (mr != null && mr.getPositionTotal() != null) {
                 groupRanks.add(mr);
             }

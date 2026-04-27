@@ -71,6 +71,18 @@ export const useRemoveManagerFromGroup = (groupId: number) => {
   })
 }
 
+export const useChangeCreator = (groupId: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (newCreatorId: number) => 
+      managerGroupApi.changeCreator(groupId, newCreatorId).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['manager-group', groupId] })
+      queryClient.invalidateQueries({ queryKey: ['manager-groups'] })
+    },
+  })
+}
+
 export const useMyGroupsWithStats = (enabled = true) => {
   return useQuery({
     queryKey: ['manager-groups', 'my-stats'],
