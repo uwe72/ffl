@@ -469,19 +469,12 @@ public class MatchdayMailTransactionService {
         sb.append("<body style=\"background:").append(BG_BODY).append(";color:").append(TXT_PRIM)
           .append(";font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;padding:0;margin:0;\">");
         sb.append("<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background:")
-          .append(BG_BODY).append(";\"><tr><td align=\"center\" style=\"padding:16px 2px;\">");
-        sb.append("<table role=\"presentation\" width=\"480\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width:100%;max-width:480px;\"><tr><td>");
+          .append(BG_BODY).append(";\"><tr><td align=\"center\" style=\"padding:10px 0;\">");
+        sb.append("<table role=\"presentation\" width=\"520\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width:100%;max-width:520px;\"><tr><td>");
 
         sb.append("<div style=\"color:").append(TXT_MUTED).append(";font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:0 0 12px 0;\">Hallo ")
           .append(escape(manager.getUser() != null ? Optional.ofNullable(manager.getUser().getFirstName()).orElse(manager.getName()) : manager.getName()))
           .append("!</div>");
-
-        // Highlight summary bubble
-        sb.append("<div style=\"background:").append(BG_BOX_ALT)
-          .append(";border-radius:18px;padding:14px 16px;margin:0 0 12px 0;color:").append(TXT_PRIM)
-          .append(";font-size:13px;line-height:1.5;\">")
-          .append("<span style=\"color:").append(ACC_GOLD).append(";margin-right:6px;\">\u2605</span>")
-          .append(renderIntroMarkdown(intro)).append("</div>");
 
         // Stats 1x2 grid
         if (ownDayRank != null) {
@@ -521,6 +514,8 @@ public class MatchdayMailTransactionService {
         }
 
         if (comment != null && !comment.isBlank()) {
+            sb.append("<div style=\"color:").append(TXT_MUTED)
+              .append(";font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:16px 4px 8px 4px;\">News</div>");
             sb.append("<div style=\"background:").append(BG_BOX_ALT)
               .append(";border-radius:18px;padding:14px 16px;margin:0 0 12px 0;color:").append(TXT_PRIM)
               .append(";font-size:13px;line-height:1.5;white-space:pre-wrap;\">")
@@ -550,6 +545,15 @@ public class MatchdayMailTransactionService {
             }
         }
         appendRosterTable(sb, roster, playerRankByPlayerId, prevPlayerPosByPlayerId, teamsByPlayerId, roundNumber, transferRound);
+
+        // Highlights mit LLM-Intro
+        sb.append("<div style=\"color:").append(TXT_MUTED)
+          .append(";font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:16px 4px 8px 4px;\">Highlights</div>");
+        sb.append("<div style=\"background:").append(BG_BOX_ALT)
+          .append(";border-radius:18px;padding:14px 16px;margin:0 0 12px 0;color:").append(TXT_PRIM)
+          .append(";font-size:13px;line-height:1.5;\">")
+          .append("<span style=\"color:").append(ACC_GOLD).append(";margin-right:6px;\">\u2605</span>")
+          .append(renderIntroMarkdown(intro)).append("</div>");
 
         if (rankingExcerpt != null && !rankingExcerpt.isEmpty()) {
             appendRankingTable(sb, rankingExcerpt, manager.getId(), prevRankByManagerId, managersById);
@@ -657,8 +661,10 @@ public class MatchdayMailTransactionService {
             String displayName = m != null && m.getShortName() != null && !m.getShortName().isBlank()
                 ? m.getShortName()
                 : (m != null ? m.getName() : "?");
+            String fullName = m != null ? buildManagerDisplayName(m) : displayName;
+            String loginName = m != null ? m.getName() : "?";
             boolean isLast = (i == lastDataIdx);
-            appendManagerDataRow(sb, mr, prev, displayName, isOwn, isLast);
+            appendManagerDataRow(sb, mr, prev, displayName, fullName, loginName, isOwn, isLast);
         }
         sb.append("</table>");
         sb.append("</div>");
@@ -683,7 +689,8 @@ public class MatchdayMailTransactionService {
     }
 
     private void appendManagerDataRow(StringBuilder sb, ManagerRank mr, ManagerRank prev,
-                                       String displayName, boolean isOwn, boolean isLast) {
+                                       String displayName, String fullName, String loginName,
+                                       boolean isOwn, boolean isLast) {
         String rowBg = isOwn ? OWN_BG : "transparent";
         String border = isLast ? "" : "border-bottom:1px solid " + DIVIDER + ";";
         String textColor = isOwn ? "#000000" : TXT_PRIM;
@@ -693,10 +700,10 @@ public class MatchdayMailTransactionService {
         String secStyle = "color:" + secondary + ";font-weight:" + fontWeight + ";font-variant-numeric:tabular-nums;font-size:13px;";
 
         sb.append("<tr style=\"background:").append(rowBg).append(";\">");
-        sb.append("<td align=\"center\" style=\"padding:8px 4px 8px 12px;").append(numStyle).append(border).append("\">")
+        sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:8px 4px 8px 12px;").append(numStyle).append(border).append("\">")
           .append(nz(mr.getPositionTotal())).append(".</td>");
 
-        sb.append("<td align=\"center\" style=\"padding:8px 4px;").append(border).append("\">");
+        sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:8px 4px;").append(border).append("\">");
         if (prev != null && prev.getPositionTotal() != null && mr.getPositionTotal() != null) {
             int diff = prev.getPositionTotal() - mr.getPositionTotal();
             if (diff > 0) {
@@ -717,14 +724,17 @@ public class MatchdayMailTransactionService {
         }
         sb.append("</td>");
 
-        sb.append("<td align=\"left\" style=\"padding:8px 4px 8px 8px;color:").append(textColor)
-          .append(";font-weight:").append(fontWeight).append(";font-size:13px;").append(border).append("\">")
-          .append(escape(displayName)).append("</td>");
+        sb.append("<td align=\"left\" valign=\"middle\" style=\"padding:6px 4px 6px 8px;").append(border).append("\">");
+        sb.append("<div style=\"color:").append(textColor).append(";font-weight:700;font-size:13px;line-height:1.3;\">")
+          .append(escape(loginName != null && !loginName.isBlank() ? loginName : displayName)).append("</div>");
+        sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;line-height:1.3;\">")
+          .append(escape(displayName)).append("</div>");
+        sb.append("</td>");
 
-        sb.append("<td align=\"right\" style=\"padding:8px 4px;").append(numStyle).append(border).append("\">")
+        sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:8px 4px;").append(numStyle).append(border).append("\">")
           .append(nz(mr.getPointsTotal())).append("</td>");
 
-        sb.append("<td align=\"right\" style=\"padding:8px 12px 8px 4px;").append(secStyle).append(border).append("\">")
+        sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:8px 12px 8px 4px;").append(secStyle).append(border).append("\">")
           .append(nz(mr.getPointsRound())).append("</td>");
 
         sb.append("</tr>");
@@ -756,8 +766,10 @@ public class MatchdayMailTransactionService {
             String displayName = m != null && m.getShortName() != null && !m.getShortName().isBlank()
                 ? m.getShortName()
                 : (m != null ? m.getName() : "?");
+            String fullName = m != null ? buildManagerDisplayName(m) : displayName;
+            String loginName = m != null ? m.getName() : "?";
             boolean isLast = (i == groupRanks.size() - 1);
-            appendManagerDataRow(sb, mr, prev, displayName, isOwn, isLast);
+            appendManagerDataRow(sb, mr, prev, displayName, fullName, loginName, isOwn, isLast);
         }
         sb.append("</table>");
         sb.append("</div>");
