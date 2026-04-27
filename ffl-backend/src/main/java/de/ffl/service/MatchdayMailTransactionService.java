@@ -544,7 +544,7 @@ public class MatchdayMailTransactionService {
                 }
             }
         }
-        appendRosterTable(sb, roster, playerRankByPlayerId, prevPlayerPosByPlayerId, teamsByPlayerId, roundNumber, transferRound);
+        appendRosterTable(sb, roster, mePointsByPlayer, playerRankByPlayerId, prevPlayerPosByPlayerId, teamsByPlayerId, roundNumber, transferRound);
 
         // Highlights mit LLM-Intro
         sb.append("<div style=\"color:").append(TXT_MUTED)
@@ -908,6 +908,7 @@ public class MatchdayMailTransactionService {
     }
 
     private void appendRosterTable(StringBuilder sb, List<RosterEntry> roster,
+                                    Map<Long, Integer> mePointsByPlayer,
                                     Map<Long, PlayerRank> playerRankByPlayerId,
                                     Map<Long, Integer> prevPlayerPosByPlayerId,
                                     Map<Long, List<Team>> teamsByPlayerId,
@@ -932,6 +933,8 @@ public class MatchdayMailTransactionService {
             PlayerRank pr = playerRankByPlayerId.get(player.getId());
             Integer pointsTotal = pr != null ? pr.getPointsTotal() : null;
             Integer positionTotal = pr != null ? pr.getPositionTotal() : null;
+            int mePoints = mePointsByPlayer.getOrDefault(player.getId(), 0);
+            boolean partial = !(e.activeHinrunde && e.activeRueckrunde);
             boolean activeNow = isRueckrundeCurrent ? e.activeRueckrunde : e.activeHinrunde;
             int pointsRound = activeNow && pr != null && pr.getPointsRound() != null ? pr.getPointsRound() : 0;
             boolean scoredToday = pointsRound > 0;
@@ -1012,9 +1015,15 @@ public class MatchdayMailTransactionService {
             sb.append("</div>");
             sb.append("</td>");
 
-            // Pkt (Gesamtpunktzahl Spieler)
-            sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:10px 4px;").append(numStyle).append(border).append("\">")
-              .append(pointsTotal != null ? pointsTotal : 0).append("</td>");
+            // Pkt (Punkte für Manager, in Klammern Gesamtpunkte bei partial)
+            int totalVal = pointsTotal != null ? pointsTotal : 0;
+            sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:10px 4px;").append(numStyle).append(border).append(";white-space:nowrap;\">")
+              .append(mePoints);
+            if (partial) {
+                sb.append(" <span style=\"color:").append(secondary).append(";font-weight:500;\">(")
+                  .append(totalVal).append(")</span>");
+            }
+            sb.append("</td>");
 
             // Sp. (Spieltagspunkte)
             sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:10px 12px 10px 4px;").append(secNumStyle).append(border).append("\">")
