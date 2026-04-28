@@ -478,7 +478,7 @@ public class MatchdayMailTransactionService {
 
         // Stats 1x2 grid
         if (ownDayRank != null) {
-            String cardStyle = "background:" + BG_BOX + ";border-radius:18px;padding:14px 12px;";
+            String cardStyle = "background:" + BG_BOX + ";border-radius:18px;padding:12px 12px;";
             String labelStyle = "font-size:10px;color:" + TXT_MUTED + ";text-transform:uppercase;letter-spacing:1px;font-weight:600;";
             String valStyle = "font-size:32px;font-weight:700;color:" + TXT_PRIM + ";line-height:1.1;margin-top:4px;";
             String deltaUp = "display:inline-block;background:#1a3d2a;color:" + ACC_GREEN + ";border-radius:10px;padding:2px 8px;font-size:14px;font-weight:600;margin-left:6px;vertical-align:middle;";
@@ -515,9 +515,9 @@ public class MatchdayMailTransactionService {
 
         if (comment != null && !comment.isBlank()) {
             sb.append("<div style=\"color:").append(TXT_MUTED)
-              .append(";font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:16px 4px 8px 4px;\">News</div>");
+              .append(";font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:14px 4px 7px 4px;\">News</div>");
             sb.append("<div style=\"background:").append(BG_BOX_ALT)
-              .append(";border-radius:18px;padding:14px 16px;margin:0 0 12px 0;color:").append(TXT_PRIM)
+              .append(";border-radius:18px;padding:12px 15px;margin:0 0 12px 0;color:").append(TXT_PRIM)
               .append(";font-size:13px;line-height:1.5;white-space:pre-wrap;\">")
               .append(escape(comment)).append("</div>");
         }
@@ -548,9 +548,9 @@ public class MatchdayMailTransactionService {
 
         // Highlights mit LLM-Intro
         sb.append("<div style=\"color:").append(TXT_MUTED)
-          .append(";font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:16px 4px 8px 4px;\">Highlights</div>");
+          .append(";font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:14px 4px 7px 4px;\">Highlights</div>");
         sb.append("<div style=\"background:").append(BG_BOX_ALT)
-          .append(";border-radius:18px;padding:14px 16px;margin:0 0 12px 0;color:").append(TXT_PRIM)
+          .append(";border-radius:18px;padding:12px 15px;margin:0 0 12px 0;color:").append(TXT_PRIM)
           .append(";font-size:13px;line-height:1.5;\">")
           .append("<span style=\"color:").append(ACC_GOLD).append(";margin-right:6px;\">\u2605</span>")
           .append(renderIntroMarkdown(intro)).append("</div>");
@@ -672,13 +672,13 @@ public class MatchdayMailTransactionService {
 
     private void appendSectionContainerOpen(StringBuilder sb, String title) {
         sb.append("<div style=\"color:").append(TXT_MUTED)
-          .append(";font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:16px 4px 8px 4px;\">")
+          .append(";font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:14px 4px 7px 4px;\">")
           .append(escape(title)).append("</div>");
-        sb.append("<div style=\"background:").append(BG_BOX).append(";border-radius:18px;padding:8px 0;margin:0 0 12px 0;overflow:hidden;\">");
+        sb.append("<div style=\"background:").append(BG_BOX).append(";border-radius:18px;padding:6px 0;margin:0 0 12px 0;overflow:hidden;\">");
     }
 
     private void appendRankingHeaderRow(StringBuilder sb) {
-        String hStyle = "font-size:10px;color:" + TXT_MUTED + ";text-transform:uppercase;letter-spacing:1px;font-weight:600;padding:8px 4px;border-bottom:1px solid " + DIVIDER + ";";
+        String hStyle = "font-size:10px;color:" + TXT_MUTED + ";text-transform:uppercase;letter-spacing:1px;font-weight:600;padding:6px 4px;border-bottom:1px solid " + DIVIDER + ";";
         sb.append("<tr>");
         sb.append("<th width=\"35\" align=\"center\" style=\"").append(hStyle).append("padding-left:12px;\">Pos</th>");
         sb.append("<th width=\"35\" align=\"center\" style=\"").append(hStyle).append("\">+/-</th>");
@@ -700,10 +700,10 @@ public class MatchdayMailTransactionService {
         String secStyle = "color:" + secondary + ";font-weight:" + fontWeight + ";font-variant-numeric:tabular-nums;font-size:13px;";
 
         sb.append("<tr style=\"background:").append(rowBg).append(";\">");
-        sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:8px 4px 8px 12px;").append(numStyle).append(border).append("\">")
+        sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:6px 4px 6px 12px;").append(numStyle).append(border).append("\">")
           .append(nz(mr.getPositionTotal())).append(".</td>");
 
-        sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:8px 4px;").append(border).append("\">");
+        sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:6px 4px;").append(border).append("\">");
         if (prev != null && prev.getPositionTotal() != null && mr.getPositionTotal() != null) {
             int diff = prev.getPositionTotal() - mr.getPositionTotal();
             if (diff > 0) {
@@ -731,10 +731,10 @@ public class MatchdayMailTransactionService {
           .append(escape(displayName)).append("</div>");
         sb.append("</td>");
 
-        sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:8px 4px;").append(numStyle).append(border).append("\">")
+        sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:6px 4px;").append(numStyle).append(border).append("\">")
           .append(nz(mr.getPointsTotal())).append("</td>");
 
-        sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:8px 12px 8px 4px;").append(secStyle).append(border).append("\">")
+        sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:6px 12px 6px 4px;").append(secStyle).append(border).append("\">")
           .append(nz(mr.getPointsRound())).append("</td>");
 
         sb.append("</tr>");
@@ -917,7 +917,7 @@ public class MatchdayMailTransactionService {
         appendSectionContainerOpen(sb, "Meine " + roster.size() + " Spieler");
         sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-size:13px;border-collapse:collapse;\">");
 
-        String hStyle = "font-size:10px;color:" + TXT_MUTED + ";text-transform:uppercase;letter-spacing:1px;font-weight:600;padding:8px 4px;border-bottom:1px solid " + DIVIDER + ";";
+        String hStyle = "font-size:10px;color:" + TXT_MUTED + ";text-transform:uppercase;letter-spacing:1px;font-weight:600;padding:6px 4px;border-bottom:1px solid " + DIVIDER + ";";
         sb.append("<tr>");
         sb.append("<th width=\"35\" align=\"center\" style=\"").append(hStyle).append("padding-left:12px;\">Pos</th>");
         sb.append("<th width=\"35\" align=\"center\" style=\"").append(hStyle).append("\">+/-</th>");
@@ -959,7 +959,7 @@ public class MatchdayMailTransactionService {
             sb.append("<tr style=\"background:").append(rowBg).append(";\">");
 
             // Pos
-            sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:10px 4px 10px 12px;").append(numStyle).append(border).append("\">");
+            sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:8px 4px 8px 12px;").append(numStyle).append(border).append("\">");
             if (positionTotal != null) {
                 sb.append(positionTotal).append(".");
             } else {
@@ -968,7 +968,7 @@ public class MatchdayMailTransactionService {
             sb.append("</td>");
 
             // +/-
-            sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:10px 4px;").append(border).append("\">");
+            sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:8px 4px;").append(border).append("\">");
             Integer prevPos = prevPlayerPosByPlayerId != null ? prevPlayerPosByPlayerId.get(player.getId()) : null;
             if (prevPos != null && positionTotal != null) {
                 int diff = prevPos - positionTotal;
@@ -991,7 +991,7 @@ public class MatchdayMailTransactionService {
             sb.append("</td>");
 
             // Spieler + team + Hin/Rueck
-            sb.append("<td align=\"left\" valign=\"middle\" style=\"padding:10px 4px 10px 8px;").append(border).append("\">");
+            sb.append("<td align=\"left\" valign=\"middle\" style=\"padding:8px 4px 8px 8px;").append(border).append("\">");
             sb.append("<div style=\"color:").append(textColor).append(";font-weight:700;font-size:14px;line-height:1.25;white-space:nowrap;\">")
               .append("<span style=\"vertical-align:middle;\">")
               .append(escape(shortenPlayerName(player.getNameKicker())))
@@ -1017,7 +1017,7 @@ public class MatchdayMailTransactionService {
 
             // Pkt (Punkte für Manager, in Klammern Gesamtpunkte bei partial)
             int totalVal = pointsTotal != null ? pointsTotal : 0;
-            sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:10px 4px;").append(numStyle).append(border).append(";white-space:nowrap;\">")
+            sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:8px 4px;").append(numStyle).append(border).append(";white-space:nowrap;\">")
               .append(mePoints);
             if (partial) {
                 sb.append(" <span style=\"color:").append(secondary).append(";font-weight:500;\">(")
@@ -1026,7 +1026,7 @@ public class MatchdayMailTransactionService {
             sb.append("</td>");
 
             // Sp. (Spieltagspunkte)
-            sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:10px 12px 10px 4px;").append(secNumStyle).append(border).append("\">")
+            sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:8px 12px 8px 4px;").append(secNumStyle).append(border).append("\">")
               .append(pointsRound).append("</td>");
 
             sb.append("</tr>");
@@ -1041,7 +1041,7 @@ public class MatchdayMailTransactionService {
         appendSectionContainerOpen(sb, "Punktende Spieler");
         sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-size:13px;border-collapse:collapse;\">");
 
-        String hStyle = "font-size:10px;color:" + TXT_MUTED + ";text-transform:uppercase;letter-spacing:1px;font-weight:600;padding:8px 4px;border-bottom:1px solid " + DIVIDER + ";";
+        String hStyle = "font-size:10px;color:" + TXT_MUTED + ";text-transform:uppercase;letter-spacing:1px;font-weight:600;padding:6px 4px;border-bottom:1px solid " + DIVIDER + ";";
         sb.append("<tr>");
         sb.append("<th align=\"left\" style=\"").append(hStyle).append("padding-left:14px;\">Pos</th>");
         sb.append("<th align=\"left\" style=\"").append(hStyle).append("\">Spieler</th>");
