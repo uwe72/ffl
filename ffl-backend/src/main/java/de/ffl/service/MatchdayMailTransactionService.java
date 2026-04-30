@@ -922,6 +922,8 @@ public class MatchdayMailTransactionService {
         sb.append("<th width=\"35\" align=\"center\" style=\"").append(hStyle).append("padding-left:12px;\">Pos</th>");
         sb.append("<th width=\"35\" align=\"center\" style=\"").append(hStyle).append("\">+/-</th>");
         sb.append("<th align=\"left\" style=\"").append(hStyle).append("padding-left:8px;\">Spieler</th>");
+        sb.append("<th width=\"40\" align=\"center\" style=\"").append(hStyle).append("\"></th>");
+        sb.append("<th width=\"35\" align=\"center\" style=\"").append(hStyle).append("\"></th>");
         sb.append("<th width=\"50\" align=\"right\" style=\"").append(hStyle).append("\">Pkt</th>");
         sb.append("<th width=\"35\" align=\"right\" style=\"").append(hStyle).append("padding-right:12px;\">Sp.</th>");
         sb.append("</tr>");
@@ -990,29 +992,33 @@ public class MatchdayMailTransactionService {
             }
             sb.append("</td>");
 
-            // Spieler + team + Hin/Rueck
+            // Spieler + team
             sb.append("<td align=\"left\" valign=\"middle\" style=\"padding:8px 4px 8px 8px;").append(border).append("\">");
             sb.append("<div style=\"color:").append(textColor).append(";font-weight:700;font-size:14px;line-height:1.25;white-space:nowrap;\">")
-              .append("<span style=\"vertical-align:middle;\">")
-              .append(escape(shortenPlayerName(player.getNameKicker())))
-              .append("</span>")
-              .append("<span style=\"display:inline-block;background:").append(badgeBg)
-              .append(";color:").append(badgeFg)
-              .append(";padding:2px 6px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:0.5px;line-height:1.2;margin-left:6px;vertical-align:middle;\">")
-              .append(escape(e.posLabel)).append("</span></div>");
-
-            sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;margin-top:2px;line-height:1.3;white-space:nowrap;\">");
+              .append(escape(shortenPlayerName(player.getNameKicker()))).append("</div>");
             if (!teamName.isEmpty()) {
-                sb.append("<span style=\"vertical-align:middle;\">").append(escape(teamName)).append("</span>");
+                sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;margin-top:2px;line-height:1.3;white-space:nowrap;\">")
+                  .append(escape(teamName)).append("</div>");
             }
+            sb.append("</td>");
+
+            // Position Badge
+            sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:8px 4px;").append(border).append("\">");
+            sb.append("<span style=\"display:inline-block;background:").append(badgeBg)
+              .append(";color:").append(badgeFg)
+              .append(";padding:2px 6px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:0.5px;line-height:1.2;\">")
+              .append(escape(e.posLabel)).append("</span>");
+            sb.append("</td>");
+
+            // Hin/Rück
+            sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:8px 4px;").append(border).append("\">");
             if (e.activeHinrunde && !e.activeRueckrunde) {
                 sb.append("<span style=\"display:inline-block;background:").append(ACC_BLUE)
-                  .append(";color:#ffffff;padding:2px 6px;border-radius:8px;font-size:8px;font-weight:700;letter-spacing:0.5px;line-height:1.2;margin-left:8px;text-transform:uppercase;vertical-align:middle;\">Hin</span>");
+                  .append(";color:#ffffff;padding:2px 6px;border-radius:8px;font-size:8px;font-weight:700;letter-spacing:0.5px;line-height:1.2;text-transform:uppercase;\">Hin</span>");
             } else if (e.activeRueckrunde && !e.activeHinrunde) {
                 sb.append("<span style=\"display:inline-block;background:").append(ACC_PURPLE)
-                  .append(";color:#ffffff;padding:2px 6px;border-radius:8px;font-size:8px;font-weight:700;letter-spacing:0.5px;line-height:1.2;margin-left:8px;text-transform:uppercase;vertical-align:middle;\">R&uuml;ck</span>");
+                  .append(";color:#ffffff;padding:2px 6px;border-radius:8px;font-size:8px;font-weight:700;letter-spacing:0.5px;line-height:1.2;text-transform:uppercase;\">R&uuml;ck</span>");
             }
-            sb.append("</div>");
             sb.append("</td>");
 
             // Pkt (Punkte für Manager, in Klammern Gesamtpunkte bei partial)
