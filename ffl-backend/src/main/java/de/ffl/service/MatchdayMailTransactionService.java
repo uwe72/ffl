@@ -1014,21 +1014,16 @@ public class MatchdayMailTransactionService {
             sb.append("<td align=\"center\" valign=\"middle\" style=\"padding:8px 4px;").append(border).append("\">");
             if (e.activeHinrunde && !e.activeRueckrunde) {
                 sb.append("<span style=\"display:inline-block;background:").append(ACC_BLUE)
-                  .append(";color:#ffffff;padding:2px 6px;border-radius:8px;font-size:8px;font-weight:700;letter-spacing:0.5px;line-height:1.2;text-transform:uppercase;\">Hin</span>");
+                  .append(";color:#ffffff;padding:2px 6px;border-radius:8px;font-size:8px;font-weight:700;letter-spacing:0.5px;line-height:1.2;text-transform:uppercase;\">HR</span>");
             } else if (e.activeRueckrunde && !e.activeHinrunde) {
                 sb.append("<span style=\"display:inline-block;background:").append(ACC_PURPLE)
-                  .append(";color:#ffffff;padding:2px 6px;border-radius:8px;font-size:8px;font-weight:700;letter-spacing:0.5px;line-height:1.2;text-transform:uppercase;\">R&uuml;ck</span>");
+                  .append(";color:#ffffff;padding:2px 6px;border-radius:8px;font-size:8px;font-weight:700;letter-spacing:0.5px;line-height:1.2;text-transform:uppercase;\">RR</span>");
             }
             sb.append("</td>");
 
-            // Pkt (Punkte für Manager, in Klammern Gesamtpunkte bei partial)
-            int totalVal = pointsTotal != null ? pointsTotal : 0;
+            // Pkt (Punkte für Manager)
             sb.append("<td align=\"right\" valign=\"middle\" style=\"padding:8px 4px;").append(numStyle).append(border).append(";white-space:nowrap;\">")
               .append(mePoints);
-            if (partial) {
-                sb.append(" <span style=\"color:").append(secondary).append(";font-weight:500;\">(")
-                  .append(totalVal).append(")</span>");
-            }
             sb.append("</td>");
 
             // Sp. (Spieltagspunkte)
