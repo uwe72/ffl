@@ -70,7 +70,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        globIgnores: ['**/background.png', '**/back2.png', '**/back3.png', '**/hintergrundbild.png', '**/background.mp4'],
+        globIgnores: ['**/background.png', '**/after_login.png', '**/back2.png', '**/back3.png', '**/hintergrundbild.png', '**/background.mp4'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/ffl\.ipv64\.de\/api/,
