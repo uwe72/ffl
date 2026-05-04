@@ -21,4 +21,9 @@ export const authApi = {
     const response = await api.get<User>('/auth/me')
     return response.data
   },
+
+  updateProfile: async (data: { email: string }): Promise<User> => {
+    const response = await api.put<User>('/auth/me', data)
+    return response.data
+  },
 }

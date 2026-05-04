@@ -103,6 +103,34 @@ public class AuthController {
         return ResponseEntity.ok(body);
     }
 
+    @PutMapping("/me")
+    public ResponseEntity<?> updateMe(@RequestBody Map<String, String> updates) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return ResponseEntity.status(401).build();
+        }
+        User user = userRepository.findByLogin(auth.getName()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        if (updates.containsKey("email")) {
+            String newEmail = updates.get("email");
+            if (newEmail != null && !newEmail.equals(user.getEmail()) && userRepository.existsByEmail(newEmail)) {
+                return ResponseEntity.badRequest().body("E-Mail bereits registriert");
+            }
+            user.setEmail(newEmail);
+        }
+        userRepository.save(user);
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("id", user.getId());
+        body.put("login", user.getLogin());
+        body.put("email", user.getEmail());
+        body.put("firstName", user.getFirstName());
+        body.put("lastName", user.getLastName());
+        body.put("role", user.getRole().name());
+        return ResponseEntity.ok(body);
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@Valid @RequestBody RefreshRequest request) {
         String refreshToken = request.getRefreshToken();

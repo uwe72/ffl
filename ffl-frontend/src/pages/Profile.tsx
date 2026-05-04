@@ -1,21 +1,38 @@
+import { useState, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Card, Label, Chip } from '@heroui/react'
-import { useProfile } from '../hooks/useProfile'
-
-const roleLabels: Record<string, string> = {
-  ADMIN: 'Admin',
-  NORMAL: 'Normal',
-  GUEST: 'Gast'
-}
-
-const roleColors: Record<string, 'success' | 'warning' | 'default'> = {
-  ADMIN: 'success',
-  NORMAL: 'warning',
-  GUEST: 'default'
-}
+import { Card, TextField, Label, Input, Button } from '@heroui/react'
+import { useProfile, useUpdateProfile } from '../hooks/useProfile'
 
 export default function Profile() {
   const { data: user, isLoading, error } = useProfile()
+  const updateProfile = useUpdateProfile()
+  const [email, setEmail] = useState('')
+  const [hasChanges, setHasChanges] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      setEmail(user.email || '')
+      setHasChanges(false)
+    }
+  }, [user])
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value)
+    setHasChanges(value !== (user?.email || ''))
+  }
+
+  const handleSave = async () => {
+    if (!hasChanges) return
+    await updateProfile.mutateAsync({ email })
+    setHasChanges(false)
+  }
+
+  const handleCancel = () => {
+    if (user) {
+      setEmail(user.email || '')
+      setHasChanges(false)
+    }
+  }
 
   if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
   if (error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
@@ -36,16 +53,6 @@ export default function Profile() {
         </Card>
 
         <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <Label className="text-[#a0aec0] block mb-2">Rolle</Label>
-          <Chip
-            color={roleColors[user.role as keyof typeof roleColors] || 'default'}
-            variant="soft"
-          >
-            {roleLabels[user.role as keyof typeof roleLabels] || user.role}
-          </Chip>
-        </Card>
-
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
           <Label className="text-[#a0aec0] block mb-2">Vorname</Label>
           <p className="text-[#f5f5f5] text-lg">{user.firstName || '-'}</p>
         </Card>
@@ -56,10 +63,36 @@ export default function Profile() {
         </Card>
 
         <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <Label className="text-[#a0aec0] block mb-2">E-Mail</Label>
-          <p className="text-[#f5f5f5] text-lg">{user.email || '-'}</p>
+          <TextField name="email">
+            <Label className="text-[#a0aec0]">E-Mail</Label>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+            />
+          </TextField>
         </Card>
       </div>
+
+      {hasChanges && (
+        <div className="mt-6 flex gap-4">
+          <Button
+            variant="primary"
+            onPress={handleSave}
+            isDisabled={updateProfile.isPending}
+            className="bg-[#c9a66b] text-[#0f1419] font-medium"
+          >
+            {updateProfile.isPending ? 'Wird gespeichert...' : 'Speichern'}
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={handleCancel}
+          >
+            Abbrechen
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
