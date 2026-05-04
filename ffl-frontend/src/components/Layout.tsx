@@ -89,8 +89,8 @@ export default function Layout() {
                 )}
                 {isAuthenticated ? (
                   <>
-                    <span className="hidden md:inline text-sm text-[#a0aec0]">{user?.login} ({user?.role === 'ADMIN' ? 'Admin' : 'User'})</span>
-                    <span className="md:hidden text-xs text-[#a0aec0]">{user?.login}</span>
+                    <RouterLink to="/profile" className="hidden md:inline text-sm text-[#a0aec0] hover:text-[#c9a66b] transition-colors">{user?.login} ({user?.role === 'ADMIN' ? 'Admin' : 'User'})</RouterLink>
+                    <RouterLink to="/profile" className="md:hidden text-xs text-[#a0aec0] hover:text-[#c9a66b] transition-colors">{user?.login}</RouterLink>
                     <Button size="sm" variant="secondary" onPress={handleLogout} className="h-7 px-3 text-xs">
                       Abmelden
                     </Button>

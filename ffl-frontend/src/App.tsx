@@ -19,6 +19,7 @@ import UserDetail from './pages/UserDetail'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Feedback from './pages/Feedback'
+import Profile from './pages/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -31,6 +32,11 @@ function App() {
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
+            <Route path="profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
             <Route path="season" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Season />

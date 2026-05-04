@@ -94,6 +94,7 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         }
         Map<String, Object> body = new java.util.HashMap<>();
+        body.put("id", user.getId());
         body.put("login", user.getLogin());
         body.put("email", user.getEmail());
         body.put("firstName", user.getFirstName());

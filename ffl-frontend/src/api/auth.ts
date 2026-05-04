@@ -1,5 +1,5 @@
 import api from './client'
-import type { LoginRequest, RegisterRequest, AuthResponse } from '../types'
+import type { LoginRequest, RegisterRequest, AuthResponse, User } from '../types'
 
 export const authApi = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -14,6 +14,11 @@ export const authApi = {
 
   refresh: async (refreshToken: string): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/refresh', { refreshToken })
+    return response.data
+  },
+
+  getProfile: async (): Promise<User> => {
+    const response = await api.get<User>('/auth/me')
     return response.data
   },
 }
