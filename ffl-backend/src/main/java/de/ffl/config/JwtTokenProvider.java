@@ -30,8 +30,13 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(Authentication authentication) {
-        org.springframework.security.core.userdetails.User userPrincipal = 
-            (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+        String username;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails ud) {
+            username = ud.getUsername();
+        } else {
+            username = principal.toString();
+        }
         
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
@@ -41,7 +46,7 @@ public class JwtTokenProvider {
             .collect(Collectors.joining(","));
 
         return Jwts.builder()
-            .subject(userPrincipal.getUsername())
+            .subject(username)
             .claim("roles", authorities)
             .claim("type", "access")
             .issuedAt(now)

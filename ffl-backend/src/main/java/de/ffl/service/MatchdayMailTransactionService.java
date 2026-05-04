@@ -78,7 +78,7 @@ public class MatchdayMailTransactionService {
 
     public void runMailJob(SseEmitter emitter, Long seasonId, Integer roundNumber,
                            List<Long> managerIds, JavaMailSenderImpl mailSender,
-                           SystemConfig config, String comment) {
+                           SystemConfig config, String comment, boolean testMode) {
         try {
             send(emitter, "Lade Spieltags-Daten…");
 
@@ -334,8 +334,10 @@ public class MatchdayMailTransactionService {
                         rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment);
 
                     helper.setText(html, true);
-                    mailSender.send(msg);
-                    send(emitter, "✓ " + buildManagerDisplayName(manager) + " (" + recipientEmail + ")");
+                    if (!testMode) {
+                        mailSender.send(msg);
+                    }
+                    send(emitter, (testMode ? "[TEST] " : "") + "✓ " + buildManagerDisplayName(manager) + " (" + recipientEmail + ")");
                     sent++;
                 } catch (Exception e) {
                     send(emitter, "✗ " + buildManagerDisplayName(manager) + " (" + recipientEmail + "): " + e.getMessage());
