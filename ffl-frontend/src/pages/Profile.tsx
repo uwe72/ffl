@@ -2,34 +2,48 @@ import { useState, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { Card, TextField, Label, Input, Button } from '@heroui/react'
 import { useProfile, useUpdateProfile } from '../hooks/useProfile'
+import type { MailTheme } from '../types'
+
+const mailThemeLabels: Record<MailTheme, string> = {
+  DARKMODE: 'Darkmode',
+  LIGHTMODE: 'Lightmode'
+}
 
 export default function Profile() {
   const { data: user, isLoading, error } = useProfile()
   const updateProfile = useUpdateProfile()
   const [email, setEmail] = useState('')
+  const [mailTheme, setMailTheme] = useState<MailTheme>('LIGHTMODE')
   const [hasChanges, setHasChanges] = useState(false)
 
   useEffect(() => {
     if (user) {
       setEmail(user.email || '')
+      setMailTheme(user.mailTheme || 'LIGHTMODE')
       setHasChanges(false)
     }
   }, [user])
 
   const handleEmailChange = (value: string) => {
     setEmail(value)
-    setHasChanges(value !== (user?.email || ''))
+    setHasChanges(value !== (user?.email || '') || mailTheme !== (user?.mailTheme || 'LIGHTMODE'))
+  }
+
+  const handleMailThemeChange = (value: MailTheme) => {
+    setMailTheme(value)
+    setHasChanges(email !== (user?.email || '') || value !== (user?.mailTheme || 'LIGHTMODE'))
   }
 
   const handleSave = async () => {
     if (!hasChanges) return
-    await updateProfile.mutateAsync({ email })
+    await updateProfile.mutateAsync({ email, mailTheme })
     setHasChanges(false)
   }
 
   const handleCancel = () => {
     if (user) {
       setEmail(user.email || '')
+      setMailTheme(user.mailTheme || 'LIGHTMODE')
       setHasChanges(false)
     }
   }
@@ -53,6 +67,18 @@ export default function Profile() {
         </Card>
 
         <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
+          <TextField name="email">
+            <Label className="text-[#a0aec0]">E-Mail</Label>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+            />
+          </TextField>
+        </Card>
+
+        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
           <Label className="text-[#a0aec0] block mb-2">Vorname</Label>
           <p className="text-[#f5f5f5] text-lg">{user.firstName || '-'}</p>
         </Card>
@@ -63,15 +89,16 @@ export default function Profile() {
         </Card>
 
         <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <TextField name="email">
-            <Label className="text-[#a0aec0]">E-Mail</Label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => handleEmailChange(e.target.value)}
-              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-            />
-          </TextField>
+          <Label className="text-[#a0aec0] block mb-2">Theme Spieltagsmail</Label>
+          <select
+            value={mailTheme}
+            onChange={(e) => handleMailThemeChange(e.target.value as MailTheme)}
+            className="w-full bg-[#242d38] border border-[#3d4a5c] text-[#f5f5f5] rounded-lg px-4 py-2 focus:outline-none focus:border-[#c9a66b]"
+          >
+            {Object.entries(mailThemeLabels).map(([key, label]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
+          </select>
         </Card>
       </div>
 

@@ -202,7 +202,10 @@ export interface User {
   birthday?: string
   role: UserRole
   managers?: ManagerInfo[]
+  mailTheme?: MailTheme
 }
+
+export type MailTheme = 'DARKMODE' | 'LIGHTMODE'
 
 export type UserRole = 'ADMIN' | 'NORMAL' | 'GUEST'
 

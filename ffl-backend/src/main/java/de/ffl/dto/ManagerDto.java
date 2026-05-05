@@ -1,5 +1,6 @@
 package de.ffl.dto;
 
+import de.ffl.domain.MailTheme;
 import de.ffl.domain.Manager;
 import de.ffl.domain.Player;
 
@@ -14,6 +15,7 @@ public class ManagerDto {
     private Integer teamValue;
     private String paymentState;
     private String description;
+    private String mailTheme;
     private Long seasonId;
     private String seasonName;
     private Integer pointsTotal;
@@ -55,6 +57,7 @@ public class ManagerDto {
         
         dto.setPaymentState(manager.getPaymentState().name());
         dto.setDescription(manager.getDescription());
+        dto.setMailTheme(manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
         
         if (manager.getSeason() != null) {
             dto.setSeasonId(manager.getSeason().getId());
@@ -207,4 +210,6 @@ public class ManagerDto {
     public void setCurrentMatchday(Integer currentMatchday) { this.currentMatchday = currentMatchday; }
     public Integer getPositionChange() { return positionChange; }
     public void setPositionChange(Integer positionChange) { this.positionChange = positionChange; }
+    public String getMailTheme() { return mailTheme; }
+    public void setMailTheme(String mailTheme) { this.mailTheme = mailTheme; }
 }

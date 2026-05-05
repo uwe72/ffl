@@ -1,12 +1,15 @@
 package de.ffl.controller;
 
 import de.ffl.config.JwtTokenProvider;
+import de.ffl.domain.MailTheme;
+import de.ffl.domain.Manager;
 import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.AuthResponse;
 import de.ffl.dto.LoginRequest;
 import de.ffl.dto.RefreshRequest;
 import de.ffl.dto.RegisterRequest;
+import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -27,15 +31,18 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
+    private final ManagerRepository managerRepository;
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
-                          JwtTokenProvider tokenProvider) {
+                          JwtTokenProvider tokenProvider,
+                          ManagerRepository managerRepository) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
+        this.managerRepository = managerRepository;
     }
 
     @PostMapping("/login")
@@ -100,9 +107,16 @@ public class AuthController {
         body.put("firstName", user.getFirstName());
         body.put("lastName", user.getLastName());
         body.put("role", user.getRole().name());
+        
+        Manager manager = managerRepository.findByUserId(user.getId());
+        if (manager != null) {
+            body.put("mailTheme", manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
+        }
+        
         return ResponseEntity.ok(body);
     }
 
+    @Transactional
     @PutMapping("/me")
     public ResponseEntity<?> updateMe(@RequestBody Map<String, String> updates) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -121,6 +135,18 @@ public class AuthController {
             user.setEmail(newEmail);
         }
         userRepository.save(user);
+        
+        if (updates.containsKey("mailTheme")) {
+            Manager manager = managerRepository.findByUserId(user.getId());
+            if (manager != null) {
+                try {
+                    manager.setMailTheme(MailTheme.valueOf(updates.get("mailTheme")));
+                    managerRepository.save(manager);
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+        }
+        
         Map<String, Object> body = new java.util.HashMap<>();
         body.put("id", user.getId());
         body.put("login", user.getLogin());
@@ -128,6 +154,12 @@ public class AuthController {
         body.put("firstName", user.getFirstName());
         body.put("lastName", user.getLastName());
         body.put("role", user.getRole().name());
+        
+        Manager manager = managerRepository.findByUserId(user.getId());
+        if (manager != null) {
+            body.put("mailTheme", manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
+        }
+        
         return ResponseEntity.ok(body);
     }
 

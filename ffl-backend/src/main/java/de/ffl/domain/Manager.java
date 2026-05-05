@@ -46,6 +46,11 @@ public class Manager {
 
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private MailTheme mailTheme = MailTheme.LIGHTMODE;
+
     @ManyToMany
     @JoinTable(
         name = "manager_2_player",

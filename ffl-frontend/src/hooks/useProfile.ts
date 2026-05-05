@@ -11,7 +11,7 @@ export const useProfile = () => {
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { email: string }) => authApi.updateProfile(data),
+    mutationFn: (data: { email: string; mailTheme?: string }) => authApi.updateProfile(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] })
     },
