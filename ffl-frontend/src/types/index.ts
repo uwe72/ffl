@@ -156,6 +156,7 @@ export interface Manager {
   teamValue?: number
   paymentState: string
   description?: string
+  mailTheme?: MailTheme
   seasonId?: number
   seasonName?: string
   pointsTotal?: number

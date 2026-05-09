@@ -1,6 +1,7 @@
 package de.ffl.service;
 
 import de.ffl.domain.Game;
+import de.ffl.domain.MailTheme;
 import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerGroup;
 import de.ffl.domain.ManagerRank;
@@ -331,13 +332,14 @@ public class MatchdayMailTransactionService {
                         dayRankByManagerId.get(managerId), topScorerName, topScorerPoints,
                         playerRankByPlayerId, teamsByPlayerId, playerById, pointsByPlayerId,
                         prevRankByManagerId, seasonRanksByPlayerId, transferRound, config.getWebUrl(),
-                        rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment);
+                        rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment,
+                        manager.getMailTheme());
 
                     helper.setText(html, true);
                     if (!testMode) {
                         mailSender.send(msg);
                     }
-                    send(emitter, (testMode ? "[TEST] " : "") + "✓ " + buildManagerDisplayName(manager) + " (" + recipientEmail + ")");
+                    send(emitter, (testMode ? "[TEST] " : "") + "✓ " + buildManagerDisplayName(manager) + " (" + recipientEmail + ") " + (manager.getMailTheme() != null ? manager.getMailTheme().name() : "LIGHTMODE"));
                     sent++;
                 } catch (Exception e) {
                     send(emitter, "✗ " + buildManagerDisplayName(manager) + " (" + recipientEmail + "): " + e.getMessage());
@@ -398,26 +400,43 @@ public class MatchdayMailTransactionService {
                                         Map<Long, Manager> managersById,
                                         List<ManagerGroup> managerGroups,
                                         Map<Long, ManagerRank> dayRankByManagerId,
-                                        String comment) {
+                                        String comment,
+                                        MailTheme mailTheme) {
+        boolean isDark = mailTheme == MailTheme.DARKMODE;
+        
+        String bodyBg = isDark ? "#1c1c1e" : "#f5f5f7";
+        String bodyText = isDark ? "#1c1c1e" : "#0a0a0a";
+        String cardBg = isDark ? "#1c1c1e" : "#ffffff";
+        String cardBgAlt = isDark ? "#2a2a2a" : "#f0f0f0";
+        String textPrimary = isDark ? "#ffffff" : "#0a0a0a";
+        String textSecondary = isDark ? "#9a9a9a" : "#4a4a4a";
+        String textTertiary = isDark ? "#6b6b6b" : "#6b6b6b";
+        String linkColor = isDark ? "#0A84FF" : "#0056CC";
+        String highlightRow = "#FFD60A";
+        
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>");
-        sb.append("<body style=\"background:#e5e5ea;color:#1c1c1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;padding:20px 4px;margin:0;\">");
+        sb.append("<body style=\"background:").append(bodyBg).append(";color:").append(bodyText).append(";font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;padding:20px 4px;margin:0;\">");
         sb.append("<div style=\"max-width:560px;margin:0 auto;\">");
 
-        sb.append("<p style=\"color:#1c1c1e;font-size:15px;font-weight:700;line-height:1.5;margin:0 0 14px 0;\">Hallo ")
+        sb.append("<p style=\"color:").append(textPrimary).append(";font-size:15px;font-weight:700;line-height:1.5;margin:0 0 14px 0;\">Hallo ")
           .append(escape(manager.getUser() != null ? Optional.ofNullable(manager.getUser().getFirstName()).orElse(manager.getName()) : manager.getName()))
           .append("!</p>");
 
-        sb.append("<div style=\"background:#2a2a2a;padding:16px 18px;margin:0 0 14px 0;color:#ffffff;font-size:14px;line-height:1.5;border-radius:18px;\">")
+        sb.append("<div style=\"background:").append(cardBgAlt).append(";padding:16px 18px;margin:0 0 14px 0;color:").append(textPrimary).append(";font-size:14px;line-height:1.5;border-radius:18px;\">")
           .append("<span style=\"color:#FFD60A;margin-right:6px;\">\u2605</span>")
-          .append(renderIntroMarkdown(intro)).append("</div>");
+          .append(renderIntroMarkdown(intro, textPrimary)).append("</div>");
 
         if (ownDayRank != null) {
-            String cardStyle = "background:#1c1c1e;border-radius:18px;padding:16px;";
-            String bigNum = "font-size:28px;font-weight:700;color:#FFD60A;line-height:1.1;";
-            String label = "font-size:11px;color:#9a9a9a;margin-top:6px;text-transform:uppercase;letter-spacing:0.5px;";
-            String badgeUp = "display:inline-block;background:rgba(48,209,88,0.18);color:#30D158;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;margin-left:6px;vertical-align:middle;";
-            String badgeDown = "display:inline-block;background:rgba(255,69,58,0.18);color:#FF453A;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;margin-left:6px;vertical-align:middle;";
+             String cardStyle = "background:" + cardBg + ";border-radius:18px;padding:16px;";
+             String bigNum = "font-size:28px;font-weight:700;color:#FFD60A;line-height:1.1;";
+             String label = "font-size:11px;color:" + textSecondary + ";margin-top:6px;text-transform:uppercase;letter-spacing:0.5px;";
+             String badgeUp = isDark 
+                 ? "display:inline-block;background:rgba(48,209,88,0.18);color:#30D158;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;margin-left:6px;vertical-align:middle;"
+                 : "display:inline-block;background:rgba(48,209,88,0.15);color:#248a3d;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;margin-left:6px;vertical-align:middle;";
+             String badgeDown = isDark
+                 ? "display:inline-block;background:rgba(255,69,58,0.18);color:#FF453A;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;margin-left:6px;vertical-align:middle;"
+                 : "display:inline-block;background:rgba(255,69,58,0.15);color:#d73527;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;margin-left:6px;vertical-align:middle;";
 
             sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-bottom:14px;\"><tr>");
 
@@ -457,7 +476,7 @@ public class MatchdayMailTransactionService {
 
             sb.append("<td width=\"50%\" style=\"padding-left:6px;padding-top:12px;\">");
             sb.append("<div style=\"").append(cardStyle).append("\">");
-            sb.append("<div style=\"font-size:28px;font-weight:700;color:#ffffff;line-height:1.1;\">").append(nz(ownDayRank.getPositionRound())).append(".</div>");
+            sb.append("<div style=\"font-size:28px;font-weight:700;color:").append(textPrimary).append(";line-height:1.1;\">").append(nz(ownDayRank.getPositionRound())).append(".</div>");
             sb.append("<div style=\"").append(label).append("\">Position Spieltag</div>");
             sb.append("</div></td>");
 
@@ -465,16 +484,16 @@ public class MatchdayMailTransactionService {
         }
 
         if (comment != null && !comment.isBlank()) {
-            sb.append("<div style=\"background:#2a2a2a;border-radius:18px;padding:16px 18px;margin:0 0 14px 0;color:#ffffff;font-size:14px;line-height:1.5;white-space:pre-wrap;\">")
+            sb.append("<div style=\"background:").append(cardBgAlt).append(";border-radius:18px;padding:16px 18px;margin:0 0 14px 0;color:").append(textPrimary).append(";font-size:14px;line-height:1.5;white-space:pre-wrap;\">")
               .append(escape(comment)).append("</div>");
         }
 
         if (rankingExcerpt != null && !rankingExcerpt.isEmpty()) {
-            appendRankingTable(sb, rankingExcerpt, manager.getId(), prevRankByManagerId, managersById);
+            appendRankingTable(sb, rankingExcerpt, manager.getId(), prevRankByManagerId, managersById, isDark, textPrimary, textSecondary, textTertiary);
             if (webUrl != null && !webUrl.isBlank()) {
                 String base = webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
                 sb.append("<div style=\"margin-top:8px;text-align:right;font-size:12px;\">")
-                  .append("<a href=\"").append(escape(base)).append("/managers\" style=\"color:#0A84FF;text-decoration:none;\">")
+                  .append("<a href=\"").append(escape(base)).append("/managers\" style=\"color:").append(linkColor).append(";text-decoration:none;\">")
                   .append("Gesamtrangliste</a></div>");
             }
         }
@@ -488,7 +507,7 @@ public class MatchdayMailTransactionService {
         roster.sort((a, b) -> Integer.compare(
             mePointsByPlayer.getOrDefault(b.player.getId(), 0),
             mePointsByPlayer.getOrDefault(a.player.getId(), 0)));
-        appendRosterTable(sb, roster, mePointsByPlayer, playerRankByPlayerId, teamsByPlayerId, roundNumber, transferRound);
+        appendRosterTable(sb, roster, mePointsByPlayer, playerRankByPlayerId, teamsByPlayerId, roundNumber, transferRound, isDark, textPrimary, textSecondary, textTertiary, cardBg);
 
         if (managerGroups != null && !managerGroups.isEmpty()) {
             List<ManagerGroup> sortedGroups = managerGroups.stream()
@@ -496,14 +515,14 @@ public class MatchdayMailTransactionService {
                 .toList();
             for (ManagerGroup group : sortedGroups) {
                 appendManagerGroupTable(sb, group, manager.getId(), dayRankByManagerId,
-                    prevRankByManagerId, managersById);
+                    prevRankByManagerId, managersById, isDark, textPrimary, textSecondary, textTertiary, cardBg);
             }
         }
 
-        sb.append("<div style=\"margin-top:24px;color:#6b6b6b;font-size:12px;text-align:center;\">");
+        sb.append("<div style=\"margin-top:24px;color:").append(textTertiary).append(";font-size:12px;text-align:center;\">");
         if (webUrl != null && !webUrl.isBlank()) {
-            sb.append("<div style=\"font-size:10px;font-weight:700;color:#4a4a4a;margin-bottom:2px;\">Webseite</div>");
-            sb.append("<a href=\"").append(escape(webUrl)).append("\" style=\"color:#0A84FF;font-weight:700;text-decoration:none;\">FFL - Fantasy Football League</a>");
+            sb.append("<div style=\"font-size:10px;font-weight:700;color:").append(textSecondary).append(";margin-bottom:2px;\">Webseite</div>");
+            sb.append("<a href=\"").append(escape(webUrl)).append("\" style=\"color:").append(linkColor).append(";font-weight:700;text-decoration:none;\">FFL - Fantasy Football League</a>");
         } else {
             sb.append("FFL - Fantasy Football League");
         }
@@ -558,11 +577,14 @@ public class MatchdayMailTransactionService {
 
     private void appendRankingTable(StringBuilder sb, List<RankingRow> rows, Long ownManagerId,
                                      Map<Long, ManagerRank> prevRankByManagerId,
-                                     Map<Long, Manager> managersById) {
-        sb.append("<div style=\"color:#4a4a4a;font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">Gesamtrangliste (Ausschnitt)</div>");
-        sb.append("<div style=\"background:#1c1c1e;border-radius:18px;padding:6px;\">");
+                                     Map<Long, Manager> managersById,
+                                     boolean isDark, String textPrimary, String textSecondary, String textTertiary) {
+        String cardBgLocal = isDark ? "#1c1c1e" : "#ffffff";
+        
+        sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">Gesamtrangliste (Ausschnitt)</div>");
+        sb.append("<div style=\"background:").append(cardBgLocal).append(";border-radius:18px;padding:6px;\">");
         sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;\">");
-        sb.append("<tr style=\"color:#9a9a9a;font-size:11px;\">");
+        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;\">");
         sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">Pos</th>");
         sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">+/-</th>");
         sb.append("<th align=\"left\" style=\"padding:10px 8px;font-weight:500;\">Manager</th>");
@@ -572,15 +594,15 @@ public class MatchdayMailTransactionService {
 
         for (RankingRow row : rows) {
             if (row.isGap) {
-                sb.append("<tr><td colspan=\"5\" align=\"center\" style=\"padding:4px;color:#6b6b6b;font-size:14px;\">\u2026</td></tr>");
+                sb.append("<tr><td colspan=\"5\" align=\"center\" style=\"padding:4px;color:").append(textTertiary).append(";font-size:14px;\">\u2026</td></tr>");
                 continue;
             }
             ManagerRank mr = row.rank;
             Manager m = managersById.get(mr.getManager().getId());
             boolean isOwn = mr.getManager().getId().equals(ownManagerId);
             String rowBg = isOwn ? "background:#FFD60A;" : "";
-            String textColor = isOwn ? "#000000" : "#ffffff";
-            String secondary = isOwn ? "#000000" : "#9a9a9a";
+            String textColor = isOwn ? "#000000" : textPrimary;
+            String secondary = isOwn ? "#000000" : textSecondary;
             String fontWeight = isOwn ? "700" : "500";
             String firstCell = isOwn ? "border-top-left-radius:12px;border-bottom-left-radius:12px;" : "";
             String lastCell = isOwn ? "border-top-right-radius:12px;border-bottom-right-radius:12px;" : "";
@@ -605,12 +627,15 @@ public class MatchdayMailTransactionService {
             }
             sb.append("</td>");
 
-            String displayName = m != null && m.getShortName() != null && !m.getShortName().isBlank()
-                ? m.getShortName()
-                : (m != null ? m.getName() : "?");
-            sb.append("<td align=\"left\" style=\"padding:10px 8px;color:").append(textColor)
-              .append(";font-weight:").append(fontWeight).append(";\">")
-              .append(escape(displayName)).append("</td>");
+            String displayName = m != null ? buildManagerDisplayName(m) : "?";
+            sb.append("<td align=\"left\" style=\"padding:10px 8px;\">");
+            sb.append("<div style=\"color:").append(textColor).append(";font-weight:").append(fontWeight).append(";font-size:13px;line-height:1.2;\">")
+              .append(escape(displayName)).append("</div>");
+            if (m != null && m.getUser() != null && m.getUser().getLogin() != null && !m.getUser().getLogin().isBlank()) {
+                sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;margin-top:2px;line-height:1.2;\">")
+                  .append(escape(m.getUser().getLogin())).append("</div>");
+            }
+            sb.append("</td>");
 
             sb.append("<td align=\"right\" style=\"padding:10px 6px;color:").append(textColor).append(";font-weight:").append(fontWeight).append(";\">")
               .append(nz(mr.getPointsTotal())).append("</td>");
@@ -627,7 +652,8 @@ public class MatchdayMailTransactionService {
     private void appendManagerGroupTable(StringBuilder sb, ManagerGroup group, Long ownManagerId,
                                           Map<Long, ManagerRank> dayRankByManagerId,
                                           Map<Long, ManagerRank> prevRankByManagerId,
-                                          Map<Long, Manager> managersById) {
+                                          Map<Long, Manager> managersById,
+                                          boolean isDark, String textPrimary, String textSecondary, String textTertiary, String cardBg) {
         List<ManagerRank> groupRanks = new ArrayList<>();
         for (Manager gm : group.getManagers()) {
             ManagerRank mr = dayRankByManagerId.get(gm.getId());
@@ -638,11 +664,11 @@ public class MatchdayMailTransactionService {
         if (groupRanks.isEmpty()) return;
         groupRanks.sort(Comparator.comparingInt(ManagerRank::getPositionTotal));
 
-        sb.append("<div style=\"color:#4a4a4a;font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">")
+        sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">")
           .append(escape(group.getName())).append("</div>");
-        sb.append("<div style=\"background:#1c1c1e;border-radius:18px;padding:6px;\">");
+        sb.append("<div style=\"background:").append(cardBg).append(";border-radius:18px;padding:6px;\">");
         sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;\">");
-        sb.append("<tr style=\"color:#9a9a9a;font-size:11px;\">");
+        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;\">");
         sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">Pos</th>");
         sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">+/-</th>");
         sb.append("<th align=\"left\" style=\"padding:10px 8px;font-weight:500;\">Manager</th>");
@@ -654,8 +680,8 @@ public class MatchdayMailTransactionService {
             Manager m = managersById.get(mr.getManager().getId());
             boolean isOwn = mr.getManager().getId().equals(ownManagerId);
             String rowBg = isOwn ? "background:#FFD60A;" : "";
-            String textColor = isOwn ? "#000000" : "#ffffff";
-            String secondary = isOwn ? "#000000" : "#9a9a9a";
+            String textColor = isOwn ? "#000000" : textPrimary;
+            String secondary = isOwn ? "#000000" : textSecondary;
             String fontWeight = isOwn ? "700" : "500";
             String firstCell = isOwn ? "border-top-left-radius:12px;border-bottom-left-radius:12px;" : "";
             String lastCell = isOwn ? "border-top-right-radius:12px;border-bottom-right-radius:12px;" : "";
@@ -680,12 +706,15 @@ public class MatchdayMailTransactionService {
             }
             sb.append("</td>");
 
-            String displayName = m != null && m.getShortName() != null && !m.getShortName().isBlank()
-                ? m.getShortName()
-                : (m != null ? m.getName() : "?");
-            sb.append("<td align=\"left\" style=\"padding:10px 8px;color:").append(textColor)
-              .append(";font-weight:").append(fontWeight).append(";\">")
-              .append(escape(displayName)).append("</td>");
+            String displayName = m != null ? buildManagerDisplayName(m) : "?";
+            sb.append("<td align=\"left\" style=\"padding:10px 8px;\">");
+            sb.append("<div style=\"color:").append(textColor).append(";font-weight:").append(fontWeight).append(";font-size:13px;line-height:1.2;\">")
+              .append(escape(displayName)).append("</div>");
+            if (m != null && m.getUser() != null && m.getUser().getLogin() != null && !m.getUser().getLogin().isBlank()) {
+                sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;margin-top:2px;line-height:1.2;\">")
+                  .append(escape(m.getUser().getLogin())).append("</div>");
+            }
+            sb.append("</td>");
 
             sb.append("<td align=\"right\" style=\"padding:10px 6px;color:").append(textColor).append(";font-weight:").append(fontWeight).append(";\">")
               .append(nz(mr.getPointsTotal())).append("</td>");
@@ -820,28 +849,40 @@ public class MatchdayMailTransactionService {
         return initial + " " + rest.toString();
     }
 
-    private String positionDarkBgFromHex(String hex) {
-        return switch (hex) {
-            case "#30D158" -> "#0F3D1E";
-            case "#FF9F0A" -> "#3D2806";
-            case "#FFD60A" -> "#3D3306";
-            case "#0A84FF" -> "#062A4D";
-            case "#BF5AF2" -> "#2D1347";
-            default -> "#2a2a2a";
-        };
+    private String positionDarkBgFromHex(String hex, boolean isDark) {
+        if (isDark) {
+            return switch (hex) {
+                case "#30D158" -> "#0F3D1E";
+                case "#FF9F0A" -> "#3D2806";
+                case "#FFD60A" -> "#3D3306";
+                case "#0A84FF" -> "#062A4D";
+                case "#BF5AF2" -> "#2D1347";
+                default -> "#2a2a2a";
+            };
+        } else {
+            return switch (hex) {
+                case "#30D158" -> "#c8f0d0";
+                case "#FF9F0A" -> "#ffe4c0";
+                case "#FFD60A" -> "#fff4b0";
+                case "#0A84FF" -> "#c0d8ff";
+                case "#BF5AF2" -> "#e8c0ff";
+                default -> "#e8e8e8";
+            };
+        }
     }
 
     private void appendRosterTable(StringBuilder sb, List<RosterEntry> roster,
                                     Map<Long, Integer> mePointsByPlayer,
                                     Map<Long, PlayerRank> playerRankByPlayerId,
                                     Map<Long, List<Team>> teamsByPlayerId,
-                                    int roundNumber, int transferRound) {
+                                    int roundNumber, int transferRound,
+                                    boolean isDark, String textPrimary, String textSecondary, String textTertiary, String cardBg) {
         boolean isRueckrundeCurrent = roundNumber >= transferRound;
-        sb.append("<div style=\"color:#4a4a4a;font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine ")
+        sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:24px 0 12px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine ")
           .append(roster.size()).append(" Spieler</div>");
-        sb.append("<div style=\"background:#1c1c1e;border-radius:18px;padding:6px;\">");
+        sb.append("<div style=\"background:").append(cardBg).append(";border-radius:18px;padding:6px;\">");
         sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;\">");
-        sb.append("<tr style=\"color:#9a9a9a;font-size:11px;\">");
+        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;\">");
         sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">#</th>");
         sb.append("<th align=\"left\" style=\"padding:10px 8px;font-weight:500;\">Spieler</th>");
         sb.append("<th align=\"center\" style=\"padding:10px 6px;font-weight:500;\">Pos</th>");
@@ -853,16 +894,14 @@ public class MatchdayMailTransactionService {
         for (RosterEntry e : roster) {
             Player player = e.player;
             PlayerRank pr = playerRankByPlayerId.get(player.getId());
-            Integer pointsTotal = pr != null ? pr.getPointsTotal() : null;
             Integer positionTotal = pr != null ? pr.getPositionTotal() : null;
             int mePoints = mePointsByPlayer.getOrDefault(player.getId(), 0);
-            boolean partial = !(e.activeHinrunde && e.activeRueckrunde);
             boolean activeNow = isRueckrundeCurrent ? e.activeRueckrunde : e.activeHinrunde;
             int pointsRound = activeNow && pr != null && pr.getPointsRound() != null ? pr.getPointsRound() : 0;
             boolean scoredToday = pointsRound > 0;
 
-            String textColor = "#ffffff";
-            String secondary = "#9a9a9a";
+            String textColor = textPrimary;
+            String secondary = textSecondary;
             String fontWeight = "500";
 
             String teamName = "";
@@ -871,11 +910,10 @@ public class MatchdayMailTransactionService {
                 teamName = teams.get(teams.size() - 1).getName();
             }
 
-            String darkBg = positionDarkBgFromHex(e.posColor);
+            String darkBg = positionDarkBgFromHex(e.posColor, isDark);
 
             sb.append("<tr style=\"\">");
 
-            // # = Gesamtposition des Spielers
             sb.append("<td align=\"center\" style=\"padding:10px 6px;color:").append(textColor)
               .append(";font-weight:").append(fontWeight).append(";\">");
             if (positionTotal != null) {
@@ -885,7 +923,6 @@ public class MatchdayMailTransactionService {
             }
             sb.append("</td>");
 
-            // Spieler + Verein stacked, links-bündig
             sb.append("<td align=\"left\" style=\"padding:10px 8px;\">");
             sb.append("<div style=\"color:").append(textColor).append(";font-weight:600;font-size:13px;line-height:1.2;white-space:nowrap;\">")
               .append("<span style=\"vertical-align:middle;\">")
@@ -899,7 +936,6 @@ public class MatchdayMailTransactionService {
             }
             sb.append("</td>");
 
-            // Pos-Badge
             sb.append("<td align=\"center\" style=\"padding:10px 6px;\">");
             sb.append("<span style=\"display:inline-block;background:").append(darkBg)
               .append(";color:").append(e.posColor)
@@ -916,18 +952,10 @@ public class MatchdayMailTransactionService {
             }
             sb.append("</td>");
 
-            // Pkt (Gesamt) — plain number, optional (totalVal) inline
-            int totalVal = pointsTotal != null ? pointsTotal : 0;
             sb.append("<td align=\"right\" style=\"padding:10px 6px;color:").append(textColor)
               .append(";font-weight:").append(fontWeight).append(";white-space:nowrap;\">")
-              .append(mePoints);
-            if (partial) {
-                sb.append(" <span style=\"color:").append(secondary).append(";font-weight:500;white-space:nowrap;\">(")
-                  .append(totalVal).append(")</span>");
-            }
-            sb.append("</td>");
+              .append(mePoints).append("</td>");
 
-            // Tag-Punkte — gelber Chip bei scoredToday
             sb.append("<td align=\"right\" style=\"padding:10px 10px 10px 6px;\">");
             if (scoredToday) {
                 sb.append("<span style=\"display:inline-block;background:#FFD60A;color:#000;font-weight:700;padding:2px 8px;border-radius:9px;font-size:12px;\">+")
@@ -992,10 +1020,9 @@ public class MatchdayMailTransactionService {
 
     private void appendRosterCard(StringBuilder sb, RosterEntry e, int mePoints,
                                    Map<Long, PlayerRank> playerRankByPlayerId,
-                                   Map<Long, List<Team>> teamsByPlayerId) {
+                                   Map<Long, List<Team>> teamsByPlayerId,
+                                   boolean isDark, String cardBg) {
         Player player = e.player;
-        PlayerRank pr = playerRankByPlayerId.get(player.getId());
-        Integer pointsTotal = pr != null ? pr.getPointsTotal() : null;
 
         String teamName = "";
         List<Team> teams = teamsByPlayerId.get(player.getId());
@@ -1003,7 +1030,7 @@ public class MatchdayMailTransactionService {
             teamName = teams.get(teams.size() - 1).getName();
         }
 
-        sb.append("<div style=\"background:#1c1c1e;border-radius:16px;padding:14px;\">");
+        sb.append("<div style=\"background:").append(cardBg).append(";border-radius:16px;padding:14px;\">");
 
         sb.append("<div style=\"font-weight:600;color:#ffffff;font-size:15px;\">")
           .append(escape(truncate(player.getNameKicker(), 22))).append("</div>");
@@ -1024,15 +1051,8 @@ public class MatchdayMailTransactionService {
         }
         sb.append("</tr></table>");
 
-        int totalVal = pointsTotal != null ? pointsTotal : 0;
-        boolean partial = !(e.activeHinrunde && e.activeRueckrunde);
         sb.append("<div style=\"margin-top:10px;font-size:22px;font-weight:700;color:#FFD60A;line-height:1.1;\">")
-          .append(mePoints).append("<span style=\"font-size:12px;font-weight:500;color:#9a9a9a;margin-left:4px;\">Pkt</span>");
-        if (partial) {
-            sb.append(" <span style=\"font-size:11px;font-weight:600;color:#9a9a9a;\">(")
-              .append(totalVal).append(")</span>");
-        }
-        sb.append("</div>");
+          .append(mePoints).append("<span style=\"font-size:12px;font-weight:500;color:#9a9a9a;margin-left:4px;\">Pkt</span></div>");
 
         sb.append("</div>");
     }
@@ -1208,10 +1228,10 @@ public class MatchdayMailTransactionService {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
 
-    private static String renderIntroMarkdown(String s) {
+    private static String renderIntroMarkdown(String s, String textPrimary) {
         if (s == null) return "";
         String escaped = escape(s);
         return escaped.replaceAll("\\*\\*(.+?)\\*\\*",
-            "<strong style=\"color:#ffffff;font-style:normal;\">$1</strong>");
+            "<strong style=\"color:" + textPrimary + ";font-style:normal;\">$1</strong>");
     }
 }

@@ -29,6 +29,9 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Claude
+.claude/
+
 # H2 Database
 ffl-backend/data/*.lock.db
 ffl-backend/data/*.trace.db
