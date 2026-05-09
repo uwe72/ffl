@@ -25,6 +25,8 @@ import de.ffl.repository.RoundRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.SystemConfigRepository;
 import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 public class MatchdayMailTransactionService {
+
+    private static final Logger log = LoggerFactory.getLogger(MatchdayMailTransactionService.class);
 
     private final SeasonRepository seasonRepository;
     private final ManagerRepository managerRepository;
@@ -87,6 +91,10 @@ public class MatchdayMailTransactionService {
                 .orElseThrow(() -> new RuntimeException("Saison " + seasonId + " nicht gefunden"));
 
             List<Manager> allManagersInSeason = managerRepository.findBySeasonIdWithPlayers(seasonId);
+            log.info("Geladene Manager:");
+            for (Manager m : allManagersInSeason) {
+                log.info("  Manager ID={}, Name={}, mailTheme={}", m.getId(), m.getName(), m.getMailTheme());
+            }
             List<Long> allManagerIds = allManagersInSeason.stream().map(Manager::getId).toList();
 
             List<ManagerRank> dayRanks = managerRankRepository.findByManagerIdInAndRoundNumber(
@@ -266,7 +274,13 @@ public class MatchdayMailTransactionService {
                 .limit(5)
                 .collect(Collectors.toList());
 
+            double avgPointsRound = managerPoints.stream()
+                .mapToInt(m -> (Integer) m.getOrDefault("pointsRound", 0))
+                .average()
+                .orElse(0.0);
+
             Map<String, Object> summary = new HashMap<>();
+            summary.put("avgPointsRound", (int) Math.round(avgPointsRound));
             summary.put("saison", season.getName());
             summary.put("spieltag", roundNumber);
             summary.put("topScorer", topScorerName);
@@ -404,14 +418,14 @@ public class MatchdayMailTransactionService {
                                         MailTheme mailTheme) {
         boolean isDark = mailTheme == MailTheme.DARKMODE;
         
-        String bodyBg = isDark ? "#1c1c1e" : "#f5f5f7";
-        String bodyText = isDark ? "#1c1c1e" : "#0a0a0a";
-        String cardBg = isDark ? "#1c1c1e" : "#ffffff";
-        String cardBgAlt = isDark ? "#2a2a2a" : "#f0f0f0";
+        String bodyBg = "#f5f5f7";
+        String bodyText = "#0a0a0a";
+        String cardBg = isDark ? "#1a1a1a" : "#ffffff";
+        String cardBgAlt = isDark ? "#1a1a1a" : "#f0f0f0";
         String textPrimary = isDark ? "#ffffff" : "#0a0a0a";
         String textSecondary = isDark ? "#9a9a9a" : "#1a3a5c";
         String textTertiary = isDark ? "#6b6b6b" : "#1a3a5c";
-        String linkColor = isDark ? "#0A84FF" : "#0056CC";
+        String linkColor = isDark ? "#7aa2d4" : "#0056CC";
         String highlightRow = "#FFD60A";
         String bigNumColor = isDark ? "#FFD60A" : "#1a3a5c";
         
@@ -420,11 +434,11 @@ public class MatchdayMailTransactionService {
         sb.append("<body style=\"background:").append(bodyBg).append(";color:").append(bodyText).append(";font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;padding:20px 2px;margin:0;\">");
         sb.append("<div style=\"max-width:600px;margin:0 auto;\">");
 
-        sb.append("<p style=\"color:").append(textPrimary).append(";font-size:15px;font-weight:700;line-height:1.5;margin:0 0 14px 0;\">Hallo ")
+        sb.append("<p style=\"color:").append(textTertiary).append(";font-size:15px;font-weight:700;line-height:1.5;margin:0 0 14px 0;\">Hallo ")
           .append(escape(manager.getUser() != null ? Optional.ofNullable(manager.getUser().getFirstName()).orElse(manager.getName()) : manager.getName()))
           .append("!</p>");
 
-        String introCardStyle = "background:" + cardBgAlt + ";padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;border-radius:12px;";
+        String introCardStyle = "background:" + cardBgAlt + ";padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;border-radius:12px;border:1px solid #555555;";
         if (!isDark) {
             introCardStyle = "background:" + cardBgAlt + ";padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;border-radius:12px;border:1px solid #c0c0c0;";
         }
@@ -433,7 +447,7 @@ public class MatchdayMailTransactionService {
           .append(renderIntroMarkdown(intro, textPrimary)).append("</div>");
 
         if (ownDayRank != null) {
-             String cardStyle = "background:" + cardBg + ";border-radius:12px;padding:12px 14px;";
+             String cardStyle = "background:" + cardBg + ";border-radius:12px;padding:12px 14px;border:1px solid #555555;";
              if (!isDark) {
                  cardStyle = "background:" + cardBg + ";border-radius:12px;padding:12px 14px;border:1px solid #c0c0c0;";
              }
@@ -478,7 +492,7 @@ public class MatchdayMailTransactionService {
         }
 
         if (comment != null && !comment.isBlank()) {
-            String commentCardStyle = "background:" + cardBgAlt + ";border-radius:12px;padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;white-space:pre-wrap;";
+            String commentCardStyle = "background:" + cardBgAlt + ";border-radius:12px;padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;white-space:pre-wrap;border:1px solid #555555;";
             if (!isDark) {
                 commentCardStyle = "background:" + cardBgAlt + ";border-radius:12px;padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;white-space:pre-wrap;border:1px solid #c0c0c0;";
             }
@@ -578,35 +592,34 @@ public class MatchdayMailTransactionService {
                                      Map<Long, Manager> managersById,
                                      boolean isDark, String textPrimary, String textSecondary, String textTertiary) {
         sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">Gesamtrangliste (Ausschnitt)</div>");
-        if (isDark) {
-            sb.append("<div style=\"background:#1c1c1e;border-radius:12px;padding:6px;\">");
-        }
-        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;");
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;border-collapse:collapse;");
         if (!isDark) {
-            sb.append("border-collapse:collapse;border:1px solid #c0c0c0;\"");
+            sb.append("border:1px solid #c0c0c0;\"");
         } else {
-            sb.append("\"");
+            sb.append("border:1px solid #555555;\"");
         }
         sb.append(">");
         sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;");
         if (!isDark) {
             sb.append("background:#f0f0f0;");
+        } else {
+            sb.append("background:#1c1c1e;");
         }
         sb.append("\">");
         sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Pos</th>");
         sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">+/-</th>");
         sb.append("<th align=\"left\" style=\"padding:7px 8px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Manager</th>");
         sb.append("<th align=\"right\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Pkt</th>");
         sb.append("<th align=\"right\" style=\"padding:7px 10px 7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Sp.</th>");
         sb.append("</tr>");
 
@@ -615,6 +628,7 @@ public class MatchdayMailTransactionService {
             if (row.isGap) {
                 sb.append("<tr><td colspan=\"5\" align=\"center\" style=\"padding:4px;color:").append(textTertiary).append(";font-size:14px;");
                 if (!isDark) sb.append("border-left:1px solid #c0c0c0;border-right:1px solid #c0c0c0;");
+                else sb.append("border-left:1px solid #555555;border-right:1px solid #555555;");
                 sb.append("\">…</td></tr>");
                 continue;
             }
@@ -625,13 +639,13 @@ public class MatchdayMailTransactionService {
             String cellBorder;
             if (isOwn) {
                 rowBg = "background:#FFD60A;";
-                cellBorder = isDark ? "" : "border:1px solid #c0c0c0;";
+                cellBorder = isDark ? "border:1px solid #555555;" : "border:1px solid #c0c0c0;";
             } else if (!isDark) {
                 rowBg = rowIndex % 2 == 0 ? "background:#ffffff;" : "background:#f5f5f5;";
                 cellBorder = "border:1px solid #c0c0c0;";
             } else {
-                rowBg = "";
-                cellBorder = "";
+                rowBg = rowIndex % 2 == 0 ? "background:#000000;" : "background:#2a2a2a;";
+                cellBorder = "border:1px solid #555555;";
             }
             rowIndex++;
             String textColor = isOwn ? "#000000" : textPrimary;
@@ -677,9 +691,6 @@ public class MatchdayMailTransactionService {
             sb.append("</tr>");
         }
         sb.append("</table>");
-        if (isDark) {
-            sb.append("</div>");
-        }
     }
 
     private void appendManagerGroupTable(StringBuilder sb, ManagerGroup group, Long ownManagerId,
@@ -699,35 +710,34 @@ public class MatchdayMailTransactionService {
 
         sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">")
           .append(escape(group.getName())).append("</div>");
-        if (isDark) {
-            sb.append("<div style=\"background:").append(cardBg).append(";border-radius:12px;padding:6px;\">");
-        }
-        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;");
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;border-collapse:collapse;");
         if (!isDark) {
-            sb.append("border-collapse:collapse;border:1px solid #c0c0c0;\"");
+            sb.append("border:1px solid #c0c0c0;\"");
         } else {
-            sb.append("\"");
+            sb.append("border:1px solid #555555;\"");
         }
         sb.append(">");
         sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;");
         if (!isDark) {
             sb.append("background:#f0f0f0;");
+        } else {
+            sb.append("background:#1c1c1e;");
         }
         sb.append("\">");
         sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Pos</th>");
         sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">+/-</th>");
         sb.append("<th align=\"left\" style=\"padding:7px 8px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Manager</th>");
         sb.append("<th align=\"right\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Pkt</th>");
         sb.append("<th align=\"right\" style=\"padding:7px 10px 7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Sp.</th>");
         sb.append("</tr>");
 
@@ -739,13 +749,13 @@ public class MatchdayMailTransactionService {
             String cellBorder;
             if (isOwn) {
                 rowBg = "background:#FFD60A;";
-                cellBorder = isDark ? "" : "border:1px solid #c0c0c0;";
+                cellBorder = isDark ? "border:1px solid #555555;" : "border:1px solid #c0c0c0;";
             } else if (!isDark) {
                 rowBg = rowIndex % 2 == 0 ? "background:#ffffff;" : "background:#f5f5f5;";
                 cellBorder = "border:1px solid #c0c0c0;";
             } else {
-                rowBg = "";
-                cellBorder = "";
+                rowBg = rowIndex % 2 == 0 ? "background:#000000;" : "background:#2a2a2a;";
+                cellBorder = "border:1px solid #555555;";
             }
             rowIndex++;
             String textColor = isOwn ? "#000000" : textPrimary;
@@ -791,9 +801,6 @@ public class MatchdayMailTransactionService {
             sb.append("</tr>");
         }
         sb.append("</table>");
-        if (isDark) {
-            sb.append("</div>");
-        }
     }
 
     private static final class RosterEntry {
@@ -960,38 +967,37 @@ public class MatchdayMailTransactionService {
         boolean isRueckrundeCurrent = roundNumber >= transferRound;
         sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine ")
           .append(roster.size()).append(" Spieler</div>");
-        if (isDark) {
-            sb.append("<div style=\"background:").append(cardBg).append(";border-radius:12px;padding:6px;\">");
-        }
-        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;");
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;border-collapse:collapse;");
         if (!isDark) {
-            sb.append("border-collapse:collapse;border:1px solid #c0c0c0;\"");
+            sb.append("border:1px solid #c0c0c0;\"");
         } else {
-            sb.append("\"");
+            sb.append("border:1px solid #555555;\"");
         }
         sb.append(">");
         sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;");
         if (!isDark) {
             sb.append("background:#f0f0f0;");
+        } else {
+            sb.append("background:#1c1c1e;");
         }
         sb.append("\">");
         sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">#</th>");
         sb.append("<th align=\"left\" style=\"padding:7px 8px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Spieler</th>");
         sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Pos</th>");
         sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">H/R</th>");
         sb.append("<th align=\"right\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Pkt</th>");
         sb.append("<th align=\"right\" style=\"padding:7px 10px 7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Sp.</th>");
         sb.append("</tr>");
 
@@ -1023,8 +1029,8 @@ public class MatchdayMailTransactionService {
                 rowBg = rowIndex % 2 == 0 ? "background:#ffffff;" : "background:#f5f5f5;";
                 cellBorder = "border:1px solid #c0c0c0;";
             } else {
-                rowBg = "";
-                cellBorder = "";
+                rowBg = rowIndex % 2 == 0 ? "background:#000000;" : "background:#2a2a2a;";
+                cellBorder = "border:1px solid #555555;";
             }
             rowIndex++;
 
@@ -1080,9 +1086,6 @@ public class MatchdayMailTransactionService {
             sb.append("</tr>");
         }
         sb.append("</table>");
-        if (isDark) {
-            sb.append("</div>");
-        }
     }
 
     private void appendScoringPlayersTable(StringBuilder sb, List<Player> scoringPlayers, Manager manager,
