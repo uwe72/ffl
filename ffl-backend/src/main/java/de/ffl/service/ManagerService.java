@@ -1,5 +1,6 @@
 package de.ffl.service;
 
+import de.ffl.domain.MailTheme;
 import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerRank;
 import de.ffl.domain.Player;
@@ -302,6 +303,7 @@ public class ManagerService {
 
         dto.setPaymentState(manager.getPaymentState().name());
         dto.setDescription(manager.getDescription());
+        dto.setMailTheme(manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
         
         if (manager.getSeason() != null) {
             dto.setSeasonId(manager.getSeason().getId());

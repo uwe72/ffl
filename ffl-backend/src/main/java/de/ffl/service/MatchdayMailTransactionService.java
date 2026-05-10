@@ -325,7 +325,7 @@ public class MatchdayMailTransactionService {
                 }
                 String recipientEmail = manager.getUser() != null ? manager.getUser().getEmail() : null;
                 if (recipientEmail == null || recipientEmail.isBlank()) {
-                    send(emitter, "✗ " + buildManagerDisplayName(manager) + " hat keine Mailadresse");
+                    send(emitter, "✗ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " hat keine Mailadresse");
                     failed++;
                     continue;
                 }
@@ -353,10 +353,10 @@ public class MatchdayMailTransactionService {
                     if (!testMode) {
                         mailSender.send(msg);
                     }
-                    send(emitter, (testMode ? "[TEST] " : "") + "✓ " + buildManagerDisplayName(manager) + " (" + recipientEmail + ") " + (manager.getMailTheme() != null ? manager.getMailTheme().name() : "LIGHTMODE"));
+                    send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + recipientEmail + ") " + (manager.getMailTheme() != null ? manager.getMailTheme().name() : "LIGHTMODE"));
                     sent++;
                 } catch (Exception e) {
-                    send(emitter, "✗ " + buildManagerDisplayName(manager) + " (" + recipientEmail + "): " + e.getMessage());
+                    send(emitter, "✗ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + recipientEmail + "): " + e.getMessage());
                     failed++;
                 }
             }
