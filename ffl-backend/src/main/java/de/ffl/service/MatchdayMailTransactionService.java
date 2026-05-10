@@ -500,16 +500,6 @@ public class MatchdayMailTransactionService {
               .append(escape(comment)).append("</div>");
         }
 
-        if (rankingExcerpt != null && !rankingExcerpt.isEmpty()) {
-            appendRankingTable(sb, rankingExcerpt, manager.getId(), prevRankByManagerId, managersById, isDark, textPrimary, textSecondary, textTertiary);
-            if (webUrl != null && !webUrl.isBlank()) {
-                String base = webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
-                sb.append("<div style=\"margin-top:8px;text-align:right;font-size:12px;\">")
-                  .append("<a href=\"").append(escape(base)).append("/managers\" style=\"color:").append(linkColor).append(";text-decoration:none;\">")
-                  .append("Gesamtrangliste</a></div>");
-            }
-        }
-
         List<RosterEntry> roster = collectFullRoster(manager, playerById);
         Map<Long, Integer> mePointsByPlayer = new HashMap<>();
         for (RosterEntry e : roster) {
@@ -520,6 +510,16 @@ public class MatchdayMailTransactionService {
             mePointsByPlayer.getOrDefault(b.player.getId(), 0),
             mePointsByPlayer.getOrDefault(a.player.getId(), 0)));
         appendRosterTable(sb, roster, mePointsByPlayer, playerRankByPlayerId, teamsByPlayerId, roundNumber, transferRound, isDark, textPrimary, textSecondary, textTertiary, cardBg);
+
+        if (rankingExcerpt != null && !rankingExcerpt.isEmpty()) {
+            appendRankingTable(sb, rankingExcerpt, manager.getId(), prevRankByManagerId, managersById, isDark, textPrimary, textSecondary, textTertiary);
+            if (webUrl != null && !webUrl.isBlank()) {
+                String base = webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
+                sb.append("<div style=\"margin-top:8px;text-align:right;font-size:12px;\">")
+                  .append("<a href=\"").append(escape(base)).append("/managers\" style=\"color:").append(linkColor).append(";text-decoration:none;\">")
+                  .append("Gesamtrangliste</a></div>");
+            }
+        }
 
         if (managerGroups != null && !managerGroups.isEmpty()) {
             List<ManagerGroup> sortedGroups = managerGroups.stream()
