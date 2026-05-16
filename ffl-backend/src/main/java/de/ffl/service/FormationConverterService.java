@@ -106,7 +106,7 @@ public class FormationConverterService {
         }
         
         if (playerList.size() != 22) {
-            result.addError("Es wurden " + playerList.size() + " statt 22 Spieler in der Aufstellung gefunden");
+            result.addError("Fehler beim Parsen der Aufstellung: Erwartet wurden 22 Spieler, aber " + playerList.size() + " Einträge gefunden. Hinweis: Prüfe ob 'Trainer' oder 'Wechsel' als Trenner vorhanden sind.");
             return result;
         }
         
@@ -433,7 +433,7 @@ public class FormationConverterService {
         }
 
         if (playerList.size() != 22) {
-            result.getErrors().add("Es wurden " + playerList.size() + " statt 22 Spieler in der Aufstellung gefunden");
+            result.getErrors().add("Fehler beim Parsen der Aufstellung: Erwartet wurden 22 Spieler, aber " + playerList.size() + " Einträge gefunden. Hinweis: Prüfe ob 'Trainer' oder 'Wechsel' als Trenner vorhanden sind.");
             result.setValid(false);
             return result;
         }
