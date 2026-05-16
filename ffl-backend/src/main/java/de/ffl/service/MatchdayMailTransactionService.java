@@ -990,15 +990,15 @@ public class MatchdayMailTransactionService {
         sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
         if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Pos</th>");
-        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">H/R</th>");
         sb.append("<th align=\"right\" style=\"padding:7px 6px;font-weight:500;");
         if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Pkt</th>");
         sb.append("<th align=\"right\" style=\"padding:7px 10px 7px 6px;font-weight:500;");
         if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Sp.</th>");
+        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
+        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
+        sb.append("\">H/R</th>");
         sb.append("</tr>");
 
         int rowIndex = 0;
@@ -1065,14 +1065,6 @@ public class MatchdayMailTransactionService {
               .append(escape(e.posLabel)).append("</span>");
             sb.append("</td>");
 
-            sb.append("<td align=\"center\" style=\"padding:7px 6px;").append(cellBorder).append("\">");
-            if (e.activeHinrunde && !e.activeRueckrunde) {
-                sb.append("<span style=\"display:inline-block;background:#0A84FF;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">HR</span>");
-            } else if (e.activeRueckrunde && !e.activeHinrunde) {
-                sb.append("<span style=\"display:inline-block;background:#BF5AF2;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">RR</span>");
-            }
-            sb.append("</td>");
-
             sb.append("<td align=\"right\" style=\"padding:7px 6px;color:").append(textColor)
               .append(";font-weight:").append(fontWeight).append(";white-space:nowrap;").append(cellBorder).append("\">")
               .append(mePoints).append("</td>");
@@ -1081,6 +1073,14 @@ public class MatchdayMailTransactionService {
             if (scoredToday) {
                 sb.append("<span style=\"display:inline-block;background:#FFD60A;color:#000;font-weight:700;padding:2px 8px;border-radius:9px;font-size:12px;\">+")
                   .append(pointsRound).append("</span>");
+            }
+            sb.append("</td>");
+
+            sb.append("<td align=\"center\" style=\"padding:7px 6px;").append(cellBorder).append("\">");
+            if (e.activeHinrunde && !e.activeRueckrunde) {
+                sb.append("<span style=\"display:inline-block;background:#0A84FF;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">HR</span>");
+            } else if (e.activeRueckrunde && !e.activeHinrunde) {
+                sb.append("<span style=\"display:inline-block;background:#BF5AF2;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">RR</span>");
             }
             sb.append("</td>");
             sb.append("</tr>");
