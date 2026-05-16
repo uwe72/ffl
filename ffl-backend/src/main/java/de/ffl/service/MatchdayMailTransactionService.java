@@ -314,6 +314,7 @@ public class MatchdayMailTransactionService {
 
             int sent = 0;
             int failed = 0;
+            long lastKeepAlive = System.currentTimeMillis();
             for (Long managerId : managerIds) {
                 Manager manager = allManagersInSeason.stream()
                     .filter(m -> m.getId().equals(managerId))
@@ -358,12 +359,19 @@ public class MatchdayMailTransactionService {
 
                     Thread.sleep(1000);
 
+                    long now = System.currentTimeMillis();
+                    if (now - lastKeepAlive > 30000) {
+                        emitter.send(SseEmitter.event().comment("keep-alive"));
+                        lastKeepAlive = now;
+                    }
+
                     if (sent % 50 == 0 && sent < managerIds.size()) {
                         for (int remaining = 90; remaining > 0; remaining--) {
                             send(emitter, "⏳ " + sent + " Mails versendet, warte " + remaining + " Sekunden...");
                             Thread.sleep(1000);
                         }
                         send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
+                        lastKeepAlive = System.currentTimeMillis();
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
