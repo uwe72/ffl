@@ -103,7 +103,7 @@ public class MatchdayMailService {
     }
 
     public SseEmitter streamMatchdayMail(Long seasonId, Integer roundNumber, List<Long> managerIds, String comment, boolean testMode) {
-        SseEmitter emitter = new SseEmitter(600_000L);
+        SseEmitter emitter = new SseEmitter(1_200_000L);
         executor.execute(() -> {
             try {
                 SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc()

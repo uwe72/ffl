@@ -355,6 +355,20 @@ public class MatchdayMailTransactionService {
                     }
                     send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + recipientEmail + ") " + (manager.getMailTheme() != null ? manager.getMailTheme().name() : "LIGHTMODE"));
                     sent++;
+
+                    Thread.sleep(1000);
+
+                    if (sent % 50 == 0 && sent < managerIds.size()) {
+                        for (int remaining = 90; remaining > 0; remaining--) {
+                            send(emitter, "⏳ " + sent + " Mails versendet, warte " + remaining + " Sekunden...");
+                            Thread.sleep(1000);
+                        }
+                        send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    send(emitter, "✗ Versand unterbrochen: " + e.getMessage());
+                    failed++;
                 } catch (Exception e) {
                     send(emitter, "✗ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + recipientEmail + "): " + e.getMessage());
                     failed++;
