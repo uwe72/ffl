@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Card, Input, Button } from '@heroui/react'
+import { Card, Input, TextArea, Button } from '@heroui/react'
 import { useManagerGroups, useCreateManagerGroup, useDeleteManagerGroup } from '../hooks/useManagerGroups'
 import { useCurrentSeason } from '../hooks/useSeasons'
 
@@ -14,6 +14,7 @@ export default function ManagerGroups() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [newGroupName, setNewGroupName] = useState('')
   const [newGroupDescription, setNewGroupDescription] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const { data: groups, isLoading, error } = useManagerGroups()
   const { data: currentSeason } = useCurrentSeason()
@@ -63,15 +64,20 @@ export default function ManagerGroups() {
   const handleCreateGroup = async () => {
     if (!newGroupName.trim() || !newGroupDescription.trim() || !currentSeason) return
     
-    await createMutation.mutateAsync({
-      name: newGroupName.trim(),
-      description: newGroupDescription.trim(),
-      seasonId: currentSeason.id
-    })
-    
-    setNewGroupName('')
-    setNewGroupDescription('')
-    setIsCreateModalOpen(false)
+    setErrorMessage('')
+    try {
+      await createMutation.mutateAsync({
+        name: newGroupName.trim(),
+        description: newGroupDescription.trim(),
+        seasonId: currentSeason.id
+      })
+      
+      setNewGroupName('')
+      setNewGroupDescription('')
+      setIsCreateModalOpen(false)
+    } catch (error) {
+      setErrorMessage('Fehler beim Erstellen der Gruppe. Bitte versuchen Sie es erneut.')
+    }
   }
 
   const handleDeleteGroup = async (id: number) => {
@@ -88,7 +94,10 @@ export default function ManagerGroups() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-[#f5f5f5]">Gruppen</h1>
         <Button
-          onPress={() => setIsCreateModalOpen(true)}
+          onPress={() => {
+            setErrorMessage('')
+            setIsCreateModalOpen(true)
+          }}
           className="bg-[#c9a66b] text-[#0f1419]"
         >
           Neue Gruppe
@@ -197,6 +206,9 @@ export default function ManagerGroups() {
                 Keine aktuelle Saison ausgewählt. Bitte erstellen Sie zuerst eine Saison.
               </p>
             )}
+            {errorMessage && (
+              <p className="text-[#e05252] text-sm mb-4">{errorMessage}</p>
+            )}
             <div className="space-y-4">
               <div>
                 <label className="block text-[#a0aec0] mb-1">Name <span className="text-[#e05252]">*</span></label>
@@ -209,7 +221,7 @@ export default function ManagerGroups() {
               </div>
               <div>
                 <label className="block text-[#a0aec0] mb-1">Beschreibung <span className="text-[#e05252]">*</span></label>
-                <Input
+                <TextArea
                   placeholder="Beschreibung"
                   value={newGroupDescription}
                   onChange={(e) => setNewGroupDescription(e.target.value)}
@@ -220,17 +232,20 @@ export default function ManagerGroups() {
             <div className="mt-6 flex justify-end gap-2">
               <Button
                 variant="ghost"
-                onPress={() => setIsCreateModalOpen(false)}
+                onPress={() => {
+                  setIsCreateModalOpen(false)
+                  setErrorMessage('')
+                }}
                 className="text-[#a0aec0]"
               >
                 Abbrechen
               </Button>
               <Button
                 onPress={handleCreateGroup}
-                isDisabled={!newGroupName.trim() || !newGroupDescription.trim() || !currentSeason}
+                isDisabled={!newGroupName.trim() || !newGroupDescription.trim() || !currentSeason || createMutation.isPending}
                 className="bg-[#c9a66b] text-[#0f1419]"
               >
-                Erstellen
+                {createMutation.isPending ? 'Wird erstellt...' : 'Erstellen'}
               </Button>
             </div>
           </Card>
