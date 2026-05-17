@@ -319,9 +319,13 @@ public class ManagerGroupService {
         dto.setId(group.getId());
         dto.setName(group.getName());
         dto.setDescription(group.getDescription());
+        
+        Hibernate.initialize(group.getSeason());
         if (group.getSeason() != null) {
             dto.setSeasonId(group.getSeason().getId());
         }
+        
+        Hibernate.initialize(group.getCreatedBy());
         if (group.getCreatedBy() != null) {
             dto.setCreatedById(group.getCreatedBy().getId());
             dto.setCreatedByLogin(group.getCreatedBy().getLogin());
