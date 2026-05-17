@@ -1,11 +1,12 @@
-import { useParams, Link as RouterLink } from 'react-router-dom'
-import { Card, Button, TextField, Label, Input, TextArea } from '@heroui/react'
+import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
+import { Card, Button, Label, Input, TextArea } from '@heroui/react'
 import { useState, useMemo, useEffect } from 'react'
-import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator } from '../hooks/useManagerGroups'
+import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator, useCreateManagerGroup } from '../hooks/useManagerGroups'
 import { useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useUsers } from '../hooks/useUsers'
 import { useAuth } from '../context/AuthContext'
+import type { ManagerInGroup } from '../types'
 
 type SortKey = 'positionTotal' | 'shortName' | 'firstName' | 'lastName' | 'pointsTotal' | 'pointsLastRound'
 type SortOrder = 'asc' | 'desc'
@@ -17,16 +18,22 @@ const emailToOptions = [
 
 export default function ManagerGroupDetail() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { user } = useAuth()
-  const { data: group, isLoading, error } = useManagerGroup(Number(id))
+  
+  const isNewMode = id === 'new'
+  const groupId = isNewMode ? 0 : Number(id)
+  
+  const { data: group, isLoading, error } = useManagerGroup(groupId)
   const { data: currentSeason } = useCurrentSeason()
   const { data: allManagers } = useManagersBySeason(currentSeason?.id || 0)
   const { data: allUsers } = useUsers()
   
-  const addManagerMutation = useAddManagerToGroup(Number(id))
-  const removeManagerMutation = useRemoveManagerFromGroup(Number(id))
-  const updateMutation = useUpdateManagerGroup(Number(id))
-  const changeCreatorMutation = useChangeCreator(Number(id))
+  const createMutation = useCreateManagerGroup()
+  const addManagerMutation = useAddManagerToGroup(groupId)
+  const removeManagerMutation = useRemoveManagerFromGroup(groupId)
+  const updateMutation = useUpdateManagerGroup(groupId)
+  const changeCreatorMutation = useChangeCreator(groupId)
   
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
@@ -39,16 +46,25 @@ export default function ManagerGroupDetail() {
   const [editDescription, setEditDescription] = useState('')
   const [editEmailTo, setEditEmailTo] = useState<string>('ALL_MANAGERS')
   const [hasChanges, setHasChanges] = useState(false)
+  const [selectedManagerIds, setSelectedManagerIds] = useState<number[]>([])
+  const [errorMessage, setErrorMessage] = useState('')
 
   const isAdmin = user?.role === 'ADMIN'
 
   useEffect(() => {
-    if (group) {
+    if (isNewMode) {
+      setEditName('')
+      setEditDescription('')
+      setEditEmailTo('ALL_MANAGERS')
+      setSelectedManagerIds([])
+      setHasChanges(false)
+    } else if (group) {
       setEditName(group.name)
       setEditDescription(group.description || '')
       setEditEmailTo(group.emailTo || 'ALL_MANAGERS')
+      setHasChanges(false)
     }
-  }, [group])
+  }, [group, isNewMode])
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -64,21 +80,36 @@ export default function ManagerGroupDetail() {
     return <span className="text-[#c9a66b] ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
+  const selectedManagers = useMemo(() => {
+    if (!isNewMode || !allManagers) return []
+    return allManagers
+      .filter(m => selectedManagerIds.includes(m.id))
+      .map(m => ({
+        id: m.id,
+        name: m.name,
+        shortName: m.shortName,
+        firstName: m.firstName,
+        lastName: m.lastName,
+        pointsTotal: m.pointsTotal,
+        pointsLastRound: m.pointsLastRound,
+        positionTotal: m.positionTotal,
+        positionLastRound: m.positionLastRound
+      })) as ManagerInGroup[]
+  }, [isNewMode, allManagers, selectedManagerIds])
+
   const filteredAndSortedManagers = useMemo(() => {
-    if (!group?.managers) return []
-    
-    let managers = [...group.managers]
+    const managerList = isNewMode ? selectedManagers : (group?.managers || [])
     
     if (managerFilter.trim()) {
       const filter = managerFilter.toLowerCase()
-      managers = managers.filter(m => 
+      return managerList.filter(m => 
         (m.shortName || m.name).toLowerCase().includes(filter) ||
         (m.firstName || '').toLowerCase().includes(filter) ||
         (m.lastName || '').toLowerCase().includes(filter)
       )
     }
     
-    return managers.sort((a, b) => {
+    return managerList.sort((a, b) => {
       let comparison = 0
       switch (sortKey) {
         case 'shortName':
@@ -102,11 +133,22 @@ export default function ManagerGroupDetail() {
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-  }, [group?.managers, sortKey, sortOrder, managerFilter])
+  }, [isNewMode, selectedManagers, group?.managers, sortKey, sortOrder, managerFilter])
 
   const availableManagers = useMemo(() => {
-    if (!allManagers || !group) return []
+    if (!allManagers) return []
     
+    if (isNewMode) {
+      return allManagers.filter(m => 
+        !selectedManagerIds.includes(m.id) &&
+        (m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         m.shortName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         m.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         m.lastName?.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
+    }
+    
+    if (!group) return []
     const groupManagerIds = new Set(group.managers.map(m => m.id))
     return allManagers.filter(m => 
       !groupManagerIds.has(m.id) &&
@@ -115,7 +157,7 @@ export default function ManagerGroupDetail() {
        m.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
        m.lastName?.toLowerCase().includes(searchTerm.toLowerCase()))
     )
-  }, [allManagers, group, searchTerm])
+  }, [allManagers, isNewMode, selectedManagerIds, group, searchTerm])
 
   const filteredUsers = useMemo(() => {
     if (!allUsers) return []
@@ -127,14 +169,22 @@ export default function ManagerGroupDetail() {
   }, [allUsers, creatorSearch])
 
   const handleAddManager = async (managerId: number) => {
-    await addManagerMutation.mutateAsync(managerId)
+    if (isNewMode) {
+      setSelectedManagerIds(prev => [...prev, managerId])
+    } else {
+      await addManagerMutation.mutateAsync(managerId)
+    }
     setIsAddModalOpen(false)
     setSearchTerm('')
   }
 
   const handleRemoveManager = async (managerId: number) => {
-    if (window.confirm('Möchten Sie diesen Manager wirklich aus der Gruppe entfernen?')) {
-      await removeManagerMutation.mutateAsync(managerId)
+    if (isNewMode) {
+      setSelectedManagerIds(prev => prev.filter(id => id !== managerId))
+    } else {
+      if (window.confirm('Möchten Sie diesen Manager wirklich aus der Gruppe entfernen?')) {
+        await removeManagerMutation.mutateAsync(managerId)
+      }
     }
   }
 
@@ -142,6 +192,27 @@ export default function ManagerGroupDetail() {
     await changeCreatorMutation.mutateAsync(newCreatorId)
     setIsCreatorModalOpen(false)
     setCreatorSearch('')
+  }
+
+  const handleCreate = async () => {
+    if (!editName.trim() || !editDescription.trim() || !currentSeason) {
+      setErrorMessage('Bitte füllen Sie alle Pflichtfelder aus.')
+      return
+    }
+
+    setErrorMessage('')
+    try {
+      const created = await createMutation.mutateAsync({
+        name: editName.trim(),
+        description: editDescription.trim(),
+        seasonId: currentSeason.id,
+        emailTo: editEmailTo as 'ALL_MANAGERS' | 'CREATOR_ONLY',
+        managerIds: selectedManagerIds
+      })
+      navigate(`/manager-groups/${created.id}`, { replace: true })
+    } catch {
+      setErrorMessage('Fehler beim Erstellen der Gruppe.')
+    }
   }
 
   const handleSaveChanges = async () => {
@@ -162,6 +233,9 @@ export default function ManagerGroupDetail() {
   }
 
   const getCreatorDisplayName = () => {
+    if (isNewMode) {
+      return user?.login || 'Unbekannt'
+    }
     if (!group) return 'Unbekannt'
     const firstName = group.createdByFirstName
     const lastName = group.createdByLastName
@@ -172,9 +246,12 @@ export default function ManagerGroupDetail() {
     return login || 'Unbekannt'
   }
 
-  if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
-  if (error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
-  if (!group) return <div className="text-center py-8 text-[#6b7280]">Gruppe nicht gefunden</div>
+  if (!isNewMode && isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
+  if (!isNewMode && error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
+  if (!isNewMode && !group) return <div className="text-center py-8 text-[#6b7280]">Gruppe nicht gefunden</div>
+
+  const pageTitle = isNewMode ? 'Neue Gruppe erstellen' : (group?.name || 'Gruppe')
+  const canEdit = isNewMode || group?.editable
 
   return (
     <div>
@@ -182,151 +259,93 @@ export default function ManagerGroupDetail() {
         &larr; Zurück zur Übersicht
       </RouterLink>
       
-      <div className="grid gap-6 md:grid-cols-2 mt-4">
-        {group.editable ? (
-          <>
-            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-              <TextField name="name" isRequired>
-                <Label className="text-[#a0aec0]">Name</Label>
-                <Input
-                  value={editName}
-                  onChange={(e) => handleChange('name', e.target.value)}
-                  className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-                />
-              </TextField>
-            </Card>
+      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">{pageTitle}</h1>
 
-            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-              <TextField name="description" isRequired>
-                <Label className="text-[#a0aec0]">Beschreibung</Label>
-                <TextArea
-                  value={editDescription}
-                  onChange={(e) => handleChange('description', e.target.value)}
-                  className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-                />
-              </TextField>
-            </Card>
-
-            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-              <Label className="text-[#a0aec0] block mb-3">Email an</Label>
-              <div className="flex gap-4">
-                {emailToOptions.map((option) => (
-                  <label
-                    key={option.value}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all ${
-                      editEmailTo === option.value
-                        ? 'bg-[#c9a66b] text-[#0f1419]'
-                        : 'bg-[#242d38] text-[#a0aec0] hover:bg-[#3d4a5c]'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="emailTo"
-                      value={option.value}
-                      checked={editEmailTo === option.value}
-                      onChange={(e) => handleChange('emailTo', e.target.value)}
-                      className="hidden"
-                    />
-                    {option.label}
-                  </label>
-                ))}
-              </div>
-            </Card>
-
-            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-              <div className="flex items-center justify-between mb-1">
-                <Label className="text-[#a0aec0]">Ersteller</Label>
-                {isAdmin && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onPress={() => setIsCreatorModalOpen(true)}
-                    className="text-[#c9a66b] text-sm"
-                  >
-                    Ändern
-                  </Button>
-                )}
-              </div>
-              <Input
-                value={getCreatorDisplayName()}
-                readOnly
-                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"
-              />
-            </Card>
-          </>
-        ) : (
-          <>
-            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-              <TextField name="name" isReadOnly>
-                <Label className="text-[#a0aec0]">Name</Label>
-                <Input
-                  value={group.name}
-                  readOnly
-                  className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"
-                />
-              </TextField>
-            </Card>
-
-            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-              <TextField name="description" isReadOnly>
-                <Label className="text-[#a0aec0]">Beschreibung</Label>
-                <TextArea
-                  value={group.description || '-'}
-                  readOnly
-                  className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"
-                />
-              </TextField>
-            </Card>
-
-            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-              <TextField name="emailTo" isReadOnly>
-                <Label className="text-[#a0aec0]">Email an</Label>
-                <Input
-                  value={group.emailTo === 'ALL_MANAGERS' ? 'Alle Manager' : 'Nur Ersteller'}
-                  readOnly
-                  className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"
-                />
-              </TextField>
-            </Card>
-
-            <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-              <TextField name="creator" isReadOnly>
-                <Label className="text-[#a0aec0]">Ersteller</Label>
-                <Input
-                  value={getCreatorDisplayName()}
-                  readOnly
-                  className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"
-                />
-              </TextField>
-            </Card>
-          </>
-        )}
-      </div>
-
-      {group.editable && hasChanges && (
-        <div className="mt-6 flex gap-4">
-          <Button
-            onPress={handleSaveChanges}
-            isDisabled={updateMutation.isPending || !editDescription.trim()}
-            className="bg-[#c9a66b] text-[#0f1419] font-medium"
-          >
-            {updateMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
-          </Button>
-          <Button
-            variant="secondary"
-            onPress={() => {
-              setEditName(group.name)
-              setEditDescription(group.description || '')
-              setEditEmailTo(group.emailTo || 'ALL_MANAGERS')
-              setHasChanges(false)
-            }}
-          >
-            Abbrechen
-          </Button>
-        </div>
+      {!currentSeason && isNewMode && (
+        <Card className="p-4 mb-6 bg-[#2d1f1f] border border-[#e05252]">
+          <p className="text-[#e05252]">
+            Keine aktuelle Saison ausgewählt. Bitte erstellen Sie zuerst eine Saison.
+          </p>
+        </Card>
       )}
 
-      <Card className="p-6 mt-6 bg-[#1a2028] border border-[#2d3748]">
+      {errorMessage && (
+        <Card className="p-4 mb-6 bg-[#2d1f1f] border border-[#e05252]">
+          <p className="text-[#e05252]">{errorMessage}</p>
+        </Card>
+      )}
+      
+      <div className="grid gap-6 md:grid-cols-2 mb-6">
+        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
+          <Label className="text-[#a0aec0] block mb-2">Name <span className="text-[#e05252]">*</span></Label>
+          <Input
+            value={editName}
+            onChange={(e) => handleChange('name', e.target.value)}
+            readOnly={!canEdit}
+            className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] ${!canEdit ? 'opacity-70' : ''}"
+          />
+        </Card>
+
+        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
+          <Label className="text-[#a0aec0] block mb-2">Beschreibung <span className="text-[#e05252]">*</span></Label>
+          <TextArea
+            value={editDescription}
+            onChange={(e) => handleChange('description', e.target.value)}
+            readOnly={!canEdit}
+            className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] ${!canEdit ? 'opacity-70' : ''}"
+          />
+        </Card>
+
+        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
+          <Label className="text-[#a0aec0] block mb-3">Email an</Label>
+          <div className="flex gap-4">
+            {emailToOptions.map((option) => (
+              <label
+                key={option.value}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all ${
+                  editEmailTo === option.value
+                    ? 'bg-[#c9a66b] text-[#0f1419]'
+                    : 'bg-[#242d38] text-[#a0aec0] hover:bg-[#3d4a5c]'
+                } ${!canEdit ? 'pointer-events-none opacity-70' : ''}`}
+              >
+                <input
+                  type="radio"
+                  name="emailTo"
+                  value={option.value}
+                  checked={editEmailTo === option.value}
+                  onChange={(e) => handleChange('emailTo', e.target.value)}
+                  disabled={!canEdit}
+                  className="hidden"
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
+          <div className="flex items-center justify-between mb-1">
+            <Label className="text-[#a0aec0]">Ersteller</Label>
+            {isAdmin && !isNewMode && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onPress={() => setIsCreatorModalOpen(true)}
+                className="text-[#c9a66b] text-sm"
+              >
+                Ändern
+              </Button>
+            )}
+          </div>
+          <Input
+            value={getCreatorDisplayName()}
+            readOnly
+            className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"
+          />
+        </Card>
+      </div>
+
+      <Card className="p-6 bg-[#1a2028] border border-[#2d3748] mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-[#f5f5f5]">Manager ({filteredAndSortedManagers.length})</h2>
           <div className="flex gap-3 items-center">
@@ -336,7 +355,7 @@ export default function ManagerGroupDetail() {
               onChange={(e) => setManagerFilter(e.target.value)}
               className="w-64 bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
             />
-            {group.editable && (
+            {canEdit && (
               <Button
                 onPress={() => setIsAddModalOpen(true)}
                 className="bg-[#c9a66b] text-[#0f1419]"
@@ -387,7 +406,7 @@ export default function ManagerGroupDetail() {
                 >
                   Letzter Spieltag<SortIcon column="pointsLastRound" />
                 </th>
-                {group.editable && (
+                {canEdit && (
                   <th className="px-3 py-2 text-right text-[#a0aec0] font-medium border-b border-[#2d3748]">
                     Aktionen
                   </th>
@@ -421,7 +440,7 @@ export default function ManagerGroupDetail() {
                     <td className="px-3 py-2 text-center text-[#a0aec0]">
                       {manager.pointsLastRound ?? '-'}
                     </td>
-                    {group.editable && (
+                    {canEdit && (
                       <td className="px-3 py-2 text-right">
                         <Button
                           size="sm"
@@ -437,7 +456,7 @@ export default function ManagerGroupDetail() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={group.editable ? 7 : 6} className="text-center text-[#6b7280] py-8">
+                  <td colSpan={canEdit ? 7 : 6} className="text-center text-[#6b7280] py-8">
                     Keine Manager in dieser Gruppe
                   </td>
                 </tr>
@@ -446,6 +465,48 @@ export default function ManagerGroupDetail() {
           </table>
         </div>
       </Card>
+
+      {isNewMode ? (
+        <div className="flex gap-4">
+          <Button
+            onPress={handleCreate}
+            isDisabled={!editName.trim() || !editDescription.trim() || !currentSeason || createMutation.isPending}
+            className="bg-[#c9a66b] text-[#0f1419] font-medium"
+          >
+            {createMutation.isPending ? 'Wird erstellt...' : 'Erstellen'}
+          </Button>
+          <Button
+            variant="ghost"
+            onPress={() => navigate('/manager-groups')}
+            className="text-[#a0aec0]"
+          >
+            Abbrechen
+          </Button>
+        </div>
+      ) : canEdit && hasChanges && (
+        <div className="mt-6 flex gap-4">
+          <Button
+            onPress={handleSaveChanges}
+            isDisabled={updateMutation.isPending || !editDescription.trim()}
+            className="bg-[#c9a66b] text-[#0f1419] font-medium"
+          >
+            {updateMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              if (group) {
+                setEditName(group.name)
+                setEditDescription(group.description || '')
+                setEditEmailTo(group.emailTo || 'ALL_MANAGERS')
+                setHasChanges(false)
+              }
+            }}
+          >
+            Abbrechen
+          </Button>
+        </div>
+      )}
 
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
@@ -494,7 +555,10 @@ export default function ManagerGroupDetail() {
             <div className="px-6 py-4 bg-[#242d38] border-t border-[#2d3748] flex justify-end">
               <Button
                 variant="ghost"
-                onPress={() => setIsAddModalOpen(false)}
+                onPress={() => {
+                  setIsAddModalOpen(false)
+                  setSearchTerm('')
+                }}
                 className="text-[#a0aec0]"
               >
                 Abbrechen

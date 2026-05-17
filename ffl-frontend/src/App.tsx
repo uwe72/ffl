@@ -49,6 +49,7 @@ function App() {
             <Route path="managers" element={<Managers />} />
             <Route path="managers/:id" element={<ManagerDetail />} />
             <Route path="manager-groups" element={<ManagerGroups />} />
+            <Route path="manager-groups/new" element={<ManagerGroupDetail />} />
             <Route path="manager-groups/:id" element={<ManagerGroupDetail />} />
             <Route path="users" element={
               <ProtectedRoute requiredRole="ADMIN">
