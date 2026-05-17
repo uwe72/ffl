@@ -69,7 +69,7 @@ export default function ManagerGroups() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-[#f5f5f5]">Gruppen</h1>
         <Button
-          onPress={() => navigate('/manager-groups/new')}
+          onPress={() => navigate('/manager-groups/create')}
           className="bg-[#c9a66b] text-[#0f1419]"
         >
           Neue Gruppe
