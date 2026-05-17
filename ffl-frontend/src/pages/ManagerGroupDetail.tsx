@@ -21,6 +21,8 @@ export default function ManagerGroupDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
   
+  console.log('ManagerGroupDetail - id from params:', id, 'isNewMode:', id === 'new')
+  
   const isNewMode = id === 'new'
   const groupId = isNewMode ? 0 : Number(id)
   
