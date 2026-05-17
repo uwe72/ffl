@@ -192,6 +192,11 @@ export default function ManagerGroups() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="p-6 bg-[#1a2028] border border-[#2d3748] w-full max-w-md">
             <h2 className="text-xl font-bold text-[#f5f5f5] mb-4">Neue Gruppe erstellen</h2>
+            {!currentSeason && (
+              <p className="text-[#e05252] text-sm mb-4">
+                Keine aktuelle Saison ausgewählt. Bitte erstellen Sie zuerst eine Saison.
+              </p>
+            )}
             <div className="space-y-4">
               <div>
                 <label className="block text-[#a0aec0] mb-1">Name <span className="text-[#e05252]">*</span></label>
@@ -222,7 +227,7 @@ export default function ManagerGroups() {
               </Button>
               <Button
                 onPress={handleCreateGroup}
-                isDisabled={!newGroupName.trim() || !newGroupDescription.trim()}
+                isDisabled={!newGroupName.trim() || !newGroupDescription.trim() || !currentSeason}
                 className="bg-[#c9a66b] text-[#0f1419]"
               >
                 Erstellen

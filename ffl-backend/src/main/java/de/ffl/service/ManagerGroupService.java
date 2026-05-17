@@ -3,6 +3,7 @@ package de.ffl.service;
 import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerGroup;
 import de.ffl.domain.ManagerRank;
+import de.ffl.domain.Season;
 import de.ffl.domain.User;
 import de.ffl.dto.ManagerGroupDto;
 import de.ffl.dto.ManagerGroupListDto;
@@ -10,6 +11,7 @@ import de.ffl.dto.ManagerGroupRoundStatsDto;
 import de.ffl.repository.ManagerGroupRepository;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.ManagerRepository;
+import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.UserRepository;
 import org.hibernate.Hibernate;
 import org.springframework.security.core.Authentication;
@@ -27,12 +29,14 @@ public class ManagerGroupService {
     private final ManagerRankRepository managerRankRepository;
     private final ManagerRepository managerRepository;
     private final UserRepository userRepository;
+    private final SeasonRepository seasonRepository;
 
-    public ManagerGroupService(ManagerGroupRepository managerGroupRepository, ManagerRankRepository managerRankRepository, ManagerRepository managerRepository, UserRepository userRepository) {
+    public ManagerGroupService(ManagerGroupRepository managerGroupRepository, ManagerRankRepository managerRankRepository, ManagerRepository managerRepository, UserRepository userRepository, SeasonRepository seasonRepository) {
         this.managerGroupRepository = managerGroupRepository;
         this.managerRankRepository = managerRankRepository;
         this.managerRepository = managerRepository;
         this.userRepository = userRepository;
+        this.seasonRepository = seasonRepository;
     }
 
     @Transactional(readOnly = true)
@@ -87,6 +91,14 @@ public class ManagerGroupService {
             throw new IllegalArgumentException("Beschreibung ist erforderlich");
         }
 
+        if (group.getSeason() == null || group.getSeason().getId() == null) {
+            throw new IllegalArgumentException("Season ist erforderlich");
+        }
+
+        Season season = seasonRepository.findById(group.getSeason().getId())
+            .orElseThrow(() -> new IllegalArgumentException("Season nicht gefunden"));
+
+        group.setSeason(season);
         group.setCreatedBy(currentUser);
         if (group.getManagers() == null) {
             group.setManagers(new HashSet<>());

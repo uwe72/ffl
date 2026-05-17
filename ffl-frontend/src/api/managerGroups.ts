@@ -5,7 +5,7 @@ export const managerGroupApi = {
   getAll: () => api.get<ManagerGroupListDto[]>('/manager-groups'),
   getById: (id: number) => api.get<ManagerGroup>(`/manager-groups/${id}`),
   create: (data: { name: string; description?: string; seasonId: number }) => 
-    api.post<ManagerGroup>('/manager-groups', data),
+    api.post<ManagerGroup>('/manager-groups', { name: data.name, description: data.description, season: { id: data.seasonId } }),
   update: (id: number, data: { name: string; description?: string; emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY' }) => 
     api.put<ManagerGroup>(`/manager-groups/${id}`, data),
   delete: (id: number) => api.delete(`/manager-groups/${id}`),
