@@ -5,6 +5,7 @@ import de.ffl.domain.ManagerGroup;
 import de.ffl.domain.ManagerRank;
 import de.ffl.domain.Season;
 import de.ffl.domain.User;
+import de.ffl.dto.CreateManagerGroupDto;
 import de.ffl.dto.ManagerGroupDto;
 import de.ffl.dto.ManagerGroupListDto;
 import de.ffl.dto.ManagerGroupRoundStatsDto;
@@ -81,36 +82,27 @@ public class ManagerGroupService {
     }
 
     @Transactional
-    public ManagerGroupDto createGroup(ManagerGroup group) {
+    public ManagerGroupDto createGroup(CreateManagerGroupDto dto) {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
             throw new IllegalArgumentException("User not authenticated");
         }
 
-        if (group.getDescription() == null || group.getDescription().trim().isEmpty()) {
-            throw new IllegalArgumentException("Beschreibung ist erforderlich");
-        }
-
-        if (group.getSeason() == null || group.getSeason().getId() == null) {
-            throw new IllegalArgumentException("Season ist erforderlich");
-        }
-
-        Season season = seasonRepository.findById(group.getSeason().getId())
+        Season season = seasonRepository.findById(dto.getSeasonId())
             .orElseThrow(() -> new IllegalArgumentException("Season nicht gefunden"));
 
+        ManagerGroup group = new ManagerGroup();
+        group.setName(dto.getName());
+        group.setDescription(dto.getDescription());
         group.setSeason(season);
         group.setCreatedBy(currentUser);
-        if (group.getManagers() == null) {
-            group.setManagers(new HashSet<>());
-        }
-        if (group.getEmailTo() == null) {
-            group.setEmailTo(ManagerGroup.EmailToOption.ALL_MANAGERS);
-        }
+        group.setManagers(new HashSet<>());
+        group.setEmailTo(ManagerGroup.EmailToOption.ALL_MANAGERS);
 
         ManagerGroup saved = managerGroupRepository.save(group);
-        ManagerGroupDto dto = toDtoWithRankData(saved);
-        dto.setEditable(true);
-        return dto;
+        ManagerGroupDto resultDto = toDtoWithRankData(saved);
+        resultDto.setEditable(true);
+        return resultDto;
     }
 
     @Transactional

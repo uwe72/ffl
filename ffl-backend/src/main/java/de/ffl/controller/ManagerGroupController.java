@@ -1,10 +1,12 @@
 package de.ffl.controller;
 
 import de.ffl.domain.ManagerGroup;
+import de.ffl.dto.CreateManagerGroupDto;
 import de.ffl.dto.ManagerGroupDto;
 import de.ffl.dto.ManagerGroupListDto;
 import de.ffl.dto.ManagerGroupRoundStatsDto;
 import de.ffl.service.ManagerGroupService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,9 +50,9 @@ public class ManagerGroupController {
     }
 
     @PostMapping
-    public ResponseEntity<ManagerGroupDto> createGroup(@RequestBody ManagerGroup group) {
+    public ResponseEntity<ManagerGroupDto> createGroup(@Valid @RequestBody CreateManagerGroupDto dto) {
         try {
-            ManagerGroupDto created = managerGroupService.createGroup(group);
+            ManagerGroupDto created = managerGroupService.createGroup(dto);
             return ResponseEntity.ok(created);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
