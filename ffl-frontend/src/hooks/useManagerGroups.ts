@@ -19,8 +19,13 @@ export const useManagerGroup = (id: number) => {
 export const useCreateManagerGroup = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { name: string; description?: string; seasonId: number }) => 
-      managerGroupApi.create(data).then(res => res.data),
+    mutationFn: (data: { 
+      name: string
+      description?: string
+      seasonId: number
+      emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY'
+      managerIds?: number[]
+    }) => managerGroupApi.create(data).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manager-groups'] })
     },

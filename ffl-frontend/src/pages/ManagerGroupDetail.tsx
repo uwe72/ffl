@@ -1,5 +1,5 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
-import { Card, Button, TextField, Label, Input } from '@heroui/react'
+import { Card, Button, TextField, Label, Input, TextArea } from '@heroui/react'
 import { useState, useMemo, useEffect } from 'react'
 import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator } from '../hooks/useManagerGroups'
 import { useManagersBySeason } from '../hooks/useManagers'
@@ -199,7 +199,7 @@ export default function ManagerGroupDetail() {
             <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
               <TextField name="description" isRequired>
                 <Label className="text-[#a0aec0]">Beschreibung</Label>
-                <Input
+                <TextArea
                   value={editDescription}
                   onChange={(e) => handleChange('description', e.target.value)}
                   className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
@@ -270,7 +270,7 @@ export default function ManagerGroupDetail() {
             <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
               <TextField name="description" isReadOnly>
                 <Label className="text-[#a0aec0]">Beschreibung</Label>
-                <Input
+                <TextArea
                   value={group.description || '-'}
                   readOnly
                   className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"

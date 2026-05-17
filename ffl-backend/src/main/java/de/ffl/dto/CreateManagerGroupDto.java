@@ -2,6 +2,7 @@ package de.ffl.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 
 public class CreateManagerGroupDto {
     
@@ -13,6 +14,10 @@ public class CreateManagerGroupDto {
     
     @NotNull(message = "Season ist erforderlich")
     private Long seasonId;
+    
+    private String emailTo;
+    
+    private List<Long> managerIds;
 
     public String getName() {
         return name;
@@ -36,5 +41,21 @@ public class CreateManagerGroupDto {
 
     public void setSeasonId(Long seasonId) {
         this.seasonId = seasonId;
+    }
+
+    public String getEmailTo() {
+        return emailTo;
+    }
+
+    public void setEmailTo(String emailTo) {
+        this.emailTo = emailTo;
+    }
+
+    public List<Long> getManagerIds() {
+        return managerIds;
+    }
+
+    public void setManagerIds(List<Long> managerIds) {
+        this.managerIds = managerIds;
     }
 }

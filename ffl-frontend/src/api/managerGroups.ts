@@ -4,8 +4,13 @@ import type { ManagerGroup, ManagerGroupListDto, ManagerGroupRoundStats } from '
 export const managerGroupApi = {
   getAll: () => api.get<ManagerGroupListDto[]>('/manager-groups'),
   getById: (id: number) => api.get<ManagerGroup>(`/manager-groups/${id}`),
-  create: (data: { name: string; description?: string; seasonId: number }) => 
-    api.post<ManagerGroup>('/manager-groups', data),
+  create: (data: { 
+    name: string
+    description?: string
+    seasonId: number
+    emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY'
+    managerIds?: number[]
+  }) => api.post<ManagerGroup>('/manager-groups', data),
   update: (id: number, data: { name: string; description?: string; emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY' }) => 
     api.put<ManagerGroup>(`/manager-groups/${id}`, data),
   delete: (id: number) => api.delete(`/manager-groups/${id}`),

@@ -97,7 +97,22 @@ public class ManagerGroupService {
         group.setSeason(season);
         group.setCreatedBy(currentUser);
         group.setManagers(new HashSet<>());
-        group.setEmailTo(ManagerGroup.EmailToOption.ALL_MANAGERS);
+        
+        if (dto.getEmailTo() != null) {
+            group.setEmailTo(ManagerGroup.EmailToOption.valueOf(dto.getEmailTo()));
+        } else {
+            group.setEmailTo(ManagerGroup.EmailToOption.ALL_MANAGERS);
+        }
+        
+        if (dto.getManagerIds() != null && !dto.getManagerIds().isEmpty()) {
+            for (Long managerId : dto.getManagerIds()) {
+                managerRepository.findById(managerId).ifPresent(manager -> {
+                    if (manager.getSeason().getId().equals(season.getId())) {
+                        group.getManagers().add(manager);
+                    }
+                });
+            }
+        }
 
         ManagerGroup saved = managerGroupRepository.save(group);
         ManagerGroupDto resultDto = toDtoWithRankData(saved);
