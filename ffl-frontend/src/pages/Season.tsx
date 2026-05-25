@@ -1,8 +1,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Card, TextField, Label, Input, Button } from '@heroui/react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
-import ReactQuill from 'react-quill-new'
+import ReactQuill, { Quill } from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Size = Quill.import('formats/size') as any
+Size.whitelist = ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '32px']
+Quill.register(Size, true)
 import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePrizeDistributionMailPreview } from '../hooks/useSeasons'
 import CalculationDialog from '../components/CalculationDialog'
 import PrizeDistributionMailSendDialog from '../components/PrizeDistributionMailSendDialog'
@@ -627,15 +632,15 @@ export default function Season() {
                      value={formData.mailText ?? ''}
                      onChange={(value) => handleChange('mailText', value)}
                      placeholder="Einleitung, Organisatorisches, Ausblick..."
-                      modules={{
-                        toolbar: [
-                          [{ 'size': ['small', false, 'large', 'huge'] }],
-                          ['bold', 'italic', 'underline'],
-                          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                          ['link'],
-                          ['clean']
-                        ]
-                      }}
+                       modules={{
+                         toolbar: [
+                           [{ 'size': ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '32px'] }],
+                           ['bold', 'italic', 'underline'],
+                           [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                           ['link'],
+                           ['clean']
+                         ]
+                       }}
                    />
                  </div>
                </Card>
