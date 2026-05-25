@@ -6,7 +6,7 @@ import 'react-quill-new/dist/quill.snow.css'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Size = Quill.import('formats/size') as any
-Size.whitelist = ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '32px']
+Size.whitelist = ['8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px']
 Quill.register(Size, true)
 import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePrizeDistributionMailPreview } from '../hooks/useSeasons'
 import CalculationDialog from '../components/CalculationDialog'
@@ -634,7 +634,7 @@ export default function Season() {
                      placeholder="Einleitung, Organisatorisches, Ausblick..."
                        modules={{
                          toolbar: [
-                           [{ 'size': ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '32px'] }],
+                            [{ 'size': ['8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px'] }],
                            ['bold', 'italic', 'underline'],
                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                            ['link'],
