@@ -1,8 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Card, TextField, Label, Input, Button } from '@heroui/react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
-import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout } from '../hooks/useSeasons'
+import ReactQuill from 'react-quill-new'
+import 'react-quill-new/dist/quill.snow.css'
+import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePrizeDistributionMailPreview } from '../hooks/useSeasons'
 import CalculationDialog from '../components/CalculationDialog'
+import PrizeDistributionMailSendDialog from '../components/PrizeDistributionMailSendDialog'
 import type { Season, SeasonState, PrizeDistributionLog, PrizePayout, PayoutStatus } from '../types'
 
 const seasonStateOptions: { value: SeasonState; label: string }[] = [
@@ -117,8 +120,9 @@ export default function Season() {
   const { data: prizeDistributionLog } = usePrizeDistributionLog(season?.id ?? 0)
   const calculatePrize = useCalculatePrizeDistribution()
   const updatePrizePayout = useUpdatePrizePayout(season?.id ?? 0)
+  const { refetch: fetchPreview, isFetching: isFetchingPreview } = usePrizeDistributionMailPreview(season?.id ?? 0)
   
-  const [activeTab, setActiveTab] = useState<'saisondaten' | 'gewinnausschuettung'>('saisondaten')
+  const [activeTab, setActiveTab] = useState<'saisondaten' | 'gewinnausschuettung' | 'saisonabschlussmail'>('saisondaten')
   const [formData, setFormData] = useState<Partial<Season>>({})
   const [hasChanges, setHasChanges] = useState(false)
   const [showCalcDialog, setShowCalcDialog] = useState(false)
@@ -127,6 +131,9 @@ export default function Season() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [commentDialogManager, setCommentDialogManager] = useState<PrizePayout | null>(null)
   const [commentDraft, setCommentDraft] = useState('')
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null)
+  const [showMailSendDialog, setShowMailSendDialog] = useState(false)
 
   useEffect(() => {
     if (season) {
@@ -139,7 +146,8 @@ export default function Season() {
         serverkostenEuro: season.serverkostenEuro ?? 60,
         anzahlSpielleiter: season.anzahlSpielleiter ?? 2,
         gewinnErsterPlatzProzent: season.gewinnErsterPlatzProzent ?? 10,
-        gewinnLetzterPlatzEuro: season.gewinnLetzterPlatzEuro ?? 15
+        gewinnLetzterPlatzEuro: season.gewinnLetzterPlatzEuro ?? 15,
+        mailText: season.mailText ?? ''
       })
       setHasChanges(false)
     }
@@ -200,7 +208,8 @@ export default function Season() {
       serverkostenEuro: season.serverkostenEuro ?? 60,
       anzahlSpielleiter: season.anzahlSpielleiter ?? 2,
       gewinnErsterPlatzProzent: season.gewinnErsterPlatzProzent ?? 10,
-      gewinnLetzterPlatzEuro: season.gewinnLetzterPlatzEuro ?? 15
+      gewinnLetzterPlatzEuro: season.gewinnLetzterPlatzEuro ?? 15,
+      mailText: season.mailText ?? ''
     })
     setHasChanges(false)
   }
@@ -234,6 +243,16 @@ export default function Season() {
             }`}
           >
             Gewinnausschüttung
+          </button>
+          <button
+            onClick={() => setActiveTab('saisonabschlussmail')}
+            className={`pb-3 px-1 text-lg font-medium transition-colors ${
+              activeTab === 'saisonabschlussmail'
+                ? 'text-[#c9a66b] border-b-2 border-[#c9a66b]'
+                : 'text-[#a0aec0] hover:text-[#f5f5f5]'
+            }`}
+          >
+            Saisonabschlussmail
           </button>
         </div>
       </div>
@@ -447,14 +466,16 @@ export default function Season() {
                 <p className="text-[#ffb4b4] text-sm">{errorMessage}</p>
               </Card>
             )}
-            <Button
-              variant="primary"
-              onPress={() => setShowConfirmDialog(true)}
-              isDisabled={hasChanges || calculatePrize.isPending}
-              className="bg-[#c9a66b] text-[#0f1419] font-medium"
-            >
-              {calculatePrize.isPending ? 'Wird berechnet...' : 'Gewinnverteilung berechnen'}
-            </Button>
+            <div className="flex gap-4 justify-end mt-6">
+              <Button
+                variant="primary"
+                onPress={() => setShowConfirmDialog(true)}
+                isDisabled={hasChanges || calculatePrize.isPending}
+                className="bg-[#c9a66b] text-[#0f1419] font-medium"
+              >
+                {calculatePrize.isPending ? 'Wird berechnet...' : 'Gewinnverteilung berechnen'}
+              </Button>
+            </div>
           </div>
 
           {isLoadingPrize && (
@@ -587,15 +608,138 @@ export default function Season() {
                         </td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              </Card>
+                   </tbody>
+                 </table>
+               </Card>
+             </div>
+           )}
+         </>
+       )}
+
+      {activeTab === 'saisonabschlussmail' && (
+         <>
+            <div className="grid gap-6">
+               <Card className="p-6 bg-[#1a2028] border border-[#2d3748] overflow-visible">
+                 <Label className="text-[#a0aec0] block mb-2">Saisonabschlussmail</Label>
+                 <div className="quill-mail">
+                   <ReactQuill
+                     theme="snow"
+                     value={formData.mailText ?? ''}
+                     onChange={(value) => handleChange('mailText', value)}
+                     placeholder="Einleitung, Organisatorisches, Ausblick..."
+                     modules={{
+                       toolbar: [
+                         ['bold', 'italic', 'underline'],
+                         [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                         ['link'],
+                         ['clean']
+                       ]
+                     }}
+                   />
+                 </div>
+               </Card>
             </div>
-          )}
+
+          <div className="mt-6 flex gap-4">
+            {hasChanges && (
+              <>
+                <Button
+                  variant="primary"
+                  onPress={handleSave}
+                  isDisabled={updateSeason.isPending}
+                  className="bg-[#c9a66b] text-[#0f1419] font-medium"
+                >
+                  {updateSeason.isPending ? 'Wird gespeichert...' : 'Speichern'}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onPress={resetFormData}
+                >
+                  Abbrechen
+                </Button>
+              </>
+            )}
+            <Button
+              variant="primary"
+              onPress={async () => {
+                if (hasChanges) {
+                  await updateSeason.mutateAsync({ id: season!.id, data: formData })
+                  setHasChanges(false)
+                }
+                const result = await fetchPreview()
+                if (result.data) {
+                  setPreviewHtml(result.data.html)
+                  setShowPreviewModal(true)
+                }
+              }}
+              isDisabled={isFetchingPreview}
+              className="bg-[#4a5568] text-[#f5f5f5] font-medium"
+            >
+              {isFetchingPreview ? 'Lade Vorschau...' : 'Vorschau'}
+            </Button>
+          </div>
+
+          <div className="mt-6">
+            <Button
+              variant="primary"
+              onPress={() => setShowMailSendDialog(true)}
+              className="bg-[#c9a66b] text-[#0f1419] font-medium"
+            >
+              An alle Manager senden
+            </Button>
+          </div>
         </>
       )}
 
+      {showPreviewModal && previewHtml && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <Card className="bg-[#1a2028] border border-[#2d3748] p-6 w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-[#f5f5f5]">E-Mail Vorschau</h3>
+              <Button
+                size="sm"
+                variant="secondary"
+                onPress={() => {
+                  setShowPreviewModal(false)
+                  setPreviewHtml(null)
+                }}
+                className="h-7 px-3 text-xs"
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="flex-1 overflow-auto rounded-lg border border-[#3d4a5c]">
+              <iframe
+                srcDoc={previewHtml}
+                className="w-full h-[60vh] bg-white"
+                title="E-Mail Vorschau"
+              />
+            </div>
+            <div className="flex justify-end mt-4">
+              <Button
+                variant="secondary"
+                onPress={() => {
+                  setShowPreviewModal(false)
+                  setPreviewHtml(null)
+                }}
+              >
+                Schließen
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {season && (
+        <PrizeDistributionMailSendDialog
+          isOpen={showMailSendDialog}
+          onClose={() => setShowMailSendDialog(false)}
+          seasonId={season.id}
+          seasonName={season.name}
+        />
+      )}
+
+       {season && (
         <CalculationDialog
           isOpen={showCalcDialog}
           onClose={() => setShowCalcDialog(false)}

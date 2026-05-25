@@ -91,3 +91,11 @@ export function useUpdatePrizePayout(seasonId: number) {
     },
   })
 }
+
+export function usePrizeDistributionMailPreview(seasonId: number) {
+  return useQuery({
+    queryKey: ['seasons', seasonId, 'prize-distribution-mail-preview'],
+    queryFn: () => seasonApi.getPrizeDistributionMailPreview(seasonId).then(res => res.data),
+    enabled: false,
+  })
+}

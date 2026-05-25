@@ -63,6 +63,9 @@ public class Season {
     @Builder.Default
     private BigDecimal gewinnLetzterPlatzEuro = new BigDecimal("15.00");
 
+    @Column(name = "mail_text", columnDefinition = "TEXT")
+    private String mailText;
+
     @ManyToMany
     @JoinTable(
         name = "season_2_team",

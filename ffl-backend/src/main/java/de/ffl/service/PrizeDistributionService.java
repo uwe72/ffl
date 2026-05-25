@@ -216,7 +216,8 @@ public class PrizeDistributionService {
 
         String statisticsHtml = generateStatisticsHtml(
             N, zahlendeTeilnehmer, spieleinsaetzeGesamt, serverkosten, budget,
-            numRanks, new BigDecimal(p1), fixLetzter, bestK, correction, einsatz
+            numRanks, new BigDecimal(p1), fixLetzter, bestK, correction, einsatz,
+            season.getGewinnErsterPlatzProzent()
         );
 
         String basePrizesJson = null;
@@ -389,7 +390,8 @@ public class PrizeDistributionService {
                                           BigDecimal totalStakes, BigDecimal serverCosts,
                                           BigDecimal totalBudget, int numWinningRanks,
                                           BigDecimal prizeFirstPlace, BigDecimal prizeLastPlace,
-                                          double curvatureFactor, int correction, BigDecimal einsatz) {
+                                          double curvatureFactor, int correction, BigDecimal einsatz,
+                                          Integer gewinnErsterPlatzProzent) {
         StringBuilder html = new StringBuilder();
         
         html.append("<div style=\"font-family: system-ui, -apple-system, sans-serif; color: #f5f5f5;\">");
@@ -420,7 +422,8 @@ public class PrizeDistributionService {
             .append(" → aufgerundet auf <strong>").append(numWinningRanks).append(" Gewinnränge</strong></li>");
         
         html.append("<li style=\"margin-bottom: 8px;\">Gewinn für Platz 1: <strong>")
-            .append(formatCurrency(prizeFirstPlace)).append("</strong></li>");
+            .append(formatCurrency(prizeFirstPlace)).append("</strong> (")
+            .append(gewinnErsterPlatzProzent).append("% des ausgeschütteten Gesamtbetrags)</li>");
         
         html.append("<li style=\"margin-bottom: 8px;\">Gewinn für Platz ").append(numWinningRanks)
             .append(": <strong>").append(formatCurrency(prizeLastPlace)).append("</strong></li>");

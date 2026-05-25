@@ -31,6 +31,7 @@ export interface Season {
   anzahlSpielleiter?: number
   gewinnErsterPlatzProzent?: number
   gewinnLetzterPlatzEuro?: number
+  mailText?: string
 }
 
 export type SeasonState = 'BEFORE_SEASON' | 'RUNNING_HINRUNDE' | 'RUNNING_RUECKRUNDE'

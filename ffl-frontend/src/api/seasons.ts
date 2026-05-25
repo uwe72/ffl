@@ -12,6 +12,10 @@ export interface UpdatePayoutRequest {
   payoutStatus?: PayoutStatus
 }
 
+export interface MailPreviewResponse {
+  html: string
+}
+
 export const seasonApi = {
   getAll: () => api.get<Season[]>('/seasons'),
   getById: (id: number) => api.get<Season>(`/seasons/${id}`),
@@ -26,4 +30,5 @@ export const seasonApi = {
   getMinP1Validation: (id: number) => api.get<MinP1ValidationResult>(`/seasons/${id}/prize-distribution/validation`),
   updatePrizePayout: (seasonId: number, managerId: number, data: UpdatePayoutRequest) => 
     api.put<PrizePayout>(`/seasons/${seasonId}/prize-payouts/${managerId}`, data),
+  getPrizeDistributionMailPreview: (id: number) => api.get<MailPreviewResponse>(`/seasons/${id}/prize-distribution/mail/preview`),
 }

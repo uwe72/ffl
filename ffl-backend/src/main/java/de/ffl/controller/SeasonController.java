@@ -6,6 +6,7 @@ import de.ffl.dto.PrizeDistributionLogDto;
 import de.ffl.dto.PrizePayoutDto;
 import de.ffl.dto.UpdatePayoutRequest;
 import de.ffl.repository.SeasonRepository;
+import de.ffl.service.PrizeDistributionMailService;
 import de.ffl.service.PrizeDistributionService;
 import de.ffl.service.SeasonService;
 import org.springframework.http.MediaType;
@@ -23,11 +24,13 @@ public class SeasonController {
     private final SeasonRepository seasonRepository;
     private final SeasonService seasonService;
     private final PrizeDistributionService prizeDistributionService;
+    private final PrizeDistributionMailService prizeDistributionMailService;
 
-    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, PrizeDistributionService prizeDistributionService) {
+    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService) {
         this.seasonRepository = seasonRepository;
         this.seasonService = seasonService;
         this.prizeDistributionService = prizeDistributionService;
+        this.prizeDistributionMailService = prizeDistributionMailService;
     }
 
     @GetMapping
@@ -72,6 +75,7 @@ public class SeasonController {
                 existing.setAnzahlSpielleiter(season.getAnzahlSpielleiter());
                 existing.setGewinnErsterPlatzProzent(season.getGewinnErsterPlatzProzent());
                 existing.setGewinnLetzterPlatzEuro(season.getGewinnLetzterPlatzEuro());
+                existing.setMailText(season.getMailText());
                 return ResponseEntity.ok(seasonRepository.save(existing));
             })
             .orElse(ResponseEntity.notFound().build());
@@ -179,6 +183,37 @@ public class SeasonController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping(value = "/{id}/prize-distribution/mail/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public SseEmitter streamPrizeDistributionMail(
+            @PathVariable Long id,
+            @RequestParam List<Long> managerIds,
+            @RequestParam(required = false, defaultValue = "false") boolean testMode) {
+        if (!seasonRepository.existsById(id)) {
+            SseEmitter emitter = new SseEmitter();
+            try {
+                emitter.send(SseEmitter.event().name("error").data("Saison nicht gefunden"));
+                emitter.complete();
+            } catch (Exception ignored) {}
+            return emitter;
+        }
+        return prizeDistributionMailService.streamPrizeDistributionMail(id, managerIds, testMode);
+    }
+
+    @GetMapping("/{id}/prize-distribution/mail/preview")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getPrizeDistributionMailPreview(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            String html = prizeDistributionMailService.generatePreviewHtml(id);
+            return ResponseEntity.ok(new MailPreviewResponse(html));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
     public static class ErrorResponse {
         private String message;
 
@@ -188,6 +223,17 @@ public class SeasonController {
 
         public String getMessage() { return message; }
         public void setMessage(String message) { this.message = message; }
+    }
+
+    public static class MailPreviewResponse {
+        private String html;
+
+        public MailPreviewResponse(String html) {
+            this.html = html;
+        }
+
+        public String getHtml() { return html; }
+        public void setHtml(String html) { this.html = html; }
     }
 
     public static class SeasonStateUpdate {
