@@ -2,7 +2,11 @@ package de.ffl.controller;
 
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
+import de.ffl.dto.PrizeDistributionLogDto;
+import de.ffl.dto.PrizePayoutDto;
+import de.ffl.dto.UpdatePayoutRequest;
 import de.ffl.repository.SeasonRepository;
+import de.ffl.service.PrizeDistributionService;
 import de.ffl.service.SeasonService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +22,12 @@ public class SeasonController {
 
     private final SeasonRepository seasonRepository;
     private final SeasonService seasonService;
+    private final PrizeDistributionService prizeDistributionService;
 
-    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService) {
+    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, PrizeDistributionService prizeDistributionService) {
         this.seasonRepository = seasonRepository;
         this.seasonService = seasonService;
+        this.prizeDistributionService = prizeDistributionService;
     }
 
     @GetMapping
@@ -61,6 +67,11 @@ public class SeasonController {
                 existing.setSeasonState(season.getSeasonState());
                 existing.setFinalRegistrationDate(season.getFinalRegistrationDate());
                 existing.setStartRoundRueckrunde(season.getStartRoundRueckrunde());
+                existing.setSpieleinsatzEuro(season.getSpieleinsatzEuro());
+                existing.setServerkostenEuro(season.getServerkostenEuro());
+                existing.setAnzahlSpielleiter(season.getAnzahlSpielleiter());
+                existing.setGewinnErsterPlatzProzent(season.getGewinnErsterPlatzProzent());
+                existing.setGewinnLetzterPlatzEuro(season.getGewinnLetzterPlatzEuro());
                 return ResponseEntity.ok(seasonRepository.save(existing));
             })
             .orElse(ResponseEntity.notFound().build());
@@ -102,6 +113,81 @@ public class SeasonController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{id}/prize-distribution")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PrizePayoutDto>> getPrizeDistribution(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        List<PrizePayoutDto> distribution = prizeDistributionService.getPrizeDistribution(id);
+        return ResponseEntity.ok(distribution);
+    }
+
+    @PostMapping("/{id}/prize-distribution")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> calculatePrizeDistribution(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            List<PrizePayoutDto> distribution = prizeDistributionService.calculateDistribution(id);
+            return ResponseEntity.ok(distribution);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/prize-distribution/log")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PrizeDistributionLogDto> getPrizeDistributionLog(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        PrizeDistributionLogDto log = prizeDistributionService.getDistributionLog(id);
+        if (log == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(log);
+    }
+
+    @PutMapping("/{id}/prize-payouts/{managerId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PrizePayoutDto> updatePrizePayout(
+            @PathVariable Long id,
+            @PathVariable Long managerId,
+            @RequestBody UpdatePayoutRequest request) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            PrizePayoutDto updated = prizeDistributionService.updatePayout(id, managerId, request);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/{id}/prize-distribution/validation")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PrizeDistributionService.MinP1ValidationResult> getMinP1Validation(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        PrizeDistributionService.MinP1ValidationResult result = prizeDistributionService.getMinP1Validation(id);
+        return ResponseEntity.ok(result);
+    }
+
+    public static class ErrorResponse {
+        private String message;
+
+        public ErrorResponse(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
     }
 
     public static class SeasonStateUpdate {

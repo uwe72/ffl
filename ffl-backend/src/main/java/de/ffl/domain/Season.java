@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -41,6 +42,26 @@ public class Season {
 
     @Column(name = "current_matchday")
     private Integer currentMatchday;
+
+    @Column(name = "spieleinsatz_euro", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal spieleinsatzEuro = new BigDecimal("10.00");
+
+    @Column(name = "serverkosten_euro", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal serverkostenEuro = new BigDecimal("60.00");
+
+    @Column(name = "anzahl_spielleiter")
+    @Builder.Default
+    private Integer anzahlSpielleiter = 2;
+
+    @Column(name = "gewinn_erster_platz_prozent")
+    @Builder.Default
+    private Integer gewinnErsterPlatzProzent = 10;
+
+    @Column(name = "gewinn_letzter_platz_euro", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal gewinnLetzterPlatzEuro = new BigDecimal("15.00");
 
     @ManyToMany
     @JoinTable(

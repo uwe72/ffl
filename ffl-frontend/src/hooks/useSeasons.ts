@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { seasonApi } from '../api/seasons'
+import { seasonApi, type UpdatePayoutRequest } from '../api/seasons'
 
 export function useSeasons() {
   return useQuery({
@@ -41,6 +41,53 @@ export function useUpdateSeason() {
       seasonApi.update(id, data).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['seasons'] })
+    },
+  })
+}
+
+export function usePrizeDistribution(seasonId: number) {
+  return useQuery({
+    queryKey: ['seasons', seasonId, 'prize-distribution'],
+    queryFn: () => seasonApi.getPrizeDistribution(seasonId).then(res => res.data),
+    enabled: !!seasonId,
+  })
+}
+
+export function useCalculatePrizeDistribution() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (seasonId: number) =>
+      seasonApi.calculatePrizeDistribution(seasonId).then(res => res.data),
+    onSuccess: (_, seasonId) => {
+      queryClient.invalidateQueries({ queryKey: ['seasons', seasonId, 'prize-distribution'] })
+      queryClient.invalidateQueries({ queryKey: ['seasons', seasonId, 'prize-distribution-log'] })
+    },
+  })
+}
+
+export function usePrizeDistributionLog(seasonId: number) {
+  return useQuery({
+    queryKey: ['seasons', seasonId, 'prize-distribution-log'],
+    queryFn: () => seasonApi.getPrizeDistributionLog(seasonId).then(res => res.data),
+    enabled: !!seasonId,
+  })
+}
+
+export function useMinP1Validation(seasonId: number) {
+  return useQuery({
+    queryKey: ['seasons', seasonId, 'min-p1-validation'],
+    queryFn: () => seasonApi.getMinP1Validation(seasonId).then(res => res.data),
+    enabled: !!seasonId,
+  })
+}
+
+export function useUpdatePrizePayout(seasonId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ managerId, data }: { managerId: number; data: UpdatePayoutRequest }) =>
+      seasonApi.updatePrizePayout(seasonId, managerId, data).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seasons', seasonId, 'prize-distribution'] })
     },
   })
 }

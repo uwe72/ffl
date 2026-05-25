@@ -26,9 +26,54 @@ export interface Season {
   finalRegistrationDate?: string
   startRoundRueckrunde?: number
   currentMatchday?: number
+  spieleinsatzEuro?: number
+  serverkostenEuro?: number
+  anzahlSpielleiter?: number
+  gewinnErsterPlatzProzent?: number
+  gewinnLetzterPlatzEuro?: number
 }
 
 export type SeasonState = 'BEFORE_SEASON' | 'RUNNING_HINRUNDE' | 'RUNNING_RUECKRUNDE'
+
+export interface PrizePayout {
+  managerId: number
+  managerName: string
+  managerFirstName?: string
+  managerLastName?: string
+  managerEmail?: string
+  position: number
+  pointsTotal: number
+  prizeAmount: number
+  comment?: string
+  payoutStatus: PayoutStatus
+}
+
+export interface PrizeDistributionLog {
+  totalParticipants: number
+  payingParticipants: number
+  totalStakes: number
+  serverCosts: number
+  totalBudget: number
+  numWinningRanks: number
+  prizeFirstPlace: number
+  prizeLastPlace: number
+  curvatureFactor: number
+  correctionAmount: number
+  statisticsHtml: string
+  calculatedAt: string
+  basePrizes?: number[]
+}
+
+export interface MinP1ValidationResult {
+  minP1Euro: number
+  minP1Percent: number
+  budget: number
+  valid: boolean
+}
+
+export interface Team {
+  calculatedAt: string
+}
 
 export interface Team {
   id: number
@@ -79,6 +124,8 @@ export interface ManagerInfo {
 }
 
 export type PaymentState = 'PAID' | 'NOT_PAID'
+
+export type PayoutStatus = 'PAID' | 'UNPAID'
 
 export interface RulePoint {
   rule: string
