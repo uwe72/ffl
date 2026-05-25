@@ -627,14 +627,15 @@ export default function Season() {
                      value={formData.mailText ?? ''}
                      onChange={(value) => handleChange('mailText', value)}
                      placeholder="Einleitung, Organisatorisches, Ausblick..."
-                     modules={{
-                       toolbar: [
-                         ['bold', 'italic', 'underline'],
-                         [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                         ['link'],
-                         ['clean']
-                       ]
-                     }}
+                      modules={{
+                        toolbar: [
+                          [{ 'size': ['small', false, 'large', 'huge'] }],
+                          ['bold', 'italic', 'underline'],
+                          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                          ['link'],
+                          ['clean']
+                        ]
+                      }}
                    />
                  </div>
                </Card>
