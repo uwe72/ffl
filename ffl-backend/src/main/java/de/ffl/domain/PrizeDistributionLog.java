@@ -54,7 +54,7 @@ public class PrizeDistributionLog {
     @Column(name = "correction_amount")
     private Integer correctionAmount;
 
-    @Column(name = "statistics_html", columnDefinition = "CLOB", nullable = false)
+    @Column(name = "statistics_html", columnDefinition = "TEXT", nullable = false)
     private String statisticsHtml;
 
     @Column(name = "base_prizes", columnDefinition = "TEXT")
