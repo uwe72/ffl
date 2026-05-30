@@ -16,6 +16,7 @@ import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
 import Users from './pages/Users'
 import UserDetail from './pages/UserDetail'
+import Emails from './pages/Emails'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Feedback from './pages/Feedback'
@@ -73,6 +74,11 @@ function App() {
             <Route path="system" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <System />
+              </ProtectedRoute>
+            } />
+            <Route path="emails" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <Emails />
               </ProtectedRoute>
             } />
           </Route>

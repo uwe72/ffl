@@ -1,3 +1,8 @@
+export interface EmailAddress {
+  id: number
+  email: string
+}
+
 export interface SystemConfig {
   gmailSenderEmail?: string
   gmailAppPassword?: string
