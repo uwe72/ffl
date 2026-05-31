@@ -534,11 +534,11 @@ export default function Season() {
                     <div className="w-24 h-2 bg-[#2d3748] rounded-full overflow-hidden">
                       <div
                         className="h-full bg-[#48bb78]"
-                        style={{ width: `${prizeDistribution.length > 0 ? (prizeDistribution.filter(p => p.payoutStatus === 'PAID').length / prizeDistribution.length) * 100 : 0}%` }}
+                        style={{ width: `${prizeDistribution.reduce((sum, p) => sum + p.prizeAmount, 0) > 0 ? (prizeDistribution.filter(p => p.payoutStatus === 'PAID').reduce((sum, p) => sum + p.prizeAmount, 0) / prizeDistribution.reduce((sum, p) => sum + p.prizeAmount, 0)) * 100 : 0}%` }}
                       />
                     </div>
                     <span className="text-[#f5f5f5] font-medium">
-                      {prizeDistribution.length > 0 ? Math.round((prizeDistribution.filter(p => p.payoutStatus === 'PAID').length / prizeDistribution.length) * 100) : 0}%
+                      {prizeDistribution.reduce((sum, p) => sum + p.prizeAmount, 0) > 0 ? Math.round((prizeDistribution.filter(p => p.payoutStatus === 'PAID').reduce((sum, p) => sum + p.prizeAmount, 0) / prizeDistribution.reduce((sum, p) => sum + p.prizeAmount, 0)) * 100) : 0}% (Auszahlungsbeträge)
                     </span>
                   </div>
                 </div>
