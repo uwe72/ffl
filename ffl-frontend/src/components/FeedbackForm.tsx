@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, Alert, TextField, Label, Input } from '@heroui/react'
 import axios from 'axios'
 import api from '../api/client'
+import { trackEvent } from '../hooks/useMatomo'
 
 interface Props {
   onSuccess?: () => void
@@ -24,6 +25,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
     setIsLoading(true)
     try {
       await api.post('/feedback/submit', { subject, name, email, message })
+      trackEvent('feedback', 'submit', 'success')
       setSuccess(true)
       setSubject('')
       setMessage('')
@@ -35,6 +37,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
       } else {
         setError('Feedback konnte nicht versendet werden.')
       }
+      trackEvent('feedback', 'submit', 'failure')
     } finally {
       setIsLoading(false)
     }

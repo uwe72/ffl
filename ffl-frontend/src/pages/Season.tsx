@@ -3,6 +3,7 @@ import { Card, TextField, Label, Input, Button } from '@heroui/react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
 import ReactQuill, { Quill } from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
+import { trackEvent } from '../hooks/useMatomo'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Size = Quill.import('formats/size') as any
@@ -195,6 +196,7 @@ export default function Season() {
     if (!season || !hasChanges) return
     if (activeTab === 'gewinnausschuettung' && !validateGewinnFields()) return
     await updateSeason.mutateAsync({ id: season.id, data: formData })
+    trackEvent('season', 'save', activeTab)
     setHasChanges(false)
   }
 
@@ -774,7 +776,9 @@ export default function Season() {
                   setErrorMessage(null)
                   try {
                     await calculatePrize.mutateAsync(season.id)
+                    trackEvent('gewinnverteilung', 'berechnen', 'success')
                   } catch (error: any) {
+                    trackEvent('gewinnverteilung', 'berechnen', 'failure')
                     const message = error?.response?.data?.message || error?.message || 'Ein unbekannter Fehler ist aufgetreten.'
                     setErrorMessage(message)
                   }

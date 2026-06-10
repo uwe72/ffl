@@ -22,11 +22,18 @@ import Register from './pages/Register'
 import Feedback from './pages/Feedback'
 import Profile from './pages/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
+import { useMatomoPageView } from './hooks/useMatomo'
+
+function MatomoTracker() {
+  useMatomoPageView()
+  return null
+}
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <MatomoTracker />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

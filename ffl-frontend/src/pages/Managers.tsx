@@ -4,6 +4,7 @@ import { Table, Input, Chip, Card, Button } from '@heroui/react'
 import * as XLSX from 'xlsx'
 import { useManagers } from '../hooks/useManagers'
 import { useAuth } from '../context/AuthContext'
+import { trackEvent } from '../hooks/useMatomo'
 
 const paymentStateLabels = {
   PAID: 'Bezahlt',
@@ -99,6 +100,7 @@ export default function Managers() {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Manager')
     XLSX.writeFile(wb, 'manager-export.xlsx')
+    trackEvent('manager', 'export_excel')
   }
 
   const SortIcon = ({ column }: { column: SortKey }) => {

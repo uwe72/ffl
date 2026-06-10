@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import { Button, Card, Alert, TextField, Label, Input } from '@heroui/react'
 import { useAuth } from '../context/AuthContext'
+import { trackEvent } from '../hooks/useMatomo'
 
 export default function Register() {
   const [login, setLogin] = useState('')
@@ -21,8 +22,10 @@ export default function Register() {
 
     try {
       await register({ login, email, password, firstName, lastName })
+      trackEvent('auth', 'register', 'success')
       navigate('/')
     } catch (err) {
+      trackEvent('auth', 'register', 'failure')
       setError('Registrierung fehlgeschlagen. Login oder E-Mail bereits vergeben.')
     } finally {
       setIsLoading(false)

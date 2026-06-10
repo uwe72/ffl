@@ -3,6 +3,7 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import { Button, Card, Alert, TextField, Label, Input } from '@heroui/react'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
+import { trackEvent } from '../hooks/useMatomo'
 
 export default function Login() {
   const [login, setLogin] = useState('')
@@ -20,8 +21,10 @@ export default function Login() {
 
     try {
       await authLogin({ login, password })
+      trackEvent('auth', 'login', 'success')
       navigate('/')
     } catch (err) {
+      trackEvent('auth', 'login', 'failure')
       setError('Ungültiger Login oder Passwort')
     } finally {
       setIsLoading(false)
