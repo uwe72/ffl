@@ -69,7 +69,7 @@ export default function ManagerGroups() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <UsersRound size={28} className="text-accent" />
-          <h1 className="text-2xl font-bold text-accent">Gruppen</h1>
+          <h1 className="text-sm font-medium text-accent">Gruppen</h1>
         </div>
         <button
           onClick={() => navigate('/manager-groups/create')}

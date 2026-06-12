@@ -118,7 +118,7 @@ export default function Emails() {
     <div>
       <div className="flex items-center gap-3 mb-6">
         <Settings size={28} className="text-accent" />
-        <h1 className="text-2xl font-bold text-accent">
+        <h1 className="text-sm font-medium text-accent">
           E-Mail-Adressen <span className="text-lg text-subtle">({emails?.length ?? 0})</span>
         </h1>
       </div>

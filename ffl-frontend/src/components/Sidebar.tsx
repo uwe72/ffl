@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLocation, Link } from 'react-router-dom'
-import { LayoutDashboard, Shield, Users, UserCheck, UsersRound, Settings, Server, MessageSquare } from 'lucide-react'
+import { LayoutDashboard, Shield, Users, UserCheck, UsersRound, Settings, CalendarDays, MessageSquare } from 'lucide-react'
 import SidebarItem from './SidebarItem'
 import { useAuth } from '../context/AuthContext'
 
@@ -21,9 +21,9 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const location = useLocation()
 
   const isOnVerwaltung = location.pathname.startsWith('/season') ||
-    location.pathname.startsWith('/games') ||
     location.pathname.startsWith('/users') ||
-    location.pathname.startsWith('/emails')
+    location.pathname.startsWith('/emails') ||
+    location.pathname.startsWith('/system')
   const effectiveVerwaltungExpanded = verwaltungExpanded || isOnVerwaltung
 
   const handleToggleCollapse = (next: boolean) => {
@@ -53,30 +53,12 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
       </div>
 
       <nav className="flex-1 px-2 py-4 flex flex-col gap-1 overflow-y-auto">
-        <SidebarItem to="/" label="Home" icon={LayoutDashboard} collapsed={collapsed} />
+        <SidebarItem to="/" label="Dashboard" icon={LayoutDashboard} collapsed={collapsed} />
         <SidebarItem to="/teams" label="Teams" icon={Shield} collapsed={collapsed} />
         <SidebarItem to="/players" label="Spieler" icon={Users} collapsed={collapsed} />
         <SidebarItem to="/managers" label="Manager" icon={UserCheck} collapsed={collapsed} />
         <SidebarItem to="/manager-groups" label="Gruppen" icon={UsersRound} collapsed={collapsed} />
-        {isAuthenticated && user?.role === 'ADMIN' && (
-          <SidebarItem
-            to="/season"
-            label="Verwaltung"
-            icon={Settings}
-            collapsed={collapsed}
-            subItems={[
-              { to: '/season', label: 'Saison' },
-              { to: '/games', label: 'Spiele' },
-              { to: '/users', label: 'Benutzer' },
-              { to: '/emails', label: 'E-Mails' },
-            ]}
-            expanded={effectiveVerwaltungExpanded}
-            onToggle={() => setVerwaltungExpanded(!effectiveVerwaltungExpanded)}
-          />
-        )}
-        {isAuthenticated && user?.role === 'ADMIN' && (
-          <SidebarItem to="/system" label="System" icon={Server} collapsed={collapsed} />
-        )}
+        <SidebarItem to="/games" label="Spiele" icon={CalendarDays} collapsed={collapsed} />
         <a
           href="/feedback"
           target="_blank"
@@ -87,6 +69,23 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
           <MessageSquare size={20} className="shrink-0" />
           {!collapsed && <span className="text-sm font-medium">Feedback</span>}
         </a>
+        {isAuthenticated && user?.role === 'ADMIN' && (
+          <SidebarItem
+            to="/season"
+            label="Verwaltung"
+            icon={Settings}
+            collapsed={collapsed}
+            subItems={[
+              { to: '/season', label: 'Saison' },
+              { to: '/users', label: 'Benutzer' },
+              { to: '/emails', label: 'E-Mails' },
+              { to: '/system', label: 'System' },
+            ]}
+            expanded={effectiveVerwaltungExpanded}
+            onToggle={() => setVerwaltungExpanded(!effectiveVerwaltungExpanded)}
+          />
+        )}
+
       </nav>
 
       <div className={`px-3 py-3 border-t border-border ${collapsed ? 'flex flex-col items-center gap-2' : ''}`}>

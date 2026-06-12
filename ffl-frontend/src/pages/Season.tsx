@@ -231,7 +231,7 @@ export default function Season() {
       <div className="mb-6">
         <div className="flex items-center gap-3">
           <Settings size={28} className="text-accent" />
-          <h1 className="text-2xl font-bold text-accent">Saison</h1>
+          <h1 className="text-sm font-medium text-accent">Saison</h1>
         </div>
         <div className="flex items-center gap-3 mt-1.5">
           <Badge>

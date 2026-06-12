@@ -261,7 +261,7 @@ export default function ManagerGroupDetail() {
       
       <div className="flex items-center gap-3 mb-6">
         <UsersRound size={28} className="text-accent" />
-        <h1 className="text-2xl font-bold text-accent">{pageTitle}</h1>
+        <h1 className="text-sm font-medium text-accent">{pageTitle}</h1>
       </div>
 
       {!currentSeason && isNewMode && (

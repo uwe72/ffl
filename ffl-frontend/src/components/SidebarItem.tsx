@@ -6,7 +6,7 @@ interface SidebarItemProps {
   label: string
   icon: LucideIcon
   collapsed: boolean
-  subItems?: { to: string; label: string }[]
+  subItems?: { to: string; label: string; external?: boolean }[]
   expanded?: boolean
   onToggle?: () => void
 }
@@ -42,7 +42,20 @@ export default function SidebarItem({ to, label, icon: Icon, collapsed, subItems
         {!collapsed && expanded && (
           <div className="ml-6 mt-1 flex flex-col gap-1">
             {subItems.map((sub) => {
-              const subActive = location.pathname === sub.to
+              const subActive = !sub.external && location.pathname === sub.to
+              if (sub.external) {
+                return (
+                  <a
+                    key={sub.to}
+                    href={sub.to}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block px-3 py-2 rounded-lg text-sm transition-colors text-subtle hover:text-accent hover:bg-elevated"
+                  >
+                    {sub.label}
+                  </a>
+                )
+              }
               return (
                 <Link
                   key={sub.to}

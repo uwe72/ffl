@@ -69,6 +69,7 @@ export default defineConfig({
         screenshots: []
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         globIgnores: ['**/background.png', '**/after_login.png', '**/back2.png', '**/back3.png', '**/hintergrundbild.png', '**/background.mp4'],
         runtimeCaching: [

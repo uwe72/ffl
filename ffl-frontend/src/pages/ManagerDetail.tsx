@@ -510,7 +510,7 @@ export default function ManagerDetail() {
           <div className="flex items-start gap-3">
             <UserCheck size={28} className="text-accent mt-1" />
             <div>
-              <h1 className="text-2xl font-bold text-accent">{manager.name}</h1>
+              <h1 className="text-sm font-medium text-accent">{manager.name}</h1>
               <div className="flex items-center gap-3 mt-1.5">
                 {manager.shortName && (
                   <Badge>{manager.shortName}</Badge>

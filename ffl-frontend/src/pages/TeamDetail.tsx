@@ -105,7 +105,7 @@ export default function TeamDetail() {
             <div className="flex items-start gap-3">
               <Shield size={28} className="text-accent mt-1" />
               <div>
-                <h1 className="text-2xl font-bold text-accent">{team.name}</h1>
+                <h1 className="text-sm font-medium text-accent">{team.name}</h1>
                 <div className="flex items-center gap-3 mt-1.5">
                   {team.shortName && (
                     <Badge variant="muted">{team.shortName}</Badge>

@@ -270,7 +270,7 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
     <div className="pb-6">
       <div className="flex items-center gap-3 mb-6">
         <LayoutDashboard size={28} className="text-accent" />
-        <h1 className="text-2xl font-bold text-accent">Dashboard</h1>
+        <h1 className="text-sm font-medium text-accent">Dashboard</h1>
       </div>
 
       {displayManager && (

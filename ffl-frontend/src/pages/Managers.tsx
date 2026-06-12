@@ -115,7 +115,7 @@ export default function Managers() {
     <div>
       <div className="flex items-center gap-3 mb-6">
         <UserCheck size={28} className="text-accent" />
-        <h1 className="text-2xl font-bold text-accent">Manager</h1>
+        <h1 className="text-sm font-medium text-accent">Manager</h1>
       </div>
 
       <div className="p-4 bg-surface border border-border">

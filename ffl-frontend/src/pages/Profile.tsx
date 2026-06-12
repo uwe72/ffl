@@ -60,7 +60,7 @@ export default function Profile() {
 
       <div className="flex items-center gap-3 mb-6">
         <Settings size={28} className="text-accent" />
-        <h1 className="text-2xl font-bold text-accent">Mein Profil</h1>
+        <h1 className="text-sm font-medium text-accent">Mein Profil</h1>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

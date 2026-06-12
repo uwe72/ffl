@@ -12,7 +12,7 @@ export default function Teams() {
     <div>
       <div className="flex items-center gap-3 mb-6">
         <Shield size={28} className="text-accent" />
-        <h1 className="text-2xl font-bold text-accent">Teams</h1>
+        <h1 className="text-sm font-medium text-accent">Teams</h1>
       </div>
       {teams && teams.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">

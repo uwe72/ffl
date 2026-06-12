@@ -348,7 +348,7 @@ export default function Players() {
     <div>
       <div className="flex items-center gap-3 mb-6">
         <Users size={28} className="text-accent" />
-        <h1 className="text-2xl font-bold text-accent">Spieler</h1>
+        <h1 className="text-sm font-medium text-accent">Spieler</h1>
       </div>
 
       <div className="bg-surface rounded-lg border border-border overflow-hidden">

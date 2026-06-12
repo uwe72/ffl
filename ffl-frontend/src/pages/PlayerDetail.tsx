@@ -185,7 +185,7 @@ export default function PlayerDetail() {
             <div className="flex items-start gap-3">
               <Users size={28} className="text-accent mt-1" />
               <div>
-                <h1 className="text-2xl font-bold text-accent">{player.nameKicker}</h1>
+                <h1 className="text-sm font-medium text-accent">{player.nameKicker}</h1>
                 {player.firstName && player.lastName && (
                   <p className="text-lg text-muted mt-1">
                     {player.firstName} {player.lastName}

@@ -94,7 +94,7 @@ export default function Games() {
       <div className="mb-6">
         <div className="flex items-center gap-3">
           <CalendarDays size={28} className="text-accent" />
-          <h1 className="text-2xl font-bold text-accent">Spiele</h1>
+          <h1 className="text-sm font-medium text-accent">Spiele</h1>
         </div>
         {currentSeason && (
           <p className="text-sm text-muted mt-1.5">
