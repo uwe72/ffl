@@ -17,7 +17,10 @@
       var _paq = window._paq = window._paq || [];
       _paq.push(['trackPageView']);
       _paq.push(['enableLinkTracking']);
+      _paq.push(['setLinkTrackingTimer', 500]);
       _paq.push(['enableHeartBeatTimer', 30]);
+      _paq.push(['enableJSErrorTracking']);
+      _paq.push(['enablePerformanceTrackingInHeartBeatTimer']);
       (function() {
         var u="//matomo.ipv64.de/";
         _paq.push(['setTrackerUrl', u+'matomo.php']);

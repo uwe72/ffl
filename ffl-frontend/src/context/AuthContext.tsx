@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { authApi } from '../api/auth'
+import { setMatomoUserId, resetMatomoUserId, setMatomoCustomDimension } from '../hooks/useMatomo'
 import type { LoginRequest, RegisterRequest, AuthContextType } from '../types'
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -12,7 +13,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser))
+        const parsed = JSON.parse(storedUser)
+        setUser(parsed)
+        setMatomoUserId(parsed.login)
+        setMatomoCustomDimension(1, parsed.role)
       } catch {
         localStorage.removeItem('user')
         localStorage.removeItem('token')
@@ -29,6 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userData = { login: response.login, role: response.role }
     localStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
+    setMatomoUserId(userData.login)
+    setMatomoCustomDimension(1, userData.role)
   }
 
   const register = async (data: RegisterRequest) => {
@@ -38,6 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userData = { login: response.login, role: response.role }
     localStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
+    setMatomoUserId(userData.login)
+    setMatomoCustomDimension(1, userData.role)
   }
 
   const logout = () => {
@@ -45,6 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
     setUser(null)
+    resetMatomoUserId()
+    setMatomoCustomDimension(1, '')
   }
 
   const refreshAccessToken = async (): Promise<boolean> => {

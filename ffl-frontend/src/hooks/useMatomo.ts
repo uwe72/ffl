@@ -36,3 +36,15 @@ export function trackEvent(category: string, action: string, name?: string, valu
   if (value !== undefined) args.push(value)
   pushToMatomo(args)
 }
+
+export function setMatomoUserId(userId: string) {
+  pushToMatomo(['setUserId', userId])
+}
+
+export function resetMatomoUserId() {
+  pushToMatomo(['resetUserId'])
+}
+
+export function setMatomoCustomDimension(dimId: number, value: string) {
+  pushToMatomo(['setCustomDimension', dimId, value])
+}
