@@ -1,5 +1,6 @@
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { LayoutDashboard } from 'lucide-react'
 import { useCurrentManager, useManagersBySeason, useManagerCurrentPlayers } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
@@ -266,15 +267,10 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
   }
 
   return (
-    <div className="py-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Hallo {displayManager?.firstName || 'bei FFL'}!</h1>
-        {season && (
-          <p className="text-muted">
-            Saison {season.name} · {season.seasonState === 'RUNNING_HINRUNDE' ? 'Hinrunde' : season.seasonState === 'RUNNING_RUECKRUNDE' ? 'Rückrunde' : 'Vor Saison'}
-            {season.currentMatchday && ` · Spieltag ${season.currentMatchday}`}
-          </p>
-        )}
+    <div className="pb-6">
+      <div className="flex items-center gap-3 mb-6">
+        <LayoutDashboard size={28} className="text-accent" />
+        <h1 className="text-2xl font-bold text-accent">Dashboard</h1>
       </div>
 
       {displayManager && (
@@ -282,13 +278,17 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
           {currentPlayers && currentPlayers.length > 0 && (
             <div className="card p-4 md:p-6 bg-surface border border-border mb-8">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                <h3 className="text-lg font-semibold text-foreground">
-                  {(() => {
-                    const totalPoints = currentPlayers?.reduce((sum, p) => sum + (p.pointsLastRound ?? 0), 0) ?? 0
-                    const matchday = season?.currentMatchday ?? 0
-                    return `${totalPoints} Punkte am ${matchday}. Spieltag`
-                  })()}
-                </h3>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {(() => {
+                      const totalPoints = currentPlayers?.reduce((sum, p) => sum + (p.pointsLastRound ?? 0), 0) ?? 0
+                      return `${totalPoints} Punkte`
+                    })()}
+                  </h3>
+                  <p className="text-sm text-muted">
+                    {season?.currentMatchday ? `${season.currentMatchday}. Spieltag` : 'Spieltag'}
+                  </p>
+                </div>
                 <div className="flex gap-2">
                   <label
                     className={`px-4 py-2 rounded-lg cursor-pointer transition-all ${
@@ -440,9 +440,14 @@ const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
 
           <div className="card p-4 md:p-6 bg-surface border border-border">
             <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
-              <h3 className="text-lg font-semibold text-foreground">
-                {displayManager?.positionTotal ? `${displayManager.positionTotal}. Platz` : 'Platzierung'} am {season?.currentMatchday ? `${season.currentMatchday}. Spieltag` : 'Spieltag'}
-              </h3>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">
+                  {displayManager?.positionTotal ? `${displayManager.positionTotal}. Platz` : 'Platzierung'}
+                </h3>
+                <p className="text-sm text-muted">
+                  {season?.currentMatchday ? `${season.currentMatchday}. Spieltag` : 'Spieltag'}
+                </p>
+              </div>
               <div className="flex-1" />
               <div className="flex flex-col md:flex-row gap-2 md:gap-4">
                 <input

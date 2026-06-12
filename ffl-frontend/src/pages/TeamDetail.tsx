@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
+import { Shield } from 'lucide-react'
 import { useTeam, useTeamPlayers } from '../hooks/useTeams'
 import { positionLabels, positionColors } from './Players'
+import Badge from '../components/Badge'
 
 type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position'
 type SortOrder = 'asc' | 'desc'
@@ -100,10 +102,17 @@ export default function TeamDetail() {
             />
           )}
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-foreground">{team.name}</h1>
-            {team.shortName && (
-              <p className="text-lg text-muted mt-1">{team.shortName}</p>
-            )}
+            <div className="flex items-start gap-3">
+              <Shield size={28} className="text-accent mt-1" />
+              <div>
+                <h1 className="text-2xl font-bold text-accent">{team.name}</h1>
+                <div className="flex items-center gap-3 mt-1.5">
+                  {team.shortName && (
+                    <Badge variant="muted">{team.shortName}</Badge>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

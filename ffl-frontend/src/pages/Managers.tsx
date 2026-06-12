@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
+import { UserCheck } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { useManagers } from '../hooks/useManagers'
 import { useAuth } from '../context/AuthContext'
@@ -112,7 +113,10 @@ export default function Managers() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-foreground mb-6">Manager</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <UserCheck size={28} className="text-accent" />
+        <h1 className="text-2xl font-bold text-accent">Manager</h1>
+      </div>
 
       <div className="p-4 bg-surface border border-border">
         <div className="mb-4 flex gap-4 items-center">

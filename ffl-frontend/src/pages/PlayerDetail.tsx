@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { Users } from 'lucide-react'
 import { usePlayer, useUpdatePlayer, usePlayerRanks } from '../hooks/usePlayers'
 import { useAuth } from '../context/AuthContext'
 import { positionLabels } from './Players'
+import Badge from '../components/Badge'
 import type { Position } from '../types'
 
 type SortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue' | 'hinrunde' | 'rueckrunde'
@@ -180,13 +182,21 @@ export default function PlayerDetail() {
         <div className="flex items-start gap-6">
           <img src={player.pictureUrl || ''} alt={player.nameKicker} className="w-32 h-32 rounded-full object-cover" />
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-foreground">{player.nameKicker}</h1>
-            {player.firstName && player.lastName && (
-              <p className="text-lg text-muted mt-1">
-                {player.firstName} {player.lastName}
-              </p>
-            )}
-              <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="flex items-start gap-3">
+              <Users size={28} className="text-accent mt-1" />
+              <div>
+                <h1 className="text-2xl font-bold text-accent">{player.nameKicker}</h1>
+                {player.firstName && player.lastName && (
+                  <p className="text-lg text-muted mt-1">
+                    {player.firstName} {player.lastName}
+                  </p>
+                )}
+                <div className="mt-1.5">
+                  <Badge>{positionLabels[player.position]}</Badge>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
                 {player.teams.map((team) => (
                   <RouterLink 
                     key={team.id}

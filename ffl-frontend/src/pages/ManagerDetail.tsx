@@ -1,9 +1,11 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { useState, useMemo, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
+import { UserCheck } from 'lucide-react'
 import { useManager, useManagerRoundDetails, useManagerGroups } from '../hooks/useManagers'
 import { useManagerGroupsWithStats } from '../hooks/useManagerGroups'
 import { positionLabels, positionColors } from './Players'
+import Badge from '../components/Badge'
 import type { Player, ManagerGroup, RulePoint } from '../types'
 
 const LINE_COLORS = [
@@ -505,11 +507,17 @@ export default function ManagerDetail() {
       
       <div className="p-6 mt-4 bg-surface border border-border">
         <div className="flex items-start justify-between">
-          <div>
-            {manager.shortName && (
-              <p className="text-lg text-accent font-medium">{manager.shortName}</p>
-            )}
-            <h1 className="text-3xl font-bold text-foreground">{manager.name}</h1>
+          <div className="flex items-start gap-3">
+            <UserCheck size={28} className="text-accent mt-1" />
+            <div>
+              <h1 className="text-2xl font-bold text-accent">{manager.name}</h1>
+              <div className="flex items-center gap-3 mt-1.5">
+                {manager.shortName && (
+                  <Badge>{manager.shortName}</Badge>
+                )}
+                <Badge variant="muted">Manager</Badge>
+              </div>
+            </div>
           </div>
           <span className={`text-xs font-medium px-2 py-0.5 rounded ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
             {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}

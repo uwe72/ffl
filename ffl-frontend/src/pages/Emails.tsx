@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
+import { Settings } from 'lucide-react'
 import { useEmails, useCreateEmail, useBulkCreateEmails, useDeleteEmail } from '../hooks/useEmails'
 import type { EmailAddress } from '../types'
 
@@ -115,9 +116,12 @@ export default function Emails() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-foreground mb-6">
-        E-Mail-Adressen <span className="text-lg text-subtle">({emails?.length ?? 0})</span>
-      </h1>
+      <div className="flex items-center gap-3 mb-6">
+        <Settings size={28} className="text-accent" />
+        <h1 className="text-2xl font-bold text-accent">
+          E-Mail-Adressen <span className="text-lg text-subtle">({emails?.length ?? 0})</span>
+        </h1>
+      </div>
 
       <div className="p-4 bg-surface border border-border">
         <div className="flex flex-wrap gap-3 mb-4 items-center">

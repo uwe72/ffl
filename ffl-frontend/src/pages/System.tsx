@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Settings } from 'lucide-react'
 import { useSystemConfig, useUpdateSystemConfig, useSendTestMail } from '../hooks/useSystemConfig'
 import type { SystemConfig, TestMailResult } from '../types'
 
@@ -80,7 +81,10 @@ export default function System() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-foreground mb-6">System</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <Settings size={28} className="text-accent" />
+        <h1 className="text-2xl font-bold text-accent">System</h1>
+      </div>
 
       <div className="flex gap-1 mb-6">
         <button

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
+import { Settings } from 'lucide-react'
 import { useUser, useUpdateUser, useDeleteUser } from '../hooks/useUsers'
 import type { User } from '../types'
 
@@ -85,7 +86,10 @@ export default function UserDetail() {
         &larr; Zurück zur Übersicht
       </RouterLink>
 
-      <h1 className="text-3xl font-bold text-foreground mb-6">Benutzer bearbeiten</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <Settings size={28} className="text-accent" />
+        <h1 className="text-2xl font-bold text-accent">Benutzer bearbeiten</h1>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="p-6 bg-surface border border-border">

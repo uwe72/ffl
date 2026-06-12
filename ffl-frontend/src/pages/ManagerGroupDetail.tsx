@@ -1,5 +1,6 @@
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useState, useMemo, useEffect } from 'react'
+import { UsersRound } from 'lucide-react'
 import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator, useCreateManagerGroup } from '../hooks/useManagerGroups'
 import { useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
@@ -258,7 +259,10 @@ export default function ManagerGroupDetail() {
         &larr; Zurück zur Übersicht
       </RouterLink>
       
-      <h1 className="text-3xl font-bold text-foreground mb-6">{pageTitle}</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <UsersRound size={28} className="text-accent" />
+        <h1 className="text-2xl font-bold text-accent">{pageTitle}</h1>
+      </div>
 
       {!currentSeason && isNewMode && (
         <div className="p-4 mb-6 bg-danger-bg border border-danger">

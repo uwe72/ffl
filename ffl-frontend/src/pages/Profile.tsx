@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
+import { Settings } from 'lucide-react'
 import { useProfile, useUpdateProfile } from '../hooks/useProfile'
 import type { MailTheme } from '../types'
 
@@ -57,7 +58,10 @@ export default function Profile() {
         &larr; Zurück zur Startseite
       </RouterLink>
 
-      <h1 className="text-3xl font-bold text-foreground mb-6">Mein Profil</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <Settings size={28} className="text-accent" />
+        <h1 className="text-2xl font-bold text-accent">Mein Profil</h1>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="card p-6 bg-surface border border-border">

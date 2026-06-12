@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import type { PlayerPoints } from '../types'
 import { useState, useEffect } from 'react'
 import { positionLabels, positionColors } from './Players'
+import Badge from '../components/Badge'
 import FormationImportDialog from '../components/FormationImportDialog'
 
 const POSITION_ORDER: Record<string, number> = {
@@ -186,7 +187,7 @@ export default function GameDetail() {
         </div>
         
         <div className="text-center mt-4 pt-4 border-t border-border">
-          <span className="text-muted">Spieltag {game.roundNumber || '-'}</span>
+          <Badge>{game.roundNumber ? `${game.roundNumber}. Spieltag` : 'Spieltag'}</Badge>
         </div>
       </div>
 

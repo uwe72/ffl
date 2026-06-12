@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
+import { Settings } from 'lucide-react'
 import { useUsers } from '../hooks/useUsers'
 
 const roleLabels: Record<string, string> = {
@@ -76,7 +77,10 @@ export default function Users() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-foreground mb-6">Benutzer</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <Settings size={28} className="text-accent" />
+        <h1 className="text-2xl font-bold text-accent">Benutzer</h1>
+      </div>
 
       <div className="p-4 bg-surface border border-border">
         <div className="mb-4">

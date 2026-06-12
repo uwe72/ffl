@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
+import { CalendarDays } from 'lucide-react'
 import { useGames, useGame } from '../hooks/useGames'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useQueryClient } from '@tanstack/react-query'
@@ -90,7 +91,17 @@ export default function Games() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-foreground mb-6">Spiele</h1>
+      <div className="mb-6">
+        <div className="flex items-center gap-3">
+          <CalendarDays size={28} className="text-accent" />
+          <h1 className="text-2xl font-bold text-accent">Spiele</h1>
+        </div>
+        {currentSeason && (
+          <p className="text-sm text-muted mt-1.5">
+            Saison {currentSeason.name}
+          </p>
+        )}
+      </div>
       
       <div className="mb-4 flex items-center gap-2">
         <label className="text-muted text-sm">Spieltag:</label>

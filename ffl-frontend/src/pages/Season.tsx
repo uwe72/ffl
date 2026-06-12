@@ -11,6 +11,8 @@ Quill.register(Size, true)
 import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePrizeDistributionMailPreview } from '../hooks/useSeasons'
 import CalculationDialog from '../components/CalculationDialog'
 import PrizeDistributionMailSendDialog from '../components/PrizeDistributionMailSendDialog'
+import Badge from '../components/Badge'
+import { Settings } from 'lucide-react'
 import type { Season, SeasonState, PrizeDistributionLog, PrizePayout, PayoutStatus } from '../types'
 
 const seasonStateOptions: { value: SeasonState; label: string }[] = [
@@ -226,7 +228,22 @@ export default function Season() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-foreground mb-6">Saison</h1>
+      <div className="mb-6">
+        <div className="flex items-center gap-3">
+          <Settings size={28} className="text-accent" />
+          <h1 className="text-2xl font-bold text-accent">Saison</h1>
+        </div>
+        <div className="flex items-center gap-3 mt-1.5">
+          <Badge>
+            {seasonStateOptions.find(o => o.value === season.seasonState)?.label || season.seasonState}
+          </Badge>
+          {season.currentMatchday && (
+            <span className="text-sm text-muted">
+              {season.currentMatchday}. Spieltag
+            </span>
+          )}
+        </div>
+      </div>
 
       <div className="border-b border-border mb-6">
         <div className="flex gap-6">

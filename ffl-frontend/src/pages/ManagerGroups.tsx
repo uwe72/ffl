@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { UsersRound } from 'lucide-react'
 import { useManagerGroups, useDeleteManagerGroup } from '../hooks/useManagerGroups'
 
 type SortKey = 'name' | 'managerCount' | 'createdByLogin'
@@ -66,7 +67,10 @@ export default function ManagerGroups() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-foreground">Gruppen</h1>
+        <div className="flex items-center gap-3">
+          <UsersRound size={28} className="text-accent" />
+          <h1 className="text-2xl font-bold text-accent">Gruppen</h1>
+        </div>
         <button
           onClick={() => navigate('/manager-groups/create')}
           className="bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded hover:bg-button-primary-hover transition-colors"

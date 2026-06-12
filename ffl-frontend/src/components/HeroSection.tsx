@@ -1,9 +1,10 @@
-import { Menu, Shield, UserCheck, Calendar } from 'lucide-react'
+import { Menu, Shield, UserCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useManagers } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useTeams } from '../hooks/useTeams'
 import { useAuth } from '../context/AuthContext'
+import Badge from './Badge'
 
 interface HeroSectionProps {
   onMenuClick: () => void
@@ -16,20 +17,19 @@ function getGreeting(): string {
   return 'Guten Abend'
 }
 
-function formatDate(): string {
-  return new Date().toLocaleDateString('de-DE', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
-
 export default function HeroSection({ onMenuClick }: HeroSectionProps) {
   const { data: managers } = useManagers()
   const { data: season } = useCurrentSeason()
   const { data: teams } = useTeams()
   const { user } = useAuth()
+
+  const phaseLabel = season
+    ? season.seasonState === 'RUNNING_HINRUNDE'
+      ? 'Hinrunde'
+      : season.seasonState === 'RUNNING_RUECKRUNDE'
+        ? 'Rückrunde'
+        : 'Vor Saison'
+    : null
 
   return (
     <div className="hero-fade relative h-56 shrink-0 overflow-hidden">
@@ -57,10 +57,18 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
 
         <div className="flex-1 flex flex-col justify-center gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            <p className="text-2xl md:text-3xl font-bold text-foreground">
               {getGreeting()}, {user?.login || 'Gast'}!
-            </h1>
-            <p className="text-sm text-muted mt-1">{formatDate()}</p>
+            </p>
+            {season && (
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-sm text-muted">Saison {season.name}</span>
+                <Badge>{phaseLabel}</Badge>
+                {season.currentMatchday && (
+                  <span className="text-sm text-muted">{season.currentMatchday}. Spieltag</span>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -73,18 +81,6 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
                 <p className="text-xs text-muted">Manager</p>
               </div>
             </Link>
-
-            {season && (
-              <div className="hero-stat-card px-4 py-3 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-accent/15 flex items-center justify-center">
-                  <Calendar size={18} className="text-accent" />
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-foreground leading-tight">{season.currentMatchday || 0}</p>
-                  <p className="text-xs text-muted">Spieltag</p>
-                </div>
-              </div>
-            )}
 
             <Link to="/teams" className="hero-stat-card px-4 py-3 flex items-center gap-3 hover:bg-surface/90 transition-colors">
               <div className="w-9 h-9 rounded-lg bg-accent/15 flex items-center justify-center">

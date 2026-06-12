@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
+import { Search, FilterX, Shield, ShieldHalf, CircleDot, Target, Users } from 'lucide-react'
 import { usePlayers } from '../hooks/usePlayers'
 import type { Team, Player } from '../types'
 
@@ -23,6 +24,22 @@ const positionChipClass: Record<string, string> = {
   MIDFIELD: 'chip-success',
   STRIKER: 'chip-danger'
 }
+
+const positionIcon: Record<string, React.ComponentType<{size?: number; className?: string}>> = {
+  GOALKEEPER: Shield,
+  DEFENDER: ShieldHalf,
+  MIDFIELD: CircleDot,
+  STRIKER: Target,
+}
+
+const positionChipActiveColors: Record<string, string> = {
+  GOALKEEPER: 'bg-warning/15 text-warning border-warning/40',
+  DEFENDER: 'bg-accent/15 text-accent border-accent/40',
+  MIDFIELD: 'bg-success/15 text-success border-success/40',
+  STRIKER: 'bg-danger/15 text-danger border-danger/40',
+}
+
+const chipInactive = 'bg-elevated text-muted border-border'
 
 type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position'
 type SortOrder = 'asc' | 'desc'
@@ -52,22 +69,22 @@ function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="min-w-48 px-3 py-2 rounded-lg bg-elevated border border-border text-foreground text-sm flex items-center justify-between gap-2 focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
+        className="min-w-40 px-2 py-1.5 rounded bg-elevated border border-border text-foreground text-xs flex items-center justify-between gap-1.5 focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
       >
-        <span className="flex items-center gap-2 truncate">
+        <span className="flex items-center gap-1.5 truncate">
           {selectedTeam?.logoSUrl && (
-            <img src={selectedTeam.logoSUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
+            <img src={selectedTeam.logoSUrl} alt="" className="w-4 h-4 object-contain flex-shrink-0" />
           )}
           <span className="truncate">{selectedTeam?.name || 'Alle Vereine'}</span>
         </span>
-        <span className="text-subtle text-xs">▼</span>
+        <span className="text-subtle text-[10px]">▼</span>
       </button>
 
       {isOpen && (
         <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
           <button
             onClick={() => { onSelect('ALL'); setIsOpen(false) }}
-            className={`w-full px-3 py-2 text-left text-sm hover:bg-elevated transition-colors ${selectedTeamId === 'ALL' ? 'bg-elevated text-accent' : 'text-muted'}`}
+            className={`w-full px-2 py-1.5 text-left text-xs hover:bg-elevated transition-colors ${selectedTeamId === 'ALL' ? 'bg-elevated text-accent' : 'text-muted'}`}
           >
             Alle Vereine
           </button>
@@ -75,7 +92,7 @@ function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
             <button
               key={team.id}
               onClick={() => { onSelect(team.id); setIsOpen(false) }}
-              className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-elevated transition-colors ${selectedTeamId === team.id ? 'bg-elevated text-accent' : 'text-foreground'}`}
+              className={`w-full px-2 py-1.5 text-left text-xs flex items-center gap-1.5 hover:bg-elevated transition-colors ${selectedTeamId === team.id ? 'bg-elevated text-accent' : 'text-foreground'}`}
             >
               {team.logoSUrl && (
                 <img src={team.logoSUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
@@ -84,6 +101,82 @@ function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
             </button>
           ))}
         </div>
+      )}
+    </div>
+  )
+}
+
+function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, searchTerm, setSearchTerm, teams, hasFilter }: {
+  selectedPositions: Set<string>
+  setSelectedPositions: (s: Set<string>) => void
+  selectedTeamId: number | 'ALL'
+  setSelectedTeamId: (id: number | 'ALL') => void
+  searchTerm: string
+  setSearchTerm: (s: string) => void
+  teams: Team[]
+  hasFilter: boolean
+}) {
+  const togglePosition = (pos: string) => {
+    const next = new Set(selectedPositions)
+    if (next.has(pos)) next.delete(pos)
+    else next.add(pos)
+    setSelectedPositions(next)
+  }
+
+  const clearFilter = () => {
+    setSelectedPositions(new Set())
+    setSelectedTeamId('ALL')
+    setSearchTerm('')
+  }
+
+  return (
+    <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap">
+      <div className="relative flex-1 min-w-[180px] max-w-[280px]">
+        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          placeholder="Spieler suchen..."
+          className="input-field pl-8 pr-3 py-1.5 text-xs w-full"
+        />
+      </div>
+
+      <div className="h-5 w-px bg-border" />
+
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {(['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const).map(pos => {
+          const active = selectedPositions.has(pos)
+          const Icon = positionIcon[pos]
+          return (
+            <button
+              key={pos}
+              onClick={() => togglePosition(pos)}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border transition-colors ${active ? positionChipActiveColors[pos] : chipInactive}`}
+            >
+              <Icon size={12} />
+              {positionLabels[pos]}
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="h-5 w-px bg-border" />
+
+      <TeamDropdown
+        teams={teams}
+        selectedTeamId={selectedTeamId}
+        onSelect={setSelectedTeamId}
+      />
+
+      {hasFilter && (
+        <button
+          onClick={clearFilter}
+          className="p-1 rounded text-subtle hover:text-danger transition-colors"
+          title="Filter zurücksetzen"
+        >
+          <FilterX size={14} />
+        </button>
       )}
     </div>
   )
@@ -171,7 +264,7 @@ function PlayerCard({ player }: { player: Player }) {
 }
 
 export default function Players() {
-  const [selectedPosition, setSelectedPosition] = useState<string>('ALL')
+  const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set())
   const [selectedTeamId, setSelectedTeamId] = useState<number | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
@@ -200,11 +293,13 @@ export default function Players() {
     return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
+  const hasActiveFilter = selectedPositions.size > 0 || selectedTeamId !== 'ALL' || searchTerm !== ''
+
   const filteredPlayers = useMemo(() => {
     if (!players) return []
     
     const filtered = players.filter(player => {
-      const matchesPosition = selectedPosition === 'ALL' || player.position === selectedPosition
+      const matchesPosition = selectedPositions.size === 0 || selectedPositions.has(player.position)
       const matchesTeam = selectedTeamId === 'ALL' || player.teams.some(t => t.id === selectedTeamId)
       const matchesSearch = 
         player.nameKicker.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -244,50 +339,31 @@ export default function Players() {
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-  }, [players, selectedPosition, selectedTeamId, searchTerm, sortKey, sortOrder])
+  }, [players, selectedPositions, selectedTeamId, searchTerm, sortKey, sortOrder])
 
   if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-foreground mb-6">Spieler</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <Users size={28} className="text-accent" />
+        <h1 className="text-2xl font-bold text-accent">Spieler</h1>
+      </div>
 
-      <div className="card p-4 bg-surface border border-border">
-        <div className="flex flex-wrap gap-4 mb-4 items-center">
-          <div className="flex gap-2 flex-wrap">
-            <button
-              className={`px-4 py-2 rounded font-medium transition-colors ${selectedPosition === 'ALL' ? 'button-primary bg-primary text-background hover:bg-button-primary-hover' : 'button-secondary bg-elevated text-foreground border-border-hover'}`}
-              onClick={() => setSelectedPosition('ALL')}
-            >
-              Alle
-            </button>
-            {(['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const).map(pos => (
-              <button
-                key={pos}
-                className={`px-4 py-2 rounded font-medium transition-colors ${selectedPosition === pos ? 'button-primary bg-primary text-background hover:bg-button-primary-hover' : 'button-secondary bg-elevated text-foreground border-border-hover'}`}
-                onClick={() => setSelectedPosition(pos)}
-              >
-                {positionLabels[pos]}
-              </button>
-            ))}
-          </div>
+      <div className="bg-surface rounded-lg border border-border overflow-hidden">
+        <FilterBar
+          selectedPositions={selectedPositions}
+          setSelectedPositions={setSelectedPositions}
+          selectedTeamId={selectedTeamId}
+          setSelectedTeamId={setSelectedTeamId}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          teams={teams}
+          hasFilter={hasActiveFilter}
+        />
 
-          <div className="flex gap-3 items-center">
-            <input
-              type="text"
-              placeholder="Spieler suchen..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="min-w-48 px-3 py-2 rounded-lg bg-elevated border border-border text-foreground text-sm placeholder-[#8899aa] focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
-            />
-            <TeamDropdown
-              teams={teams}
-              selectedTeamId={selectedTeamId}
-              onSelect={setSelectedTeamId}
-            />
-          </div>
-        </div>
+        <div className="p-4">
 
         <div className="overflow-x-auto hidden md:block">
           <table className="w-full">
@@ -423,6 +499,7 @@ export default function Players() {
             {filteredPlayers.length} von {players?.length || 0} Spielern
           </div>
         )}
+        </div>
       </div>
     </div>
   )
