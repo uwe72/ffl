@@ -3,12 +3,10 @@ import { Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Sidebar from './Sidebar'
 import HeroSection from './HeroSection'
-import { usePWAInstall } from '../hooks/usePWAInstall'
 
 export default function Layout() {
   const { isAuthenticated } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { isInstallable, install } = usePWAInstall()
 
   if (!isAuthenticated) {
     return (
@@ -30,17 +28,6 @@ export default function Layout() {
             <Outlet />
           </div>
         </main>
-
-        {isInstallable && (
-          <div className="fixed bottom-4 right-4 z-40">
-            <button
-              onClick={install}
-              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-button-primary-hover transition-colors shadow-lg text-sm font-medium"
-            >
-              Installieren
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )

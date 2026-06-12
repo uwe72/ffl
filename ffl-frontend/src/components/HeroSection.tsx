@@ -34,7 +34,7 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
   return (
     <div className="hero-fade relative h-56 shrink-0 overflow-hidden">
       <div
-        className="absolute inset-0 bg-cover bg-right bg-no-repeat"
+        className="absolute inset-0 bg-[length:100%_auto] bg-right bg-no-repeat"
         style={{ backgroundImage: 'url(/hero-banner.png)' }}
       >
         <div

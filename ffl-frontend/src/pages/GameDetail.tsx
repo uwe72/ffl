@@ -129,9 +129,9 @@ export default function GameDetail() {
         <div className="flex gap-2">
           <button
             onClick={() => setShowImportDialog(true)}
-            className="px-4 py-2 rounded bg-primary text-[#1b2838] font-medium hover:bg-primary"
+            className="bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded hover:bg-button-primary-hover transition-colors"
           >
-            Import
+            + Import
           </button>
         </div>
       </div>

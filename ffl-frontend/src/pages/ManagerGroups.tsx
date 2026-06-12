@@ -69,9 +69,9 @@ export default function ManagerGroups() {
         <h1 className="text-3xl font-bold text-foreground">Gruppen</h1>
         <button
           onClick={() => navigate('/manager-groups/create')}
-          className="bg-primary text-background px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors"
+          className="bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded hover:bg-button-primary-hover transition-colors"
         >
-          Neue Gruppe
+          + Neue Gruppe
         </button>
       </div>
 

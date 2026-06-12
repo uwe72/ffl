@@ -129,15 +129,15 @@ export default function Emails() {
           />
           <button
             onClick={() => { setShowCreateDialog(true); setNewEmail(''); setError('') }}
-            className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors"
+            className="bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded hover:bg-button-primary-hover transition-colors"
           >
-            Neue E-Mail
+            + Neue E-Mail
           </button>
           <button
             onClick={() => { setShowImportDialog(true); setImportText(''); setError('') }}
-            className="bg-elevated text-accent border border-border-hover px-4 py-2 rounded transition-colors"
+            className="bg-elevated text-accent border border-border-hover text-xs font-medium px-2 py-1 rounded hover:bg-default transition-colors"
           >
-            Importieren
+            + Importieren
           </button>
         </div>
 
