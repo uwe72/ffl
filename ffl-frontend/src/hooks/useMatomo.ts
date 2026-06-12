@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 
 declare global {
@@ -15,8 +15,15 @@ function pushToMatomo(args: Array<string | number>) {
 
 export function useMatomoPageView() {
   const location = useLocation()
+  const isFirstMount = useRef(true)
 
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      return
+    }
+
+    pushToMatomo(['setReferrerUrl', window.location.origin + document.referrer])
     pushToMatomo(['setCustomUrl', window.location.origin + location.pathname + location.search])
     pushToMatomo(['setDocumentTitle', document.title])
     pushToMatomo(['trackPageView'])
