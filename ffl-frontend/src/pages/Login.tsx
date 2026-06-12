@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate, Link as RouterLink } from 'react-router-dom'
-import { Button, Card, Alert, TextField, Label, Input } from '@heroui/react'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { trackEvent } from '../hooks/useMatomo'
@@ -32,67 +31,63 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f1419] py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background.png')" }}>
-      <Card className="max-w-md w-full p-8 bg-[#1a2028]/80 backdrop-blur-md border border-[#2d3748]/50 shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background.png')" }}>
+      <div className="card max-w-md w-full p-8 bg-surface/80 backdrop-blur-md border border-border/50 shadow-xl">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-[#f5f5f5]">Anmelden</h2>
+          <h2 className="text-3xl font-bold text-foreground">Anmelden</h2>
         </div>
         <form className="space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <Alert status="danger">
-              <Alert.Content>
-                <Alert.Description>{error}</Alert.Description>
-              </Alert.Content>
-            </Alert>
+            <div className="p-3 mb-4 rounded bg-danger-bg border border-danger/30 text-danger text-sm">{error}</div>
           )}
           <div className="space-y-4">
-            <TextField name="login" isRequired>
-              <Label className="text-[#a0aec0]">Login</Label>
-              <Input
+            <div>
+              <label className="block text-sm text-muted mb-1">Login</label>
+              <input
+                type="text"
                 placeholder="Login"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
-                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] placeholder-[#6b7280]"
+                className="input-field w-full px-3 py-2 rounded bg-elevated border-border-hover text-foreground placeholder-[#8899aa] focus:outline-none"
               />
-            </TextField>
-            <TextField name="password" isRequired>
-              <Label className="text-[#a0aec0]">Passwort</Label>
-              <Input
+            </div>
+            <div>
+              <label className="block text-sm text-muted mb-1">Passwort</label>
+              <input
                 type="password"
                 placeholder="Passwort"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] placeholder-[#6b7280]"
+                className="input-field w-full px-3 py-2 rounded bg-elevated border-border-hover text-foreground placeholder-[#8899aa] focus:outline-none"
               />
-            </TextField>
+            </div>
           </div>
-          <Button
+          <button
             type="submit"
-            variant="primary"
-            className="w-full bg-[#c9a66b] text-[#0f1419] hover:bg-[#d4b77a]"
-            isDisabled={isLoading}
+            className="button-primary w-full px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors"
+            disabled={isLoading}
           >
             {isLoading ? 'Wird geladen...' : 'Anmelden'}
-          </Button>
+          </button>
           {season?.seasonState === 'BEFORE_SEASON' && (
             <div className="text-center">
-              <RouterLink to="/register" className="text-[#c9a66b] hover:text-[#d4b77a] link">
+              <RouterLink to="/register" className="text-accent hover:text-accent-hover link">
                 Noch kein Konto? Registrieren
               </RouterLink>
             </div>
           )}
-          <div className="text-center pt-2 border-t border-[#2d3748]/50">
+          <div className="text-center pt-2 border-t border-border/50">
             <a
               href="/feedback"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-[#a0aec0] hover:text-[#c9a66b] link transition-colors"
+              className="text-sm text-muted hover:text-accent link transition-colors"
             >
               Feedback senden
             </a>
           </div>
         </form>
-      </Card>
+      </div>
     </div>
   )
 }

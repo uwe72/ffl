@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Button, Alert, TextField, Label, Input } from '@heroui/react'
 import axios from 'axios'
 import api from '../api/client'
 import { trackEvent } from '../hooks/useMatomo'
@@ -63,15 +62,14 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
     return (
       <div className="text-center py-8">
         <div className="text-6xl text-green-400 mb-4">✓</div>
-        <h3 className="text-2xl font-bold text-[#c9a66b] mb-2">Vielen Dank!</h3>
-        <p className="text-[#a0aec0]">Dein Feedback wurde versendet.</p>
-        <Button
-          variant="primary"
-          className="mt-6 bg-[#c9a66b] text-[#0f1419] hover:bg-[#d4b77a]"
-          onPress={handleClose}
+        <h3 className="text-2xl font-bold text-accent mb-2">Vielen Dank!</h3>
+        <p className="text-muted">Dein Feedback wurde versendet.</p>
+        <button
+          className="mt-6 bg-primary text-background hover:bg-button-primary-hover px-4 py-2 rounded font-medium transition-colors"
+          onClick={handleClose}
         >
           Fenster schließen
-        </Button>
+        </button>
       </div>
     )
   }
@@ -79,69 +77,68 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
       {error && (
-        <Alert status="danger">
-          <Alert.Content>
-            <Alert.Description>{error}</Alert.Description>
-          </Alert.Content>
-        </Alert>
+        <div className="p-3 mb-4 rounded bg-danger-bg border border-danger/30 text-danger text-sm">
+          {error}
+        </div>
       )}
-      <TextField name="name" isRequired>
-        <Label className="text-[#a0aec0]">Name</Label>
-        <Input
+      <div>
+        <label className="block text-sm text-muted mb-1">Name *</label>
+        <input
+          required
           placeholder="Dein Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] placeholder-[#6b7280]"
+          className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground placeholder-[#8899aa]"
         />
-      </TextField>
-      <TextField name="email" isRequired>
-        <Label className="text-[#a0aec0]">E-Mail</Label>
-        <Input
+      </div>
+      <div>
+        <label className="block text-sm text-muted mb-1">E-Mail *</label>
+        <input
           type="email"
+          required
           placeholder="name@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] placeholder-[#6b7280]"
+          className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground placeholder-[#8899aa]"
         />
-      </TextField>
-      <TextField name="subject" isRequired>
-        <Label className="text-[#a0aec0]">Betreff</Label>
-        <Input
+      </div>
+      <div>
+        <label className="block text-sm text-muted mb-1">Betreff *</label>
+        <input
+          required
           placeholder="Worum geht's?"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] placeholder-[#6b7280]"
+          className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground placeholder-[#8899aa]"
         />
-      </TextField>
+      </div>
       <div>
-        <label className="block text-sm text-[#a0aec0] mb-1">Nachricht *</label>
+        <label className="block text-sm text-muted mb-1">Nachricht *</label>
         <textarea
           required
           rows={6}
           placeholder="Deine Nachricht …"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="w-full bg-[#242d38] border border-[#3d4a5c] text-[#f5f5f5] placeholder-[#6b7280] rounded-md px-3 py-2 focus:outline-none focus:border-[#c9a66b]"
+          className="w-full bg-elevated border border-border-hover text-foreground placeholder-[#8899aa] rounded-md px-3 py-2 focus:outline-none focus:border-accent"
         />
       </div>
       <div className="flex gap-3">
-        <Button
+        <button
           type="button"
-          variant="secondary"
-          className="flex-1"
-          onPress={handleCancel}
-          isDisabled={isLoading}
+          className="button-secondary flex-1 px-4 py-2 rounded transition-colors"
+          onClick={handleCancel}
+          disabled={isLoading}
         >
           Abbrechen
-        </Button>
-        <Button
+        </button>
+        <button
           type="submit"
-          variant="primary"
-          className="flex-1 bg-[#c9a66b] text-[#0f1419] hover:bg-[#d4b77a]"
-          isDisabled={isLoading}
+          className="flex-1 bg-primary text-background hover:bg-button-primary-hover px-4 py-2 rounded font-medium transition-colors"
+          disabled={isLoading}
         >
           {isLoading ? 'Wird versendet …' : 'Feedback senden'}
-        </Button>
+        </button>
       </div>
     </form>
   )

@@ -1,5 +1,4 @@
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
-import { Card, Button, Label, Input, TextArea } from '@heroui/react'
 import { useState, useMemo, useEffect } from 'react'
 import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator, useCreateManagerGroup } from '../hooks/useManagerGroups'
 import { useManagersBySeason } from '../hooks/useManagers'
@@ -76,8 +75,8 @@ export default function ManagerGroupDetail() {
   }
 
   const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-[#6b7280] ml-1">⇅</span>
-    return <span className="text-[#c9a66b] ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
+    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
   const selectedManagers = useMemo(() => {
@@ -246,66 +245,67 @@ export default function ManagerGroupDetail() {
     return login || 'Unbekannt'
   }
 
-  if (!isNewMode && isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
-  if (!isNewMode && error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
-  if (!isNewMode && !group) return <div className="text-center py-8 text-[#6b7280]">Gruppe nicht gefunden</div>
+  if (!isNewMode && isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
+  if (!isNewMode && error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
+  if (!isNewMode && !group) return <div className="text-center py-8 text-subtle">Gruppe nicht gefunden</div>
 
   const pageTitle = isNewMode ? 'Neue Gruppe erstellen' : (group?.name || 'Gruppe')
   const canEdit = isNewMode || group?.editable
 
   return (
     <div>
-      <RouterLink to="/manager-groups" className="text-[#c9a66b] hover:text-[#d4b77a] mb-6 inline-block link">
+      <RouterLink to="/manager-groups" className="text-accent hover:text-accent-hover mb-6 inline-block link">
         &larr; Zurück zur Übersicht
       </RouterLink>
       
-      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">{pageTitle}</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-6">{pageTitle}</h1>
 
       {!currentSeason && isNewMode && (
-        <Card className="p-4 mb-6 bg-[#2d1f1f] border border-[#e05252]">
-          <p className="text-[#e05252]">
+        <div className="p-4 mb-6 bg-danger-bg border border-danger">
+          <p className="text-danger">
             Keine aktuelle Saison ausgewählt. Bitte erstellen Sie zuerst eine Saison.
           </p>
-        </Card>
+        </div>
       )}
 
       {errorMessage && (
-        <Card className="p-4 mb-6 bg-[#2d1f1f] border border-[#e05252]">
-          <p className="text-[#e05252]">{errorMessage}</p>
-        </Card>
+        <div className="p-4 mb-6 bg-danger-bg border border-danger">
+          <p className="text-danger">{errorMessage}</p>
+        </div>
       )}
       
       <div className="grid gap-6 md:grid-cols-2 mb-6">
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <Label className="text-[#a0aec0] block mb-2">Name <span className="text-[#e05252]">*</span></Label>
-          <Input
+        <div className="p-6 bg-surface border border-border">
+          <label className="text-muted block mb-2">Name <span className="text-danger">*</span></label>
+          <input
+            type="text"
             value={editName}
             onChange={(e) => handleChange('name', e.target.value)}
             readOnly={!canEdit}
-            className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] ${!canEdit ? 'opacity-70' : ''}"
+            className={`input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground ${!canEdit ? 'opacity-70' : ''}`}
           />
-        </Card>
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <Label className="text-[#a0aec0] block mb-2">Beschreibung <span className="text-[#e05252]">*</span></Label>
-          <TextArea
+        <div className="p-6 bg-surface border border-border">
+          <label className="text-muted block mb-2">Beschreibung <span className="text-danger">*</span></label>
+          <textarea
             value={editDescription}
             onChange={(e) => handleChange('description', e.target.value)}
             readOnly={!canEdit}
-            className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] ${!canEdit ? 'opacity-70' : ''}"
+            className={`input-field w-full px-3 py-2 rounded resize-y focus:outline-none bg-elevated border border-border-hover text-foreground ${!canEdit ? 'opacity-70' : ''}`}
           />
-        </Card>
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <Label className="text-[#a0aec0] block mb-3">Email an</Label>
+        <div className="p-6 bg-surface border border-border">
+          <label className="text-muted block mb-3">Email an</label>
           <div className="flex gap-4">
             {emailToOptions.map((option) => (
               <label
                 key={option.value}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all ${
                   editEmailTo === option.value
-                    ? 'bg-[#c9a66b] text-[#0f1419]'
-                    : 'bg-[#242d38] text-[#a0aec0] hover:bg-[#3d4a5c]'
+                    ? 'bg-primary text-background'
+                    : 'bg-elevated text-muted hover:bg-border-hover'
                 } ${!canEdit ? 'pointer-events-none opacity-70' : ''}`}
               >
                 <input
@@ -321,142 +321,140 @@ export default function ManagerGroupDetail() {
               </label>
             ))}
           </div>
-        </Card>
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
+        <div className="p-6 bg-surface border border-border">
           <div className="flex items-center justify-between mb-1">
-            <Label className="text-[#a0aec0]">Ersteller</Label>
+            <label className="text-muted">Ersteller</label>
             {isAdmin && !isNewMode && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onPress={() => setIsCreatorModalOpen(true)}
-                className="text-[#c9a66b] text-sm"
+              <button
+                onClick={() => setIsCreatorModalOpen(true)}
+                className="text-accent text-sm px-2 py-1 rounded hover:bg-elevated transition-colors"
               >
                 Ändern
-              </Button>
+              </button>
             )}
           </div>
-          <Input
+          <input
+            type="text"
             value={getCreatorDisplayName()}
             readOnly
-            className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"
+            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground opacity-70"
           />
-        </Card>
+        </div>
       </div>
 
-      <Card className="p-6 bg-[#1a2028] border border-[#2d3748] mb-6">
+      <div className="p-6 bg-surface border border-border mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-[#f5f5f5]">Manager ({filteredAndSortedManagers.length})</h2>
+          <h2 className="text-xl font-semibold text-foreground">Manager ({filteredAndSortedManagers.length})</h2>
           <div className="flex gap-3 items-center">
-            <Input
+            <input
+              type="text"
               placeholder="Manager suchen..."
               value={managerFilter}
               onChange={(e) => setManagerFilter(e.target.value)}
-              className="w-64 bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+              className="input-field w-64 px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground"
             />
             {canEdit && (
-              <Button
-                onPress={() => setIsAddModalOpen(true)}
-                className="bg-[#c9a66b] text-[#0f1419]"
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="bg-primary text-background px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors"
               >
                 Manager hinzufügen
-              </Button>
+              </button>
             )}
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-[#2d3748]">
+        <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full">
-            <thead className="bg-[#1a2028]">
+            <thead className="bg-surface">
               <tr>
                 <th 
-                  className="px-3 py-2 text-center text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
                   onClick={() => handleSort('positionTotal')}
                 >
                   Pos<SortIcon column="positionTotal" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-left text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
                   onClick={() => handleSort('shortName')}
                 >
                   Manager<SortIcon column="shortName" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-left text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
                   onClick={() => handleSort('firstName')}
                 >
                   Vorname<SortIcon column="firstName" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-left text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
                   onClick={() => handleSort('lastName')}
                 >
                   Nachname<SortIcon column="lastName" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-center text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
                   onClick={() => handleSort('pointsTotal')}
                 >
                   Pkt<SortIcon column="pointsTotal" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-center text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
                   onClick={() => handleSort('pointsLastRound')}
                 >
                   Letzter Spieltag<SortIcon column="pointsLastRound" />
                 </th>
                 {canEdit && (
-                  <th className="px-3 py-2 text-right text-[#a0aec0] font-medium border-b border-[#2d3748]">
+                  <th className="px-3 py-2 text-right text-muted font-medium border-b border-border">
                     Aktionen
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="bg-[#1a2028]">
+            <tbody className="bg-surface">
               {filteredAndSortedManagers.length > 0 ? (
                 filteredAndSortedManagers.map(manager => (
-                  <tr key={manager.id} className="hover:bg-[#242d38] border-b border-[#2d3748]">
-                    <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
+                  <tr key={manager.id} className="hover:bg-elevated border-b border-border">
+                    <td className="px-3 py-2 text-center font-medium text-foreground">
                       {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
                     </td>
                     <td className="px-3 py-2">
                       <RouterLink
                         to={`/managers/${manager.id}`}
-                        className="text-[#c9a66b] hover:text-[#f5f5f5] link font-medium"
+                        className="text-accent hover:text-foreground link font-medium"
                       >
                         {manager.shortName || manager.name}
                       </RouterLink>
                     </td>
-                    <td className="px-3 py-2 text-[#a0aec0]">
+                    <td className="px-3 py-2 text-muted">
                       {manager.firstName || '-'}
                     </td>
-                    <td className="px-3 py-2 text-[#a0aec0]">
+                    <td className="px-3 py-2 text-muted">
                       {manager.lastName || '-'}
                     </td>
-                    <td className="px-3 py-2 text-center font-medium text-[#f5f5f5]">
+                    <td className="px-3 py-2 text-center font-medium text-foreground">
                       {manager.pointsTotal ?? '-'}
                     </td>
-                    <td className="px-3 py-2 text-center text-[#a0aec0]">
+                    <td className="px-3 py-2 text-center text-muted">
                       {manager.pointsLastRound ?? '-'}
                     </td>
                     {canEdit && (
                       <td className="px-3 py-2 text-right">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onPress={() => handleRemoveManager(manager.id)}
-                          className="text-[#e05252]"
+                        <button
+                          onClick={() => handleRemoveManager(manager.id)}
+                          className="text-danger text-sm px-2 py-1 rounded hover:bg-elevated transition-colors"
                         >
                           Entfernen
-                        </Button>
+                        </button>
                       </td>
                     )}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={canEdit ? 7 : 6} className="text-center text-[#6b7280] py-8">
+                  <td colSpan={canEdit ? 7 : 6} className="text-center text-subtle py-8">
                     Keine Manager in dieser Gruppe
                   </td>
                 </tr>
@@ -464,37 +462,35 @@ export default function ManagerGroupDetail() {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
 
       {isNewMode ? (
         <div className="flex gap-4">
-          <Button
-            onPress={handleCreate}
-            isDisabled={!editName.trim() || !editDescription.trim() || !currentSeason || createMutation.isPending}
-            className="bg-[#c9a66b] text-[#0f1419] font-medium"
+          <button
+            onClick={handleCreate}
+            disabled={!editName.trim() || !editDescription.trim() || !currentSeason || createMutation.isPending}
+            className="bg-primary text-background px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {createMutation.isPending ? 'Wird erstellt...' : 'Erstellen'}
-          </Button>
-          <Button
-            variant="ghost"
-            onPress={() => navigate('/manager-groups')}
-            className="text-[#a0aec0]"
+          </button>
+          <button
+            onClick={() => navigate('/manager-groups')}
+            className="text-muted px-4 py-2 rounded hover:bg-elevated transition-colors"
           >
             Abbrechen
-          </Button>
+          </button>
         </div>
       ) : canEdit && hasChanges && (
         <div className="mt-6 flex gap-4">
-          <Button
-            onPress={handleSaveChanges}
-            isDisabled={updateMutation.isPending || !editDescription.trim()}
-            className="bg-[#c9a66b] text-[#0f1419] font-medium"
+          <button
+            onClick={handleSaveChanges}
+            disabled={updateMutation.isPending || !editDescription.trim()}
+            className="bg-primary text-background px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {updateMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
-          </Button>
-          <Button
-            variant="secondary"
-            onPress={() => {
+          </button>
+          <button
+            onClick={() => {
               if (group) {
                 setEditName(group.name)
                 setEditDescription(group.description || '')
@@ -502,129 +498,130 @@ export default function ManagerGroupDetail() {
                 setHasChanges(false)
               }
             }}
+            className="button-secondary px-4 py-2 rounded transition-colors"
           >
             Abbrechen
-          </Button>
+          </button>
         </div>
       )}
 
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <Card className="p-0 bg-[#1a2028] border border-[#2d3748] w-full max-w-lg overflow-hidden shadow-2xl">
-            <div className="bg-[#242d38] px-6 py-4 border-b border-[#2d3748]">
-              <h2 className="text-xl font-bold text-[#f5f5f5]">Manager hinzufügen</h2>
+          <div className="p-0 bg-surface border border-border w-full max-w-lg overflow-hidden shadow-2xl">
+            <div className="bg-elevated px-6 py-4 border-b border-border">
+              <h2 className="text-xl font-bold text-foreground">Manager hinzufügen</h2>
             </div>
             <div className="p-6">
-              <Input
+              <input
+                type="text"
                 placeholder="Manager suchen..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] mb-4"
+                className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground mb-4"
                 autoFocus
               />
-              <div className="max-h-80 overflow-y-auto rounded-lg border border-[#2d3748]">
+              <div className="max-h-80 overflow-y-auto rounded-lg border border-border">
                 {availableManagers.length > 0 ? (
-                  <div className="divide-y divide-[#2d3748]">
+                  <div className="divide-y divide-[#2a3a4e]">
                     {availableManagers.map(manager => (
                       <div
                         key={manager.id}
                         onClick={() => handleAddManager(manager.id)}
-                        className="p-4 hover:bg-[#242d38] cursor-pointer transition-colors flex items-center justify-between group"
+                        className="p-4 hover:bg-elevated cursor-pointer transition-colors flex items-center justify-between group"
                       >
                         <div>
-                          <div className="text-[#f5f5f5] font-medium group-hover:text-[#c9a66b]">
+                          <div className="text-foreground font-medium group-hover:text-accent">
                             {manager.shortName || manager.name}
                           </div>
-                          <div className="text-[#6b7280] text-sm">
+                          <div className="text-subtle text-sm">
                             {manager.firstName} {manager.lastName}
                           </div>
                         </div>
-                        <div className="text-[#c9a66b] opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="text-accent opacity-0 group-hover:opacity-100 transition-opacity">
                           + Hinzufügen
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center text-[#6b7280] py-8">
+                  <div className="text-center text-subtle py-8">
                     Keine Manager gefunden
                   </div>
                 )}
               </div>
             </div>
-            <div className="px-6 py-4 bg-[#242d38] border-t border-[#2d3748] flex justify-end">
-              <Button
-                variant="ghost"
-                onPress={() => {
+            <div className="px-6 py-4 bg-elevated border-t border-border flex justify-end">
+              <button
+                onClick={() => {
                   setIsAddModalOpen(false)
                   setSearchTerm('')
                 }}
-                className="text-[#a0aec0]"
+                className="text-muted px-4 py-2 rounded hover:bg-elevated transition-colors"
               >
                 Abbrechen
-              </Button>
+              </button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
       {isCreatorModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <Card className="p-0 bg-[#1a2028] border border-[#2d3748] w-full max-w-lg overflow-hidden shadow-2xl">
-            <div className="bg-[#242d38] px-6 py-4 border-b border-[#2d3748]">
-              <h2 className="text-xl font-bold text-[#f5f5f5]">Ersteller ändern</h2>
+          <div className="p-0 bg-surface border border-border w-full max-w-lg overflow-hidden shadow-2xl">
+            <div className="bg-elevated px-6 py-4 border-b border-border">
+              <h2 className="text-xl font-bold text-foreground">Ersteller ändern</h2>
             </div>
             <div className="p-6">
-              <Input
+              <input
+                type="text"
                 placeholder="User suchen..."
                 value={creatorSearch}
                 onChange={(e) => setCreatorSearch(e.target.value)}
-                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] mb-4"
+                className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground mb-4"
                 autoFocus
               />
-              <div className="max-h-80 overflow-y-auto rounded-lg border border-[#2d3748]">
+              <div className="max-h-80 overflow-y-auto rounded-lg border border-border">
                 {filteredUsers.length > 0 ? (
-                  <div className="divide-y divide-[#2d3748]">
+                  <div className="divide-y divide-[#2a3a4e]">
                     {filteredUsers.map(u => (
                       <div
                         key={u.id}
                         onClick={() => handleChangeCreator(u.id)}
-                        className="p-4 hover:bg-[#242d38] cursor-pointer transition-colors flex items-center justify-between group"
+                        className="p-4 hover:bg-elevated cursor-pointer transition-colors flex items-center justify-between group"
                       >
                         <div>
-                          <div className="text-[#f5f5f5] font-medium group-hover:text-[#c9a66b]">
+                          <div className="text-foreground font-medium group-hover:text-accent">
                             {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.login}
                           </div>
-                          <div className="text-[#6b7280] text-sm">
+                          <div className="text-subtle text-sm">
                             {u.login}
                           </div>
                         </div>
-                        <div className="text-[#c9a66b] opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="text-accent opacity-0 group-hover:opacity-100 transition-opacity">
                           Auswählen
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center text-[#6b7280] py-8">
+                  <div className="text-center text-subtle py-8">
                     Keine User gefunden
                   </div>
                 )}
               </div>
             </div>
-            <div className="px-6 py-4 bg-[#242d38] border-t border-[#2d3748] flex justify-end">
-              <Button
-                variant="ghost"
-                onPress={() => {
+            <div className="px-6 py-4 bg-elevated border-t border-border flex justify-end">
+              <button
+                onClick={() => {
                   setIsCreatorModalOpen(false)
                   setCreatorSearch('')
                 }}
-                className="text-[#a0aec0]"
+                className="text-muted px-4 py-2 rounded hover:bg-elevated transition-colors"
               >
                 Abbrechen
-              </Button>
+              </button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
     </div>

@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback } from 'react'
-import { Card, Button, Input } from '@heroui/react'
 import { useEmails, useCreateEmail, useBulkCreateEmails, useDeleteEmail } from '../hooks/useEmails'
 import type { EmailAddress } from '../types'
 
@@ -33,8 +32,8 @@ export default function Emails() {
   }
 
   const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-[#6b7280] ml-1">⇅</span>
-    return <span className="text-[#c9a66b] ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
+    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
   const sortedEmails = useMemo(() => {
@@ -111,77 +110,75 @@ export default function Emails() {
     }
   }, [deleteTarget, deleteEmail])
 
-  if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
-  if (fetchError) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
+  if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
+  if (fetchError) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">
-        E-Mail-Adressen <span className="text-lg text-[#6b7280]">({emails?.length ?? 0})</span>
+      <h1 className="text-3xl font-bold text-foreground mb-6">
+        E-Mail-Adressen <span className="text-lg text-subtle">({emails?.length ?? 0})</span>
       </h1>
 
-      <Card className="p-4 bg-[#1a2028] border border-[#2d3748]">
+      <div className="p-4 bg-surface border border-border">
         <div className="flex flex-wrap gap-3 mb-4 items-center">
-          <Input
+          <input
             placeholder="E-Mail suchen..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+            className="input-field max-w-md w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
           />
-          <Button
-            onPress={() => { setShowCreateDialog(true); setNewEmail(''); setError('') }}
-            className="bg-[#c9a66b] text-[#0f1419] font-medium"
+          <button
+            onClick={() => { setShowCreateDialog(true); setNewEmail(''); setError('') }}
+            className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors"
           >
             Neue E-Mail
-          </Button>
-          <Button
-            onPress={() => { setShowImportDialog(true); setImportText(''); setError('') }}
-            className="bg-[#242d38] text-[#c9a66b] border border-[#3d4a5c]"
+          </button>
+          <button
+            onClick={() => { setShowImportDialog(true); setImportText(''); setError('') }}
+            className="bg-elevated text-accent border border-border-hover px-4 py-2 rounded transition-colors"
           >
             Importieren
-          </Button>
+          </button>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#2d3748]">
+              <tr className="border-b border-border">
                 <th
-                  className="px-4 py-2 text-left cursor-pointer hover:text-[#c9a66b] text-[#a0aec0]"
+                  className="px-4 py-2 text-left cursor-pointer hover:text-accent text-muted"
                   onClick={() => handleSort('id')}
                 >
                   # <SortIcon column="id" />
                 </th>
                 <th
-                  className="px-4 py-2 text-left cursor-pointer hover:text-[#c9a66b] text-[#a0aec0]"
+                  className="px-4 py-2 text-left cursor-pointer hover:text-accent text-muted"
                   onClick={() => handleSort('email')}
                 >
                   E-Mail <SortIcon column="email" />
                 </th>
-                <th className="px-4 py-2 text-right text-[#a0aec0]">Aktionen</th>
+                <th className="px-4 py-2 text-right text-muted">Aktionen</th>
               </tr>
             </thead>
             <tbody>
               {sortedEmails.length > 0 ? (
                 sortedEmails.map((email) => (
-                  <tr key={email.id} className="hover:bg-[#242d38] border-b border-[#2d3748]">
-                    <td className="px-4 py-2 text-[#6b7280]">{email.id}</td>
-                    <td className="px-4 py-2 text-[#f5f5f5]">{email.email}</td>
+                  <tr key={email.id} className="hover:bg-elevated border-b border-border">
+                    <td className="px-4 py-2 text-subtle">{email.id}</td>
+                    <td className="px-4 py-2 text-foreground">{email.email}</td>
                     <td className="px-4 py-2 text-right">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-[#e05252] border-[#e05252]"
-                        onPress={() => { setDeleteTarget(email); setShowDeleteDialog(true); setError('') }}
+                      <button
+                        className="text-danger border border-danger px-3 py-1 text-sm rounded hover:bg-danger/10 transition-colors"
+                        onClick={() => { setDeleteTarget(email); setShowDeleteDialog(true); setError('') }}
                       >
                         Löschen
-                      </Button>
+                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="text-center text-[#6b7280] py-8">
+                  <td colSpan={3} className="text-center text-subtle py-8">
                     Keine E-Mail-Adressen gefunden
                   </td>
                 </tr>
@@ -191,91 +188,91 @@ export default function Emails() {
         </div>
 
         {sortedEmails.length > 0 && (
-          <div className="mt-4 text-sm text-[#6b7280]">
+          <div className="mt-4 text-sm text-subtle">
             {sortedEmails.length} E-Mail-Adress{sortedEmails.length === 1 ? 'e' : 'en'}
           </div>
         )}
-      </Card>
+      </div>
 
       {showCreateDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="p-6 bg-[#1a2028] border border-[#2d3748] w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#f5f5f5] mb-4">Neue E-Mail-Adresse</h2>
-            {error && <p className="text-[#e05252] mb-3 text-sm">{error}</p>}
-            <Input
+          <div className="p-6 bg-surface border border-border w-full max-w-md">
+            <h2 className="text-xl font-bold text-foreground mb-4">Neue E-Mail-Adresse</h2>
+            {error && <p className="text-danger mb-3 text-sm">{error}</p>}
+            <input
               type="email"
               placeholder="email@beispiel.de"
               value={newEmail}
               onChange={(e) => { setNewEmail(e.target.value); setError('') }}
-              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] mb-4"
+              className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground mb-4"
             />
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" onPress={() => setShowCreateDialog(false)} className="text-[#a0aec0]">
+              <button className="button-secondary px-4 py-2 rounded transition-colors text-muted" onClick={() => setShowCreateDialog(false)}>
                 Abbrechen
-              </Button>
-              <Button
-                onPress={handleCreate}
-                isDisabled={createEmail.isPending}
-                className="bg-[#c9a66b] text-[#0f1419] font-medium"
+              </button>
+              <button
+                onClick={handleCreate}
+                disabled={createEmail.isPending}
+                className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors disabled:opacity-50"
               >
                 {createEmail.isPending ? 'Wird angelegt...' : 'Anlegen'}
-              </Button>
+              </button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
       {showImportDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="p-6 bg-[#1a2028] border border-[#2d3748] w-full max-w-lg">
-            <h2 className="text-xl font-bold text-[#f5f5f5] mb-4">E-Mail-Adressen importieren</h2>
-            <p className="text-[#a0aec0] text-sm mb-3">
+          <div className="p-6 bg-surface border border-border w-full max-w-lg">
+            <h2 className="text-xl font-bold text-foreground mb-4">E-Mail-Adressen importieren</h2>
+            <p className="text-muted text-sm mb-3">
               E-Mail-Adressen komma- oder zeilengetrennt eingeben. Duplikate und ungültige Adressen werden übersprungen.
             </p>
-            {error && <p className="text-[#e05252] mb-3 text-sm">{error}</p>}
+            {error && <p className="text-danger mb-3 text-sm">{error}</p>}
             <textarea
               placeholder={"email1@beispiel.de, email2@beispiel.de\nemail3@beispiel.de"}
               value={importText}
               onChange={(e) => { setImportText(e.target.value); setError('') }}
-              className="w-full h-40 bg-[#242d38] border border-[#3d4a5c] rounded-lg p-3 text-[#f5f5f5] resize-none focus:outline-none focus:border-[#c9a66b]"
+              className="w-full h-40 bg-elevated border border-border-hover rounded-lg p-3 text-foreground resize-none focus:outline-none focus:border-accent"
             />
             <div className="flex justify-end gap-2 mt-4">
-              <Button variant="ghost" onPress={() => setShowImportDialog(false)} className="text-[#a0aec0]">
+              <button className="button-secondary px-4 py-2 rounded transition-colors text-muted" onClick={() => setShowImportDialog(false)}>
                 Abbrechen
-              </Button>
-              <Button
-                onPress={handleImport}
-                isDisabled={bulkCreateEmails.isPending}
-                className="bg-[#c9a66b] text-[#0f1419] font-medium"
+              </button>
+              <button
+                onClick={handleImport}
+                disabled={bulkCreateEmails.isPending}
+                className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors disabled:opacity-50"
               >
                 {bulkCreateEmails.isPending ? 'Wird importiert...' : 'Importieren'}
-              </Button>
+              </button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
       {showDeleteDialog && deleteTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="p-6 bg-[#1a2028] border border-[#2d3748] w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#f5f5f5] mb-4">E-Mail-Adresse löschen</h2>
-            <p className="text-[#a0aec0] mb-6">
-              Möchten Sie die E-Mail-Adresse <strong className="text-[#f5f5f5]">{deleteTarget.email}</strong> wirklich löschen?
+          <div className="p-6 bg-surface border border-border w-full max-w-md">
+            <h2 className="text-xl font-bold text-foreground mb-4">E-Mail-Adresse löschen</h2>
+            <p className="text-muted mb-6">
+              Möchten Sie die E-Mail-Adresse <strong className="text-foreground">{deleteTarget.email}</strong> wirklich löschen?
             </p>
-            {error && <p className="text-[#e05252] mb-3 text-sm">{error}</p>}
+            {error && <p className="text-danger mb-3 text-sm">{error}</p>}
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" onPress={() => { setShowDeleteDialog(false); setDeleteTarget(null) }} className="text-[#a0aec0]">
+              <button className="button-secondary px-4 py-2 rounded transition-colors text-muted" onClick={() => { setShowDeleteDialog(false); setDeleteTarget(null) }}>
                 Abbrechen
-              </Button>
-              <Button
-                onPress={handleDeleteConfirm}
-                isDisabled={deleteEmail.isPending}
-                className="bg-[#e05252] text-[#f5f5f5]"
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deleteEmail.isPending}
+                className="bg-danger text-foreground px-4 py-2 rounded hover:bg-danger/80 transition-colors disabled:opacity-50"
               >
                 {deleteEmail.isPending ? 'Wird gelöscht...' : 'Löschen'}
-              </Button>
+              </button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
     </div>

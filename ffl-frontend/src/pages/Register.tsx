@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate, Link as RouterLink } from 'react-router-dom'
-import { Button, Card, Alert, TextField, Label, Input } from '@heroui/react'
 import { useAuth } from '../context/AuthContext'
 import { trackEvent } from '../hooks/useMatomo'
 
@@ -33,83 +32,81 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f1419] py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="max-w-md w-full p-8 bg-[#1a2028] border border-[#2d3748]">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
+      <div className="card max-w-md w-full p-8 bg-surface border border-border">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-[#f5f5f5]">Registrieren</h2>
+          <h2 className="text-3xl font-bold text-foreground">Registrieren</h2>
         </div>
         <form className="space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <Alert status="danger">
-              <Alert.Content>
-                <Alert.Description>{error}</Alert.Description>
-              </Alert.Content>
-            </Alert>
+            <div className="p-3 mb-4 rounded bg-danger-bg border border-danger/30 text-danger text-sm">{error}</div>
           )}
           <div className="space-y-4">
-            <TextField name="login" isRequired>
-              <Label className="text-[#a0aec0]">Login</Label>
-              <Input
+            <div>
+              <label className="block text-sm text-muted mb-1">Login</label>
+              <input
+                type="text"
                 placeholder="Login"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
-                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] placeholder-[#6b7280]"
+                className="input-field w-full px-3 py-2 rounded bg-elevated border-border-hover text-foreground placeholder-[#8899aa] focus:outline-none"
               />
-            </TextField>
-            <TextField name="email" isRequired>
-              <Label className="text-[#a0aec0]">E-Mail</Label>
-              <Input
+            </div>
+            <div>
+              <label className="block text-sm text-muted mb-1">E-Mail</label>
+              <input
                 type="email"
                 placeholder="E-Mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] placeholder-[#6b7280]"
+                className="input-field w-full px-3 py-2 rounded bg-elevated border-border-hover text-foreground placeholder-[#8899aa] focus:outline-none"
               />
-            </TextField>
-            <TextField name="password" isRequired>
-              <Label className="text-[#a0aec0]">Passwort</Label>
-              <Input
+            </div>
+            <div>
+              <label className="block text-sm text-muted mb-1">Passwort</label>
+              <input
                 type="password"
                 placeholder="Passwort"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] placeholder-[#6b7280]"
+                className="input-field w-full px-3 py-2 rounded bg-elevated border-border-hover text-foreground placeholder-[#8899aa] focus:outline-none"
               />
-            </TextField>
-            <TextField name="firstName">
-              <Label className="text-[#a0aec0]">Vorname</Label>
-              <Input
+            </div>
+            <div>
+              <label className="block text-sm text-muted mb-1">Vorname</label>
+              <input
+                type="text"
                 placeholder="Vorname (optional)"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] placeholder-[#6b7280]"
+                className="input-field w-full px-3 py-2 rounded bg-elevated border-border-hover text-foreground placeholder-[#8899aa] focus:outline-none"
               />
-            </TextField>
-            <TextField name="lastName">
-              <Label className="text-[#a0aec0]">Nachname</Label>
-              <Input
+            </div>
+            <div>
+              <label className="block text-sm text-muted mb-1">Nachname</label>
+              <input
+                type="text"
                 placeholder="Nachname (optional)"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] placeholder-[#6b7280]"
+                className="input-field w-full px-3 py-2 rounded bg-elevated border-border-hover text-foreground placeholder-[#8899aa] focus:outline-none"
               />
-            </TextField>
+            </div>
           </div>
-          <Button
+          <button
             type="submit"
-            variant="primary"
-            className="w-full bg-[#c9a66b] text-[#0f1419] hover:bg-[#d4b77a]"
-            isDisabled={isLoading}
+            className="button-primary w-full px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors"
+            disabled={isLoading}
           >
             {isLoading ? 'Wird geladen...' : 'Registrieren'}
-          </Button>
+          </button>
           <div className="text-center">
-            <RouterLink to="/login" className="text-[#c9a66b] hover:text-[#d4b77a] link">
+            <RouterLink to="/login" className="text-accent hover:text-accent-hover link">
               Bereits ein Konto? Anmelden
             </RouterLink>
           </div>
         </form>
-      </Card>
+      </div>
     </div>
   )
 }

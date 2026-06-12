@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import { Card, Input, Button } from '@heroui/react'
 import { useManagerGroups, useDeleteManagerGroup } from '../hooks/useManagerGroups'
 
 type SortKey = 'name' | 'managerCount' | 'createdByLogin'
@@ -25,8 +24,8 @@ export default function ManagerGroups() {
   }
 
   const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-[#6b7280] ml-1">⇅</span>
-    return <span className="text-[#c9a66b] ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
+    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
   const filteredGroups = useMemo(() => {
@@ -61,99 +60,98 @@ export default function ManagerGroups() {
     }
   }
 
-  if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
-  if (error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
+  if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
+  if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-[#f5f5f5]">Gruppen</h1>
-        <Button
-          onPress={() => navigate('/manager-groups/create')}
-          className="bg-[#c9a66b] text-[#0f1419]"
+        <h1 className="text-3xl font-bold text-foreground">Gruppen</h1>
+        <button
+          onClick={() => navigate('/manager-groups/create')}
+          className="bg-primary text-background px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors"
         >
           Neue Gruppe
-        </Button>
+        </button>
       </div>
 
-      <Card className="p-4 bg-[#1a2028] border border-[#2d3748]">
+      <div className="p-4 bg-surface border border-border">
         <div className="mb-4">
-          <Input
+          <input
+            type="text"
             placeholder="Gruppe suchen..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+            className="input-field w-full max-w-md px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground"
           />
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-[#1a2028]">
+            <thead className="bg-surface">
               <tr>
                 <th 
-                  className="px-3 py-2 text-left text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
                   onClick={() => handleSort('name')}
                 >
                   Name<SortIcon column="name" />
                 </th>
-                <th className="px-3 py-2 text-left text-[#a0aec0] font-medium border-b border-[#2d3748]">
+                <th className="px-3 py-2 text-left text-muted font-medium border-b border-border">
                   Beschreibung
                 </th>
                 <th 
-                  className="px-3 py-2 text-center text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
                   onClick={() => handleSort('managerCount')}
                 >
                   Manager<SortIcon column="managerCount" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-left text-[#a0aec0] font-medium cursor-pointer hover:text-[#c9a66b] border-b border-[#2d3748]"
+                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
                   onClick={() => handleSort('createdByLogin')}
                 >
                   Erstellt von<SortIcon column="createdByLogin" />
                 </th>
-                <th className="px-3 py-2 text-right text-[#a0aec0] font-medium border-b border-[#2d3748]">
+                <th className="px-3 py-2 text-right text-muted font-medium border-b border-border">
                   Aktionen
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-[#1a2028]">
+            <tbody className="bg-surface">
               {filteredGroups.length > 0 ? (
                 filteredGroups.map(group => (
-                  <tr key={group.id} className="hover:bg-[#242d38] border-b border-[#2d3748]">
+                  <tr key={group.id} className="hover:bg-elevated border-b border-border">
                     <td className="px-3 py-2">
                       <RouterLink
                         to={`/manager-groups/${group.id}`}
-                        className="text-[#c9a66b] hover:text-[#f5f5f5] link font-medium"
+                        className="text-accent hover:text-foreground link font-medium"
                       >
                         {group.name}
                       </RouterLink>
                     </td>
-                    <td className="px-3 py-2 text-[#a0aec0]">
+                    <td className="px-3 py-2 text-muted">
                       {group.description || '-'}
                     </td>
-                    <td className="px-3 py-2 text-center text-[#f5f5f5]">
+                    <td className="px-3 py-2 text-center text-foreground">
                       {group.managerCount}
                     </td>
-                    <td className="px-3 py-2 text-[#a0aec0]">
+                    <td className="px-3 py-2 text-muted">
                       {group.createdByFirstName && group.createdByLastName 
                         ? `${group.createdByFirstName} ${group.createdByLastName} (${group.createdByLogin})`
                         : group.createdByLogin || '-'}
                     </td>
                     <td className="px-3 py-2 text-right">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onPress={() => handleDeleteGroup(group.id)}
-                        className="text-[#e05252]"
+                      <button
+                        onClick={() => handleDeleteGroup(group.id)}
+                        className="text-danger text-sm px-2 py-1 rounded hover:bg-elevated transition-colors"
                       >
                         Löschen
-                      </Button>
+                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="text-center text-[#6b7280] py-8">
+                  <td colSpan={5} className="text-center text-subtle py-8">
                     Keine Gruppen gefunden
                   </td>
                 </tr>
@@ -163,11 +161,11 @@ export default function ManagerGroups() {
         </div>
 
         {filteredGroups.length > 0 && (
-          <div className="mt-4 text-sm text-[#6b7280]">
+          <div className="mt-4 text-sm text-subtle">
             {filteredGroups.length} von {groups?.length || 0} Gruppen
           </div>
         )}
-      </Card>
+      </div>
     </div>
   )
 }

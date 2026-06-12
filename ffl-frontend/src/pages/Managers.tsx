@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Table, Input, Chip, Card, Button } from '@heroui/react'
 import * as XLSX from 'xlsx'
 import { useManagers } from '../hooks/useManagers'
 import { useAuth } from '../context/AuthContext'
@@ -104,131 +103,130 @@ export default function Managers() {
   }
 
   const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-[#6b7280] ml-1">⇅</span>
-    return <span className="text-[#c9a66b] ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
+    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
-  if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
-  if (error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
+  if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
+  if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Manager</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-6">Manager</h1>
 
-      <Card className="p-4 bg-[#1a2028] border border-[#2d3748]">
+      <div className="p-4 bg-surface border border-border">
         <div className="mb-4 flex gap-4 items-center">
-          <Input
+          <input
+            type="text"
             placeholder="Manager suchen..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+            className="input-field w-full max-w-md px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground"
           />
-          <Button
-            variant="secondary"
-            onPress={exportToExcel}
-            isDisabled={!filteredManagers || filteredManagers.length === 0}
+          <button
+            onClick={exportToExcel}
+            disabled={!filteredManagers || filteredManagers.length === 0}
+            className="button-secondary px-4 py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Excel Export
-          </Button>
+          </button>
         </div>
 
-        <Table>
-          <Table.ScrollContainer>
-            <Table.Content aria-label="Manager-Tabelle">
-              <Table.Header>
-                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionTotal')}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-surface">
+              <tr>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('positionTotal')}>
                   Pos<SortIcon column="positionTotal" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionChange')}>
+                </th>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('positionChange')}>
                   +-<SortIcon column="positionChange" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('shortName')}>
+                </th>
+                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('shortName')}>
                   Manager<SortIcon column="shortName" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('pointsTotal')}>
+                </th>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('pointsTotal')}>
                   Pkt<SortIcon column="pointsTotal" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('pointsLastRound')}>
+                </th>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('pointsLastRound')}>
                   Spieltag<SortIcon column="pointsLastRound" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('firstName')}>
+                </th>
+                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('firstName')}>
                   Vorname<SortIcon column="firstName" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('lastName')}>
+                </th>
+                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('lastName')}>
                   Nachname<SortIcon column="lastName" />
-                </Table.Column>
-                {isAdmin && <Table.Column className="text-[#a0aec0]">Status</Table.Column>}
-                <Table.Column className="text-[#a0aec0] text-right cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('teamValue')}>
+                </th>
+                {isAdmin && <th className="px-3 py-2 text-left text-muted font-medium border-b border-border">Status</th>}
+                <th className="px-3 py-2 text-right text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('teamValue')}>
                   Teamwert<SortIcon column="teamValue" />
-                </Table.Column>
-              </Table.Header>
-              <Table.Body>
-                {filteredManagers && filteredManagers.length > 0 ? (
-                  filteredManagers.map((manager) => (
-                    <Table.Row key={manager.id} className="hover:bg-[#242d38]">
-                      <Table.Cell className="text-center font-medium text-[#f5f5f5]">
-                        {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
-                      </Table.Cell>
-                      <Table.Cell className="text-center">
-                        {manager.positionChange != null && manager.positionChange !== 0 ? (
-                          <span className={`font-medium ${manager.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
-                          </span>
-                        ) : (
-                          <span className="text-[#6b7280]">-</span>
-                        )}
-                      </Table.Cell>
-                      <Table.Cell className="text-[#c9a66b]">
-                        <RouterLink to={`/managers/${manager.id}`} className="hover:text-[#f5f5f5] link font-medium">
-                          {manager.shortName || '-'}
-                        </RouterLink>
-                      </Table.Cell>
-                      <Table.Cell className="text-center font-medium text-[#f5f5f5]">
-                        {manager.pointsTotal ?? '-'}
-                      </Table.Cell>
-                      <Table.Cell className="text-center text-[#a0aec0]">
-                        {manager.pointsLastRound ?? '-'}
-                      </Table.Cell>
-                      <Table.Cell className="text-[#a0aec0]">
-                        {manager.firstName || '-'}
-                      </Table.Cell>
-                      <Table.Cell className="text-[#a0aec0]">
-                        {manager.lastName || '-'}
-                      </Table.Cell>
-                      {isAdmin && (
-                        <Table.Cell>
-                          <Chip
-                            size="sm"
-                            color={manager.paymentState === 'PAID' ? 'success' : 'danger'}
-                            variant="soft"
-                          >
-                            {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
-                          </Chip>
-                        </Table.Cell>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-surface">
+              {filteredManagers && filteredManagers.length > 0 ? (
+                filteredManagers.map((manager) => (
+                  <tr key={manager.id} className="hover:bg-elevated border-b border-border">
+                    <td className="px-3 py-2 text-center font-medium text-foreground">
+                      {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      {manager.positionChange != null && manager.positionChange !== 0 ? (
+                        <span className={`font-medium ${manager.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
+                        </span>
+                      ) : (
+                        <span className="text-subtle">-</span>
                       )}
-                      <Table.Cell className="text-right font-medium text-[#f5f5f5]">
-                        {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
-                      </Table.Cell>
-                    </Table.Row>
-                  ))
-                ) : (
-                  <Table.Row>
-                    <Table.Cell colSpan={isAdmin ? 9 : 8} className="text-center text-[#6b7280] py-8">
-                      Keine Manager gefunden
-                    </Table.Cell>
-                  </Table.Row>
-                )}
-              </Table.Body>
-            </Table.Content>
-          </Table.ScrollContainer>
-        </Table>
+                    </td>
+                    <td className="px-3 py-2 text-accent">
+                      <RouterLink to={`/managers/${manager.id}`} className="hover:text-foreground link font-medium">
+                        {manager.shortName || '-'}
+                      </RouterLink>
+                    </td>
+                    <td className="px-3 py-2 text-center font-medium text-foreground">
+                      {manager.pointsTotal ?? '-'}
+                    </td>
+                    <td className="px-3 py-2 text-center text-muted">
+                      {manager.pointsLastRound ?? '-'}
+                    </td>
+                    <td className="px-3 py-2 text-muted">
+                      {manager.firstName || '-'}
+                    </td>
+                    <td className="px-3 py-2 text-muted">
+                      {manager.lastName || '-'}
+                    </td>
+                    {isAdmin && (
+                      <td className="px-3 py-2">
+                        <span
+                          className={`text-xs font-medium px-2 py-0.5 rounded ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}
+                        >
+                          {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
+                        </span>
+                      </td>
+                    )}
+                    <td className="px-3 py-2 text-right font-medium text-foreground">
+                      {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={isAdmin ? 9 : 8} className="text-center text-subtle py-8">
+                    Keine Manager gefunden
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
         {filteredManagers && (
-          <div className="mt-4 text-sm text-[#6b7280]">
+          <div className="mt-4 text-sm text-subtle">
             {filteredManagers.length} von {managers?.length || 0} Managern
           </div>
         )}
-      </Card>
+      </div>
     </div>
   )
 }

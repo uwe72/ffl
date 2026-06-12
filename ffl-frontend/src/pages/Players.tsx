@@ -1,6 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Table, Button, Chip, Card, Avatar } from '@heroui/react'
 import { usePlayers } from '../hooks/usePlayers'
 import type { Team, Player } from '../types'
 
@@ -16,6 +15,13 @@ export const positionColors: Record<string, 'warning' | 'accent' | 'success' | '
   DEFENDER: 'accent',
   MIDFIELD: 'success',
   STRIKER: 'danger'
+}
+
+const positionChipClass: Record<string, string> = {
+  GOALKEEPER: 'chip-warning',
+  DEFENDER: 'chip-accent',
+  MIDFIELD: 'chip-success',
+  STRIKER: 'chip-danger'
 }
 
 type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position'
@@ -46,7 +52,7 @@ function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="min-w-48 px-3 py-2 rounded-lg bg-[#242d38] border border-[#2d3748] text-[#f5f5f5] text-sm flex items-center justify-between gap-2 focus:outline-none focus:border-[#c9a66b] hover:border-[#3d4a5c] transition-colors"
+        className="min-w-48 px-3 py-2 rounded-lg bg-elevated border border-border text-foreground text-sm flex items-center justify-between gap-2 focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
       >
         <span className="flex items-center gap-2 truncate">
           {selectedTeam?.logoSUrl && (
@@ -54,14 +60,14 @@ function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
           )}
           <span className="truncate">{selectedTeam?.name || 'Alle Vereine'}</span>
         </span>
-        <span className="text-[#6b7280] text-xs">▼</span>
+        <span className="text-subtle text-xs">▼</span>
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-full bg-[#1a2028] border border-[#2d3748] rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
+        <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
           <button
             onClick={() => { onSelect('ALL'); setIsOpen(false) }}
-            className={`w-full px-3 py-2 text-left text-sm hover:bg-[#242d38] transition-colors ${selectedTeamId === 'ALL' ? 'bg-[#242d38] text-[#c9a66b]' : 'text-[#a0aec0]'}`}
+            className={`w-full px-3 py-2 text-left text-sm hover:bg-elevated transition-colors ${selectedTeamId === 'ALL' ? 'bg-elevated text-accent' : 'text-muted'}`}
           >
             Alle Vereine
           </button>
@@ -69,7 +75,7 @@ function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
             <button
               key={team.id}
               onClick={() => { onSelect(team.id); setIsOpen(false) }}
-              className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-[#242d38] transition-colors ${selectedTeamId === team.id ? 'bg-[#242d38] text-[#c9a66b]' : 'text-[#f5f5f5]'}`}
+              className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-elevated transition-colors ${selectedTeamId === team.id ? 'bg-elevated text-accent' : 'text-foreground'}`}
             >
               {team.logoSUrl && (
                 <img src={team.logoSUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
@@ -95,7 +101,7 @@ function formatPrice(price: number | undefined): string {
 function PlayerCard({ player }: { player: Player }) {
   return (
     <RouterLink to={`/players/${player.id}`} className="block">
-      <Card className="p-4 bg-[#1a2028] border border-[#2d3748] hover:border-[#3d4a5c] transition-colors">
+      <div className="card p-4 bg-surface border border-border hover:border-border-hover transition-colors">
         <div className="flex gap-4 items-center">
           {player.pictureUrl ? (
             <img 
@@ -104,16 +110,16 @@ function PlayerCard({ player }: { player: Player }) {
               className="w-14 h-14 rounded-full object-cover flex-shrink-0"
             />
           ) : (
-            <div className="w-14 h-14 rounded-full bg-[#242d38] flex items-center justify-center flex-shrink-0">
-              <span className="text-xl text-[#6b7280]">👤</span>
+            <div className="w-14 h-14 rounded-full bg-elevated flex items-center justify-center flex-shrink-0">
+              <span className="text-xl text-subtle">👤</span>
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-[#c9a66b] truncate">{player.nameKicker}</div>
+            <div className="font-semibold text-accent truncate">{player.nameKicker}</div>
             <div className="mt-1">
-              <Chip size="sm" color={positionColors[player.position]} variant="soft" className="text-xs py-0.5">
+              <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
                 {positionLabels[player.position]}
-              </Chip>
+              </span>
             </div>
           </div>
           {player.teams.length > 0 && player.teams[0].logoSUrl && (
@@ -127,39 +133,39 @@ function PlayerCard({ player }: { player: Player }) {
 
         <div className="grid grid-cols-3 gap-2 mt-4 text-sm">
           <div>
-            <span className="text-[#6b7280]">Pos: </span>
-            <span className="font-medium text-[#f5f5f5]">
+            <span className="text-subtle">Pos: </span>
+            <span className="font-medium text-foreground">
               {player.positionTotal ? `${player.positionTotal}.` : '-'}
             </span>
           </div>
           <div>
-            <span className="text-[#6b7280]">Pkt: </span>
-            <span className="font-medium text-[#f5f5f5]">{player.points ?? '-'}</span>
+            <span className="text-subtle">Pkt: </span>
+            <span className="font-medium text-foreground">{player.points ?? '-'}</span>
           </div>
           <div>
-            <span className="text-[#6b7280]">Spieltag: </span>
-            <span className="font-medium text-[#f5f5f5]">{player.pointsLastRound ?? '-'}</span>
+            <span className="text-subtle">Spieltag: </span>
+            <span className="font-medium text-foreground">{player.pointsLastRound ?? '-'}</span>
           </div>
           <div>
-            <span className="text-[#6b7280]">+-: </span>
+            <span className="text-subtle">+-: </span>
             {player.positionChange != null && player.positionChange !== 0 ? (
               <span className={`font-medium ${player.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
               </span>
             ) : (
-              <span className="text-[#6b7280]">-</span>
+              <span className="text-subtle">-</span>
             )}
           </div>
           <div>
-            <span className="text-[#6b7280]">Manager: </span>
-            <span className="font-medium text-[#f5f5f5]">{player.managerCount ?? 0}</span>
+            <span className="text-subtle">Manager: </span>
+            <span className="font-medium text-foreground">{player.managerCount ?? 0}</span>
           </div>
           <div>
-            <span className="text-[#6b7280]">Preis: </span>
-            <span className="font-medium text-[#f5f5f5]">{formatPrice(player.prize)}</span>
+            <span className="text-subtle">Preis: </span>
+            <span className="font-medium text-foreground">{formatPrice(player.prize)}</span>
           </div>
         </div>
-      </Card>
+      </div>
     </RouterLink>
   )
 }
@@ -190,8 +196,8 @@ export default function Players() {
   }
 
   const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-[#6b7280] ml-1">⇅</span>
-    return <span className="text-[#c9a66b] ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
+    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
   const filteredPlayers = useMemo(() => {
@@ -240,34 +246,30 @@ export default function Players() {
     })
   }, [players, selectedPosition, selectedTeamId, searchTerm, sortKey, sortOrder])
 
-  if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
-  if (error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
+  if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
+  if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Spieler</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-6">Spieler</h1>
 
-      <Card className="p-4 bg-[#1a2028] border border-[#2d3748]">
+      <div className="card p-4 bg-surface border border-border">
         <div className="flex flex-wrap gap-4 mb-4 items-center">
           <div className="flex gap-2 flex-wrap">
-            <Button
-              size="sm"
-              variant={selectedPosition === 'ALL' ? 'primary' : 'secondary'}
-              className={selectedPosition === 'ALL' ? 'bg-[#c9a66b] text-[#0f1419]' : 'bg-[#242d38] text-[#f5f5f5] border-[#3d4a5c]'}
-              onPress={() => setSelectedPosition('ALL')}
+            <button
+              className={`px-4 py-2 rounded font-medium transition-colors ${selectedPosition === 'ALL' ? 'button-primary bg-primary text-background hover:bg-button-primary-hover' : 'button-secondary bg-elevated text-foreground border-border-hover'}`}
+              onClick={() => setSelectedPosition('ALL')}
             >
               Alle
-            </Button>
+            </button>
             {(['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const).map(pos => (
-              <Button
+              <button
                 key={pos}
-                size="sm"
-                variant={selectedPosition === pos ? 'primary' : 'secondary'}
-                className={selectedPosition === pos ? 'bg-[#c9a66b] text-[#0f1419]' : 'bg-[#242d38] text-[#f5f5f5] border-[#3d4a5c]'}
-                onPress={() => setSelectedPosition(pos)}
+                className={`px-4 py-2 rounded font-medium transition-colors ${selectedPosition === pos ? 'button-primary bg-primary text-background hover:bg-button-primary-hover' : 'button-secondary bg-elevated text-foreground border-border-hover'}`}
+                onClick={() => setSelectedPosition(pos)}
               >
                 {positionLabels[pos]}
-              </Button>
+              </button>
             ))}
           </div>
 
@@ -277,7 +279,7 @@ export default function Players() {
               placeholder="Spieler suchen..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="min-w-48 px-3 py-2 rounded-lg bg-[#242d38] border border-[#2d3748] text-[#f5f5f5] text-sm placeholder-[#6b7280] focus:outline-none focus:border-[#c9a66b] hover:border-[#3d4a5c] transition-colors"
+              className="min-w-48 px-3 py-2 rounded-lg bg-elevated border border-border text-foreground text-sm placeholder-[#8899aa] focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
             />
             <TeamDropdown
               teams={teams}
@@ -287,127 +289,122 @@ export default function Players() {
           </div>
         </div>
 
-        <Table className="hidden md:block">
-          <Table.ScrollContainer>
-            <Table.Content aria-label="Spieler-Tabelle">
-              <Table.Header>
-                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionTotal')}>
+        <div className="overflow-x-auto hidden md:block">
+          <table className="w-full">
+            <thead className="table-header">
+              <tr>
+                <th className="px-3 py-2 text-muted text-center text-xs font-medium cursor-pointer hover:text-accent" onClick={() => handleSort('positionTotal')}>
                   Pos<SortIcon column="positionTotal" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('positionChange')}>
+                </th>
+                <th className="px-3 py-2 text-muted text-center text-xs font-medium cursor-pointer hover:text-accent" onClick={() => handleSort('positionChange')}>
                   +-<SortIcon column="positionChange" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('nameKicker')}>
+                </th>
+                <th className="px-3 py-2 text-muted text-left text-xs font-medium cursor-pointer hover:text-accent" onClick={() => handleSort('nameKicker')}>
                   Name<SortIcon column="nameKicker" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('points')}>
+                </th>
+                <th className="px-3 py-2 text-muted text-center text-xs font-medium cursor-pointer hover:text-accent" onClick={() => handleSort('points')}>
                   Pkt<SortIcon column="points" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('pointsLastRound')}>
+                </th>
+                <th className="px-3 py-2 text-muted text-center text-xs font-medium cursor-pointer hover:text-accent" onClick={() => handleSort('pointsLastRound')}>
                   Spieltag<SortIcon column="pointsLastRound" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] text-center cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('managerCount')}>
+                </th>
+                <th className="px-3 py-2 text-muted text-center text-xs font-medium cursor-pointer hover:text-accent" onClick={() => handleSort('managerCount')}>
                   Manager<SortIcon column="managerCount" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] text-right cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('prize')}>
+                </th>
+                <th className="px-3 py-2 text-muted text-right text-xs font-medium cursor-pointer hover:text-accent" onClick={() => handleSort('prize')}>
                   Preis<SortIcon column="prize" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0] cursor-pointer hover:text-[#c9a66b]" onClick={() => handleSort('position')}>
+                </th>
+                <th className="px-3 py-2 text-muted text-left text-xs font-medium cursor-pointer hover:text-accent" onClick={() => handleSort('position')}>
                   Position<SortIcon column="position" />
-                </Table.Column>
-                <Table.Column className="text-[#a0aec0]">Team</Table.Column>
-              </Table.Header>
-              <Table.Body>
-                {filteredPlayers && filteredPlayers.length > 0 ? (
-                  filteredPlayers.map((player) => (
-                    <Table.Row key={player.id} className="hover:bg-[#242d38]">
-                      <Table.Cell className="text-center font-medium text-[#f5f5f5]">
-                        {player.positionTotal ? `${player.positionTotal}.` : '-'}
-                      </Table.Cell>
-                      <Table.Cell className="text-center">
-                        {player.positionChange != null && player.positionChange !== 0 ? (
-                          <span className={`font-medium ${player.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
-                          </span>
-                        ) : (
-                          <span className="text-[#6b7280]">-</span>
+                </th>
+                <th className="px-3 py-2 text-muted text-left text-xs font-medium">Team</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPlayers && filteredPlayers.length > 0 ? (
+                filteredPlayers.map((player) => (
+                  <tr key={player.id} className="table-row hover:bg-elevated">
+                    <td className="px-3 py-2 text-center font-medium text-foreground">
+                      {player.positionTotal ? `${player.positionTotal}.` : '-'}
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      {player.positionChange != null && player.positionChange !== 0 ? (
+                        <span className={`font-medium ${player.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
+                        </span>
+                      ) : (
+                        <span className="text-subtle">-</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-foreground link">
+                        {player.pictureUrl && (
+                          <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3 flex-shrink-0" />
                         )}
-                      </Table.Cell>
-                      <Table.Cell>
-                        <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-[#f5f5f5] link">
-                          {player.pictureUrl && (
-                            <Avatar size="sm" className="mr-3">
-                              <Avatar.Image src={player.pictureUrl} alt={player.nameKicker} />
-                            </Avatar>
+                        <div>
+                          <div className="font-medium text-accent">{player.nameKicker}</div>
+                          {player.firstName && player.lastName && (
+                            <div className="text-sm text-subtle">
+                              {player.firstName} {player.lastName}
+                            </div>
                           )}
-                          <div>
-                            <div className="font-medium text-[#c9a66b]">{player.nameKicker}</div>
-                            {player.firstName && player.lastName && (
-                              <div className="text-sm text-[#6b7280]">
-                                {player.firstName} {player.lastName}
-                              </div>
-                            )}
-                          </div>
-                        </RouterLink>
-                      </Table.Cell>
-                      <Table.Cell className="text-center font-medium text-[#f5f5f5]">
-                        {player.points ?? '-'}
-                      </Table.Cell>
-                      <Table.Cell className="text-center text-[#a0aec0]">
-                        {player.pointsLastRound ?? '-'}
-                      </Table.Cell>
-                      <Table.Cell className="text-center">
-                        <RouterLink to={`/players/${player.id}`}>
-                          <Chip 
-                            size="sm" 
-                            variant="soft" 
-                            color={player.managerCount && player.managerCount > 0 ? 'accent' : 'default'}
-                            className="cursor-pointer hover:opacity-80"
-                          >
-                            {player.managerCount ?? 0}
-                          </Chip>
-                        </RouterLink>
-                      </Table.Cell>
-                      <Table.Cell className="text-right font-medium text-[#f5f5f5]">
-                        {player.prize.toLocaleString()} €
-                      </Table.Cell>
-                      <Table.Cell>
-                        <Chip size="sm" color={positionColors[player.position]} variant="soft">
-                          {positionLabels[player.position]}
-                        </Chip>
-                      </Table.Cell>
-                      <Table.Cell className="text-[#a0aec0]">
-                        {player.teams.length > 0 ? (
-                          <span className="flex items-center gap-1 flex-wrap">
-                            {player.teams.map((team, index) => (
-                              <span key={team.id} className="flex items-center gap-1">
-                                {index > 0 && <span className="text-[#6b7280]">,</span>}
-                                {team.logoSUrl && (
-                                  <img 
-                                    src={team.logoSUrl} 
-                                    alt={team.name} 
-                                    className="w-5 h-5 object-contain flex-shrink-0"
-                                  />
-                                )}
-                                <span className="font-semibold text-[#f5f5f5]">{team.name}</span>
-                              </span>
-                            ))}
-                          </span>
-                        ) : '-'}
-                      </Table.Cell>
-                    </Table.Row>
-                  ))
-                ) : (
-                  <Table.Row>
-                    <Table.Cell colSpan={9} className="text-center text-[#6b7280] py-8">
-                      Keine Spieler gefunden
-                    </Table.Cell>
-                  </Table.Row>
-                )}
-              </Table.Body>
-            </Table.Content>
-          </Table.ScrollContainer>
-        </Table>
+                        </div>
+                      </RouterLink>
+                    </td>
+                    <td className="px-3 py-2 text-center font-medium text-foreground">
+                      {player.points ?? '-'}
+                    </td>
+                    <td className="px-3 py-2 text-center text-muted">
+                      {player.pointsLastRound ?? '-'}
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <RouterLink to={`/players/${player.id}`}>
+                        <span 
+                          className={`${player.managerCount && player.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded cursor-pointer hover:opacity-80`}
+                        >
+                          {player.managerCount ?? 0}
+                        </span>
+                      </RouterLink>
+                    </td>
+                    <td className="px-3 py-2 text-right font-medium text-foreground">
+                      {player.prize.toLocaleString()} €
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+                        {positionLabels[player.position]}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-muted">
+                      {player.teams.length > 0 ? (
+                        <span className="flex items-center gap-1 flex-wrap">
+                          {player.teams.map((team, index) => (
+                            <span key={team.id} className="flex items-center gap-1">
+                              {index > 0 && <span className="text-subtle">,</span>}
+                              {team.logoSUrl && (
+                                <img 
+                                  src={team.logoSUrl} 
+                                  alt={team.name} 
+                                  className="w-5 h-5 object-contain flex-shrink-0"
+                                />
+                              )}
+                              <span className="font-semibold text-foreground">{team.name}</span>
+                            </span>
+                          ))}
+                        </span>
+                      ) : '-'}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={9} className="text-center text-subtle py-8">
+                    Keine Spieler gefunden
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
         <div className="md:hidden grid gap-4 mt-4">
           {filteredPlayers && filteredPlayers.length > 0 ? (
@@ -415,18 +412,18 @@ export default function Players() {
               <PlayerCard key={player.id} player={player} />
             ))
           ) : (
-            <div className="text-center text-[#6b7280] py-8">
+            <div className="text-center text-subtle py-8">
               Keine Spieler gefunden
             </div>
           )}
         </div>
 
         {filteredPlayers && (
-          <div className="mt-4 text-sm text-[#6b7280]">
+          <div className="mt-4 text-sm text-subtle">
             {filteredPlayers.length} von {players?.length || 0} Spielern
           </div>
         )}
-      </Card>
+      </div>
     </div>
   )
 }

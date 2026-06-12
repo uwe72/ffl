@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Card, Button, Input } from '@heroui/react'
 import { useSystemConfig, useUpdateSystemConfig } from '../hooks/useSystemConfig'
 import { useManagersBySeason } from '../hooks/useManagers'
 import type { SystemConfig, Manager } from '../types'
@@ -30,32 +29,32 @@ function ManagerCard({
   const displayName = [manager.firstName, manager.lastName].filter(Boolean).join(' ') || manager.name
 
   return (
-    <Card className={`p-4 bg-[#1a2028] border border-[#2d3748] ${!hasEmail ? 'opacity-50' : ''}`}>
+    <div className={`p-4 bg-surface border border-border ${!hasEmail ? 'opacity-50' : ''}`}>
       <div className="flex gap-4 items-start">
         <input
           type="checkbox"
           disabled={!hasEmail}
           checked={isSelected}
           onChange={onToggle}
-          className="w-5 h-5 accent-[#c9a66b] mt-1 flex-shrink-0"
+          className="w-5 h-5 accent-[#4db5ff] mt-1 flex-shrink-0"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[#6b7280] font-mono">#{manager.id}</span>
-            <div className="font-semibold text-[#f5f5f5] truncate">{displayName}</div>
+            <span className="text-xs text-subtle font-mono">#{manager.id}</span>
+            <div className="font-semibold text-foreground truncate">{displayName}</div>
           </div>
           {manager.shortName && (
-            <div className="text-sm text-[#c9a66b]">{manager.shortName}</div>
+            <div className="text-sm text-accent">{manager.shortName}</div>
           )}
           {manager.login && (
-            <div className="text-sm text-[#a0aec0] mt-1">{manager.login}</div>
+            <div className="text-sm text-muted mt-1">{manager.login}</div>
           )}
-          <div className="text-sm text-[#6b7280] mt-1 truncate">
+          <div className="text-sm text-subtle mt-1 truncate">
             {manager.email || <em>keine Mailadresse</em>}
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   )
 }
 
@@ -170,98 +169,94 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
       className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      <Card
-        className="p-4 md:p-6 bg-[#1a2028] border border-[#2d3748] w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+      <div
+        className="p-4 md:p-6 bg-surface border border-border w-full max-w-4xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-[#f5f5f5]">Spieltagsmail</h2>
-            <span className="px-2 py-1 rounded-md bg-[#c9a66b] text-[#0f1419] text-xs font-semibold">
+            <h2 className="text-2xl font-bold text-foreground">Spieltagsmail</h2>
+            <span className="px-2 py-1 rounded-md bg-primary text-background text-xs font-semibold">
               {roundNumber}. Spieltag
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              onPress={openPromptDialog}
-              className="h-7 px-3 text-xs bg-[#3d4a5c] text-[#f5f5f5]"
+            <button
+              className="h-7 px-3 text-xs bg-border-hover text-foreground rounded hover:bg-[#4a5a70] transition-colors"
+              onClick={openPromptDialog}
             >
               Prompt anpassen
-            </Button>
-            <Button size="sm" variant="secondary" onPress={onClose} className="h-7 px-3 text-xs">
+            </button>
+            <button className="button-secondary h-7 px-3 text-xs rounded transition-colors" onClick={onClose}>
               Schließen
-            </Button>
+            </button>
           </div>
         </div>
 
         {promptMessage && (
           <div
             className={`mb-4 text-sm ${
-              promptMessage.includes('Fehler') ? 'text-[#e05252]' : 'text-[#48bb78]'
+              promptMessage.includes('Fehler') ? 'text-danger' : 'text-success'
             }`}
           >
             {promptMessage}
           </div>
         )}
 
-        <Card className="p-4 md:p-6 bg-[#1a2028] border border-[#2d3748] mb-4">
+        <div className="p-4 md:p-6 bg-surface border border-border mb-4">
           <div className="mb-4 flex flex-col md:flex-row gap-3 md:gap-4 md:items-center">
-            <h3 className="text-base md:text-lg font-semibold text-[#c9a66b] md:whitespace-nowrap">Empfänger</h3>
-            <Input
+            <h3 className="text-base md:text-lg font-semibold text-accent md:whitespace-nowrap">Empfänger</h3>
+            <input
               placeholder="Manager suchen..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full md:max-w-md bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+              className="input-field w-full md:max-w-md px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
             />
             <div className="flex gap-2 md:ml-auto">
-              <Button
-                size="sm"
-                onPress={() => setAdminFilter(!adminFilter)}
-                className={`px-3 py-1 ${
+              <button
+                className={`px-3 py-1 rounded transition-colors ${
                   adminFilter
-                    ? 'bg-[#c9a66b] text-[#0f1419]'
-                    : 'bg-[#3d4a5c] text-[#f5f5f5]'
+                    ? 'bg-primary text-background'
+                    : 'bg-border-hover text-foreground'
                 }`}
+                onClick={() => setAdminFilter(!adminFilter)}
               >
                 Admins selektieren
-              </Button>
-              <Button
-                size="sm"
-                onPress={toggleAll}
-                isDisabled={eligibleManagers.length === 0}
-                className="bg-[#3d4a5c] text-[#f5f5f5] px-3 py-1"
+              </button>
+              <button
+                className="bg-border-hover text-foreground px-3 py-1 rounded transition-colors"
+                onClick={toggleAll}
+                disabled={eligibleManagers.length === 0}
               >
                 {allSelected ? 'Alle abwählen' : 'Alle selektieren'}
-              </Button>
+              </button>
             </div>
           </div>
 
           <div className="mb-4 flex flex-wrap gap-2 items-center">
-            <span className="text-sm text-[#a0aec0]">Bereich selektieren:</span>
-            <Input
+            <span className="text-sm text-muted">Bereich selektieren:</span>
+            <input
               type="number"
               placeholder="Von ID"
               value={rangeFromId}
               onChange={(e) => setRangeFromId(e.target.value)}
-              className="w-24 bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+              className="input-field w-24 px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
             />
-            <span className="text-[#a0aec0]">-</span>
-            <Input
+            <span className="text-muted">-</span>
+            <input
               type="number"
               placeholder="Bis ID"
               value={rangeToId}
               onChange={(e) => setRangeToId(e.target.value)}
-              className="w-24 bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+              className="input-field w-24 px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
             />
-            <Button
-              size="sm"
-              onPress={selectRange}
-              isDisabled={!rangeFromId || !rangeToId}
-              className="bg-[#3d4a5c] text-[#f5f5f5] px-3 py-1"
+            <button
+              className="bg-border-hover text-foreground px-3 py-1 rounded transition-colors"
+              onClick={selectRange}
+              disabled={!rangeFromId || !rangeToId}
             >
               Selektieren
-            </Button>
+            </button>
           </div>
 
           {isMobile ? (
@@ -279,7 +274,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                 )
               })}
               {availableManagers.length === 0 && (
-                <div className="py-4 text-center text-[#a0aec0]">
+                <div className="py-4 text-center text-muted">
                   Keine Manager gefunden.
                 </div>
               )}
@@ -287,8 +282,8 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           ) : (
             <div className="max-h-[504px] overflow-y-auto">
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-[#1a2028]">
-                  <tr className="text-left text-[#a0aec0] border-b border-[#2d3748]">
+                <thead className="sticky top-0 bg-surface">
+                  <tr className="text-left text-muted border-b border-border">
                     <th className="py-2 w-10"></th>
                     <th className="py-2 w-14 text-center">ID</th>
                     <th className="py-2">Name</th>
@@ -305,8 +300,8 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                     return (
                       <tr
                         key={m.id}
-                        className={`border-b border-[#2d3748] ${
-                          hasEmail ? 'hover:bg-[#242d38]' : 'opacity-50'
+                        className={`border-b border-border ${
+                          hasEmail ? 'hover:bg-elevated' : 'opacity-50'
                         }`}
                       >
                         <td className="py-2">
@@ -315,22 +310,22 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                             disabled={!hasEmail}
                             checked={selectedManagerIds.includes(m.id)}
                             onChange={() => toggleOne(m.id)}
-                            className="w-4 h-4 accent-[#c9a66b]"
+                            className="w-4 h-4 accent-[#4db5ff]"
                           />
                         </td>
-                        <td className="py-2 text-center text-[#6b7280] font-mono text-xs">{m.id}</td>
-                        <td className="py-2 text-[#f5f5f5]">{displayName}</td>
-                        <td className="py-2 text-[#a0aec0]">{m.login || '-'}</td>
-                        <td className="py-2 text-[#a0aec0]">
+                        <td className="py-2 text-center text-subtle font-mono text-xs">{m.id}</td>
+                        <td className="py-2 text-foreground">{displayName}</td>
+                        <td className="py-2 text-muted">{m.login || '-'}</td>
+                        <td className="py-2 text-muted">
                           {m.email || <em>keine Mailadresse</em>}
                         </td>
-                        <td className="py-2 text-[#a0aec0]">{m.mailTheme || 'LIGHTMODE'}</td>
+                        <td className="py-2 text-muted">{m.mailTheme || 'LIGHTMODE'}</td>
                       </tr>
                     )
                   })}
                   {availableManagers.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-4 text-center text-[#a0aec0]">
+                      <td colSpan={6} className="py-4 text-center text-muted">
                         Keine Manager gefunden.
                       </td>
                     </tr>
@@ -340,13 +335,13 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
             </div>
           )}
 
-          <div className="mt-4 text-sm text-[#6b7280]">
+          <div className="mt-4 text-sm text-subtle">
             {availableManagers.length} von {managers?.length || 0} Managern
           </div>
-        </Card>
+        </div>
 
-        <Card className="p-4 md:p-6 bg-[#1a2028] border border-[#2d3748] mb-4">
-          <label className="text-base md:text-lg font-semibold text-[#c9a66b] block mb-2">
+        <div className="p-4 md:p-6 bg-surface border border-border mb-4">
+          <label className="text-base md:text-lg font-semibold text-accent block mb-2">
             Kommentar (optional)
           </label>
           <textarea
@@ -354,35 +349,35 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
             onChange={(e) => setComment(e.target.value)}
             rows={4}
             placeholder="Optionaler Kommentar, der als eigene Kachel vor &quot;Deine punktenden Spieler&quot; in der Mail angezeigt wird."
-            className="w-full bg-[#242d38] border border-[#3d4a5c] rounded-md text-[#f5f5f5] p-2 text-sm"
+            className="w-full bg-elevated border border-border-hover rounded-md text-foreground p-2 text-sm"
           />
-        </Card>
+        </div>
 
-        <Card className="p-4 bg-[#1a2028] border border-[#2d3748] mb-4">
+        <div className="p-4 bg-surface border border-border mb-4">
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={testMode}
               onChange={(e) => setTestMode(e.target.checked)}
-              className="w-5 h-5 accent-[#c9a66b]"
+              className="w-5 h-5 accent-[#4db5ff]"
             />
             <div>
-              <span className="text-[#f5f5f5] font-medium">Test-Modus</span>
-              <p className="text-sm text-[#a0aec0]">
-                Alle Mails gehen an <span className="text-[#c9a66b]">{config?.gmailSenderEmail || 'Admin-Email'}</span> statt an die Manager
+              <span className="text-foreground font-medium">Test-Modus</span>
+              <p className="text-sm text-muted">
+                Alle Mails gehen an <span className="text-accent">{config?.gmailSenderEmail || 'Admin-Email'}</span> statt an die Manager
               </p>
             </div>
           </label>
-        </Card>
+        </div>
 
         <div className="flex items-center gap-4">
-          <Button
-            onPress={() => setSendDialogOpen(true)}
-            isDisabled={!canSend}
-            className={`w-full md:w-auto font-semibold px-6 py-2 rounded disabled:opacity-50 ${testMode ? 'bg-[#48bb78] text-[#0f1419] hover:bg-[#38a169]' : 'bg-[#c9a66b] text-[#0f1419] hover:bg-[#d4b87a]'}`}
+          <button
+            onClick={() => setSendDialogOpen(true)}
+            disabled={!canSend}
+            className={`w-full md:w-auto font-semibold px-6 py-2 rounded disabled:opacity-50 transition-colors ${testMode ? 'bg-success text-background hover:bg-success' : 'bg-primary text-background hover:bg-accent-hover'}`}
           >
             {testMode ? `Test-Mail senden (${selectedManagerIds.length})` : `Spieltagsmail senden (${selectedManagerIds.length})`}
-          </Button>
+          </button>
         </div>
 
         <MatchdayMailDialog
@@ -394,56 +389,54 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           comment={comment}
           testMode={testMode}
         />
-      </Card>
+      </div>
 
       {promptOpen && (
         <div
           className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4"
           onClick={() => setPromptOpen(false)}
         >
-          <Card
-            className="p-4 md:p-6 bg-[#1a2028] border border-[#2d3748] w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+          <div
+            className="p-4 md:p-6 bg-surface border border-border w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between mb-4">
-              <h3 className="text-lg md:text-xl font-semibold text-[#c9a66b]">Prompt anpassen</h3>
-              <Button
-                size="sm"
-                variant="secondary"
-                onPress={() => setPromptOpen(false)}
-                className="h-7 px-3 text-xs"
+              <h3 className="text-lg md:text-xl font-semibold text-accent">Prompt anpassen</h3>
+              <button
+                className="button-secondary h-7 px-3 text-xs rounded transition-colors"
+                onClick={() => setPromptOpen(false)}
               >
                 ✕
-              </Button>
+              </button>
             </div>
 
-            <label className="text-[#a0aec0] text-sm block mb-1">Stil-Anweisung (Prompt)</label>
+            <label className="text-muted text-sm block mb-1">Stil-Anweisung (Prompt)</label>
             <textarea
               value={promptDraft}
               onChange={(e) => setPromptDraft(e.target.value)}
               rows={14}
-              className="w-full bg-[#242d38] border border-[#3d4a5c] rounded-md text-[#f5f5f5] p-2 font-mono text-sm resize-y"
+              className="w-full bg-elevated border border-border-hover rounded-md text-foreground p-2 font-mono text-sm resize-y"
             />
-            <p className="text-xs text-[#6b7280] mt-1">
+            <p className="text-xs text-subtle mt-1">
               Das Backend haengt die Spieltags-Daten als JSON an diese Anweisung an.
             </p>
 
             <div className="flex flex-col md:flex-row md:justify-end gap-2 mt-4">
-              <Button
-                onPress={() => setPromptOpen(false)}
-                className="bg-[#3d4a5c] text-[#f5f5f5] font-semibold px-6 py-2 rounded hover:bg-[#4a5a70]"
+              <button
+                className="bg-border-hover text-foreground font-semibold px-6 py-2 rounded hover:bg-[#4a5a70] transition-colors"
+                onClick={() => setPromptOpen(false)}
               >
                 Abbrechen
-              </Button>
-              <Button
-                onPress={handlePromptSave}
-                isDisabled={updateConfig.isPending}
-                className="bg-[#c9a66b] text-[#0f1419] font-semibold px-6 py-2 rounded hover:bg-[#d4b87a] disabled:opacity-50"
+              </button>
+              <button
+                onClick={handlePromptSave}
+                disabled={updateConfig.isPending}
+                className="bg-primary text-background font-semibold px-6 py-2 rounded hover:bg-accent-hover disabled:opacity-50 transition-colors"
               >
                 {updateConfig.isPending ? 'Speichern…' : 'Speichern'}
-              </Button>
+              </button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
     </div>

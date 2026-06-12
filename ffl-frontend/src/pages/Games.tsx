@@ -50,7 +50,7 @@ export default function Games() {
   }
 
   const getSortIconColor = (key: SortKey) => {
-    return sortKey === key ? 'text-[#c9a66b]' : 'text-[#6b7280]'
+    return sortKey === key ? 'text-accent' : 'text-subtle'
   }
 
   const filteredGames = useMemo(() => {
@@ -85,22 +85,22 @@ export default function Games() {
     })
   }, [filteredGames, sortKey, sortOrder])
 
-  if (gamesLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
-  if (error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
+  if (gamesLoading) return <div className="text-center py-8 text-muted">Laden...</div>
+  if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Spiele</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-6">Spiele</h1>
       
       <div className="mb-4 flex items-center gap-2">
-        <label className="text-[#a0aec0] text-sm">Spieltag:</label>
+        <label className="text-muted text-sm">Spieltag:</label>
         <button
           onClick={() => {
             const currentIndex = rounds.indexOf(selectedRound!)
             if (currentIndex > 0) setSelectedRound(rounds[currentIndex - 1])
           }}
           disabled={!selectedRound || rounds.indexOf(selectedRound) <= 0}
-          className="p-2 rounded-lg bg-[#1a2028] border border-[#2d3748] text-[#f5f5f5] hover:border-[#c9a66b] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#2d3748] transition-colors"
+          className="p-2 rounded-lg bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
           title="Vorheriger Spieltag"
         >
           ←
@@ -108,7 +108,7 @@ export default function Games() {
         <select
           value={selectedRound || ''}
           onChange={(e) => setSelectedRound(e.target.value ? Number(e.target.value) : null)}
-          className="bg-[#1a2028] border border-[#2d3748] rounded-lg px-3 py-2 text-[#f5f5f5] focus:outline-none focus:border-[#c9a66b]"
+          className="bg-surface border border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-accent"
         >
           {rounds.map(round => (
             <option key={round} value={round}>
@@ -122,7 +122,7 @@ export default function Games() {
             if (currentIndex < rounds.length - 1) setSelectedRound(rounds[currentIndex + 1])
           }}
           disabled={!selectedRound || rounds.indexOf(selectedRound) >= rounds.length - 1}
-          className="p-2 rounded-lg bg-[#1a2028] border border-[#2d3748] text-[#f5f5f5] hover:border-[#c9a66b] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[#2d3748] transition-colors"
+          className="p-2 rounded-lg bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
           title="Nächster Spieltag"
         >
           →
@@ -130,32 +130,32 @@ export default function Games() {
         <button
           onClick={() => setMailDialogOpen(true)}
           disabled={!selectedRound || !currentSeason?.id}
-          className="ml-2 px-3 py-2 rounded-lg bg-[#c9a66b] text-[#0f1419] font-semibold hover:bg-[#d4b87a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="ml-2 px-3 py-2 rounded-lg bg-primary text-background font-semibold hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           Spieltagsmail
         </button>
       </div>
 
       {sortedGames.length > 0 ? (
-        <div className="bg-[#1a2028] rounded-lg border border-[#2d3748] overflow-hidden">
+        <div className="bg-surface rounded-lg border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#2d3748] bg-[#242d38]">
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#a0aec0]">
+                <tr className="border-b border-border bg-elevated">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-muted">
                     Name
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-sm font-semibold text-[#a0aec0] cursor-pointer hover:text-[#c9a66b] transition-colors"
+                    className="px-4 py-3 text-left text-sm font-semibold text-muted cursor-pointer hover:text-accent transition-colors"
                     onClick={() => handleSort('hostName')}
                   >
                     Heimmannschaft <span className={getSortIconColor('hostName')}>{getSortIcon('hostName')}</span>
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-[#a0aec0]">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-muted">
                     Ergebnis
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-sm font-semibold text-[#a0aec0] cursor-pointer hover:text-[#c9a66b] transition-colors"
+                    className="px-4 py-3 text-left text-sm font-semibold text-muted cursor-pointer hover:text-accent transition-colors"
                     onClick={() => handleSort('visitorName')}
                   >
                     Gastmannschaft <span className={getSortIconColor('visitorName')}>{getSortIcon('visitorName')}</span>
@@ -164,13 +164,13 @@ export default function Games() {
               </thead>
               <tbody>
                 {sortedGames.map((game) => (
-                  <tr key={game.id} className="border-b border-[#2d3748] hover:bg-[#242d38] transition-colors">
-                    <td className="px-4 py-3 text-[#f5f5f5]">
-                      <RouterLink to={`/games/${game.id}`} className="link hover:text-[#c9a66b]">
+                  <tr key={game.id} className="border-b border-border hover:bg-elevated transition-colors">
+                    <td className="px-4 py-3 text-foreground">
+                      <RouterLink to={`/games/${game.id}`} className="link hover:text-accent">
                         {game.name || '-'}
                       </RouterLink>
                     </td>
-                    <td className="px-4 py-3 text-[#f5f5f5]">
+                    <td className="px-4 py-3 text-foreground">
                       <div className="flex items-center gap-3">
                         {game.hostLogoUrl && (
                           <img 
@@ -182,29 +182,29 @@ export default function Games() {
                         <div>
                           <div className="font-medium">{game.hostName || '-'}</div>
                           {game.hostShortName && (
-                            <div className="text-sm text-[#6b7280]">{game.hostShortName}</div>
+                            <div className="text-sm text-subtle">{game.hostShortName}</div>
                           )}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#242d38]">
-                          <span className="text-[#f5f5f5] font-semibold">{game.goalHost ?? '-'}</span>
-                          <span className="text-[#6b7280]">:</span>
-                          <span className="text-[#f5f5f5] font-semibold">{game.goalVisitor ?? '-'}</span>
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded bg-elevated">
+                          <span className="text-foreground font-semibold">{game.goalHost ?? '-'}</span>
+                          <span className="text-subtle">:</span>
+                          <span className="text-foreground font-semibold">{game.goalVisitor ?? '-'}</span>
                         </span>
                         {game.goalHost == null && game.goalVisitor == null && (
                           <button
                             onClick={() => setImportGameId(game.id)}
-                            className="px-2 py-1 text-xs rounded bg-[#c9a66b] text-[#1a2028] font-medium hover:bg-[#b8956a]"
+                            className="px-2 py-1 text-xs rounded bg-primary text-[#1b2838] font-medium hover:bg-primary"
                           >
                             Import
                           </button>
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[#f5f5f5]">
+                    <td className="px-4 py-3 text-foreground">
                       <div className="flex items-center gap-3">
                         {game.visitorLogoUrl && (
                           <img 
@@ -216,7 +216,7 @@ export default function Games() {
                         <div>
                           <div className="font-medium">{game.visitorName || '-'}</div>
                           {game.visitorShortName && (
-                            <div className="text-sm text-[#6b7280]">{game.visitorShortName}</div>
+                            <div className="text-sm text-subtle">{game.visitorShortName}</div>
                           )}
                         </div>
                       </div>
@@ -228,7 +228,7 @@ export default function Games() {
           </div>
         </div>
       ) : (
-        <div className="text-center py-8 text-[#6b7280]">
+        <div className="text-center py-8 text-subtle">
           Keine Spiele gefunden
         </div>
       )}

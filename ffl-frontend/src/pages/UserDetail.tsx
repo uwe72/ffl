@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
-import { Card, TextField, Label, Input, Button, Chip } from '@heroui/react'
 import { useUser, useUpdateUser, useDeleteUser } from '../hooks/useUsers'
 import type { User } from '../types'
 
@@ -10,10 +9,10 @@ const roleLabels: Record<string, string> = {
   GUEST: 'Gast'
 }
 
-const roleColors: Record<string, 'success' | 'warning' | 'default'> = {
-  ADMIN: 'success',
-  NORMAL: 'warning',
-  GUEST: 'default'
+const roleChipClass: Record<string, string> = {
+  ADMIN: 'chip-success',
+  NORMAL: 'chip-warning',
+  GUEST: 'chip-accent'
 }
 
 export default function UserDetail() {
@@ -76,200 +75,180 @@ export default function UserDetail() {
     navigate('/users')
   }
 
-  if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
-  if (error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
-  if (!user) return <div className="text-center py-8 text-[#6b7280]">Benutzer nicht gefunden</div>
+  if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
+  if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
+  if (!user) return <div className="text-center py-8 text-subtle">Benutzer nicht gefunden</div>
 
   return (
     <div>
-      <RouterLink to="/users" className="text-[#c9a66b] hover:text-[#d4b77a] mb-4 inline-block link">
+      <RouterLink to="/users" className="text-accent hover:text-accent-hover mb-4 inline-block link">
         &larr; Zurück zur Übersicht
       </RouterLink>
 
-      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Benutzer bearbeiten</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-6">Benutzer bearbeiten</h1>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <TextField name="login" isReadOnly>
-            <Label className="text-[#a0aec0]">Login-Name</Label>
-            <Input
-              value={user.login}
-              readOnly
-              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5] opacity-70"
-            />
-          </TextField>
-        </Card>
+        <div className="p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-1">Login-Name</label>
+          <input
+            value={user.login}
+            readOnly
+            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground opacity-70"
+          />
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <Label className="text-[#a0aec0] block mb-2">Rolle</Label>
-          <Chip
-            color={roleColors[user.role as keyof typeof roleColors] || 'default'}
-            variant="soft"
-          >
+        <div className="p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-2">Rolle</label>
+          <span className={`${roleChipClass[user.role as keyof typeof roleChipClass] || 'chip-accent'} text-xs font-medium px-2 py-0.5 rounded`}>
             {roleLabels[user.role as keyof typeof roleLabels] || user.role}
-          </Chip>
-        </Card>
+          </span>
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <TextField name="firstName">
-            <Label className="text-[#a0aec0]">Vorname <span className="text-[#e05252]">*</span></Label>
-            <Input
-              value={formData.firstName || ''}
-              onChange={(e) => handleChange('firstName', e.target.value)}
-              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-            />
-          </TextField>
-        </Card>
+        <div className="p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-1">Vorname <span className="text-danger">*</span></label>
+          <input
+            value={formData.firstName || ''}
+            onChange={(e) => handleChange('firstName', e.target.value)}
+            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+          />
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <TextField name="lastName">
-            <Label className="text-[#a0aec0]">Nachname <span className="text-[#e05252]">*</span></Label>
-            <Input
-              value={formData.lastName || ''}
-              onChange={(e) => handleChange('lastName', e.target.value)}
-              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-            />
-          </TextField>
-        </Card>
+        <div className="p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-1">Nachname <span className="text-danger">*</span></label>
+          <input
+            value={formData.lastName || ''}
+            onChange={(e) => handleChange('lastName', e.target.value)}
+            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+          />
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <TextField name="email">
-            <Label className="text-[#a0aec0]">E-Mail <span className="text-[#e05252]">*</span></Label>
-            <Input
-              type="email"
-              value={formData.email || ''}
-              onChange={(e) => handleChange('email', e.target.value)}
-              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-            />
-          </TextField>
-        </Card>
+        <div className="p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-1">E-Mail <span className="text-danger">*</span></label>
+          <input
+            type="email"
+            value={formData.email || ''}
+            onChange={(e) => handleChange('email', e.target.value)}
+            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+          />
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <TextField name="birthday">
-            <Label className="text-[#a0aec0]">Geburtsdatum</Label>
-            <Input
-              type="date"
-              value={formData.birthday || ''}
-              onChange={(e) => handleChange('birthday', e.target.value)}
-              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-            />
-          </TextField>
-        </Card>
+        <div className="p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-1">Geburtsdatum</label>
+          <input
+            type="date"
+            value={formData.birthday || ''}
+            onChange={(e) => handleChange('birthday', e.target.value)}
+            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+          />
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <TextField name="street">
-            <Label className="text-[#a0aec0]">Straße</Label>
-            <Input
-              value={formData.street || ''}
-              onChange={(e) => handleChange('street', e.target.value)}
-              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-            />
-          </TextField>
-        </Card>
+        <div className="p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-1">Straße</label>
+          <input
+            value={formData.street || ''}
+            onChange={(e) => handleChange('street', e.target.value)}
+            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+          />
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <TextField name="city">
-            <Label className="text-[#a0aec0]">Stadt</Label>
-            <Input
-              value={formData.city || ''}
-              onChange={(e) => handleChange('city', e.target.value)}
-              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
-            />
-          </TextField>
-        </Card>
+        <div className="p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-1">Stadt</label>
+          <input
+            value={formData.city || ''}
+            onChange={(e) => handleChange('city', e.target.value)}
+            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+          />
+        </div>
       </div>
 
       <div className="mt-6 flex gap-4">
         {hasChanges && (
           <>
-            <Button
-              variant="primary"
-              onPress={handleSave}
-              isDisabled={updateUser.isPending}
-              className="bg-[#c9a66b] text-[#0f1419] font-medium"
+            <button
+              onClick={handleSave}
+              disabled={updateUser.isPending}
+              className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors disabled:opacity-50"
             >
               {updateUser.isPending ? 'Wird gespeichert...' : 'Speichern'}
-            </Button>
-            <Button
-              variant="secondary"
-              onPress={handleCancel}
+            </button>
+            <button
+              className="button-secondary px-4 py-2 rounded transition-colors"
+              onClick={handleCancel}
             >
               Abbrechen
-            </Button>
+            </button>
           </>
         )}
       </div>
 
       {user.managers && user.managers.length > 0 && (
-        <Card className="p-6 mt-6 bg-[#1a2028] border border-[#2d3748]">
-          <h2 className="text-xl font-semibold text-[#f5f5f5] mb-4">Zugehörige Manager</h2>
+        <div className="p-6 mt-6 bg-surface border border-border">
+          <h2 className="text-xl font-semibold text-foreground mb-4">Zugehörige Manager</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#2d3748]">
-                  <th className="px-4 py-2 text-left text-[#a0aec0]">Name</th>
-                  <th className="px-4 py-2 text-left text-[#a0aec0]">Kürzel</th>
-                  <th className="px-4 py-2 text-left text-[#a0aec0]">Saison</th>
+                <tr className="border-b border-border">
+                  <th className="px-4 py-2 text-left text-muted">Name</th>
+                  <th className="px-4 py-2 text-left text-muted">Kürzel</th>
+                  <th className="px-4 py-2 text-left text-muted">Saison</th>
                 </tr>
               </thead>
               <tbody>
                 {user.managers.map(manager => (
-                  <tr key={manager.id} className="hover:bg-[#242d38] border-b border-[#2d3748]">
+                  <tr key={manager.id} className="hover:bg-elevated border-b border-border">
                     <td className="px-4 py-2">
                       <RouterLink
                         to={`/managers/${manager.id}`}
-                        className="text-[#c9a66b] hover:text-[#f5f5f5] link"
+                        className="text-accent hover:text-foreground link"
                       >
                         {manager.name}
                       </RouterLink>
                     </td>
-                    <td className="px-4 py-2 text-[#a0aec0]">{manager.shortName || '-'}</td>
-                    <td className="px-4 py-2 text-[#a0aec0]">{manager.seasonName}</td>
+                    <td className="px-4 py-2 text-muted">{manager.shortName || '-'}</td>
+                    <td className="px-4 py-2 text-muted">{manager.seasonName}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
       )}
 
       <div className="mt-8">
-        <Button
-          variant="ghost"
-          onPress={handleDeleteClick}
-          className="text-[#e05252] border-[#e05252]"
+        <button
+          onClick={handleDeleteClick}
+          className="text-danger border border-danger px-4 py-2 rounded hover:bg-danger/10 transition-colors"
         >
           Benutzer löschen
-        </Button>
+        </button>
       </div>
 
       {deleteDialogOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="p-6 bg-[#1a2028] border border-[#2d3748] w-full max-w-md">
-            <h2 className="text-xl font-bold text-[#f5f5f5] mb-4">Benutzer löschen</h2>
-            <p className="text-[#a0aec0] mb-2">
-              Möchten Sie den Benutzer <strong className="text-[#f5f5f5]">"{user.login}"</strong> wirklich löschen?
+          <div className="p-6 bg-surface border border-border w-full max-w-md">
+            <h2 className="text-xl font-bold text-foreground mb-4">Benutzer löschen</h2>
+            <p className="text-muted mb-2">
+              Möchten Sie den Benutzer <strong className="text-foreground">"{user.login}"</strong> wirklich löschen?
             </p>
-            <p className="text-[#e05252] mb-6">
+            <p className="text-danger mb-6">
               Alle zugehörigen Manager werden ebenfalls gelöscht!
             </p>
             <div className="flex justify-end gap-2">
-              <Button
-                variant="ghost"
-                onPress={() => setDeleteDialogOpen(false)}
-                className="text-[#a0aec0]"
+              <button
+                className="button-secondary px-4 py-2 rounded transition-colors text-muted"
+                onClick={() => setDeleteDialogOpen(false)}
               >
                 Abbrechen
-              </Button>
-              <Button
-                onPress={handleDeleteConfirm}
-                isDisabled={deleteUser.isPending}
-                className="bg-[#e05252] text-[#f5f5f5]"
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deleteUser.isPending}
+                className="bg-danger text-foreground px-4 py-2 rounded hover:bg-danger/80 transition-colors disabled:opacity-50"
               >
                 {deleteUser.isPending ? 'Wird gelöscht...' : 'Löschen'}
-              </Button>
+              </button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
     </div>

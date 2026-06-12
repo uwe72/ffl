@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Card, TextField, Label, Input, Button } from '@heroui/react'
 import { useProfile, useUpdateProfile } from '../hooks/useProfile'
 import type { MailTheme } from '../types'
 
@@ -48,76 +47,75 @@ export default function Profile() {
     }
   }
 
-  if (isLoading) return <div className="text-center py-8 text-[#a0aec0]">Laden...</div>
-  if (error) return <div className="text-center py-8 text-[#e05252]">Fehler beim Laden</div>
-  if (!user) return <div className="text-center py-8 text-[#6b7280]">Profil nicht gefunden</div>
+  if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
+  if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
+  if (!user) return <div className="text-center py-8 text-subtle">Profil nicht gefunden</div>
 
   return (
     <div>
-      <RouterLink to="/" className="text-[#c9a66b] hover:text-[#d4b77a] mb-4 inline-block link">
+      <RouterLink to="/" className="text-accent hover:text-accent-hover mb-4 inline-block link">
         &larr; Zurück zur Startseite
       </RouterLink>
 
-      <h1 className="text-3xl font-bold text-[#f5f5f5] mb-6">Mein Profil</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-6">Mein Profil</h1>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <Label className="text-[#a0aec0] block mb-2">Login-Name</Label>
-          <p className="text-[#f5f5f5] text-lg">{user.login}</p>
-        </Card>
+        <div className="card p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-2">Login-Name</label>
+          <p className="text-foreground text-lg">{user.login}</p>
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <TextField name="email">
-            <Label className="text-[#a0aec0]">E-Mail</Label>
-            <Input
+        <div className="card p-6 bg-surface border border-border">
+          <div>
+            <label className="block text-sm text-muted mb-1">E-Mail</label>
+            <input
               type="email"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
-              className="bg-[#242d38] border-[#3d4a5c] text-[#f5f5f5]"
+              className="input-field w-full px-3 py-2 rounded bg-elevated border-border-hover text-foreground focus:outline-none"
             />
-          </TextField>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <Label className="text-[#a0aec0] block mb-2">Vorname</Label>
-          <p className="text-[#f5f5f5] text-lg">{user.firstName || '-'}</p>
-        </Card>
+        <div className="card p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-2">Vorname</label>
+          <p className="text-foreground text-lg">{user.firstName || '-'}</p>
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <Label className="text-[#a0aec0] block mb-2">Nachname</Label>
-          <p className="text-[#f5f5f5] text-lg">{user.lastName || '-'}</p>
-        </Card>
+        <div className="card p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-2">Nachname</label>
+          <p className="text-foreground text-lg">{user.lastName || '-'}</p>
+        </div>
 
-        <Card className="p-6 bg-[#1a2028] border border-[#2d3748]">
-          <Label className="text-[#a0aec0] block mb-2">Theme Spieltagsmail</Label>
+        <div className="card p-6 bg-surface border border-border">
+          <label className="block text-sm text-muted mb-2">Theme Spieltagsmail</label>
           <select
             value={mailTheme}
             onChange={(e) => handleMailThemeChange(e.target.value as MailTheme)}
-            className="w-full bg-[#242d38] border border-[#3d4a5c] text-[#f5f5f5] rounded-lg px-4 py-2 focus:outline-none focus:border-[#c9a66b]"
+            className="w-full bg-elevated border border-border-hover text-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-accent"
           >
             {Object.entries(mailThemeLabels).map(([key, label]) => (
               <option key={key} value={key}>{label}</option>
             ))}
           </select>
-        </Card>
+        </div>
       </div>
 
       {hasChanges && (
         <div className="mt-6 flex gap-4">
-          <Button
-            variant="primary"
-            onPress={handleSave}
-            isDisabled={updateProfile.isPending}
-            className="bg-[#c9a66b] text-[#0f1419] font-medium"
+          <button
+            className="button-primary px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors"
+            onClick={handleSave}
+            disabled={updateProfile.isPending}
           >
             {updateProfile.isPending ? 'Wird gespeichert...' : 'Speichern'}
-          </Button>
-          <Button
-            variant="secondary"
-            onPress={handleCancel}
+          </button>
+          <button
+            className="button-secondary px-4 py-2 rounded transition-colors"
+            onClick={handleCancel}
           >
             Abbrechen
-          </Button>
+          </button>
         </div>
       )}
     </div>

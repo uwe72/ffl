@@ -2,7 +2,6 @@ import { gameApi } from '../api/games'
 import { playerApi } from '../api/players'
 import { teamApi } from '../api/teams'
 import { useState, useEffect } from 'react'
-import { Chip } from '@heroui/react'
 import { positionLabels, positionColors } from '../pages/Players'
 import type { ValidationResult, PlayerSearchDto, Team, Game } from '../types'
 
@@ -206,17 +205,17 @@ export default function FormationImportDialog({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[#1a2028] rounded-lg border border-[#2d3748] p-6 max-w-4xl w-full mx-4 max-h-[200vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold text-[#f5f5f5] mb-4">
+      <div className="bg-surface rounded-lg border border-border p-6 max-w-4xl w-full mx-4 max-h-[200vh] overflow-y-auto">
+        <h3 className="text-lg font-semibold text-foreground mb-4">
           Formation importieren
         </h3>
-        <div className="flex items-center justify-center gap-4 mb-4 py-3 bg-[#242d38] rounded-lg">
+        <div className="flex items-center justify-center gap-4 mb-4 py-3 bg-elevated rounded-lg">
           {game?.hostLogoUrl && (
             <img src={game.hostLogoUrl} alt={game.hostName} className="h-10 w-10 object-contain" />
           )}
-          <span className="text-[#f5f5f5] font-medium">{game?.hostName}</span>
-          <span className="text-[#6b7280] text-sm">vs</span>
-          <span className="text-[#f5f5f5] font-medium">{game?.visitorName}</span>
+          <span className="text-foreground font-medium">{game?.hostName}</span>
+          <span className="text-subtle text-sm">vs</span>
+          <span className="text-foreground font-medium">{game?.visitorName}</span>
           {game?.visitorLogoUrl && (
             <img src={game.visitorLogoUrl} alt={game.visitorName} className="h-10 w-10 object-contain" />
           )}
@@ -230,7 +229,7 @@ export default function FormationImportDialog({
                 setFormationExtern(e.target.value)
                 setValidation(null)
               }}
-              className="w-full h-[500px] px-3 py-2 rounded border border-[#2d3748] bg-[#242d38] text-[#a0aec0] font-mono text-sm resize-y mb-4"
+              className="w-full h-[500px] px-3 py-2 rounded border border-border bg-elevated text-muted font-mono text-sm resize-y mb-4"
               placeholder="Tore, Aufstellung, Wechsel, Trainer einfügen (Strg+V)..."
               autoFocus
             />
@@ -243,7 +242,7 @@ export default function FormationImportDialog({
             )}
 
             {error && (
-              <div className="bg-red-900/20 border border-red-800 rounded-lg p-3 mb-4 text-[#e05252] flex items-center gap-2">
+              <div className="bg-red-900/20 border border-red-800 rounded-lg p-3 mb-4 text-danger flex items-center gap-2">
                 <span className="text-lg">✗</span>
                 <span>{error}</span>
               </div>
@@ -260,7 +259,7 @@ export default function FormationImportDialog({
                   </span>
                 </div>
                 {!validation.valid && validation.errors.length > 0 && (
-                  <ul className="text-sm text-[#a0aec0] space-y-1 mb-2">
+                  <ul className="text-sm text-muted space-y-1 mb-2">
                     {validation.errors.map((err, idx) => (
                       <li key={idx}>• {err}</li>
                     ))}
@@ -268,15 +267,15 @@ export default function FormationImportDialog({
                 )}
                 {validation.missingPlayers && validation.missingPlayers.length > 0 && (
                   <div className="mt-2">
-                    <p className="text-sm font-medium text-[#e05252] mb-1">Fehlende Spieler:</p>
-                    <ul className="text-sm text-[#a0aec0] space-y-1">
+                    <p className="text-sm font-medium text-danger mb-1">Fehlende Spieler:</p>
+                    <ul className="text-sm text-muted space-y-1">
                       {validation.missingPlayers.map((mp, idx) => (
                         <li key={idx}>• {mp.playerName} ({mp.teamName})</li>
                       ))}
                     </ul>
                   </div>
                 )}
-                <div className="text-sm text-[#a0aec0] mt-2">
+                <div className="text-sm text-muted mt-2">
                   Heim: {validation.hostPlayerCount} Spieler | Gast: {validation.visitorPlayerCount} Spieler
                 </div>
               </div>
@@ -286,20 +285,20 @@ export default function FormationImportDialog({
               <button
                 onClick={handleValidate}
                 disabled={!formationExtern.trim()}
-                className="px-4 py-2 rounded border border-[#2d3748] text-[#a0aec0] hover:bg-[#242d38] disabled:opacity-50"
+                className="px-4 py-2 rounded border border-border text-muted hover:bg-elevated disabled:opacity-50"
               >
                 Validieren
               </button>
               <button
                 onClick={handleDirectImport}
                 disabled={importing || !formationExtern.trim() || validation === null || !validation.valid}
-                className="px-4 py-2 rounded bg-[#c9a66b] text-[#1a2028] font-medium hover:bg-[#b8956a] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded bg-primary text-[#1b2838] font-medium hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {importing ? 'Importiere...' : 'Importieren'}
               </button>
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded border border-[#2d3748] text-[#a0aec0] hover:bg-[#242d38]"
+                className="px-4 py-2 rounded border border-border text-muted hover:bg-elevated"
               >
                 Abbrechen
               </button>
@@ -308,11 +307,11 @@ export default function FormationImportDialog({
         ) : (
           <>
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-[#e05252]">⚠</span>
-              <span className="text-[#e05252] font-medium">Spieler nicht gefunden:</span>
-              <span className="text-[#c9a66b] font-semibold">{currentMissing?.playerName}</span>
-              {currentMissing?.teamName && <span className="text-[#a0aec0]">({currentMissing.teamName})</span>}
-              <span className="text-[#6b7280] ml-auto">{currentMissingIndex + 1}/{validation?.missingPlayers?.length || 0}</span>
+              <span className="text-danger">⚠</span>
+              <span className="text-danger font-medium">Spieler nicht gefunden:</span>
+              <span className="text-accent font-semibold">{currentMissing?.playerName}</span>
+              {currentMissing?.teamName && <span className="text-muted">({currentMissing.teamName})</span>}
+              <span className="text-subtle ml-auto">{currentMissingIndex + 1}/{validation?.missingPlayers?.length || 0}</span>
             </div>
 
             {successMessage && (
@@ -323,19 +322,19 @@ export default function FormationImportDialog({
             )}
 
             {error && (
-              <div className="bg-red-900/20 border border-red-800 rounded-lg p-3 mb-4 text-[#e05252] flex items-center gap-2">
+              <div className="bg-red-900/20 border border-red-800 rounded-lg p-3 mb-4 text-danger flex items-center gap-2">
                 <span className="text-lg">✗</span>
                 <span>{error}</span>
               </div>
             )}
 
-            <div className="flex border-b border-[#2d3748] mb-4">
+            <div className="flex border-b border-border mb-4">
               <button
                 onClick={() => setActiveTab('search')}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
                   activeTab === 'search'
-                    ? 'text-[#c9a66b] border-b-2 border-[#c9a66b]'
-                    : 'text-[#6b7280] hover:text-[#a0aec0]'
+                    ? 'text-accent border-b-2 border-accent'
+                    : 'text-subtle hover:text-muted'
                 }`}
               >
                 Spieler suchen
@@ -344,8 +343,8 @@ export default function FormationImportDialog({
                 onClick={() => setActiveTab('create')}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
                   activeTab === 'create'
-                    ? 'text-[#c9a66b] border-b-2 border-[#c9a66b]'
-                    : 'text-[#6b7280] hover:text-[#a0aec0]'
+                    ? 'text-accent border-b-2 border-accent'
+                    : 'text-subtle hover:text-muted'
                 }`}
               >
                 Neu erstellen (99 Mio.)
@@ -356,11 +355,11 @@ export default function FormationImportDialog({
               <div>
                 <div className="flex gap-3 mb-3">
                   <div className="flex-1">
-                    <label className="block text-xs text-[#6b7280] mb-1">Verein (optional)</label>
+                    <label className="block text-xs text-subtle mb-1">Verein (optional)</label>
                     <select
                       value={selectedTeamId ?? ''}
                       onChange={(e) => setSelectedTeamId(e.target.value ? Number(e.target.value) : null)}
-                      className="w-full px-3 py-2 rounded border border-[#2d3748] bg-[#242d38] text-[#f5f5f5]"
+                      className="w-full px-3 py-2 rounded border border-border bg-elevated text-foreground"
                     >
                       <option value="">Alle Vereine</option>
                       {teams.map(t => (
@@ -369,18 +368,18 @@ export default function FormationImportDialog({
                     </select>
                   </div>
                   <div className="flex-1">
-                    <label className="block text-xs text-[#6b7280] mb-1">Name suchen</label>
+                    <label className="block text-xs text-subtle mb-1">Name suchen</label>
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="Name eingeben..."
-                      className="w-full px-3 py-2 rounded border border-[#2d3748] bg-[#242d38] text-[#f5f5f5] placeholder-[#6b7280]"
+                      className="w-full px-3 py-2 rounded border border-border bg-elevated text-foreground placeholder-[#8899aa]"
                     />
                   </div>
                 </div>
 
-                <div className="border border-[#2d3748] rounded-lg overflow-y-auto" style={{ maxHeight: '280px' }}>
+                <div className="border border-border rounded-lg overflow-y-auto" style={{ maxHeight: '280px' }}>
                   {(() => {
                     const searchLower = searchTerm.toLowerCase()
                     const filteredPlayers = teamPlayers.filter(p => {
@@ -392,14 +391,14 @@ export default function FormationImportDialog({
                     if (filteredPlayers.length > 0) {
                       return (
                         <table className="w-full text-sm">
-                          <thead className="bg-[#242d38] sticky top-0">
+                          <thead className="bg-elevated sticky top-0">
                             <tr>
-                              <th className="px-2 py-2 text-left text-xs font-semibold text-[#a0aec0]">Name</th>
-                              <th className="px-2 py-2 text-left text-xs font-semibold text-[#a0aec0]">Alt1</th>
-                              <th className="px-2 py-2 text-left text-xs font-semibold text-[#a0aec0]">Alt2</th>
-                              <th className="px-2 py-2 text-left text-xs font-semibold text-[#a0aec0]">Alt3</th>
-                              <th className="px-2 py-2 text-left text-xs font-semibold text-[#a0aec0]">Pos</th>
-                              <th className="px-2 py-2 text-left text-xs font-semibold text-[#a0aec0]">Verein</th>
+                              <th className="px-2 py-2 text-left text-xs font-semibold text-muted">Name</th>
+                              <th className="px-2 py-2 text-left text-xs font-semibold text-muted">Alt1</th>
+                              <th className="px-2 py-2 text-left text-xs font-semibold text-muted">Alt2</th>
+                              <th className="px-2 py-2 text-left text-xs font-semibold text-muted">Alt3</th>
+                              <th className="px-2 py-2 text-left text-xs font-semibold text-muted">Pos</th>
+                              <th className="px-2 py-2 text-left text-xs font-semibold text-muted">Verein</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -409,24 +408,24 @@ export default function FormationImportDialog({
                               <tr
                                 key={player.id}
                                 onClick={() => setSelectedPlayerId(player.id)}
-                                className={`border-b border-[#2d3748] cursor-pointer transition-colors ${
+                                className={`border-b border-border cursor-pointer transition-colors ${
                                   selectedPlayerId === player.id 
-                                    ? 'bg-[#c9a66b]/30 border-l-2 border-l-[#c9a66b]' 
-                                    : 'hover:bg-[#242d38]'
+                                    ? 'bg-primary/30 border-l-2 border-l-accent' 
+                                    : 'hover:bg-elevated'
                                 }`}
                               >
-                                <td className="px-2 py-2 text-[#f5f5f5]">{player.nameKicker}</td>
-                                <td className="px-2 py-2 text-[#a0aec0] text-xs">{player.nameKickerAlt1 || '-'}</td>
-                                <td className="px-2 py-2 text-[#a0aec0] text-xs">{player.nameKickerAlt2 || '-'}</td>
-                                <td className="px-2 py-2 text-[#a0aec0] text-xs">{player.nameKickerAlt3 || '-'}</td>
+                                <td className="px-2 py-2 text-foreground">{player.nameKicker}</td>
+                                <td className="px-2 py-2 text-muted text-xs">{player.nameKickerAlt1 || '-'}</td>
+                                <td className="px-2 py-2 text-muted text-xs">{player.nameKickerAlt2 || '-'}</td>
+                                <td className="px-2 py-2 text-muted text-xs">{player.nameKickerAlt3 || '-'}</td>
                                 <td className="px-2 py-2">
                                   {player.position ? (
-                                    <Chip size="sm" color={positionColors[player.position] as any} variant="soft">
+                                    <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
                                       {positionLabels[player.position]}
-                                    </Chip>
+                                    </span>
                                   ) : '-'}
                                 </td>
-                                <td className="px-2 py-2 text-[#a0aec0] text-xs">
+                                <td className="px-2 py-2 text-muted text-xs">
                                   {player.teams?.map(t => t.name).join(', ') || '-'}
                                 </td>
                               </tr>
@@ -436,7 +435,7 @@ export default function FormationImportDialog({
                       )
                     }
                     return (
-                      <div className="p-4 text-center text-[#6b7280]">
+                      <div className="p-4 text-center text-subtle">
                         Keine Spieler gefunden
                       </div>
                     )
@@ -446,7 +445,7 @@ export default function FormationImportDialog({
                 <button
                   onClick={handleSelectPlayer}
                   disabled={!selectedPlayerId}
-                  className="mt-3 px-4 py-2 rounded bg-[#c9a66b] text-[#1a2028] font-medium hover:bg-[#b8956a] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="mt-3 px-4 py-2 rounded bg-primary text-[#1b2838] font-medium hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {selectedPlayerId ? 'Übernehmen' : 'Spieler auswählen'}
                 </button>
@@ -457,20 +456,20 @@ export default function FormationImportDialog({
               <div>
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div>
-                    <label className="block text-xs text-[#6b7280] mb-1">Name</label>
+                    <label className="block text-xs text-subtle mb-1">Name</label>
                     <input
                       type="text"
                       value={currentMissing?.playerName || ''}
                       disabled
-                      className="w-full px-3 py-2 rounded border border-[#2d3748] bg-[#242d38] text-[#a0aec0] opacity-60"
+                      className="w-full px-3 py-2 rounded border border-border bg-elevated text-muted opacity-60"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-[#6b7280] mb-1">Position</label>
+                    <label className="block text-xs text-subtle mb-1">Position</label>
                     <select
                       value={createPosition}
                       onChange={(e) => setCreatePosition(e.target.value)}
-                      className="w-full px-3 py-2 rounded border border-[#2d3748] bg-[#242d38] text-[#f5f5f5]"
+                      className="w-full px-3 py-2 rounded border border-border bg-elevated text-foreground"
                     >
                       <option value="GOALKEEPER">Torwart</option>
                       <option value="DEFENDER">Verteidiger</option>
@@ -481,19 +480,19 @@ export default function FormationImportDialog({
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-xs text-[#6b7280] mb-1">Verein</label>
+                  <label className="block text-xs text-subtle mb-1">Verein</label>
                   {currentMissing?.teamId ? (
                     <input
                       type="text"
                       value={currentMissing.teamName || ''}
                       disabled
-                      className="w-full px-3 py-2 rounded border border-[#2d3748] bg-[#242d38] text-[#a0aec0] opacity-60"
+                      className="w-full px-3 py-2 rounded border border-border bg-elevated text-muted opacity-60"
                     />
                   ) : (
                     <select
                       value={createTeamId || ''}
                       onChange={(e) => setCreateTeamId(Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded border border-[#2d3748] bg-[#242d38] text-[#f5f5f5]"
+                      className="w-full px-3 py-2 rounded border border-border bg-elevated text-foreground"
                     >
                       <option value={game?.hostId}>{game?.hostName}</option>
                       <option value={game?.visitorId}>{game?.visitorName}</option>
@@ -504,17 +503,17 @@ export default function FormationImportDialog({
                 <button
                   onClick={handleCreateNew}
                   disabled={importing || (!currentMissing?.teamId && !createTeamId)}
-                  className="w-full px-4 py-2 rounded border border-[#2d3748] text-[#a0aec0] hover:bg-[#242d38] disabled:opacity-50"
+                  className="w-full px-4 py-2 rounded border border-border text-muted hover:bg-elevated disabled:opacity-50"
                 >
                   {importing ? 'Erstelle...' : 'Neu erstellen'}
                 </button>
               </div>
             )}
 
-            <div className="mt-6 pt-4 border-t border-[#2d3748] flex justify-end">
+            <div className="mt-6 pt-4 border-t border-border flex justify-end">
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded border border-[#2d3748] text-[#a0aec0] hover:bg-[#242d38]"
+                className="px-4 py-2 rounded border border-border text-muted hover:bg-elevated"
               >
                 Abbrechen
               </button>
