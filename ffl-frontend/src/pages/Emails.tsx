@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react'
-import { Settings } from 'lucide-react'
 import { useEmails, useCreateEmail, useBulkCreateEmails, useDeleteEmail } from '../hooks/useEmails'
+import Button from '../components/Button'
 import type { EmailAddress } from '../types'
 
 type SortKey = 'id' | 'email'
@@ -117,8 +117,8 @@ export default function Emails() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <Settings size={28} className="text-accent" />
-        <h1 className="text-sm font-medium text-accent">
+        <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
+        <h1 className="text-sm font-medium text-primary">
           E-Mail-Adressen <span className="text-lg text-subtle">({emails?.length ?? 0})</span>
         </h1>
       </div>
@@ -129,20 +129,22 @@ export default function Emails() {
             placeholder="E-Mail suchen..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field max-w-md w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+            className="input-field max-w-md w-full px-3 py-2 rounded focus:outline-none"
           />
-          <button
+          <Button
+            variant="emphasized"
+            size="sm"
             onClick={() => { setShowCreateDialog(true); setNewEmail(''); setError('') }}
-            className="bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded hover:bg-button-primary-hover transition-colors"
           >
             + Neue E-Mail
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => { setShowImportDialog(true); setImportText(''); setError('') }}
-            className="bg-elevated text-accent border border-border-hover text-xs font-medium px-2 py-1 rounded hover:bg-default transition-colors"
           >
             + Importieren
-          </button>
+          </Button>
         </div>
 
         <div className="overflow-x-auto">
@@ -150,13 +152,13 @@ export default function Emails() {
             <thead>
               <tr className="border-b border-border">
                 <th
-                  className="px-4 py-2 text-left cursor-pointer hover:text-accent text-muted"
+                  className="px-4 py-2 text-left cursor-pointer hover:text-primary text-muted"
                   onClick={() => handleSort('id')}
                 >
                   # <SortIcon column="id" />
                 </th>
                 <th
-                  className="px-4 py-2 text-left cursor-pointer hover:text-accent text-muted"
+                  className="px-4 py-2 text-left cursor-pointer hover:text-primary text-muted"
                   onClick={() => handleSort('email')}
                 >
                   E-Mail <SortIcon column="email" />
@@ -166,17 +168,18 @@ export default function Emails() {
             </thead>
             <tbody>
               {sortedEmails.length > 0 ? (
-                sortedEmails.map((email) => (
-                  <tr key={email.id} className="hover:bg-elevated border-b border-border">
+                sortedEmails.map((email, index) => (
+                  <tr key={email.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                     <td className="px-4 py-2 text-subtle">{email.id}</td>
                     <td className="px-4 py-2 text-foreground">{email.email}</td>
                     <td className="px-4 py-2 text-right">
-                      <button
-                        className="text-danger border border-danger px-3 py-1 text-sm rounded hover:bg-danger/10 transition-colors"
+                      <Button
+                        variant="negative"
+                        size="sm"
                         onClick={() => { setDeleteTarget(email); setShowDeleteDialog(true); setError('') }}
                       >
                         Löschen
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -208,19 +211,19 @@ export default function Emails() {
               placeholder="email@beispiel.de"
               value={newEmail}
               onChange={(e) => { setNewEmail(e.target.value); setError('') }}
-              className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground mb-4"
+              className="input-field w-full px-3 py-2 rounded focus:outline-none mb-4"
             />
             <div className="flex justify-end gap-2">
-              <button className="button-secondary px-4 py-2 rounded transition-colors text-muted" onClick={() => setShowCreateDialog(false)}>
+              <Button variant="ghost" onClick={() => setShowCreateDialog(false)}>
                 Abbrechen
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="emphasized"
                 onClick={handleCreate}
                 disabled={createEmail.isPending}
-                className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors disabled:opacity-50"
               >
                 {createEmail.isPending ? 'Wird angelegt...' : 'Anlegen'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -241,16 +244,16 @@ export default function Emails() {
               className="w-full h-40 bg-elevated border border-border-hover rounded-lg p-3 text-foreground resize-none focus:outline-none focus:border-accent"
             />
             <div className="flex justify-end gap-2 mt-4">
-              <button className="button-secondary px-4 py-2 rounded transition-colors text-muted" onClick={() => setShowImportDialog(false)}>
+              <Button variant="ghost" onClick={() => setShowImportDialog(false)}>
                 Abbrechen
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="emphasized"
                 onClick={handleImport}
                 disabled={bulkCreateEmails.isPending}
-                className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors disabled:opacity-50"
               >
                 {bulkCreateEmails.isPending ? 'Wird importiert...' : 'Importieren'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -265,9 +268,9 @@ export default function Emails() {
             </p>
             {error && <p className="text-danger mb-3 text-sm">{error}</p>}
             <div className="flex justify-end gap-2">
-              <button className="button-secondary px-4 py-2 rounded transition-colors text-muted" onClick={() => { setShowDeleteDialog(false); setDeleteTarget(null) }}>
+              <Button variant="ghost" onClick={() => { setShowDeleteDialog(false); setDeleteTarget(null) }}>
                 Abbrechen
-              </button>
+              </Button>
               <button
                 onClick={handleDeleteConfirm}
                 disabled={deleteEmail.isPending}

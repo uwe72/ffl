@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
-import { Shield } from 'lucide-react'
 import { useTeam, useTeamPlayers } from '../hooks/useTeams'
 import { positionLabels, positionColors } from './Players'
 import Badge from '../components/Badge'
@@ -85,7 +84,7 @@ export default function TeamDetail() {
 
   return (
     <div>
-      <RouterLink to="/teams" className="text-accent hover:text-accent-hover mb-4 inline-block link">
+      <RouterLink to="/teams" className="text-primary hover:text-primary-hover mb-4 inline-block link">
         &larr; Zurück zur Übersicht
       </RouterLink>
       
@@ -103,9 +102,9 @@ export default function TeamDetail() {
           )}
           <div className="flex-1">
             <div className="flex items-start gap-3">
-              <Shield size={28} className="text-accent mt-1" />
+              <i className="sap-icon sap-icon-shield text-[28px] text-primary mt-1" />
               <div>
-                <h1 className="text-sm font-medium text-accent">{team.name}</h1>
+                <h1 className="text-sm font-medium text-primary">{team.name}</h1>
                 <div className="flex items-center gap-3 mt-1.5">
                   {team.shortName && (
                     <Badge variant="muted">{team.shortName}</Badge>
@@ -122,7 +121,7 @@ export default function TeamDetail() {
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setSelectedPosition('ALL')}
-              className={selectedPosition === 'ALL' ? 'bg-primary text-background px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors' : 'bg-elevated text-foreground border border-border-hover px-4 py-2 rounded transition-colors'}
+              className={selectedPosition === 'ALL' ? 'bg-primary text-primary-foreground px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors' : 'bg-elevated text-foreground border border-border-hover px-4 py-2 rounded transition-colors'}
             >
               Alle
             </button>
@@ -130,7 +129,7 @@ export default function TeamDetail() {
               <button
                 key={pos}
                 onClick={() => setSelectedPosition(pos)}
-                className={selectedPosition === pos ? 'bg-primary text-background px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors' : 'bg-elevated text-foreground border border-border-hover px-4 py-2 rounded transition-colors'}
+                className={selectedPosition === pos ? 'bg-primary text-primary-foreground px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors' : 'bg-elevated text-foreground border border-border-hover px-4 py-2 rounded transition-colors'}
               >
                 {positionLabels[pos]}
               </button>
@@ -142,7 +141,7 @@ export default function TeamDetail() {
             placeholder="Spieler suchen..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="min-w-48 px-3 py-2 rounded-lg bg-elevated border border-border text-foreground text-sm placeholder-[#8899aa] focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
+            className="input-field min-w-48 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
           />
         </div>
 
@@ -154,42 +153,42 @@ export default function TeamDetail() {
           <table className="w-full">
             <thead className="bg-surface">
               <tr>
-                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('positionTotal')}>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionTotal')}>
                   Pos<SortIcon column="positionTotal" />
                 </th>
-                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('positionChange')}>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionChange')}>
                   +-<SortIcon column="positionChange" />
                 </th>
-                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('nameKicker')}>
+                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('nameKicker')}>
                   Name<SortIcon column="nameKicker" />
                 </th>
-                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('points')}>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('points')}>
                   Pkt<SortIcon column="points" />
                 </th>
-                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('pointsLastRound')}>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('pointsLastRound')}>
                   Spieltag<SortIcon column="pointsLastRound" />
                 </th>
-                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('managerCount')}>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('managerCount')}>
                   Manager<SortIcon column="managerCount" />
                 </th>
-                <th className="px-3 py-2 text-right text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('prize')}>
+                <th className="px-3 py-2 text-right text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('prize')}>
                   Preis<SortIcon column="prize" />
                 </th>
-                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('position')}>
+                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('position')}>
                   Position<SortIcon column="position" />
                 </th>
               </tr>
             </thead>
             <tbody className="bg-surface">
               {filteredPlayers && filteredPlayers.length > 0 ? (
-                filteredPlayers.map((player) => (
-                  <tr key={player.id} className="hover:bg-elevated border-b border-border">
+                filteredPlayers.map((player, index) => (
+                  <tr key={player.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                     <td className="px-3 py-2 text-center font-medium text-foreground">
                       {player.positionTotal ? `${player.positionTotal}.` : '-'}
                     </td>
                     <td className="px-3 py-2 text-center">
                       {player.positionChange != null && player.positionChange !== 0 ? (
-                        <span className={`font-medium ${player.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        <span className={`font-medium ${player.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
                           {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
                         </span>
                       ) : (
@@ -202,7 +201,7 @@ export default function TeamDetail() {
                           <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
                         )}
                         <div>
-                          <div className="font-medium text-accent">{player.nameKicker}</div>
+                          <div className="font-medium text-primary">{player.nameKicker}</div>
                           {player.firstName && player.lastName && (
                             <div className="text-sm text-subtle">
                               {player.firstName} {player.lastName}

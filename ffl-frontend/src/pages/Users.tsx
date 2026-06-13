@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Settings } from 'lucide-react'
 import { useUsers } from '../hooks/useUsers'
 
 const roleLabels: Record<string, string> = {
@@ -78,8 +77,8 @@ export default function Users() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <Settings size={28} className="text-accent" />
-        <h1 className="text-sm font-medium text-accent">Benutzer</h1>
+        <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
+        <h1 className="text-sm font-medium text-primary">Benutzer</h1>
       </div>
 
       <div className="p-4 bg-surface border border-border">
@@ -88,7 +87,7 @@ export default function Users() {
             placeholder="Benutzer suchen..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field max-w-md w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+            className="input-field max-w-md w-full px-3 py-2 rounded focus:outline-none"
           />
         </div>
 
@@ -96,28 +95,28 @@ export default function Users() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 text-accent cursor-pointer hover:text-foreground" onClick={() => handleSort('login')}>
+                <th className="text-left py-3 px-4 text-primary cursor-pointer hover:text-foreground" onClick={() => handleSort('login')}>
                   Login<SortIcon column="login" />
                 </th>
-                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-accent" onClick={() => handleSort('email')}>
+                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-primary" onClick={() => handleSort('email')}>
                   E-Mail<SortIcon column="email" />
                 </th>
-                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-accent" onClick={() => handleSort('firstName')}>
+                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-primary" onClick={() => handleSort('firstName')}>
                   Vorname<SortIcon column="firstName" />
                 </th>
-                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-accent" onClick={() => handleSort('lastName')}>
+                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-primary" onClick={() => handleSort('lastName')}>
                   Nachname<SortIcon column="lastName" />
                 </th>
-                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-accent" onClick={() => handleSort('role')}>
+                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-primary" onClick={() => handleSort('role')}>
                   Rolle<SortIcon column="role" />
                 </th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers && filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-border hover:bg-elevated">
-                    <td className="py-3 px-4 text-accent">
+                filteredUsers.map((user, index) => (
+                  <tr key={user.id} className={`border-b border-border hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                    <td className="py-3 px-4 text-primary">
                       <RouterLink to={`/users/${user.id}`} className="hover:text-foreground link font-medium">
                         {user.login}
                       </RouterLink>

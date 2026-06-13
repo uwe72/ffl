@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Settings } from 'lucide-react'
 import { useProfile, useUpdateProfile } from '../hooks/useProfile'
+import Button from '../components/Button'
 import type { MailTheme } from '../types'
 
 const mailThemeLabels: Record<MailTheme, string> = {
@@ -54,13 +54,13 @@ export default function Profile() {
 
   return (
     <div>
-      <RouterLink to="/" className="text-accent hover:text-accent-hover mb-4 inline-block link">
+      <RouterLink to="/" className="text-primary hover:text-primary-hover mb-4 inline-block link">
         &larr; Zurück zur Startseite
       </RouterLink>
 
       <div className="flex items-center gap-3 mb-6">
-        <Settings size={28} className="text-accent" />
-        <h1 className="text-sm font-medium text-accent">Mein Profil</h1>
+        <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
+        <h1 className="text-sm font-medium text-primary">Mein Profil</h1>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -76,7 +76,7 @@ export default function Profile() {
               type="email"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
-              className="input-field w-full px-3 py-2 rounded bg-elevated border-border-hover text-foreground focus:outline-none"
+              className="input-field w-full px-3 py-2 rounded focus:outline-none"
             />
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function Profile() {
           <select
             value={mailTheme}
             onChange={(e) => handleMailThemeChange(e.target.value as MailTheme)}
-            className="w-full bg-elevated border border-border-hover text-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-accent"
+            className="w-full input-field rounded-lg px-4 py-2 focus:outline-none focus:border-accent"
           >
             {Object.entries(mailThemeLabels).map(([key, label]) => (
               <option key={key} value={key}>{label}</option>
@@ -107,19 +107,19 @@ export default function Profile() {
 
       {hasChanges && (
         <div className="mt-6 flex gap-4">
-          <button
-            className="button-primary px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors"
+          <Button
+            variant="emphasized"
             onClick={handleSave}
             disabled={updateProfile.isPending}
           >
             {updateProfile.isPending ? 'Wird gespeichert...' : 'Speichern'}
-          </button>
-          <button
-            className="button-secondary px-4 py-2 rounded transition-colors"
+          </Button>
+          <Button
+            variant="ghost"
             onClick={handleCancel}
           >
             Abbrechen
-          </button>
+          </Button>
         </div>
       )}
     </div>

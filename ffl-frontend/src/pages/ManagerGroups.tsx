@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import { UsersRound } from 'lucide-react'
 import { useManagerGroups, useDeleteManagerGroup } from '../hooks/useManagerGroups'
+import Button from '../components/Button'
 
 type SortKey = 'name' | 'managerCount' | 'createdByLogin'
 type SortOrder = 'asc' | 'desc'
@@ -26,7 +26,7 @@ export default function ManagerGroups() {
 
   const SortIcon = ({ column }: { column: SortKey }) => {
     if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
-    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+    return <span className="text-primary ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
   const filteredGroups = useMemo(() => {
@@ -68,25 +68,25 @@ export default function ManagerGroups() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <UsersRound size={28} className="text-accent" />
-          <h1 className="text-sm font-medium text-accent">Gruppen</h1>
+          <i className="sap-icon sap-icon-group-2 text-[28px] text-primary" />
+          <h1 className="text-sm font-medium text-primary">Gruppen</h1>
         </div>
-        <button
+        <Button
           onClick={() => navigate('/manager-groups/create')}
-          className="bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded hover:bg-button-primary-hover transition-colors"
+          size="compact"
         >
           + Neue Gruppe
-        </button>
+        </Button>
       </div>
 
-      <div className="p-4 bg-surface border border-border">
+      <div className="p-4 bg-surface border border-border rounded-lg">
         <div className="mb-4">
           <input
             type="text"
             placeholder="Gruppe suchen..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field w-full max-w-md px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground"
+            className="input-field w-full max-w-md px-3 py-2 focus:outline-none"
           />
         </div>
 
@@ -95,61 +95,62 @@ export default function ManagerGroups() {
             <thead className="bg-surface">
               <tr>
                 <th 
-                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
+                  className="px-3 py-2.5 text-left text-muted text-sm font-medium cursor-pointer hover:text-primary border-b border-border"
                   onClick={() => handleSort('name')}
                 >
                   Name<SortIcon column="name" />
                 </th>
-                <th className="px-3 py-2 text-left text-muted font-medium border-b border-border">
+                <th className="px-3 py-2.5 text-left text-muted text-sm font-medium border-b border-border">
                   Beschreibung
                 </th>
                 <th 
-                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
+                  className="px-3 py-2.5 text-center text-muted text-sm font-medium cursor-pointer hover:text-primary border-b border-border"
                   onClick={() => handleSort('managerCount')}
                 >
                   Manager<SortIcon column="managerCount" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
+                  className="px-3 py-2.5 text-left text-muted text-sm font-medium cursor-pointer hover:text-primary border-b border-border"
                   onClick={() => handleSort('createdByLogin')}
                 >
                   Erstellt von<SortIcon column="createdByLogin" />
                 </th>
-                <th className="px-3 py-2 text-right text-muted font-medium border-b border-border">
+                <th className="px-3 py-2.5 text-right text-muted text-sm font-medium border-b border-border">
                   Aktionen
                 </th>
               </tr>
             </thead>
             <tbody className="bg-surface">
               {filteredGroups.length > 0 ? (
-                filteredGroups.map(group => (
-                  <tr key={group.id} className="hover:bg-elevated border-b border-border">
-                    <td className="px-3 py-2">
+                filteredGroups.map((group, index) => (
+                  <tr key={group.id} className={`hover:bg-card-hover border-b border-border-subtle ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                    <td className="px-3 py-2.5">
                       <RouterLink
                         to={`/manager-groups/${group.id}`}
-                        className="text-accent hover:text-foreground link font-medium"
+                        className="text-primary hover:text-accent-hover link font-medium"
                       >
                         {group.name}
                       </RouterLink>
                     </td>
-                    <td className="px-3 py-2 text-muted">
+                    <td className="px-3 py-2.5 text-muted">
                       {group.description || '-'}
                     </td>
-                    <td className="px-3 py-2 text-center text-foreground">
+                    <td className="px-3 py-2.5 text-center text-foreground">
                       {group.managerCount}
                     </td>
-                    <td className="px-3 py-2 text-muted">
+                    <td className="px-3 py-2.5 text-muted">
                       {group.createdByFirstName && group.createdByLastName 
                         ? `${group.createdByFirstName} ${group.createdByLastName} (${group.createdByLogin})`
                         : group.createdByLogin || '-'}
                     </td>
-                    <td className="px-3 py-2 text-right">
-                      <button
+                    <td className="px-3 py-2.5 text-right">
+                      <Button
+                        variant="negative"
+                        size="sm"
                         onClick={() => handleDeleteGroup(group.id)}
-                        className="text-danger text-sm px-2 py-1 rounded hover:bg-elevated transition-colors"
                       >
                         Löschen
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))

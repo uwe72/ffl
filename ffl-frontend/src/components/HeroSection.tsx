@@ -1,8 +1,7 @@
-import { Menu, Shield, UserCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useManagers } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
-import { useTeams } from '../hooks/useTeams'
+import { usePlayers } from '../hooks/usePlayers'
 import { useAuth } from '../context/AuthContext'
 import Badge from './Badge'
 
@@ -20,7 +19,7 @@ function getGreeting(): string {
 export default function HeroSection({ onMenuClick }: HeroSectionProps) {
   const { data: managers } = useManagers()
   const { data: season } = useCurrentSeason()
-  const { data: teams } = useTeams()
+  const { data: players } = usePlayers()
   const { user } = useAuth()
 
   const phaseLabel = season
@@ -49,9 +48,9 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
         <div className="flex items-center py-3">
           <button
             onClick={onMenuClick}
-            className="md:hidden p-1.5 rounded-lg text-muted hover:text-accent hover:bg-elevated transition-colors"
+            className="md:hidden p-1.5 rounded-lg text-muted hover:text-primary hover:bg-card-hover transition-colors"
           >
-            <Menu size={20} />
+            <i className="sap-icon sap-icon-menu text-[20px]" />
           </button>
         </div>
 
@@ -73,8 +72,8 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
 
           <div className="flex flex-wrap gap-3">
             <Link to="/managers" className="hero-stat-card px-4 py-3 flex items-center gap-3 hover:bg-surface/90 transition-colors">
-              <div className="w-9 h-9 rounded-lg bg-accent/15 flex items-center justify-center">
-                <UserCheck size={18} className="text-accent" />
+                <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
+                <i className="sap-icon sap-icon-employee text-[18px] text-primary" />
               </div>
               <div>
                 <p className="text-xl font-bold text-foreground leading-tight">{managers?.length ?? 0}</p>
@@ -82,13 +81,13 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
               </div>
             </Link>
 
-            <Link to="/teams" className="hero-stat-card px-4 py-3 flex items-center gap-3 hover:bg-surface/90 transition-colors">
-              <div className="w-9 h-9 rounded-lg bg-accent/15 flex items-center justify-center">
-                <Shield size={18} className="text-accent" />
+            <Link to="/players" className="hero-stat-card px-4 py-3 flex items-center gap-3 hover:bg-surface/90 transition-colors">
+                <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
+                <i className="sap-icon sap-icon-group text-[18px] text-primary" />
               </div>
               <div>
-                <p className="text-xl font-bold text-foreground leading-tight">{teams?.length ?? 0}</p>
-                <p className="text-xs text-muted">Teams</p>
+                <p className="text-xl font-bold text-foreground leading-tight">{players?.length ?? 0}</p>
+                <p className="text-xs text-muted">Spieler</p>
               </div>
             </Link>
           </div>

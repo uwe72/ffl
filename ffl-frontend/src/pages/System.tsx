@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Settings } from 'lucide-react'
 import { useSystemConfig, useUpdateSystemConfig, useSendTestMail } from '../hooks/useSystemConfig'
+import Button from '../components/Button'
 import type { SystemConfig, TestMailResult } from '../types'
 
 export default function System() {
@@ -82,20 +82,20 @@ export default function System() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <Settings size={28} className="text-accent" />
-        <h1 className="text-sm font-medium text-accent">System</h1>
+        <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
+        <h1 className="text-sm font-medium text-primary">System</h1>
       </div>
 
       <div className="flex gap-1 mb-6">
         <button
           onClick={() => setActiveTab('general')}
-          className={activeTab === 'general' ? 'bg-accent text-background font-medium px-3 py-1.5 rounded' : 'bg-elevated text-muted hover:bg-default px-3 py-1.5 rounded'}
+          className={activeTab === 'general' ? 'bg-primary text-primary-foreground font-medium px-3 py-1.5 rounded' : 'bg-elevated text-muted hover:bg-default px-3 py-1.5 rounded'}
         >
           Allgemein
         </button>
         <button
           onClick={() => setActiveTab('mail')}
-          className={activeTab === 'mail' ? 'bg-accent text-background font-medium px-3 py-1.5 rounded' : 'bg-elevated text-muted hover:bg-default px-3 py-1.5 rounded'}
+          className={activeTab === 'mail' ? 'bg-primary text-primary-foreground font-medium px-3 py-1.5 rounded' : 'bg-elevated text-muted hover:bg-default px-3 py-1.5 rounded'}
         >
           Mailkonfiguration
         </button>
@@ -103,7 +103,7 @@ export default function System() {
 
       {activeTab === 'general' && (
         <div>
-          <h2 className="text-xl font-semibold text-accent mb-4">Allgemeine Einstellungen</h2>
+          <h2 className="text-xl font-semibold text-primary mb-4">Allgemeine Einstellungen</h2>
           <div className="p-6 bg-surface border border-border">
             <div>
               <label className="block text-sm text-muted mb-1">Web-URL der FFL-Seite</label>
@@ -112,7 +112,7 @@ export default function System() {
                 value={formData.webUrl || ''}
                 onChange={(e) => handleChange('webUrl', e.target.value)}
                 placeholder="https://ffl.example.com"
-                className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
               />
             </div>
             <p className="text-xs text-subtle mt-2">
@@ -120,7 +120,7 @@ export default function System() {
             </p>
           </div>
 
-          <h2 className="text-xl font-semibold text-accent mt-6 mb-4">LLM (OpenRouter)</h2>
+          <h2 className="text-xl font-semibold text-primary mt-6 mb-4">LLM (OpenRouter)</h2>
           <div className="p-6 bg-surface border border-border">
             <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
               <div>
@@ -129,7 +129,7 @@ export default function System() {
                   type="text"
                   value={formData.openrouterApiKey || ''}
                   onChange={(e) => handleChange('openrouterApiKey', e.target.value)}
-                  className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground font-mono"
+                  className="input-field w-full px-3 py-2 rounded focus:outline-none font-mono"
                 />
               </div>
               <div>
@@ -138,20 +138,20 @@ export default function System() {
                   value={formData.openrouterModel || ''}
                   onChange={(e) => handleChange('openrouterModel', e.target.value)}
                   placeholder="openai/gpt-4o-mini"
-                  className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+                  className="input-field w-full px-3 py-2 rounded focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
           <div className="mt-6 flex items-center gap-4">
-            <button
+            <Button
+              variant="emphasized"
               onClick={handleSave}
               disabled={!hasChanges || updateConfig.isPending}
-              className="bg-primary text-background font-semibold px-6 py-2 rounded hover:bg-accent-hover disabled:opacity-50 transition-colors"
             >
               {updateConfig.isPending ? 'Speichern...' : 'Speichern'}
-            </button>
+            </Button>
             {saveMessage && (
               <span className={saveMessage.includes('Fehler') ? 'text-danger' : 'text-success'}>
                 {saveMessage}
@@ -163,7 +163,7 @@ export default function System() {
 
       {activeTab === 'mail' && (
         <div>
-          <h2 className="text-xl font-semibold text-accent mb-4">Gmail Sende-Account</h2>
+          <h2 className="text-xl font-semibold text-primary mb-4">Gmail Sende-Account</h2>
 
           <div className="grid gap-4">
             <div className="p-6 bg-surface border border-border">
@@ -175,7 +175,7 @@ export default function System() {
                     value={formData.gmailSenderEmail || ''}
                     onChange={(e) => handleChange('gmailSenderEmail', e.target.value)}
                     placeholder="example@gmail.com"
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
                   />
                 </div>
                 <div>
@@ -184,7 +184,7 @@ export default function System() {
                     value={formData.gmailAppPassword || ''}
                     onChange={(e) => handleChange('gmailAppPassword', e.target.value)}
                     placeholder="16-stellig"
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
                   />
                 </div>
                 <div>
@@ -192,7 +192,7 @@ export default function System() {
                   <input
                     value={formData.gmailSmtpServer || ''}
                     onChange={(e) => handleChange('gmailSmtpServer', e.target.value)}
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
                   />
                 </div>
                 <div>
@@ -203,7 +203,7 @@ export default function System() {
                     onChange={(e) =>
                       handleChange('gmailSmtpPort', parseInt(e.target.value) || 587)
                     }
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
                   />
                 </div>
               </div>
@@ -214,13 +214,13 @@ export default function System() {
           </div>
 
           <div className="mt-6 flex items-center gap-4">
-            <button
+            <Button
+              variant="emphasized"
               onClick={handleSave}
               disabled={!hasChanges || updateConfig.isPending}
-              className="bg-primary text-background font-semibold px-6 py-2 rounded hover:bg-accent-hover disabled:opacity-50 transition-colors"
             >
               {updateConfig.isPending ? 'Speichern...' : 'Speichern'}
-            </button>
+            </Button>
             {saveMessage && (
               <span
                 className={
@@ -233,7 +233,7 @@ export default function System() {
           </div>
 
           <div className="mt-8 pt-6 border-t border-border">
-            <h3 className="text-lg font-semibold text-accent mb-4">Test-Mail senden</h3>
+            <h3 className="text-lg font-semibold text-primary mb-4">Test-Mail senden</h3>
             <div className="p-6 bg-surface border border-border">
               <div className="flex gap-4 items-end">
                 <div className="flex-1">
@@ -243,16 +243,16 @@ export default function System() {
                     value={testMailTo}
                     onChange={(e) => setTestMailTo(e.target.value)}
                     placeholder="empfaenger@example.com"
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
                   />
                 </div>
-                <button
+                <Button
+                  variant="emphasized"
                   onClick={handleSendTestMail}
                   disabled={!testMailTo || sendTestMail.isPending}
-                  className="bg-primary text-background font-semibold px-6 py-2 rounded hover:bg-accent-hover disabled:opacity-50 transition-colors"
                 >
                   {sendTestMail.isPending ? 'Sende...' : 'Test-Mail senden'}
-                </button>
+                </Button>
               </div>
             </div>
 

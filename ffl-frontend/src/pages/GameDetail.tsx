@@ -6,6 +6,7 @@ import type { PlayerPoints } from '../types'
 import { useState, useEffect } from 'react'
 import { positionLabels, positionColors } from './Players'
 import Badge from '../components/Badge'
+import Button from '../components/Button'
 import FormationImportDialog from '../components/FormationImportDialog'
 
 const POSITION_ORDER: Record<string, number> = {
@@ -41,10 +42,10 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
               </tr>
             </thead>
             <tbody>
-              {sortedPlayers.map((player) => {
+              {sortedPlayers.map((player, index) => {
                 const altNames = [player.nameKickerAlt1, player.nameKickerAlt2, player.nameKickerAlt3].filter(Boolean)
                 return (
-                  <tr key={player.playerId} className="border-b border-border hover:bg-elevated transition-colors">
+                  <tr key={player.playerId} className={`border-b border-border hover:bg-card-hover transition-colors ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                     <td className="px-4 py-2 text-foreground">
                       <div>
                         <div className="font-medium">{player.playerName}</div>
@@ -59,7 +60,7 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
                       ) : '-'}
                     </td>
                     <td className="px-4 py-2 text-center">
-                      <span className="font-semibold text-accent">{player.totalPoints || '-'}</span>
+                      <span className="font-semibold text-primary">{player.totalPoints || '-'}</span>
                     </td>
                     <td className="px-4 py-2">
                       {player.rules && player.rules.length > 0 ? (
@@ -124,16 +125,17 @@ export default function GameDetail() {
   return (
     <div>
       <div className="flex items-center justify-between gap-2 mb-6">
-        <RouterLink to="/games" className="text-muted hover:text-accent link">
+        <RouterLink to="/games" className="text-muted hover:text-primary link">
           ← Spiele
         </RouterLink>
         <div className="flex gap-2">
-          <button
+          <Button
+            variant="emphasized"
+            size="sm"
             onClick={() => setShowImportDialog(true)}
-            className="bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded hover:bg-button-primary-hover transition-colors"
           >
             + Import
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -208,13 +210,13 @@ export default function GameDetail() {
               placeholder="Formation-String hier einfügen..."
             />
             <div className="flex justify-end mt-2">
-              <button
+              <Button
+                variant="emphasized"
                 onClick={handleSaveFormation}
                 disabled={saving}
-                className="px-4 py-2 rounded bg-primary text-[#1b2838] font-medium hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? 'Speichere...' : 'Speichern'}
-              </button>
+              </Button>
             </div>
           </div>
         )}

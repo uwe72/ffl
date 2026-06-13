@@ -1,17 +1,16 @@
-import { type LucideIcon } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
 interface SidebarItemProps {
   to: string
   label: string
-  icon: LucideIcon
+  icon: string
   collapsed: boolean
   subItems?: { to: string; label: string; external?: boolean }[]
   expanded?: boolean
   onToggle?: () => void
 }
 
-export default function SidebarItem({ to, label, icon: Icon, collapsed, subItems, expanded, onToggle }: SidebarItemProps) {
+export default function SidebarItem({ to, label, icon, collapsed, subItems, expanded, onToggle }: SidebarItemProps) {
   const location = useLocation()
   const isActive = location.pathname === to || (subItems && location.pathname.startsWith(to))
   const hasSubItems = subItems && subItems.length > 0
@@ -23,10 +22,10 @@ export default function SidebarItem({ to, label, icon: Icon, collapsed, subItems
           onClick={onToggle}
           title={collapsed ? label : undefined}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
-            ${isActive ? 'bg-accent/10 text-accent' : 'text-muted hover:bg-elevated hover:text-accent'}
+            ${isActive ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-card-hover hover:text-primary'}
             ${collapsed ? 'justify-center' : ''}`}
         >
-          <Icon size={20} className="shrink-0" />
+          <i className={`sap-icon ${icon} text-[20px] shrink-0`} />
           {!collapsed && (
             <>
               <span className="text-sm font-medium">{label}</span>
@@ -50,7 +49,7 @@ export default function SidebarItem({ to, label, icon: Icon, collapsed, subItems
                     href={sub.to}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block px-3 py-2 rounded-lg text-sm transition-colors text-subtle hover:text-accent hover:bg-elevated"
+                    className="block px-3 py-2 rounded-lg text-sm transition-colors text-subtle hover:text-primary hover:bg-card-hover"
                   >
                     {sub.label}
                   </a>
@@ -61,7 +60,7 @@ export default function SidebarItem({ to, label, icon: Icon, collapsed, subItems
                   key={sub.to}
                   to={sub.to}
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors
-                    ${subActive ? 'text-accent bg-accent/10' : 'text-subtle hover:text-accent hover:bg-elevated'}`}
+                    ${subActive ? 'text-primary bg-primary/10' : 'text-subtle hover:text-primary hover:bg-card-hover'}`}
                 >
                   {sub.label}
                 </Link>
@@ -78,10 +77,10 @@ export default function SidebarItem({ to, label, icon: Icon, collapsed, subItems
       to={to}
       title={collapsed ? label : undefined}
       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
-        ${isActive ? 'bg-accent/10 text-accent' : 'text-muted hover:bg-elevated hover:text-accent'}
+        ${isActive ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-card-hover hover:text-primary'}
         ${collapsed ? 'justify-center' : ''}`}
     >
-      <Icon size={20} className="shrink-0" />
+      <i className={`sap-icon ${icon} text-[20px] shrink-0`} />
       {!collapsed && <span className="text-sm font-medium">{label}</span>}
     </Link>
   )

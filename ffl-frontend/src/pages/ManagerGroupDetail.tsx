@@ -1,11 +1,11 @@
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useState, useMemo, useEffect } from 'react'
-import { UsersRound } from 'lucide-react'
 import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator, useCreateManagerGroup } from '../hooks/useManagerGroups'
 import { useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useUsers } from '../hooks/useUsers'
 import { useAuth } from '../context/AuthContext'
+import Button from '../components/Button'
 import type { ManagerInGroup } from '../types'
 
 type SortKey = 'positionTotal' | 'shortName' | 'firstName' | 'lastName' | 'pointsTotal' | 'pointsLastRound'
@@ -255,13 +255,13 @@ export default function ManagerGroupDetail() {
 
   return (
     <div>
-      <RouterLink to="/manager-groups" className="text-accent hover:text-accent-hover mb-6 inline-block link">
+      <RouterLink to="/manager-groups" className="text-primary hover:text-primary-hover mb-6 inline-block link">
         &larr; Zurück zur Übersicht
       </RouterLink>
       
       <div className="flex items-center gap-3 mb-6">
-        <UsersRound size={28} className="text-accent" />
-        <h1 className="text-sm font-medium text-accent">{pageTitle}</h1>
+        <i className="sap-icon sap-icon-group-2 text-[28px] text-primary" />
+        <h1 className="text-sm font-medium text-primary">{pageTitle}</h1>
       </div>
 
       {!currentSeason && isNewMode && (
@@ -286,7 +286,7 @@ export default function ManagerGroupDetail() {
             value={editName}
             onChange={(e) => handleChange('name', e.target.value)}
             readOnly={!canEdit}
-            className={`input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground ${!canEdit ? 'opacity-70' : ''}`}
+            className={`input-field w-full px-3 py-2 rounded focus:outline-none ${!canEdit ? 'opacity-70' : ''}`}
           />
         </div>
 
@@ -296,7 +296,7 @@ export default function ManagerGroupDetail() {
             value={editDescription}
             onChange={(e) => handleChange('description', e.target.value)}
             readOnly={!canEdit}
-            className={`input-field w-full px-3 py-2 rounded resize-y focus:outline-none bg-elevated border border-border-hover text-foreground ${!canEdit ? 'opacity-70' : ''}`}
+            className={`input-field w-full px-3 py-2 rounded resize-y focus:outline-none ${!canEdit ? 'opacity-70' : ''}`}
           />
         </div>
 
@@ -308,7 +308,7 @@ export default function ManagerGroupDetail() {
                 key={option.value}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all ${
                   editEmailTo === option.value
-                    ? 'bg-primary text-background'
+                    ? 'bg-primary text-primary-foreground'
                     : 'bg-elevated text-muted hover:bg-border-hover'
                 } ${!canEdit ? 'pointer-events-none opacity-70' : ''}`}
               >
@@ -331,19 +331,20 @@ export default function ManagerGroupDetail() {
           <div className="flex items-center justify-between mb-1">
             <label className="text-muted">Ersteller</label>
             {isAdmin && !isNewMode && (
-              <button
+              <Button
+                variant="transparent"
+                size="compact"
                 onClick={() => setIsCreatorModalOpen(true)}
-                className="text-accent text-sm px-2 py-1 rounded hover:bg-elevated transition-colors"
               >
                 Ändern
-              </button>
+              </Button>
             )}
           </div>
           <input
             type="text"
             value={getCreatorDisplayName()}
             readOnly
-            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground opacity-70"
+            className="input-field w-full px-3 py-2 rounded focus:outline-none opacity-70"
           />
         </div>
       </div>
@@ -357,15 +358,15 @@ export default function ManagerGroupDetail() {
               placeholder="Manager suchen..."
               value={managerFilter}
               onChange={(e) => setManagerFilter(e.target.value)}
-              className="input-field w-64 px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground"
+              className="input-field w-64 px-3 py-2 rounded focus:outline-none"
             />
             {canEdit && (
-              <button
+              <Button
+                variant="emphasized"
                 onClick={() => setIsAddModalOpen(true)}
-                className="bg-primary text-background px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors"
               >
                 Manager hinzufügen
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -375,37 +376,37 @@ export default function ManagerGroupDetail() {
             <thead className="bg-surface">
               <tr>
                 <th 
-                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
+                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
                   onClick={() => handleSort('positionTotal')}
                 >
                   Pos<SortIcon column="positionTotal" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
+                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
                   onClick={() => handleSort('shortName')}
                 >
                   Manager<SortIcon column="shortName" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
+                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
                   onClick={() => handleSort('firstName')}
                 >
                   Vorname<SortIcon column="firstName" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
+                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
                   onClick={() => handleSort('lastName')}
                 >
                   Nachname<SortIcon column="lastName" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
+                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
                   onClick={() => handleSort('pointsTotal')}
                 >
                   Pkt<SortIcon column="pointsTotal" />
                 </th>
                 <th 
-                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border"
+                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
                   onClick={() => handleSort('pointsLastRound')}
                 >
                   Letzter Spieltag<SortIcon column="pointsLastRound" />
@@ -419,15 +420,15 @@ export default function ManagerGroupDetail() {
             </thead>
             <tbody className="bg-surface">
               {filteredAndSortedManagers.length > 0 ? (
-                filteredAndSortedManagers.map(manager => (
-                  <tr key={manager.id} className="hover:bg-elevated border-b border-border">
+                filteredAndSortedManagers.map((manager, index) => (
+                  <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                     <td className="px-3 py-2 text-center font-medium text-foreground">
                       {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
                     </td>
                     <td className="px-3 py-2">
                       <RouterLink
                         to={`/managers/${manager.id}`}
-                        className="text-accent hover:text-foreground link font-medium"
+                        className="text-primary hover:text-foreground link font-medium"
                       >
                         {manager.shortName || manager.name}
                       </RouterLink>
@@ -446,12 +447,13 @@ export default function ManagerGroupDetail() {
                     </td>
                     {canEdit && (
                       <td className="px-3 py-2 text-right">
-                        <button
+                        <Button
+                          variant="negative"
+                          size="compact"
                           onClick={() => handleRemoveManager(manager.id)}
-                          className="text-danger text-sm px-2 py-1 rounded hover:bg-elevated transition-colors"
                         >
                           Entfernen
-                        </button>
+                        </Button>
                       </td>
                     )}
                   </tr>
@@ -470,30 +472,31 @@ export default function ManagerGroupDetail() {
 
       {isNewMode ? (
         <div className="flex gap-4">
-          <button
+          <Button
+            variant="emphasized"
             onClick={handleCreate}
             disabled={!editName.trim() || !editDescription.trim() || !currentSeason || createMutation.isPending}
-            className="bg-primary text-background px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {createMutation.isPending ? 'Wird erstellt...' : 'Erstellen'}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="transparent"
             onClick={() => navigate('/manager-groups')}
-            className="text-muted px-4 py-2 rounded hover:bg-elevated transition-colors"
           >
             Abbrechen
-          </button>
+          </Button>
         </div>
       ) : canEdit && hasChanges && (
         <div className="mt-6 flex gap-4">
-          <button
+          <Button
+            variant="emphasized"
             onClick={handleSaveChanges}
             disabled={updateMutation.isPending || !editDescription.trim()}
-            className="bg-primary text-background px-4 py-2 rounded font-medium hover:bg-button-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {updateMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => {
               if (group) {
                 setEditName(group.name)
@@ -502,10 +505,9 @@ export default function ManagerGroupDetail() {
                 setHasChanges(false)
               }
             }}
-            className="button-secondary px-4 py-2 rounded transition-colors"
           >
             Abbrechen
-          </button>
+          </Button>
         </div>
       )}
 
@@ -521,12 +523,12 @@ export default function ManagerGroupDetail() {
                 placeholder="Manager suchen..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground mb-4"
+                className="input-field w-full px-3 py-2 rounded focus:outline-none mb-4"
                 autoFocus
               />
               <div className="max-h-80 overflow-y-auto rounded-lg border border-border">
                 {availableManagers.length > 0 ? (
-                  <div className="divide-y divide-[#2a3a4e]">
+                  <div className="divide-y divide-border">
                     {availableManagers.map(manager => (
                       <div
                         key={manager.id}
@@ -534,14 +536,14 @@ export default function ManagerGroupDetail() {
                         className="p-4 hover:bg-elevated cursor-pointer transition-colors flex items-center justify-between group"
                       >
                         <div>
-                          <div className="text-foreground font-medium group-hover:text-accent">
+                          <div className="text-foreground font-medium group-hover:text-primary">
                             {manager.shortName || manager.name}
                           </div>
                           <div className="text-subtle text-sm">
                             {manager.firstName} {manager.lastName}
                           </div>
                         </div>
-                        <div className="text-accent opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                           + Hinzufügen
                         </div>
                       </div>
@@ -555,15 +557,15 @@ export default function ManagerGroupDetail() {
               </div>
             </div>
             <div className="px-6 py-4 bg-elevated border-t border-border flex justify-end">
-              <button
+              <Button
+                variant="transparent"
                 onClick={() => {
                   setIsAddModalOpen(false)
                   setSearchTerm('')
                 }}
-                className="text-muted px-4 py-2 rounded hover:bg-elevated transition-colors"
               >
                 Abbrechen
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -581,12 +583,12 @@ export default function ManagerGroupDetail() {
                 placeholder="User suchen..."
                 value={creatorSearch}
                 onChange={(e) => setCreatorSearch(e.target.value)}
-                className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground mb-4"
+                className="input-field w-full px-3 py-2 rounded focus:outline-none mb-4"
                 autoFocus
               />
               <div className="max-h-80 overflow-y-auto rounded-lg border border-border">
                 {filteredUsers.length > 0 ? (
-                  <div className="divide-y divide-[#2a3a4e]">
+                  <div className="divide-y divide-border">
                     {filteredUsers.map(u => (
                       <div
                         key={u.id}
@@ -594,14 +596,14 @@ export default function ManagerGroupDetail() {
                         className="p-4 hover:bg-elevated cursor-pointer transition-colors flex items-center justify-between group"
                       >
                         <div>
-                          <div className="text-foreground font-medium group-hover:text-accent">
+                          <div className="text-foreground font-medium group-hover:text-primary">
                             {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.login}
                           </div>
                           <div className="text-subtle text-sm">
                             {u.login}
                           </div>
                         </div>
-                        <div className="text-accent opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                           Auswählen
                         </div>
                       </div>
@@ -615,15 +617,15 @@ export default function ManagerGroupDetail() {
               </div>
             </div>
             <div className="px-6 py-4 bg-elevated border-t border-border flex justify-end">
-              <button
+              <Button
+                variant="transparent"
                 onClick={() => {
                   setIsCreatorModalOpen(false)
                   setCreatorSearch('')
                 }}
-                className="text-muted px-4 py-2 rounded hover:bg-elevated transition-colors"
               >
                 Abbrechen
-              </button>
+              </Button>
             </div>
           </div>
         </div>

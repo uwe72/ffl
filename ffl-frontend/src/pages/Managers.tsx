@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { UserCheck } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { useManagers } from '../hooks/useManagers'
 import { useAuth } from '../context/AuthContext'
 import { trackEvent } from '../hooks/useMatomo'
+import Button from '../components/Button'
 
 const paymentStateLabels = {
   PAID: 'Bezahlt',
@@ -114,8 +114,8 @@ export default function Managers() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <UserCheck size={28} className="text-accent" />
-        <h1 className="text-sm font-medium text-accent">Manager</h1>
+        <i className="sap-icon sap-icon-employee text-[28px] text-primary" />
+        <h1 className="text-sm font-medium text-primary">Manager</h1>
       </div>
 
       <div className="p-4 bg-surface border border-border">
@@ -125,65 +125,65 @@ export default function Managers() {
             placeholder="Manager suchen..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field w-full max-w-md px-3 py-2 rounded focus:outline-none bg-elevated border border-border-hover text-foreground"
+            className="input-field w-full max-w-md px-3 py-2 rounded focus:outline-none"
           />
-          <button
+          <Button
+            variant="ghost"
             onClick={exportToExcel}
             disabled={!filteredManagers || filteredManagers.length === 0}
-            className="button-secondary px-4 py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Excel Export
-          </button>
+          </Button>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-surface">
               <tr>
-                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('positionTotal')}>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionTotal')}>
                   Pos<SortIcon column="positionTotal" />
                 </th>
-                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('positionChange')}>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionChange')}>
                   +-<SortIcon column="positionChange" />
                 </th>
-                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('shortName')}>
+                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('shortName')}>
                   Manager<SortIcon column="shortName" />
                 </th>
-                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('pointsTotal')}>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('pointsTotal')}>
                   Pkt<SortIcon column="pointsTotal" />
                 </th>
-                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('pointsLastRound')}>
+                <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('pointsLastRound')}>
                   Spieltag<SortIcon column="pointsLastRound" />
                 </th>
-                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('firstName')}>
+                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('firstName')}>
                   Vorname<SortIcon column="firstName" />
                 </th>
-                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('lastName')}>
+                <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('lastName')}>
                   Nachname<SortIcon column="lastName" />
                 </th>
                 {isAdmin && <th className="px-3 py-2 text-left text-muted font-medium border-b border-border">Status</th>}
-                <th className="px-3 py-2 text-right text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('teamValue')}>
+                <th className="px-3 py-2 text-right text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('teamValue')}>
                   Teamwert<SortIcon column="teamValue" />
                 </th>
               </tr>
             </thead>
             <tbody className="bg-surface">
               {filteredManagers && filteredManagers.length > 0 ? (
-                filteredManagers.map((manager) => (
-                  <tr key={manager.id} className="hover:bg-elevated border-b border-border">
+                filteredManagers.map((manager, index) => (
+                  <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                     <td className="px-3 py-2 text-center font-medium text-foreground">
                       {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
                     </td>
                     <td className="px-3 py-2 text-center">
                       {manager.positionChange != null && manager.positionChange !== 0 ? (
-                        <span className={`font-medium ${manager.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        <span className={`font-medium ${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
                           {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
                         </span>
                       ) : (
                         <span className="text-subtle">-</span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-accent">
+                    <td className="px-3 py-2 text-primary">
                       <RouterLink to={`/managers/${manager.id}`} className="hover:text-foreground link font-medium">
                         {manager.shortName || '-'}
                       </RouterLink>

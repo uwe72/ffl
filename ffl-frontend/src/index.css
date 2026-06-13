@@ -1,51 +1,55 @@
 @import "tailwindcss";
+@import "./assets/sap-icons/sap-icons.css";
 
 @theme {
-  --color-background: #0a0e14;
-  --color-page: #12171c;
-  --color-surface: #1b2838;
+  --color-background: #121a26;
+  --color-page: #182230;
+  --color-surface: #1c2a3a;
   --color-card-hover: #243447;
-  --color-elevated: #2e3f54;
+  --color-elevated: #263548;
 
-  --color-foreground: #ededed;
-  --color-muted: #bfccd8;
-  --color-subtle: #8899aa;
-  --color-text-disabled: #556677;
+  --color-foreground: #f0f0f0;
+  --color-muted: #c5c5c5;
+  --color-subtle: #8999a8;
+  --color-text-disabled: #5a6a7a;
+  --color-placeholder: #8999a8;
 
   --color-border: #2a3a4e;
   --color-border-subtle: #1e2d3e;
   --color-border-hover: #3a4f66;
-  --color-border-active: #3a4f66;
+  --color-border-active: #0a6ed1;
 
-  --color-accent: #4db5ff;
-  --color-accent-hover: #7dcaff;
-  --color-accent-muted: rgba(77, 181, 255, 0.15);
-  --color-accent-ring: rgba(77, 181, 255, 0.2);
+  --color-accent: #0a6ed1;
+  --color-accent-hover: #085caf;
+  --color-accent-muted: rgba(10, 110, 209, 0.15);
+  --color-accent-ring: rgba(10, 110, 209, 0.4);
 
   --color-default: #2a3a4e;
-  --color-default-foreground: #ededed;
+  --color-default-foreground: #f0f0f0;
   --color-primary: #0a6ed1;
-  --color-primary-foreground: #ededed;
-  --color-secondary: #1b2838;
-  --color-secondary-foreground: #ededed;
-  --color-button-primary-hover: #0854a0;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #1c2a3a;
+  --color-secondary-foreground: #f0f0f0;
+  --color-button-primary-hover: #085caf;
 
-  --color-success: #4ade80;
+  --color-success: #36b37e;
   --color-success-foreground: #0a0e14;
   --color-success-bg: #1a3328;
-  --color-warning: #f59e0b;
+  --color-warning: #ffab00;
   --color-warning-foreground: #0a0e14;
-  --color-warning-bg: #332211;
-  --color-danger: #f87171;
-  --color-danger-foreground: #ededed;
+  --color-warning-bg: #332b11;
+  --color-danger: #de350b;
+  --color-danger-foreground: #ffffff;
   --color-danger-bg: #331a1a;
-  --color-info: #4db5ff;
+  --color-info: #0a6ed1;
   --color-info-bg: #1a2640;
 
   --color-overlay: rgba(0, 0, 0, 0.6);
   --color-overlay-dark: rgba(0, 0, 0, 0.8);
   --color-overlay-full: rgba(0, 0, 0, 0.9);
   --color-overlay-light: rgba(0, 0, 0, 0.4);
+
+  --color-zebra: rgba(255, 255, 255, 0.03);
 }
 
 :root {
@@ -72,7 +76,7 @@ body {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .card:hover {
@@ -103,6 +107,7 @@ body {
 .button-primary {
   background-color: var(--color-primary);
   color: var(--color-primary-foreground);
+  border-radius: 0.375rem;
 }
 
 .button-primary:hover {
@@ -110,33 +115,38 @@ body {
 }
 
 .button-secondary {
-  background-color: var(--color-elevated);
-  color: var(--color-foreground);
-  border: 1px solid var(--color-border-hover);
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: 0.375rem;
 }
 
 .button-secondary:hover {
-  background-color: var(--color-default);
+  background-color: var(--color-accent-muted);
 }
 
 .chip-accent {
   background-color: var(--color-accent-muted);
   color: var(--color-accent);
+  border-radius: 0.375rem;
 }
 
 .chip-success {
   background-color: var(--color-success-bg);
   color: var(--color-success);
+  border-radius: 0.375rem;
 }
 
 .chip-warning {
   background-color: var(--color-warning-bg);
   color: var(--color-warning);
+  border-radius: 0.375rem;
 }
 
 .chip-danger {
   background-color: var(--color-danger-bg);
   color: var(--color-danger);
+  border-radius: 0.375rem;
 }
 
 .table-header th {
@@ -144,6 +154,7 @@ body {
   top: 0;
   z-index: 10;
   background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .table-header {
@@ -156,28 +167,44 @@ body {
 }
 
 .table-row:hover {
-  background-color: var(--color-surface);
+  background-color: var(--color-card-hover);
+}
+
+.table-row-zebra {
+  background-color: var(--color-zebra);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.table-row-zebra:hover {
+  background-color: var(--color-card-hover);
 }
 
 .input-field {
   background-color: var(--color-background);
   border: 1px solid var(--color-border);
   color: var(--color-foreground);
+  border-radius: 0.375rem;
+}
+
+.input-field::placeholder {
+  color: var(--color-placeholder);
 }
 
 .input-field:focus {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 2px var(--color-accent-ring);
+  outline: none;
 }
 
 .link {
   color: var(--color-accent);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 .link:hover {
   color: var(--color-accent-hover);
+  text-decoration: underline;
 }
 
 .ql-toolbar.ql-snow {

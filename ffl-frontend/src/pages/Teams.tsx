@@ -1,5 +1,4 @@
 import { Link as RouterLink } from 'react-router-dom'
-import { Shield } from 'lucide-react'
 import { useTeams } from '../hooks/useTeams'
 
 export default function Teams() {
@@ -11,13 +10,13 @@ export default function Teams() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <Shield size={28} className="text-accent" />
-        <h1 className="text-sm font-medium text-accent">Teams</h1>
+        <i className="sap-icon sap-icon-shield text-[28px] text-primary" />
+        <h1 className="text-sm font-medium text-primary">Teams</h1>
       </div>
       {teams && teams.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {teams.map(team => (
-            <div key={team.id} className="card p-6 bg-surface border border-border hover:border-accent hover:bg-elevated transition-all">
+            <div key={team.id} className="card p-6 bg-surface border border-border hover:border-primary hover:bg-card-hover transition-all">
               <RouterLink to={`/teams/${team.id}`} className="block link">
                 {team.logoXxlUrl && (
                   <img 

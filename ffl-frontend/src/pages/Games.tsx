@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { CalendarDays } from 'lucide-react'
 import { useGames, useGame } from '../hooks/useGames'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useQueryClient } from '@tanstack/react-query'
 import FormationImportDialog from '../components/FormationImportDialog'
 import MatchdayMailSendDialog from '../components/MatchdayMailSendDialog'
+import Button from '../components/Button'
 
 type SortKey = 'roundNumber' | 'name' | 'hostName' | 'visitorName' | 'goalHost' | 'goalVisitor'
 type SortOrder = 'asc' | 'desc'
@@ -93,8 +93,8 @@ export default function Games() {
     <div>
       <div className="mb-6">
         <div className="flex items-center gap-3">
-          <CalendarDays size={28} className="text-accent" />
-          <h1 className="text-sm font-medium text-accent">Spiele</h1>
+          <i className="sap-icon sap-icon-calendar text-[28px] text-primary" />
+          <h1 className="text-sm font-medium text-primary">Spiele</h1>
         </div>
         {currentSeason && (
           <p className="text-sm text-muted mt-1.5">
@@ -119,7 +119,7 @@ export default function Games() {
         <select
           value={selectedRound || ''}
           onChange={(e) => setSelectedRound(e.target.value ? Number(e.target.value) : null)}
-          className="bg-surface border border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-accent"
+          className="input-field border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-accent"
         >
           {rounds.map(round => (
             <option key={round} value={round}>
@@ -138,13 +138,13 @@ export default function Games() {
         >
           →
         </button>
-        <button
+        <Button
+          variant="emphasized"
           onClick={() => setMailDialogOpen(true)}
           disabled={!selectedRound || !currentSeason?.id}
-          className="ml-2 px-3 py-2 rounded-lg bg-primary text-background font-semibold hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           Spieltagsmail
-        </button>
+        </Button>
       </div>
 
       {sortedGames.length > 0 ? (
@@ -157,7 +157,7 @@ export default function Games() {
                     Name
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-sm font-semibold text-muted cursor-pointer hover:text-accent transition-colors"
+                    className="px-4 py-3 text-left text-sm font-semibold text-muted cursor-pointer hover:text-primary transition-colors"
                     onClick={() => handleSort('hostName')}
                   >
                     Heimmannschaft <span className={getSortIconColor('hostName')}>{getSortIcon('hostName')}</span>
@@ -166,7 +166,7 @@ export default function Games() {
                     Ergebnis
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-sm font-semibold text-muted cursor-pointer hover:text-accent transition-colors"
+                    className="px-4 py-3 text-left text-sm font-semibold text-muted cursor-pointer hover:text-primary transition-colors"
                     onClick={() => handleSort('visitorName')}
                   >
                     Gastmannschaft <span className={getSortIconColor('visitorName')}>{getSortIcon('visitorName')}</span>
@@ -174,10 +174,10 @@ export default function Games() {
                 </tr>
               </thead>
               <tbody>
-                {sortedGames.map((game) => (
-                  <tr key={game.id} className="border-b border-border hover:bg-elevated transition-colors">
+                {sortedGames.map((game, index) => (
+                  <tr key={game.id} className={`border-b border-border hover:bg-card-hover transition-colors ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                     <td className="px-4 py-3 text-foreground">
-                      <RouterLink to={`/games/${game.id}`} className="link hover:text-accent">
+                      <RouterLink to={`/games/${game.id}`} className="link hover:text-primary">
                         {game.name || '-'}
                       </RouterLink>
                     </td>
@@ -206,12 +206,13 @@ export default function Games() {
                           <span className="text-foreground font-semibold">{game.goalVisitor ?? '-'}</span>
                         </span>
                         {game.goalHost == null && game.goalVisitor == null && (
-                          <button
+                          <Button
+                            variant="emphasized"
+                            size="sm"
                             onClick={() => setImportGameId(game.id)}
-                            className="px-2 py-1 text-xs rounded bg-primary text-[#1b2838] font-medium hover:bg-primary"
                           >
                             Import
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </td>

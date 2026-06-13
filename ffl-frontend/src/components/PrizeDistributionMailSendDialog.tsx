@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useManagersBySeason } from '../hooks/useManagers'
 import type { Manager } from '../types'
+import Button from './Button'
 import PrizeDistributionMailDialog from './PrizeDistributionMailDialog'
 
 function useIsMobile() {
@@ -35,7 +36,7 @@ function ManagerCard({
           disabled={!hasEmail}
           checked={isSelected}
           onChange={onToggle}
-          className="w-5 h-5 accent-[#4db5ff] mt-1 flex-shrink-0"
+          className="w-5 h-5 accent-[#0a6ed1] mt-1 flex-shrink-0"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -43,7 +44,7 @@ function ManagerCard({
             <div className="font-semibold text-foreground truncate">{displayName}</div>
           </div>
           {manager.shortName && (
-            <div className="text-sm text-accent">{manager.shortName}</div>
+            <div className="text-sm text-primary">{manager.shortName}</div>
           )}
           {manager.login && (
             <div className="text-sm text-muted mt-1">{manager.login}</div>
@@ -139,42 +140,40 @@ export default function PrizeDistributionMailSendDialog({ isOpen, onClose, seaso
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-foreground">Saisonabschlussmail</h2>
-            <span className="px-2 py-1 rounded-md bg-primary text-background text-xs font-semibold">
+            <span className="px-2 py-1 rounded-md bg-primary text-primary-foreground text-xs font-semibold">
               {seasonName}
             </span>
           </div>
-          <button className="button-secondary h-7 px-3 text-xs rounded transition-colors" onClick={onClose}>
+          <Button variant="ghost" size="compact" onClick={onClose}>
             Schließen
-          </button>
+          </Button>
         </div>
 
         <div className="p-4 md:p-6 bg-surface border border-border mb-4">
           <div className="mb-4 flex flex-col md:flex-row gap-3 md:gap-4 md:items-center">
-            <h3 className="text-base md:text-lg font-semibold text-accent md:whitespace-nowrap">Empfänger</h3>
+            <h3 className="text-base md:text-lg font-semibold text-primary md:whitespace-nowrap">Empfänger</h3>
             <input
               placeholder="Manager suchen..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field w-full md:max-w-md px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+              className="input-field w-full md:max-w-md px-3 py-2 focus:outline-none"
             />
             <div className="flex gap-2 md:ml-auto">
-              <button
-                className={`px-3 py-1 rounded transition-colors ${
-                  adminFilter
-                    ? 'bg-primary text-background'
-                    : 'bg-border-hover text-foreground'
-                }`}
+              <Button
+                variant={adminFilter ? 'emphasized' : 'ghost'}
+                size="sm"
                 onClick={() => setAdminFilter(!adminFilter)}
               >
                 Admins selektieren
-              </button>
-              <button
-                className="bg-border-hover text-foreground px-3 py-1 rounded transition-colors"
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={toggleAll}
                 disabled={eligibleManagers.length === 0}
               >
                 {allSelected ? 'Alle abwählen' : 'Alle selektieren'}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -185,7 +184,7 @@ export default function PrizeDistributionMailSendDialog({ isOpen, onClose, seaso
               placeholder="Von ID"
               value={rangeFromId}
               onChange={(e) => setRangeFromId(e.target.value)}
-              className="input-field w-24 px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+              className="input-field w-24 px-3 py-2 focus:outline-none"
             />
             <span className="text-muted">-</span>
             <input
@@ -193,15 +192,16 @@ export default function PrizeDistributionMailSendDialog({ isOpen, onClose, seaso
               placeholder="Bis ID"
               value={rangeToId}
               onChange={(e) => setRangeToId(e.target.value)}
-              className="input-field w-24 px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+              className="input-field w-24 px-3 py-2 focus:outline-none"
             />
-            <button
-              className="bg-border-hover text-foreground px-3 py-1 rounded transition-colors"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={selectRange}
               disabled={!rangeFromId || !rangeToId}
             >
               Selektieren
-            </button>
+            </Button>
           </div>
 
           {isMobile ? (
@@ -238,7 +238,7 @@ export default function PrizeDistributionMailSendDialog({ isOpen, onClose, seaso
                   </tr>
                 </thead>
                 <tbody>
-                  {availableManagers.map((m) => {
+                  {availableManagers.map((m, idx) => {
                     const hasEmail = !!m.email
                     const displayName =
                       [m.firstName, m.lastName].filter(Boolean).join(' ') || m.name
@@ -246,7 +246,9 @@ export default function PrizeDistributionMailSendDialog({ isOpen, onClose, seaso
                       <tr
                         key={m.id}
                         className={`border-b border-border ${
-                          hasEmail ? 'hover:bg-elevated' : 'opacity-50'
+                          hasEmail
+                            ? idx % 2 === 1 ? 'bg-zebra hover:bg-card-hover' : 'hover:bg-card-hover'
+                            : 'opacity-50'
                         }`}
                       >
                         <td className="py-2">
@@ -255,7 +257,7 @@ export default function PrizeDistributionMailSendDialog({ isOpen, onClose, seaso
                             disabled={!hasEmail}
                             checked={selectedManagerIds.includes(m.id)}
                             onChange={() => toggleOne(m.id)}
-                            className="w-4 h-4 accent-[#4db5ff]"
+                            className="w-4 h-4 accent-[#0a6ed1]"
                           />
                         </td>
                         <td className="py-2 text-center text-subtle font-mono text-xs">{m.id}</td>
@@ -291,7 +293,7 @@ export default function PrizeDistributionMailSendDialog({ isOpen, onClose, seaso
               type="checkbox"
               checked={testMode}
               onChange={(e) => setTestMode(e.target.checked)}
-              className="w-5 h-5 accent-[#4db5ff]"
+              className="w-5 h-5 accent-[#0a6ed1]"
             />
             <div>
               <span className="text-foreground font-medium">Test-Modus</span>
@@ -303,13 +305,14 @@ export default function PrizeDistributionMailSendDialog({ isOpen, onClose, seaso
         </div>
 
         <div className="flex items-center gap-4">
-          <button
+          <Button
             onClick={() => setSendDialogOpen(true)}
             disabled={!canSend}
-            className={`w-full md:w-auto font-semibold px-6 py-2 rounded disabled:opacity-50 transition-colors ${testMode ? 'bg-success text-background hover:bg-success' : 'bg-primary text-background hover:bg-accent-hover'}`}
+            variant={testMode ? 'emphasized' : 'emphasized'}
+            className={`w-full md:w-auto font-semibold ${testMode ? 'bg-success text-background hover:bg-success' : ''}`}
           >
             {testMode ? `Test-Mail senden (${selectedManagerIds.length})` : `Saisonabschlussmail senden (${selectedManagerIds.length})`}
-          </button>
+          </Button>
         </div>
 
         <PrizeDistributionMailDialog

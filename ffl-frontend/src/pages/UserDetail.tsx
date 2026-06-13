@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
-import { Settings } from 'lucide-react'
 import { useUser, useUpdateUser, useDeleteUser } from '../hooks/useUsers'
+import Button from '../components/Button'
 import type { User } from '../types'
 
 const roleLabels: Record<string, string> = {
@@ -82,13 +82,13 @@ export default function UserDetail() {
 
   return (
     <div>
-      <RouterLink to="/users" className="text-accent hover:text-accent-hover mb-4 inline-block link">
+      <RouterLink to="/users" className="text-primary hover:text-primary-hover mb-4 inline-block link">
         &larr; Zurück zur Übersicht
       </RouterLink>
 
       <div className="flex items-center gap-3 mb-6">
-        <Settings size={28} className="text-accent" />
-        <h1 className="text-sm font-medium text-accent">Benutzer bearbeiten</h1>
+        <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
+        <h1 className="text-sm font-medium text-primary">Benutzer bearbeiten</h1>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -97,7 +97,7 @@ export default function UserDetail() {
           <input
             value={user.login}
             readOnly
-            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground opacity-70"
+            className="input-field w-full px-3 py-2 rounded focus:outline-none opacity-70"
           />
         </div>
 
@@ -113,7 +113,7 @@ export default function UserDetail() {
           <input
             value={formData.firstName || ''}
             onChange={(e) => handleChange('firstName', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+            className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
         </div>
 
@@ -122,7 +122,7 @@ export default function UserDetail() {
           <input
             value={formData.lastName || ''}
             onChange={(e) => handleChange('lastName', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+            className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
         </div>
 
@@ -132,7 +132,7 @@ export default function UserDetail() {
             type="email"
             value={formData.email || ''}
             onChange={(e) => handleChange('email', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+            className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
         </div>
 
@@ -142,7 +142,7 @@ export default function UserDetail() {
             type="date"
             value={formData.birthday || ''}
             onChange={(e) => handleChange('birthday', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+            className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
         </div>
 
@@ -151,7 +151,7 @@ export default function UserDetail() {
           <input
             value={formData.street || ''}
             onChange={(e) => handleChange('street', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+            className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
         </div>
 
@@ -160,7 +160,7 @@ export default function UserDetail() {
           <input
             value={formData.city || ''}
             onChange={(e) => handleChange('city', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+            className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
         </div>
       </div>
@@ -168,19 +168,19 @@ export default function UserDetail() {
       <div className="mt-6 flex gap-4">
         {hasChanges && (
           <>
-            <button
+            <Button
+              variant="emphasized"
               onClick={handleSave}
               disabled={updateUser.isPending}
-              className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors disabled:opacity-50"
             >
               {updateUser.isPending ? 'Wird gespeichert...' : 'Speichern'}
-            </button>
-            <button
-              className="button-secondary px-4 py-2 rounded transition-colors"
+            </Button>
+            <Button
+              variant="ghost"
               onClick={handleCancel}
             >
               Abbrechen
-            </button>
+            </Button>
           </>
         )}
       </div>
@@ -198,12 +198,12 @@ export default function UserDetail() {
                 </tr>
               </thead>
               <tbody>
-                {user.managers.map(manager => (
-                  <tr key={manager.id} className="hover:bg-elevated border-b border-border">
+                {user.managers.map((manager, index) => (
+                  <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                     <td className="px-4 py-2">
                       <RouterLink
                         to={`/managers/${manager.id}`}
-                        className="text-accent hover:text-foreground link"
+                        className="text-primary hover:text-foreground link"
                       >
                         {manager.name}
                       </RouterLink>
@@ -219,12 +219,12 @@ export default function UserDetail() {
       )}
 
       <div className="mt-8">
-        <button
+        <Button
+          variant="negative"
           onClick={handleDeleteClick}
-          className="text-danger border border-danger px-4 py-2 rounded hover:bg-danger/10 transition-colors"
         >
           Benutzer löschen
-        </button>
+        </Button>
       </div>
 
       {deleteDialogOpen && (
@@ -238,12 +238,12 @@ export default function UserDetail() {
               Alle zugehörigen Manager werden ebenfalls gelöscht!
             </p>
             <div className="flex justify-end gap-2">
-              <button
-                className="button-secondary px-4 py-2 rounded transition-colors text-muted"
+              <Button
+                variant="ghost"
                 onClick={() => setDeleteDialogOpen(false)}
               >
                 Abbrechen
-              </button>
+              </Button>
               <button
                 onClick={handleDeleteConfirm}
                 disabled={deleteUser.isPending}

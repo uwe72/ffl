@@ -12,7 +12,7 @@ import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePr
 import CalculationDialog from '../components/CalculationDialog'
 import PrizeDistributionMailSendDialog from '../components/PrizeDistributionMailSendDialog'
 import Badge from '../components/Badge'
-import { Settings } from 'lucide-react'
+import Button from '../components/Button'
 import type { Season, SeasonState, PrizeDistributionLog, PrizePayout, PayoutStatus } from '../types'
 
 const seasonStateOptions: { value: SeasonState; label: string }[] = [
@@ -60,7 +60,7 @@ function PrizeDistributionChart({ prizeDistributionLog }: { prizeDistributionLog
       return (
         <div className="bg-surface border border-border rounded-lg p-3 shadow-lg">
           <p className="text-foreground font-semibold">{data.position}</p>
-          <p className="text-accent font-medium">{formatPrizeLabel(data.prize)}</p>
+          <p className="text-primary font-medium">{formatPrizeLabel(data.prize)}</p>
         </div>
       )
     }
@@ -78,21 +78,21 @@ function PrizeDistributionChart({ prizeDistributionLog }: { prizeDistributionLog
           <CartesianGrid strokeDasharray="3 3" stroke="#2a3a4e" horizontal={true} vertical={false} />
           <XAxis 
             dataKey="position" 
-            stroke="#bfccd8" 
-            tick={{ fill: '#bfccd8', fontSize: 12 }}
-            label={{ value: 'Platz', position: 'bottom', fill: '#bfccd8', offset: -5 }}
+            stroke="#c5c5c5" 
+            tick={{ fill: '#c5c5c5', fontSize: 12 }}
+            label={{ value: 'Platz', position: 'bottom', fill: '#c5c5c5', offset: -5 }}
           />
           <YAxis 
-            stroke="#bfccd8" 
-            tick={{ fill: '#bfccd8', fontSize: 12 }}
-            label={{ value: 'Preisgeld (€)', angle: -90, position: 'insideLeft', fill: '#bfccd8' }}
+            stroke="#c5c5c5" 
+            tick={{ fill: '#c5c5c5', fontSize: 12 }}
+            label={{ value: 'Preisgeld (€)', angle: -90, position: 'insideLeft', fill: '#c5c5c5' }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Bar dataKey="prize" radius={[4, 4, 0, 0]}>
             <LabelList 
               dataKey="prizeLabel" 
               position="top" 
-              fill="#bfccd8" 
+              fill="#c5c5c5" 
               fontSize={11}
               style={{ whiteSpace: 'nowrap' }}
             />
@@ -230,8 +230,8 @@ export default function Season() {
     <div>
       <div className="mb-6">
         <div className="flex items-center gap-3">
-          <Settings size={28} className="text-accent" />
-          <h1 className="text-sm font-medium text-accent">Saison</h1>
+          <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
+          <h1 className="text-sm font-medium text-primary">Saison</h1>
         </div>
         <div className="flex items-center gap-3 mt-1.5">
           <Badge>
@@ -251,7 +251,7 @@ export default function Season() {
             onClick={() => setActiveTab('saisondaten')}
             className={`pb-3 px-1 text-lg font-medium transition-colors ${
               activeTab === 'saisondaten'
-                ? 'text-accent border-b-2 border-accent'
+                ? 'text-primary border-b-2 border-primary'
                 : 'text-muted hover:text-foreground'
             }`}
           >
@@ -261,7 +261,7 @@ export default function Season() {
             onClick={() => setActiveTab('gewinnausschuettung')}
             className={`pb-3 px-1 text-lg font-medium transition-colors ${
               activeTab === 'gewinnausschuettung'
-                ? 'text-accent border-b-2 border-accent'
+                ? 'text-primary border-b-2 border-primary'
                 : 'text-muted hover:text-foreground'
             }`}
           >
@@ -271,7 +271,7 @@ export default function Season() {
             onClick={() => setActiveTab('saisonabschlussmail')}
             className={`pb-3 px-1 text-lg font-medium transition-colors ${
               activeTab === 'saisonabschlussmail'
-                ? 'text-accent border-b-2 border-accent'
+                ? 'text-primary border-b-2 border-primary'
                 : 'text-muted hover:text-foreground'
             }`}
           >
@@ -288,7 +288,7 @@ export default function Season() {
               <input
                 value={formData.name || ''}
                 onChange={(e) => handleChange('name', e.target.value)}
-                className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
               />
             </div>
 
@@ -300,7 +300,7 @@ export default function Season() {
                   const value = e.target.value.replace(/\./g, '')
                   handleChange('budget', parseInt(value) || 0)
                 }}
-                className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
               />
             </div>
 
@@ -310,7 +310,7 @@ export default function Season() {
                 type="number"
                 value={formData.startRoundRueckrunde || ''}
                 onChange={(e) => handleChange('startRoundRueckrunde', parseInt(e.target.value) || 16)}
-                className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
               />
             </div>
 
@@ -319,7 +319,7 @@ export default function Season() {
               <input
                 value={season.currentMatchday?.toString() ?? '-'}
                 readOnly
-                className="input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground opacity-70"
+                className="input-field w-full px-3 py-2 rounded focus:outline-none opacity-70"
               />
             </div>
 
@@ -331,7 +331,7 @@ export default function Season() {
                     key={option.value}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all ${
                       formData.seasonState === option.value
-                        ? 'bg-primary text-background'
+                        ? 'bg-primary text-primary-foreground'
                         : 'bg-elevated text-muted hover:bg-border-hover'
                     }`}
                   >
@@ -353,28 +353,28 @@ export default function Season() {
           <div className="mt-6 flex gap-4">
             {hasChanges && (
               <>
-                <button
+                <Button
+                  variant="emphasized"
                   onClick={handleSave}
                   disabled={updateSeason.isPending}
-                  className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors disabled:opacity-50"
                 >
                   {updateSeason.isPending ? 'Wird gespeichert...' : 'Speichern'}
-                </button>
-                <button
-                  className="button-secondary px-4 py-2 rounded transition-colors"
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={resetFormData}
                 >
                   Abbrechen
-                </button>
+                </Button>
               </>
             )}
             
-            <button
+            <Button
+              variant="emphasized"
               onClick={handleCalculate}
-              className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors"
             >
               Punkte neu berechnen
-            </button>
+            </Button>
           </div>
         </>
       )}
@@ -389,7 +389,7 @@ export default function Season() {
                 step="0.01"
                 value={formData.spieleinsatzEuro ?? ''}
                 onChange={(e) => handleChange('spieleinsatzEuro', parseFloat(e.target.value) || 0)}
-                className={`input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated text-foreground ${validationErrors.spieleinsatzEuro ? 'border-danger' : 'border-border-hover'}`}
+                className={`input-field w-full px-3 py-2 rounded focus:outline-none ${validationErrors.spieleinsatzEuro ? 'border-danger' : ''}`}
               />
               {validationErrors.spieleinsatzEuro && <p className="text-danger text-sm mt-1">{validationErrors.spieleinsatzEuro}</p>}
             </div>
@@ -401,7 +401,7 @@ export default function Season() {
                 step="0.01"
                 value={formData.serverkostenEuro ?? ''}
                 onChange={(e) => handleChange('serverkostenEuro', parseFloat(e.target.value) || 0)}
-                className={`input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated text-foreground ${validationErrors.serverkostenEuro ? 'border-danger' : 'border-border-hover'}`}
+                className={`input-field w-full px-3 py-2 rounded focus:outline-none ${validationErrors.serverkostenEuro ? 'border-danger' : ''}`}
               />
               {validationErrors.serverkostenEuro && <p className="text-danger text-sm mt-1">{validationErrors.serverkostenEuro}</p>}
             </div>
@@ -412,7 +412,7 @@ export default function Season() {
                 type="number"
                 value={formData.anzahlSpielleiter ?? ''}
                 onChange={(e) => handleChange('anzahlSpielleiter', parseInt(e.target.value) || 0)}
-                className={`input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated text-foreground ${validationErrors.anzahlSpielleiter ? 'border-danger' : 'border-border-hover'}`}
+                className={`input-field w-full px-3 py-2 rounded focus:outline-none ${validationErrors.anzahlSpielleiter ? 'border-danger' : ''}`}
               />
               {validationErrors.anzahlSpielleiter && <p className="text-danger text-sm mt-1">{validationErrors.anzahlSpielleiter}</p>}
             </div>
@@ -423,7 +423,7 @@ export default function Season() {
                 type="number"
                 value={formData.gewinnErsterPlatzProzent ?? ''}
                 onChange={(e) => handleChange('gewinnErsterPlatzProzent', parseInt(e.target.value) || 0)}
-                className={`input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated text-foreground ${validationErrors.gewinnErsterPlatzProzent ? 'border-danger' : 'border-border-hover'}`}
+                className={`input-field w-full px-3 py-2 rounded focus:outline-none ${validationErrors.gewinnErsterPlatzProzent ? 'border-danger' : ''}`}
               />
               {validationErrors.gewinnErsterPlatzProzent && <p className="text-danger text-sm mt-1">{validationErrors.gewinnErsterPlatzProzent}</p>}
             </div>
@@ -435,7 +435,7 @@ export default function Season() {
                 step="0.01"
                 value={formData.gewinnLetzterPlatzEuro ?? ''}
                 onChange={(e) => handleChange('gewinnLetzterPlatzEuro', parseFloat(e.target.value) || 0)}
-                className={`input-field w-full px-3 py-2 rounded focus:outline-none bg-elevated text-foreground ${validationErrors.gewinnLetzterPlatzEuro ? 'border-danger' : 'border-border-hover'}`}
+                className={`input-field w-full px-3 py-2 rounded focus:outline-none ${validationErrors.gewinnLetzterPlatzEuro ? 'border-danger' : ''}`}
               />
               {validationErrors.gewinnLetzterPlatzEuro && <p className="text-danger text-sm mt-1">{validationErrors.gewinnLetzterPlatzEuro}</p>}
             </div>
@@ -443,19 +443,19 @@ export default function Season() {
 
           {hasChanges && (
             <div className="mt-6 flex gap-4">
-              <button
+              <Button
+                variant="emphasized"
                 onClick={handleSave}
                 disabled={updateSeason.isPending}
-                className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors disabled:opacity-50"
               >
                 {updateSeason.isPending ? 'Wird gespeichert...' : 'Speichern'}
-              </button>
-              <button
-                className="button-secondary px-4 py-2 rounded transition-colors"
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={resetFormData}
               >
                 Abbrechen
-              </button>
+              </Button>
             </div>
           )}
 
@@ -464,18 +464,18 @@ export default function Season() {
               <p className="text-muted mb-4 text-sm">Bitte speichern Sie zuerst Ihre Änderungen, bevor Sie die Gewinnverteilung berechnen.</p>
             )}
             {errorMessage && (
-              <div className="bg-[#3d1f1f] border border-[#8b3a3a] p-4 mb-4">
-                <p className="text-[#f87171] text-sm">{errorMessage}</p>
+              <div className="bg-danger-bg border border-danger p-4 mb-4">
+                <p className="text-danger text-sm">{errorMessage}</p>
               </div>
             )}
             <div className="flex gap-4 justify-end mt-6">
-              <button
+              <Button
+                variant="emphasized"
                 onClick={() => setShowConfirmDialog(true)}
                 disabled={hasChanges || calculatePrize.isPending}
-                className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors disabled:opacity-50"
               >
                 {calculatePrize.isPending ? 'Wird berechnet...' : 'Gewinnverteilung berechnen'}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -555,11 +555,11 @@ export default function Season() {
                     </tr>
                   </thead>
                   <tbody>
-                    {prizeDistribution.map((payout) => (
+                    {prizeDistribution.map((payout, index) => (
                       <tr 
                         key={payout.managerId} 
-                        className="border-b border-border last:border-b-0 hover:bg-elevated"
-                        style={{ borderLeftWidth: '4px', borderLeftColor: payout.payoutStatus === 'PAID' ? '#4ade80' : '#2a3a4e' }}
+                        className={`border-b border-border last:border-b-0 hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}
+                        style={{ borderLeftWidth: '4px', borderLeftColor: payout.payoutStatus === 'PAID' ? '#36b37e' : '#2a3a4e' }}
                       >
                         <td className="py-3 px-4 text-foreground font-medium">{payout.position}</td>
                         <td className="py-3 px-4 text-foreground">{payout.managerName}</td>
@@ -567,7 +567,7 @@ export default function Season() {
                         <td className="py-3 px-4 text-foreground">{payout.managerLastName || '-'}</td>
                         <td className="py-3 px-4 text-foreground">{payout.managerEmail || '-'}</td>
                         <td className="py-3 px-4 text-right text-foreground">{payout.pointsTotal}</td>
-                        <td className="py-3 px-4 text-right text-accent font-medium">
+                        <td className="py-3 px-4 text-right text-primary font-medium">
                           {payout.prizeAmount % 1 === 0
                             ? Math.round(payout.prizeAmount)
                             : payout.prizeAmount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -600,7 +600,7 @@ export default function Season() {
                             className={`text-lg p-1 rounded transition-colors ${
                               payout.comment
                                 ? 'bg-success hover:bg-success'
-                                : 'bg-default hover:bg-[#8899aa]'
+                                : 'bg-default hover:bg-elevated'
                             }`}
                             title={payout.comment || 'Kommentar hinzufügen'}
                           >
@@ -645,22 +645,23 @@ export default function Season() {
           <div className="mt-6 flex gap-4">
             {hasChanges && (
               <>
-                <button
+                <Button
+                  variant="emphasized"
                   onClick={handleSave}
                   disabled={updateSeason.isPending}
-                  className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors disabled:opacity-50"
                 >
                   {updateSeason.isPending ? 'Wird gespeichert...' : 'Speichern'}
-                </button>
-                <button
-                  className="button-secondary px-4 py-2 rounded transition-colors"
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={resetFormData}
                 >
                   Abbrechen
-                </button>
+                </Button>
               </>
             )}
-            <button
+            <Button
+              variant="transparent"
               onClick={async () => {
                 if (hasChanges) {
                   await updateSeason.mutateAsync({ id: season!.id, data: formData })
@@ -673,19 +674,18 @@ export default function Season() {
                 }
               }}
               disabled={isFetchingPreview}
-              className="bg-default text-foreground font-medium px-4 py-2 rounded transition-colors disabled:opacity-50"
             >
               {isFetchingPreview ? 'Lade Vorschau...' : 'Vorschau'}
-            </button>
+            </Button>
           </div>
 
           <div className="mt-6">
-            <button
+            <Button
+              variant="emphasized"
               onClick={() => setShowMailSendDialog(true)}
-              className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors"
             >
               An alle Manager senden
-            </button>
+            </Button>
           </div>
         </>
       )}
@@ -695,15 +695,16 @@ export default function Season() {
           <div className="bg-surface border border-border p-6 w-full max-w-4xl max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-foreground">E-Mail Vorschau</h3>
-              <button
-                className="button-secondary h-7 px-3 text-xs rounded transition-colors"
+              <Button
+                variant="ghost"
+                size="compact"
                 onClick={() => {
                   setShowPreviewModal(false)
                   setPreviewHtml(null)
                 }}
               >
                 ✕
-              </button>
+              </Button>
             </div>
             <div className="flex-1 overflow-auto rounded-lg border border-border-hover">
               <iframe
@@ -713,15 +714,15 @@ export default function Season() {
               />
             </div>
             <div className="flex justify-end mt-4">
-              <button
-                className="button-secondary px-4 py-2 rounded transition-colors"
+              <Button
+                variant="ghost"
                 onClick={() => {
                   setShowPreviewModal(false)
                   setPreviewHtml(null)
                 }}
               >
                 Schließen
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -752,13 +753,14 @@ export default function Season() {
               Die bisherige Gewinnverteilung wird überschrieben. Möchten Sie fortfahren?
             </p>
             <div className="flex gap-4 justify-end">
-              <button
-                className="button-secondary px-4 py-2 rounded transition-colors"
+              <Button
+                variant="ghost"
                 onClick={() => setShowConfirmDialog(false)}
               >
                 Abbrechen
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="emphasized"
                 onClick={async () => {
                   setShowConfirmDialog(false)
                   setErrorMessage(null)
@@ -771,10 +773,9 @@ export default function Season() {
                     setErrorMessage(message)
                   }
                 }}
-                className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors"
               >
                 Berechnen
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -788,12 +789,13 @@ export default function Season() {
                 <h3 className="text-xl font-bold text-foreground">Kommentar</h3>
                 <p className="text-sm text-muted">{commentDialogManager.managerName} - {commentDialogManager.prizeAmount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</p>
               </div>
-              <button
-                className="button-secondary h-7 px-3 text-xs rounded transition-colors"
+              <Button
+                variant="ghost"
+                size="compact"
                 onClick={() => setCommentDialogManager(null)}
               >
                 ✕
-              </button>
+              </Button>
             </div>
             <textarea
               value={commentDraft}
@@ -803,13 +805,14 @@ export default function Season() {
               className="w-full bg-elevated border border-border-hover rounded-md text-foreground p-3 text-sm resize-y"
             />
             <div className="flex justify-end gap-3 mt-4">
-              <button
-                className="button-secondary px-4 py-2 rounded transition-colors"
+              <Button
+                variant="ghost"
                 onClick={() => setCommentDialogManager(null)}
               >
                 Abbrechen
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="emphasized"
                 onClick={() => {
                   updatePrizePayout.mutate({
                     managerId: commentDialogManager.managerId,
@@ -817,10 +820,9 @@ export default function Season() {
                   })
                   setCommentDialogManager(null)
                 }}
-                className="bg-primary text-background font-medium px-4 py-2 rounded hover:bg-button-primary-hover transition-colors"
               >
                 Speichern
-              </button>
+              </Button>
             </div>
           </div>
         </div>

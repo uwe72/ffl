@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useSystemConfig, useUpdateSystemConfig } from '../hooks/useSystemConfig'
 import { useManagersBySeason } from '../hooks/useManagers'
 import type { SystemConfig, Manager } from '../types'
+import Button from './Button'
 import MatchdayMailDialog from './MatchdayMailDialog'
 
 function useIsMobile() {
@@ -36,7 +37,7 @@ function ManagerCard({
           disabled={!hasEmail}
           checked={isSelected}
           onChange={onToggle}
-          className="w-5 h-5 accent-[#4db5ff] mt-1 flex-shrink-0"
+          className="w-5 h-5 accent-[#0a6ed1] mt-1 flex-shrink-0"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -44,7 +45,7 @@ function ManagerCard({
             <div className="font-semibold text-foreground truncate">{displayName}</div>
           </div>
           {manager.shortName && (
-            <div className="text-sm text-accent">{manager.shortName}</div>
+            <div className="text-sm text-primary">{manager.shortName}</div>
           )}
           {manager.login && (
             <div className="text-sm text-muted mt-1">{manager.login}</div>
@@ -176,20 +177,21 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-foreground">Spieltagsmail</h2>
-            <span className="px-2 py-1 rounded-md bg-primary text-background text-xs font-semibold">
+            <span className="px-2 py-1 rounded-md bg-primary text-primary-foreground text-xs font-semibold">
               {roundNumber}. Spieltag
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              className="h-7 px-3 text-xs bg-border-hover text-foreground rounded hover:bg-[#4a5a70] transition-colors"
+            <Button
+              variant="ghost"
+              size="compact"
               onClick={openPromptDialog}
             >
               Prompt anpassen
-            </button>
-            <button className="button-secondary h-7 px-3 text-xs rounded transition-colors" onClick={onClose}>
+            </Button>
+            <Button variant="ghost" size="compact" onClick={onClose}>
               Schließen
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -205,31 +207,29 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
 
         <div className="p-4 md:p-6 bg-surface border border-border mb-4">
           <div className="mb-4 flex flex-col md:flex-row gap-3 md:gap-4 md:items-center">
-            <h3 className="text-base md:text-lg font-semibold text-accent md:whitespace-nowrap">Empfänger</h3>
+            <h3 className="text-base md:text-lg font-semibold text-primary md:whitespace-nowrap">Empfänger</h3>
             <input
               placeholder="Manager suchen..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field w-full md:max-w-md px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+              className="input-field w-full md:max-w-md px-3 py-2 focus:outline-none"
             />
             <div className="flex gap-2 md:ml-auto">
-              <button
-                className={`px-3 py-1 rounded transition-colors ${
-                  adminFilter
-                    ? 'bg-primary text-background'
-                    : 'bg-border-hover text-foreground'
-                }`}
+              <Button
+                variant={adminFilter ? 'emphasized' : 'ghost'}
+                size="sm"
                 onClick={() => setAdminFilter(!adminFilter)}
               >
                 Admins selektieren
-              </button>
-              <button
-                className="bg-border-hover text-foreground px-3 py-1 rounded transition-colors"
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={toggleAll}
                 disabled={eligibleManagers.length === 0}
               >
                 {allSelected ? 'Alle abwählen' : 'Alle selektieren'}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -240,7 +240,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
               placeholder="Von ID"
               value={rangeFromId}
               onChange={(e) => setRangeFromId(e.target.value)}
-              className="input-field w-24 px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+              className="input-field w-24 px-3 py-2 focus:outline-none"
             />
             <span className="text-muted">-</span>
             <input
@@ -248,15 +248,16 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
               placeholder="Bis ID"
               value={rangeToId}
               onChange={(e) => setRangeToId(e.target.value)}
-              className="input-field w-24 px-3 py-2 rounded focus:outline-none bg-elevated border-border-hover text-foreground"
+              className="input-field w-24 px-3 py-2 focus:outline-none"
             />
-            <button
-              className="bg-border-hover text-foreground px-3 py-1 rounded transition-colors"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={selectRange}
               disabled={!rangeFromId || !rangeToId}
             >
               Selektieren
-            </button>
+            </Button>
           </div>
 
           {isMobile ? (
@@ -293,7 +294,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                   </tr>
                 </thead>
                 <tbody>
-                  {availableManagers.map((m) => {
+                  {availableManagers.map((m, idx) => {
                     const hasEmail = !!m.email
                     const displayName =
                       [m.firstName, m.lastName].filter(Boolean).join(' ') || m.name
@@ -301,7 +302,9 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                       <tr
                         key={m.id}
                         className={`border-b border-border ${
-                          hasEmail ? 'hover:bg-elevated' : 'opacity-50'
+                          hasEmail
+                            ? idx % 2 === 1 ? 'bg-zebra hover:bg-card-hover' : 'hover:bg-card-hover'
+                            : 'opacity-50'
                         }`}
                       >
                         <td className="py-2">
@@ -310,7 +313,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                             disabled={!hasEmail}
                             checked={selectedManagerIds.includes(m.id)}
                             onChange={() => toggleOne(m.id)}
-                            className="w-4 h-4 accent-[#4db5ff]"
+                            className="w-4 h-4 accent-[#0a6ed1]"
                           />
                         </td>
                         <td className="py-2 text-center text-subtle font-mono text-xs">{m.id}</td>
@@ -341,7 +344,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
         </div>
 
         <div className="p-4 md:p-6 bg-surface border border-border mb-4">
-          <label className="text-base md:text-lg font-semibold text-accent block mb-2">
+          <label className="text-base md:text-lg font-semibold text-primary block mb-2">
             Kommentar (optional)
           </label>
           <textarea
@@ -349,7 +352,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
             onChange={(e) => setComment(e.target.value)}
             rows={4}
             placeholder="Optionaler Kommentar, der als eigene Kachel vor &quot;Deine punktenden Spieler&quot; in der Mail angezeigt wird."
-            className="w-full bg-elevated border border-border-hover rounded-md text-foreground p-2 text-sm"
+            className="input-field w-full px-3 py-2 text-sm focus:outline-none"
           />
         </div>
 
@@ -359,25 +362,26 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
               type="checkbox"
               checked={testMode}
               onChange={(e) => setTestMode(e.target.checked)}
-              className="w-5 h-5 accent-[#4db5ff]"
+              className="w-5 h-5 accent-[#0a6ed1]"
             />
             <div>
               <span className="text-foreground font-medium">Test-Modus</span>
               <p className="text-sm text-muted">
-                Alle Mails gehen an <span className="text-accent">{config?.gmailSenderEmail || 'Admin-Email'}</span> statt an die Manager
+                Alle Mails gehen an <span className="text-primary">{config?.gmailSenderEmail || 'Admin-Email'}</span> statt an die Manager
               </p>
             </div>
           </label>
         </div>
 
         <div className="flex items-center gap-4">
-          <button
+          <Button
             onClick={() => setSendDialogOpen(true)}
             disabled={!canSend}
-            className={`w-full md:w-auto font-semibold px-6 py-2 rounded disabled:opacity-50 transition-colors ${testMode ? 'bg-success text-background hover:bg-success' : 'bg-primary text-background hover:bg-accent-hover'}`}
+            variant={testMode ? 'emphasized' : 'emphasized'}
+            className={`w-full md:w-auto font-semibold ${testMode ? 'bg-success text-background hover:bg-success' : ''}`}
           >
             {testMode ? `Test-Mail senden (${selectedManagerIds.length})` : `Spieltagsmail senden (${selectedManagerIds.length})`}
-          </button>
+          </Button>
         </div>
 
         <MatchdayMailDialog
@@ -401,13 +405,14 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between mb-4">
-              <h3 className="text-lg md:text-xl font-semibold text-accent">Prompt anpassen</h3>
-              <button
-                className="button-secondary h-7 px-3 text-xs rounded transition-colors"
+              <h3 className="text-lg md:text-xl font-semibold text-primary">Prompt anpassen</h3>
+              <Button
+                variant="ghost"
+                size="compact"
                 onClick={() => setPromptOpen(false)}
               >
                 ✕
-              </button>
+              </Button>
             </div>
 
             <label className="text-muted text-sm block mb-1">Stil-Anweisung (Prompt)</label>
@@ -415,26 +420,26 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
               value={promptDraft}
               onChange={(e) => setPromptDraft(e.target.value)}
               rows={14}
-              className="w-full bg-elevated border border-border-hover rounded-md text-foreground p-2 font-mono text-sm resize-y"
+              className="input-field w-full px-3 py-2 font-mono text-sm resize-y focus:outline-none"
             />
             <p className="text-xs text-subtle mt-1">
               Das Backend haengt die Spieltags-Daten als JSON an diese Anweisung an.
             </p>
 
             <div className="flex flex-col md:flex-row md:justify-end gap-2 mt-4">
-              <button
-                className="bg-border-hover text-foreground font-semibold px-6 py-2 rounded hover:bg-[#4a5a70] transition-colors"
+              <Button
+                variant="ghost"
                 onClick={() => setPromptOpen(false)}
               >
                 Abbrechen
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="emphasized"
                 onClick={handlePromptSave}
                 disabled={updateConfig.isPending}
-                className="bg-primary text-background font-semibold px-6 py-2 rounded hover:bg-accent-hover disabled:opacity-50 transition-colors"
               >
                 {updateConfig.isPending ? 'Speichern…' : 'Speichern'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

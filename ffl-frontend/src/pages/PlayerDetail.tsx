@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { Users } from 'lucide-react'
 import { usePlayer, useUpdatePlayer, usePlayerRanks } from '../hooks/usePlayers'
 import { useAuth } from '../context/AuthContext'
 import { positionLabels } from './Players'
 import Badge from '../components/Badge'
+import Button from '../components/Button'
 import type { Position } from '../types'
 
 type SortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue' | 'hinrunde' | 'rueckrunde'
@@ -96,7 +96,7 @@ export default function PlayerDetail() {
               {gameName}{goalHost != null && goalVisitor != null ? ` ${goalHost}:${goalVisitor}` : ''}
             </p>
           )}
-          <p className="text-accent">{data.punkte} Punkte</p>
+          <p className="text-primary">{data.punkte} Punkte</p>
           {rules && rules.length > 0 && (
             <>
               <hr className="border-border my-2" />
@@ -174,7 +174,7 @@ export default function PlayerDetail() {
 
   return (
     <div>
-      <RouterLink to="/players" className="text-accent hover:text-accent-hover mb-4 inline-block link">
+      <RouterLink to="/players" className="text-primary hover:text-primary-hover mb-4 inline-block link">
         &larr; Zurück zur Übersicht
       </RouterLink>
       
@@ -183,9 +183,9 @@ export default function PlayerDetail() {
           <img src={player.pictureUrl || ''} alt={player.nameKicker} className="w-32 h-32 rounded-full object-cover" />
           <div className="flex-1">
             <div className="flex items-start gap-3">
-              <Users size={28} className="text-accent mt-1" />
+              <i className="sap-icon sap-icon-group text-[28px] text-primary mt-1" />
               <div>
-                <h1 className="text-sm font-medium text-accent">{player.nameKicker}</h1>
+                <h1 className="text-sm font-medium text-primary">{player.nameKicker}</h1>
                 {player.firstName && player.lastName && (
                   <p className="text-lg text-muted mt-1">
                     {player.firstName} {player.lastName}
@@ -241,7 +241,7 @@ export default function PlayerDetail() {
               <select
                 value={editData.position}
                 onChange={(e) => setEditData({ ...editData, position: e.target.value as Position })}
-                className="w-36 bg-surface border border-border-hover text-foreground rounded-lg px-3 min-h-[42px] focus:outline-none focus:border-accent"
+                className="w-36 input-field rounded-lg px-3 min-h-[42px] focus:outline-none focus:border-accent"
               >
                 <option value="GOALKEEPER">Torwart</option>
                 <option value="DEFENDER">Abwehr</option>
@@ -276,13 +276,14 @@ export default function PlayerDetail() {
             </div>
           )}
           {isAdmin && hasChanges && (
-            <button 
+            <Button 
+              variant="emphasized"
               onClick={handleSave} 
               disabled={isSaving}
-              className="bg-primary text-[#1b2838] hover:bg-button-primary-hover min-h-[42px] px-4 py-2 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-h-[42px]"
             >
               {isSaving ? 'Speichern...' : 'Speichern'}
-            </button>
+            </Button>
           )}
         </div>
 
@@ -293,10 +294,10 @@ export default function PlayerDetail() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#2a3a4e" />
-                  <XAxis dataKey="name" stroke="#bfccd8" />
-                  <YAxis stroke="#bfccd8" />
+                  <XAxis dataKey="name" stroke="#c5c5c5" />
+                  <YAxis stroke="#c5c5c5" />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="punkte" fill="#4db5ff" />
+                  <Bar dataKey="punkte" fill="#0a6ed1" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -313,55 +314,55 @@ export default function PlayerDetail() {
                 <table className="w-full">
                   <thead className="bg-surface">
                     <tr>
-                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('positionTotal')}>
+                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionTotal')}>
                         Pos<SortIcon column="positionTotal" />
                       </th>
-                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('positionChange')}>
+                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionChange')}>
                         +-<SortIcon column="positionChange" />
                       </th>
-                      <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('shortName')}>
+                      <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('shortName')}>
                         Manager<SortIcon column="shortName" />
                       </th>
-                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('pointsTotal')}>
+                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('pointsTotal')}>
                         Pkt<SortIcon column="pointsTotal" />
                       </th>
-                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('pointsLastRound')}>
+                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('pointsLastRound')}>
                         Spieltag<SortIcon column="pointsLastRound" />
                       </th>
-                      <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('firstName')}>
+                      <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('firstName')}>
                         Vorname<SortIcon column="firstName" />
                       </th>
-                      <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('lastName')}>
+                      <th className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('lastName')}>
                         Nachname<SortIcon column="lastName" />
                       </th>
                       {isAdmin && <th className="px-3 py-2 text-left text-muted font-medium border-b border-border">Status</th>}
-                      <th className="px-3 py-2 text-right text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('teamValue')}>
+                      <th className="px-3 py-2 text-right text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('teamValue')}>
                         Teamwert<SortIcon column="teamValue" />
                       </th>
-                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('hinrunde')}>
+                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('hinrunde')}>
                         Hinrunde<SortIcon column="hinrunde" />
                       </th>
-                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-accent border-b border-border" onClick={() => handleSort('rueckrunde')}>
+                      <th className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('rueckrunde')}>
                         Rückrunde<SortIcon column="rueckrunde" />
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-surface">
-                    {sortedManagers.map((manager) => (
-                      <tr key={manager.id} className="hover:bg-surface border-b border-border">
+                    {sortedManagers.map((manager, index) => (
+                      <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                         <td className="px-3 py-2 text-center font-medium text-foreground">
                           {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
                         </td>
                         <td className="px-3 py-2 text-center">
                           {manager.positionChange != null && manager.positionChange !== 0 ? (
-                            <span className={`font-medium ${manager.positionChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            <span className={`font-medium ${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
                               {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
                             </span>
                           ) : (
                             <span className="text-subtle">-</span>
                           )}
                         </td>
-                        <td className="px-3 py-2 text-accent">
+                        <td className="px-3 py-2 text-primary">
                           <RouterLink to={`/managers/${manager.id}`} className="hover:text-foreground link font-medium">
                             {manager.shortName || manager.name || '-'}
                           </RouterLink>

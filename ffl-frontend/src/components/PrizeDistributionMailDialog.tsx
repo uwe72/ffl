@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import Button from './Button'
 
 interface PrizeDistributionMailDialogProps {
   isOpen: boolean
@@ -100,18 +101,18 @@ export default function PrizeDistributionMailDialog({
               {log}
             </div>
           ))}
-          {!isComplete && <div className="text-accent animate-pulse">Verarbeite…</div>}
-          {error && <div className="text-red-400 mt-2">{error}</div>}
+          {!isComplete && <div className="text-primary animate-pulse">Verarbeite…</div>}
+          {error && <div className="text-danger mt-2">{error}</div>}
         </div>
 
         <div className="mt-4 flex justify-end">
-          <button
+          <Button
             onClick={onClose}
             disabled={!isComplete}
-            className={`font-medium px-4 py-2 rounded ${isComplete ? 'bg-primary text-background' : 'bg-border-hover text-subtle'}`}
+            variant={isComplete ? 'emphasized' : 'ghost'}
           >
             Schließen
-          </button>
+          </Button>
         </div>
       </div>
     </div>

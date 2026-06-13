@@ -4,7 +4,7 @@ interface BadgeProps {
 }
 
 const variantClasses: Record<string, string> = {
-  accent: 'bg-accent/15 text-accent',
+  accent: 'bg-primary/15 text-primary',
   success: 'bg-success/15 text-success',
   danger: 'bg-danger/15 text-danger',
   warning: 'bg-warning/15 text-warning',
