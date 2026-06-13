@@ -12,6 +12,14 @@ function getGitHash(): string {
   }
 }
 
+function getGitDate(): string {
+  try {
+    return execSync('git log -1 --format=%cd --date=short', { encoding: 'utf-8' }).trim()
+  } catch {
+    return 'unknown'
+  }
+}
+
 export default defineConfig({
   plugins: [
     react(),
@@ -90,6 +98,7 @@ export default defineConfig({
   ],
   define: {
     'import.meta.env.VITE_GIT_HASH': JSON.stringify(getGitHash()),
+    'import.meta.env.VITE_BUILD_DATE': JSON.stringify(getGitDate()),
   },
   server: {
     port: 5173,

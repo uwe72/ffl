@@ -3,6 +3,8 @@
 
 interface ImportMetaEnv {
   readonly VITE_GIT_HASH: string
+  readonly VITE_BUILD_DATE: string
+  readonly VITE_APP_ENV: 'PROD' | 'TEST'
 }
 
 interface ImportMeta {

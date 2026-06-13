@@ -1,6 +1,6 @@
 interface BadgeProps {
   children: React.ReactNode
-  variant?: 'accent' | 'success' | 'danger' | 'warning' | 'muted'
+  variant?: 'accent' | 'success' | 'danger' | 'warning' | 'muted' | 'solid'
 }
 
 const variantClasses: Record<string, string> = {
@@ -9,6 +9,7 @@ const variantClasses: Record<string, string> = {
   danger: 'bg-danger/15 text-danger',
   warning: 'bg-warning/15 text-warning',
   muted: 'bg-elevated text-muted',
+  solid: 'bg-primary text-primary-foreground',
 }
 
 export default function Badge({ children, variant = 'accent' }: BadgeProps) {
