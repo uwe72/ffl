@@ -14,9 +14,11 @@ function getGitHash(): string {
 
 function getGitDate(): string {
   try {
-    return execSync('git log -1 --format=%cd --date=short', { encoding: 'utf-8' }).trim()
+    const date = execSync('git log -1 --format=%cd --date=short', { encoding: 'utf-8' }).trim()
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date
+    return new Date().toISOString().split('T')[0]
   } catch {
-    return 'unknown'
+    return new Date().toISOString().split('T')[0]
   }
 }
 
