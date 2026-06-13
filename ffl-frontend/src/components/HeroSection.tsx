@@ -16,12 +16,6 @@ function getGreeting(): string {
   return 'Guten Abend'
 }
 
-const env = import.meta.env.VITE_APP_ENV
-const buildDate = import.meta.env.VITE_BUILD_DATE
-const isProd = env === 'PROD'
-const dateParts = buildDate.split('-')
-const formattedDate = dateParts[2] + '.' + dateParts[1] + '.' + dateParts[0].slice(-2)
-
 export default function HeroSection({ onMenuClick }: HeroSectionProps) {
   const { data: managers } = useManagers()
   const { data: season } = useCurrentSeason()
@@ -72,7 +66,6 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
                 {season.currentMatchday && (
                   <span className="text-sm text-muted">{season.currentMatchday}. Spieltag</span>
                 )}
-                <span className="text-sm text-muted">V{formattedDate}{isProd ? '' : ' (Test)'}</span>
               </div>
             )}
           </div>

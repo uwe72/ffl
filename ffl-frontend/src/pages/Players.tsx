@@ -3,6 +3,17 @@ import { Link as RouterLink } from 'react-router-dom'
 import { usePlayers } from '../hooks/usePlayers'
 import type { Team, Player } from '../types'
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+  return isMobile
+}
+
 export const positionLabels: Record<string, string> = {
   GOALKEEPER: 'Torwart',
   DEFENDER: 'Verteidiger',
@@ -10,17 +21,17 @@ export const positionLabels: Record<string, string> = {
   STRIKER: 'Stürmer'
 }
 
-export const positionColors: Record<string, 'warning' | 'accent' | 'success' | 'danger'> = {
-  GOALKEEPER: 'warning',
-  DEFENDER: 'accent',
-  MIDFIELD: 'success',
-  STRIKER: 'danger'
+export const positionColors: Record<string, string> = {
+  GOALKEEPER: 'chip-success',
+  DEFENDER: 'chip-warning',
+  MIDFIELD: 'chip-accent',
+  STRIKER: 'chip-danger'
 }
 
 const positionChipClass: Record<string, string> = {
-  GOALKEEPER: 'chip-warning',
-  DEFENDER: 'chip-accent',
-  MIDFIELD: 'chip-success',
+  GOALKEEPER: 'chip-success',
+  DEFENDER: 'chip-warning',
+  MIDFIELD: 'chip-accent',
   STRIKER: 'chip-danger'
 }
 
@@ -32,9 +43,9 @@ const positionSapIcon: Record<string, string> = {
 }
 
 const positionChipActiveColors: Record<string, string> = {
-  GOALKEEPER: 'bg-warning/15 text-warning border-warning/40',
-  DEFENDER: 'bg-accent/15 text-accent border-accent/40',
-  MIDFIELD: 'bg-success/15 text-success border-success/40',
+  GOALKEEPER: 'bg-success/15 text-success border-success/40',
+  DEFENDER: 'bg-warning/15 text-warning border-warning/40',
+  MIDFIELD: 'bg-accent/15 text-accent border-accent/40',
   STRIKER: 'bg-danger/15 text-danger border-danger/40',
 }
 
@@ -191,81 +202,80 @@ function formatPrice(price: number | undefined): string {
 
 function PlayerCard({ player }: { player: Player }) {
   return (
-    <RouterLink to={`/players/${player.id}`} className="block">
-      <div className="card p-4 bg-surface border border-border hover:border-border-hover transition-colors">
-        <div className="flex gap-4 items-center">
-          {player.pictureUrl ? (
-            <img 
-              src={player.pictureUrl} 
-              alt={player.nameKicker}
-              className="w-14 h-14 rounded-full object-cover flex-shrink-0"
-            />
-          ) : (
-            <div className="w-14 h-14 rounded-full bg-elevated flex items-center justify-center flex-shrink-0">
-              <span className="text-xl text-subtle">👤</span>
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-primary truncate">{player.nameKicker}</div>
-            <div className="mt-1">
-              <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
-                {positionLabels[player.position]}
-              </span>
-            </div>
+    <div className="card p-4 bg-surface border border-border">
+      <div className="flex gap-4 items-center">
+        {player.pictureUrl ? (
+          <img 
+            src={player.pictureUrl} 
+            alt={player.nameKicker}
+            className="w-14 h-14 rounded-full object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="w-14 h-14 rounded-full bg-elevated flex items-center justify-center flex-shrink-0">
+            <span className="text-xl text-subtle">👤</span>
           </div>
-          {player.teams.length > 0 && player.teams[0].logoSUrl && (
-            <img 
-              src={player.teams[0].logoSUrl} 
-              alt={player.teams[0].name}
-              className="w-14 h-14 object-contain flex-shrink-0"
-            />
-          )}
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 mt-4 text-sm">
-          <div>
-            <span className="text-subtle">Pos: </span>
-            <span className="font-medium text-foreground">
-              {player.positionTotal ? `${player.positionTotal}.` : '-'}
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-foreground truncate">{player.nameKicker}</div>
+          <div className="mt-1">
+            <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+              {positionLabels[player.position]}
             </span>
           </div>
-          <div>
-            <span className="text-subtle">Pkt: </span>
-            <span className="font-medium text-foreground">{player.points ?? '-'}</span>
-          </div>
-          <div>
-            <span className="text-subtle">Spieltag: </span>
-            <span className="font-medium text-foreground">{player.pointsLastRound ?? '-'}</span>
-          </div>
-          <div>
-            <span className="text-subtle">+-: </span>
-            {player.positionChange != null && player.positionChange !== 0 ? (
-              <span className={`font-medium ${player.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
-                {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
-              </span>
-            ) : (
-              <span className="text-subtle">-</span>
-            )}
-          </div>
-          <div>
-            <span className="text-subtle">Manager: </span>
-            <span className="font-medium text-foreground">{player.managerCount ?? 0}</span>
-          </div>
-          <div>
-            <span className="text-subtle">Preis: </span>
-            <span className="font-medium text-foreground">{formatPrice(player.prize)}</span>
-          </div>
+        </div>
+        {player.teams.length > 0 && player.teams[0].logoSUrl && (
+          <img 
+            src={player.teams[0].logoSUrl} 
+            alt={player.teams[0].name}
+            className="w-14 h-14 object-contain flex-shrink-0"
+          />
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 mt-4 text-sm">
+        <div>
+          <span className="text-subtle">Pos: </span>
+          <span className="font-medium text-foreground">
+            {player.positionTotal ? `${player.positionTotal}.` : '-'}
+          </span>
+        </div>
+        <div>
+          <span className="text-subtle">Pkt: </span>
+          <span className="font-medium text-foreground">{player.points ?? '-'}</span>
+        </div>
+        <div>
+          <span className="text-subtle">Spieltag: </span>
+          <span className="font-medium text-foreground">{player.pointsLastRound ?? '-'}</span>
+        </div>
+        <div>
+          <span className="text-subtle">+-: </span>
+          {player.positionChange != null && player.positionChange !== 0 ? (
+            <span className={`font-medium ${player.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+              {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
+            </span>
+          ) : (
+            <span className="text-subtle">-</span>
+          )}
+        </div>
+        <div>
+          <span className="text-subtle">Manager: </span>
+          <span className="font-medium text-foreground">{player.managerCount ?? 0}</span>
+        </div>
+        <div>
+          <span className="text-subtle">Preis: </span>
+          <span className="font-medium text-foreground">{formatPrice(player.prize)}</span>
         </div>
       </div>
-    </RouterLink>
+    </div>
   )
 }
 
 export default function Players() {
+  const isMobile = useIsMobile()
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set())
   const [selectedTeamId, setSelectedTeamId] = useState<number | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
-  const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
+  const [sortKey, setSortKey] = useState<SortKey>('position')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
 
   const { data: players, isLoading, error } = usePlayers()
@@ -332,7 +342,8 @@ export default function Players() {
           comparison = a.prize - b.prize
           break
         case 'position':
-          comparison = a.position.localeCompare(b.position)
+          const posOrder: Record<string, number> = { GOALKEEPER: 0, DEFENDER: 1, MIDFIELD: 2, STRIKER: 3 }
+          comparison = (posOrder[a.position] ?? 999) - (posOrder[b.position] ?? 999)
           break
       }
       return sortOrder === 'asc' ? comparison : -comparison
@@ -345,11 +356,11 @@ export default function Players() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-group text-[28px] text-primary" />
-        <h1 className="text-sm font-medium text-primary">Spieler</h1>
+        <i className="sap-icon sap-icon-group text-xl text-primary" />
+        <h1 className="text-xl font-bold text-foreground">Spieler</h1>
       </div>
 
-      <div className="bg-surface rounded-lg border border-border overflow-hidden">
+      <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
         <FilterBar
           selectedPositions={selectedPositions}
           setSelectedPositions={setSelectedPositions}
@@ -361,49 +372,50 @@ export default function Players() {
           hasFilter={hasActiveFilter}
         />
 
-        <div className="p-4">
+        <div className="flex-1 px-6 pb-6 overflow-x-auto">
 
-        <div className="overflow-x-auto hidden md:block">
+        {!isMobile && (
+        <div className="rounded-lg border border-border">
           <table className="w-full">
-            <thead className="table-header">
+            <thead className="bg-elevated sticky top-0">
               <tr>
-                <th className="px-3 py-2 text-muted text-center text-xs font-medium cursor-pointer hover:text-primary" onClick={() => handleSort('positionTotal')}>
+                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionTotal')}>
                   Pos<SortIcon column="positionTotal" />
                 </th>
-                <th className="px-3 py-2 text-muted text-center text-xs font-medium cursor-pointer hover:text-primary" onClick={() => handleSort('positionChange')}>
+                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionChange')}>
                   +-<SortIcon column="positionChange" />
                 </th>
-                <th className="px-3 py-2 text-muted text-left text-xs font-medium cursor-pointer hover:text-primary" onClick={() => handleSort('nameKicker')}>
+                <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('nameKicker')}>
                   Name<SortIcon column="nameKicker" />
                 </th>
-                <th className="px-3 py-2 text-muted text-center text-xs font-medium cursor-pointer hover:text-primary" onClick={() => handleSort('points')}>
+                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('points')}>
                   Pkt<SortIcon column="points" />
                 </th>
-                <th className="px-3 py-2 text-muted text-center text-xs font-medium cursor-pointer hover:text-primary" onClick={() => handleSort('pointsLastRound')}>
+                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('pointsLastRound')}>
                   Spieltag<SortIcon column="pointsLastRound" />
                 </th>
-                <th className="px-3 py-2 text-muted text-center text-xs font-medium cursor-pointer hover:text-primary" onClick={() => handleSort('managerCount')}>
+                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('managerCount')}>
                   Manager<SortIcon column="managerCount" />
                 </th>
-                <th className="px-3 py-2 text-muted text-right text-xs font-medium cursor-pointer hover:text-primary" onClick={() => handleSort('prize')}>
+                <th className="px-3 py-2 text-right text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('prize')}>
                   Preis<SortIcon column="prize" />
                 </th>
-                <th className="px-3 py-2 text-muted text-left text-xs font-medium cursor-pointer hover:text-primary" onClick={() => handleSort('position')}>
+                <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('position')}>
                   Position<SortIcon column="position" />
                 </th>
-                <th className="px-3 py-2 text-muted text-left text-xs font-medium">Team</th>
+                <th className="px-3 py-2 text-left text-xs text-muted font-bold border-b border-border">Team</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-surface text-sm">
               {filteredPlayers && filteredPlayers.length > 0 ? (
-                filteredPlayers.map((player, index) => (
-                  <tr key={player.id} className={`table-row hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                    <td className="px-3 py-2 text-center font-medium text-foreground">
+                filteredPlayers.map((player) => (
+                  <tr key={player.id} className="border-b border-border hover:bg-card-hover">
+                    <td className="px-3 py-2 text-center text-foreground">
                       {player.positionTotal ? `${player.positionTotal}.` : '-'}
                     </td>
                     <td className="px-3 py-2 text-center">
                       {player.positionChange != null && player.positionChange !== 0 ? (
-                        <span className={`font-medium ${player.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                        <span className={`${player.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
                           {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
                         </span>
                       ) : (
@@ -411,21 +423,11 @@ export default function Players() {
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-foreground link">
-                        {player.pictureUrl && (
-                          <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3 flex-shrink-0" />
-                        )}
-                        <div>
-                          <div className="font-medium text-primary">{player.nameKicker}</div>
-                          {player.firstName && player.lastName && (
-                            <div className="text-sm text-subtle">
-                              {player.firstName} {player.lastName}
-                            </div>
-                          )}
-                        </div>
+                      <RouterLink to={`/players/${player.id}`} className="hover:text-accent-hover link text-primary">
+                        {player.nameKicker}
                       </RouterLink>
                     </td>
-                    <td className="px-3 py-2 text-center font-medium text-foreground">
+                    <td className="px-3 py-2 text-center text-foreground">
                       {player.points ?? '-'}
                     </td>
                     <td className="px-3 py-2 text-center text-muted">
@@ -433,15 +435,15 @@ export default function Players() {
                     </td>
                     <td className="px-3 py-2 text-center">
                       <RouterLink to={`/players/${player.id}`}>
-                        <span 
+                        <span
                           className={`${player.managerCount && player.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded cursor-pointer hover:opacity-80`}
                         >
                           {player.managerCount ?? 0}
                         </span>
                       </RouterLink>
                     </td>
-                    <td className="px-3 py-2 text-right font-medium text-foreground">
-                      {player.prize.toLocaleString()} €
+                    <td className="px-3 py-2 text-right text-foreground">
+                      {player.prize ? player.prize.toLocaleString() : '-'} €
                     </td>
                     <td className="px-3 py-2">
                       <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
@@ -450,20 +452,15 @@ export default function Players() {
                     </td>
                     <td className="px-3 py-2 text-muted">
                       {player.teams.length > 0 ? (
-                        <span className="flex items-center gap-1 flex-wrap">
-                          {player.teams.map((team, index) => (
-                            <span key={team.id} className="flex items-center gap-1">
-                              {index > 0 && <span className="text-subtle">,</span>}
-                              {team.logoSUrl && (
-                                <img 
-                                  src={team.logoSUrl} 
-                                  alt={team.name} 
-                                  className="w-5 h-5 object-contain flex-shrink-0"
-                                />
-                              )}
-                              <span className="font-semibold text-foreground">{team.name}</span>
-                            </span>
-                          ))}
+                        <span className="flex items-center gap-2">
+                          {player.teams[0].logoSUrl && (
+                            <img
+                              src={player.teams[0].logoSUrl}
+                              alt={player.teams[0].name}
+                              className="w-5 h-5 object-contain flex-shrink-0"
+                            />
+                          )}
+                          <span className="text-foreground">{player.teams[0].name}</span>
                         </span>
                       ) : '-'}
                     </td>
@@ -479,8 +476,10 @@ export default function Players() {
             </tbody>
           </table>
         </div>
+        )}
 
-        <div className="md:hidden grid gap-4 mt-4">
+        {isMobile && (
+        <div className="grid gap-4 mt-4">
           {filteredPlayers && filteredPlayers.length > 0 ? (
             filteredPlayers.map((player) => (
               <PlayerCard key={player.id} player={player} />
@@ -491,6 +490,7 @@ export default function Players() {
             </div>
           )}
         </div>
+        )}
 
         {filteredPlayers && (
           <div className="mt-4 text-sm text-subtle">

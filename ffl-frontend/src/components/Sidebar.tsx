@@ -6,6 +6,12 @@ import { useFeedback } from '../context/FeedbackContext'
 
 const SIDEBAR_COLLAPSED_KEY = 'ffl-sidebar-collapsed'
 
+const env = import.meta.env.VITE_APP_ENV
+const buildDate = import.meta.env.VITE_BUILD_DATE
+const isProd = env === 'PROD'
+const dateParts = buildDate.split('-')
+const formattedDate = dateParts[2] + '.' + dateParts[1] + '.' + dateParts[0].slice(-2)
+
 interface SidebarProps {
   mobileOpen: boolean
   onCloseMobile: () => void
@@ -41,13 +47,17 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
     <div className="flex flex-col h-full">
       <div className={`px-4 py-4 border-b border-border ${collapsed ? 'flex justify-center' : ''}`}>
         {collapsed ? (
-          <img src="/menubar.png" alt="FFL" className="w-[90px] h-[90px] rounded object-contain" />
+          <div className="flex flex-col items-center">
+            <img src="/menubar.png" alt="FFL" className="w-[90px] h-[90px] rounded object-contain" />
+            <span className="text-[9px] text-warning mt-1">V{formattedDate}{isProd ? '' : ' (Test)'}</span>
+          </div>
         ) : (
           <div className="flex items-center gap-3">
             <img src="/menubar.png" alt="FFL" className="w-[90px] h-[90px] rounded object-contain" />
             <div className="flex flex-col min-w-0 gap-1">
               <span className="text-lg font-bold text-primary tracking-wide truncate">FFL</span>
               <span className="text-xs text-subtle tracking-widest">FANTASY FOOTBALL LEAGUE</span>
+              <span className="text-[10px] text-[#c9a66b]">V{formattedDate}{isProd ? '' : ' (Test)'}</span>
             </div>
           </div>
         )}

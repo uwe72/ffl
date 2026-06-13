@@ -277,13 +277,7 @@ export default function Home() {
         <>
           {currentPlayers && currentPlayers.length > 0 && (
             <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col mb-8">
-              <div className="px-6 pt-6 pb-2 flex justify-between items-center">
-                <h2 className="text-base font-bold text-foreground">
-                  {(() => {
-                    const totalPoints = currentPlayers?.reduce((sum, p) => sum + (p.pointsLastRound ?? 0), 0) ?? 0
-                    return `${totalPoints} Punkte`
-                  })()}
-                </h2>
+              <div className="px-6 pt-6 pb-2">
                 <label className="flex items-center gap-2 cursor-pointer text-sm text-[#a0aec0]">
                   <input
                     type="checkbox"
@@ -429,12 +423,6 @@ export default function Home() {
 
           <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
             <div className="flex items-center gap-2 px-6 py-3 flex-wrap border-b border-border bg-elevated/50">
-              <h2 className="text-base font-bold text-foreground whitespace-nowrap">
-                {displayManager?.positionTotal ? `${displayManager.positionTotal}. Platz` : 'Platzierung'}
-              </h2>
-
-              <div className="flex-1" />
-
               <div className="relative min-w-[140px] max-w-[220px]">
                 <i className="sap-icon sap-icon-search absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-subtle" />
                 <input
