@@ -42,7 +42,6 @@ public class User {
     private UserRole role = UserRole.NORMAL;
 
     @Lob
-    @Column(columnDefinition = "BLOB")
     private byte[] avatar;
 
     private String avatarContentType;
