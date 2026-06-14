@@ -204,7 +204,7 @@ export default function PlayerDetail() {
                 <span className="text-3xl text-subtle">👤</span>
               </div>
             )}
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0">
               <h1 className="text-xl font-bold text-foreground">{player.nameKicker}</h1>
               {player.firstName && player.lastName && (
                 <p className="text-sm text-muted mt-0.5">
