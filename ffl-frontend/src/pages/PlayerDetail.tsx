@@ -15,6 +15,15 @@ const paymentStateLabels = {
   NOT_PAID: 'Nicht bezahlt'
 }
 
+function formatPrice(price: number | undefined): string {
+  if (!price) return '- €'
+  if (price >= 1_000_000) {
+    const millions = price / 1_000_000
+    return `${millions % 1 === 0 ? millions : millions.toFixed(1)}M €`
+  }
+  return `${Math.round(price / 1_000)}K €`
+}
+
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
@@ -227,21 +236,33 @@ export default function PlayerDetail() {
           </div>
 
           <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-3 bg-elevated border border-border rounded-lg">
-              <p className="text-xs text-subtle">Gesamtposition</p>
-              <p className="text-lg font-bold text-foreground mt-1">{player.positionTotal ? `${player.positionTotal}.` : '-'}</p>
+            <div className="p-3 bg-elevated border border-border rounded-lg flex items-center gap-3">
+              <i className="sap-icon sap-icon-ranking text-2xl text-primary" />
+              <div>
+                <p className="text-xs text-subtle">Gesamtposition</p>
+                <p className="text-lg font-bold text-foreground">{player.positionTotal ? `${player.positionTotal}.` : '-'}</p>
+              </div>
             </div>
-            <div className="p-3 bg-elevated border border-border rounded-lg">
-              <p className="text-xs text-subtle">Punkte (Saison)</p>
-              <p className="text-lg font-bold text-foreground mt-1">{player.points ?? '-'}</p>
+            <div className="p-3 bg-elevated border border-border rounded-lg flex items-center gap-3">
+              <i className="sap-icon sap-icon-horizontal-bar-chart text-2xl text-primary" />
+              <div>
+                <p className="text-xs text-subtle">Punkte (Saison)</p>
+                <p className="text-lg font-bold text-foreground">{player.points ?? '-'}</p>
+              </div>
             </div>
-            <div className="p-3 bg-elevated border border-border rounded-lg">
-              <p className="text-xs text-subtle">Punkte (Spieltag)</p>
-              <p className="text-lg font-bold text-foreground mt-1">{player.pointsLastRound ?? '-'}</p>
+            <div className="p-3 bg-elevated border border-border rounded-lg flex items-center gap-3">
+              <i className="sap-icon sap-icon-calendar text-2xl text-primary" />
+              <div>
+                <p className="text-xs text-subtle">Punkte (Spieltag)</p>
+                <p className="text-lg font-bold text-foreground">{player.pointsLastRound ?? '-'}</p>
+              </div>
             </div>
-            <div className="p-3 bg-elevated border border-border rounded-lg">
-              <p className="text-xs text-subtle">Marktwert</p>
-              <p className="text-lg font-bold text-foreground mt-1">{player.prize ? player.prize.toLocaleString() : '-'} €</p>
+            <div className="p-3 bg-elevated border border-border rounded-lg flex items-center gap-3">
+              <i className="sap-icon sap-icon-money-bills text-2xl text-primary" />
+              <div>
+                <p className="text-xs text-subtle">Marktwert</p>
+                <p className="text-lg font-bold text-foreground">{formatPrice(player.prize)}</p>
+              </div>
             </div>
           </div>
 
