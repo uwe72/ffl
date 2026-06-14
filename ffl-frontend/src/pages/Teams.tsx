@@ -10,25 +10,25 @@ export default function Teams() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-shield text-[28px] text-primary" />
-        <h1 className="text-sm font-medium text-primary">Teams</h1>
+        <i className="sap-icon sap-icon-shield text-xl text-primary" />
+        <h1 className="text-xl font-bold text-foreground">Teams</h1>
       </div>
       {teams && teams.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {teams.map(team => (
-            <div key={team.id} className="card p-6 bg-surface border border-border hover:border-primary hover:bg-card-hover transition-all">
+            <div key={team.id} className="card p-4 bg-surface border border-border hover:border-primary hover:bg-card-hover transition-all">
               <RouterLink to={`/teams/${team.id}`} className="block link">
                 {team.logoXxlUrl && (
                   <img 
                     src={team.logoXxlUrl} 
                     alt={team.name} 
-                    className="w-24 h-24 mb-4 object-contain"
+                    className="w-24 h-24 mb-3 object-contain"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none'
                     }}
                   />
                 )}
-                <h2 className="text-lg font-semibold text-foreground">{team.name}</h2>
+                <h2 className="text-base font-semibold text-foreground">{team.name}</h2>
                 {team.shortName && (
                   <p className="text-muted">{team.shortName}</p>
                 )}

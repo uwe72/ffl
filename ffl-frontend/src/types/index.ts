@@ -206,6 +206,8 @@ export interface Manager {
   lastName?: string
   email?: string
   login?: string
+  userId?: number
+  avatarUrl?: string
   teamValue?: number
   paymentState: string
   description?: string
@@ -257,6 +259,7 @@ export interface User {
   role: UserRole
   managers?: ManagerInfo[]
   mailTheme?: MailTheme
+  avatarUrl?: string
 }
 
 export type MailTheme = 'DARKMODE' | 'LIGHTMODE'
@@ -285,13 +288,14 @@ export interface AuthResponse {
 }
 
 export interface AuthContextType {
-  user: { login: string; role: string } | null
+  user: { id?: number; login: string; role: string; avatarUrl?: string } | null
   isAuthenticated: boolean
   isLoading: boolean
   login: (credentials: LoginRequest) => Promise<void>
   register: (data: RegisterRequest) => Promise<void>
   logout: () => void
   refreshAccessToken: () => Promise<boolean>
+  updateAvatarUrl: (url: string | null) => void
 }
 
 export interface ManagerInGroup {

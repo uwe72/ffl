@@ -9,9 +9,12 @@ import de.ffl.dto.AuthResponse;
 import de.ffl.dto.LoginRequest;
 import de.ffl.dto.RefreshRequest;
 import de.ffl.dto.RegisterRequest;
+import de.ffl.dto.UserDto;
 import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.UserRepository;
+import de.ffl.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -32,17 +36,20 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final ManagerRepository managerRepository;
+    private final UserService userService;
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           JwtTokenProvider tokenProvider,
-                          ManagerRepository managerRepository) {
+                          ManagerRepository managerRepository,
+                          UserService userService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
         this.managerRepository = managerRepository;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -113,6 +120,10 @@ public class AuthController {
             body.put("mailTheme", manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
         }
         
+        if (user.getAvatar() != null && user.getAvatar().length > 0) {
+            body.put("avatarUrl", "/api/users/" + user.getId() + "/avatar");
+        }
+        
         return ResponseEntity.ok(body);
     }
 
@@ -160,7 +171,40 @@ public class AuthController {
             body.put("mailTheme", manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
         }
         
+        if (user.getAvatar() != null && user.getAvatar().length > 0) {
+            body.put("avatarUrl", "/api/users/" + user.getId() + "/avatar");
+        }
+        
         return ResponseEntity.ok(body);
+    }
+
+    @PostMapping("/me/avatar")
+    public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return ResponseEntity.status(401).build();
+        }
+        try {
+            UserDto updated = userService.updateAvatar(auth.getName(), file);
+            if (updated == null) {
+                return ResponseEntity.status(401).build();
+            }
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Fehler beim Hochladen des Bildes");
+        }
+    }
+
+    @DeleteMapping("/me/avatar")
+    public ResponseEntity<?> deleteAvatar() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return ResponseEntity.status(401).build();
+        }
+        userService.removeAvatar(auth.getName());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/refresh")

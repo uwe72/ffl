@@ -87,7 +87,7 @@ function PrizeDistributionChart({ prizeDistributionLog }: { prizeDistributionLog
             tick={{ fill: '#c5c5c5', fontSize: 12 }}
             label={{ value: 'Preisgeld (€)', angle: -90, position: 'insideLeft', fill: '#c5c5c5' }}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
           <Bar dataKey="prize" radius={[4, 4, 0, 0]}>
             <LabelList 
               dataKey="prizeLabel" 

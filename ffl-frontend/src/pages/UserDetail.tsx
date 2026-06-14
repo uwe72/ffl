@@ -82,8 +82,9 @@ export default function UserDetail() {
 
   return (
     <div>
-      <RouterLink to="/users" className="text-primary hover:text-primary-hover mb-4 inline-block link">
-        &larr; Zurück zur Übersicht
+      <RouterLink to="/users" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+        <i className="sap-icon sap-icon-nav-back text-base" />
+        Zurück zur Übersicht
       </RouterLink>
 
       <div className="flex items-center gap-3 mb-6">

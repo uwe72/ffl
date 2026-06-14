@@ -194,46 +194,42 @@ export default function PlayerDetail() {
 
   return (
     <div>
+      <RouterLink to="/players" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+        <i className="sap-icon sap-icon-nav-back text-base" />
+        Zurück zur Übersicht
+      </RouterLink>
       <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
         <div className="p-6">
-          <div className="flex items-start gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] md:grid-rows-[auto_auto] gap-3 md:gap-x-6 md:gap-y-3">
             {player.pictureUrl ? (
-              <img src={player.pictureUrl} alt={player.nameKicker} className="w-24 h-24 rounded-full object-cover flex-shrink-0" />
+              <img src={player.pictureUrl} alt={player.nameKicker} className="w-24 h-24 rounded-full object-cover flex-shrink-0 row-span-1 md:row-span-2 justify-self-center md:justify-self-start" />
             ) : (
-              <div className="w-24 h-24 rounded-full bg-elevated flex items-center justify-center flex-shrink-0">
+              <div className="w-24 h-24 rounded-full bg-elevated flex items-center justify-center flex-shrink-0 row-span-1 md:row-span-2 justify-self-center md:justify-self-start">
                 <span className="text-3xl text-subtle">👤</span>
               </div>
             )}
-            <div className="min-w-0">
+            <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-xl font-bold text-foreground">{player.nameKicker}</h1>
               {player.firstName && player.lastName && (
-                <p className="text-sm text-muted mt-0.5">
-                  {player.firstName} {player.lastName}
-                </p>
+                <span className="text-sm text-muted">({player.firstName} {player.lastName})</span>
               )}
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
-                  {positionLabels[player.position]}
-                </span>
-                {player.teams.map((team) => (
-                  <RouterLink
-                    key={team.id}
-                    to={`/teams/${team.id}`}
-                    className="text-xs font-medium px-2 py-0.5 rounded bg-elevated text-foreground hover:bg-default flex items-center gap-1"
-                  >
-                    {team.logoSUrl && (
-                      <img
-                        src={team.logoSUrl}
-                        alt={team.name}
-                        className="w-4 h-4 object-contain"
-                      />
-                    )}
-                    {team.name}
-                  </RouterLink>
-                ))}
-              </div>
+              {player.teams.map((team) => (
+                <RouterLink
+                  key={team.id}
+                  to={`/teams/${team.id}`}
+                  className="text-xs font-medium px-2 py-0.5 rounded bg-elevated text-foreground hover:bg-default flex items-center gap-1"
+                >
+                  {team.logoSUrl && (
+                    <img src={team.logoSUrl} alt={team.name} className="w-4 h-4 object-contain" />
+                  )}
+                  {team.name}
+                </RouterLink>
+              ))}
+              <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+                {positionLabels[player.position]}
+              </span>
             </div>
-            <div className="hidden md:flex items-start gap-2 flex-shrink-0">
+            <div className="grid grid-cols-2 gap-2 md:flex md:items-start md:gap-2">
               <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
                 <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-badge text-base text-primary" />
@@ -269,45 +265,6 @@ export default function PlayerDetail() {
                   <p className="text-[10px] text-muted leading-tight">Preis</p>
                   <p className="text-sm font-bold text-foreground leading-tight">{formatPrice(player.prize)}</p>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="md:hidden mt-4 grid grid-cols-2 gap-2">
-            <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
-              <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <i className="sap-icon sap-icon-badge text-base text-primary" />
-              </div>
-              <div>
-                <p className="text-[10px] text-muted leading-tight">Position</p>
-                <p className="text-sm font-bold text-foreground leading-tight">{player.positionTotal ? `${player.positionTotal}.` : '-'}</p>
-              </div>
-            </div>
-            <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
-              <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <i className="sap-icon sap-icon-horizontal-bar-chart text-base text-primary" />
-              </div>
-              <div>
-                <p className="text-[10px] text-muted leading-tight">Pkt. Saison</p>
-                <p className="text-sm font-bold text-foreground leading-tight">{player.points ?? '-'}</p>
-              </div>
-            </div>
-            <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
-              <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <i className="sap-icon sap-icon-calendar text-base text-primary" />
-              </div>
-              <div>
-                <p className="text-[10px] text-muted leading-tight">Pkt. Spieltag</p>
-                <p className="text-sm font-bold text-foreground leading-tight">{player.pointsLastRound ?? '-'}</p>
-              </div>
-            </div>
-            <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
-              <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <i className="sap-icon sap-icon-money-bills text-base text-primary" />
-              </div>
-              <div>
-                <p className="text-[10px] text-muted leading-tight">Preis</p>
-                <p className="text-sm font-bold text-foreground leading-tight">{formatPrice(player.prize)}</p>
               </div>
             </div>
           </div>
@@ -371,7 +328,7 @@ export default function PlayerDetail() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#2a3a4e" />
                   <XAxis dataKey="name" stroke="#c5c5c5" />
                   <YAxis stroke="#c5c5c5" />
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
                   <Bar dataKey="punkte" fill="#0a6ed1" />
                 </BarChart>
               </ResponsiveContainer>

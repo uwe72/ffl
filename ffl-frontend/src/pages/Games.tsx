@@ -7,10 +7,172 @@ import FormationImportDialog from '../components/FormationImportDialog'
 import MatchdayMailSendDialog from '../components/MatchdayMailSendDialog'
 import Button from '../components/Button'
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+  return isMobile
+}
+
 type SortKey = 'roundNumber' | 'name' | 'hostName' | 'visitorName' | 'goalHost' | 'goalVisitor'
 type SortOrder = 'asc' | 'desc'
 
+interface Game {
+  id: number
+  name?: string
+  roundNumber?: number
+  hostName?: string
+  hostShortName?: string
+  hostLogoUrl?: string
+  visitorName?: string
+  visitorShortName?: string
+  visitorLogoUrl?: string
+  goalHost?: number
+  goalVisitor?: number
+  formationExtern?: string
+}
+
+function GameCard({ game, onImport }: { game: Game; onImport: (id: number) => void }) {
+  return (
+    <div className="card p-4 bg-surface border border-border">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <RouterLink
+            to={`/games/${game.id}`}
+            className="font-semibold text-primary hover:text-accent-hover link"
+          >
+            {game.name || '-'}
+          </RouterLink>
+          <span className="text-sm text-muted">Spieltag {game.roundNumber || '-'}</span>
+        </div>
+        
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 flex-1">
+            {game.hostLogoUrl && (
+              <img 
+                src={game.hostLogoUrl} 
+                alt={game.hostName}
+                className="h-10 w-10 object-contain flex-shrink-0"
+              />
+            )}
+            <div className="min-w-0">
+              <div className="font-medium truncate">{game.hostName || '-'}</div>
+              {game.hostShortName && (
+                <div className="text-sm text-subtle">{game.hostShortName}</div>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 px-4 py-2 rounded bg-elevated">
+            <span className="text-foreground font-bold text-lg">{game.goalHost ?? '-'}</span>
+            <span className="text-subtle">:</span>
+            <span className="text-foreground font-bold text-lg">{game.goalVisitor ?? '-'}</span>
+          </div>
+          
+          <div className="flex items-center gap-3 flex-1 justify-end">
+            <div className="min-w-0 text-right">
+              <div className="font-medium truncate">{game.visitorName || '-'}</div>
+              {game.visitorShortName && (
+                <div className="text-sm text-subtle">{game.visitorShortName}</div>
+              )}
+            </div>
+            {game.visitorLogoUrl && (
+              <img 
+                src={game.visitorLogoUrl} 
+                alt={game.visitorName}
+                className="h-10 w-10 object-contain flex-shrink-0"
+              />
+            )}
+          </div>
+        </div>
+        
+        {game.goalHost == null && game.goalVisitor == null && (
+          <div className="flex justify-end">
+            <Button
+              variant="emphasized"
+              size="sm"
+              onClick={() => onImport(game.id)}
+            >
+              Import
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function FilterBar({ 
+  selectedRound, 
+  setSelectedRound, 
+  rounds, 
+  onMailSend,
+  mailDisabled 
+}: { 
+  selectedRound: number | null
+  setSelectedRound: (r: number | null) => void
+  rounds: number[]
+  onMailSend: () => void
+  mailDisabled: boolean
+}) {
+  return (
+    <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap">
+      <div className="flex items-center gap-2">
+        <label className="text-muted text-sm">Spieltag:</label>
+        <button
+          onClick={() => {
+            const currentIndex = rounds.indexOf(selectedRound!)
+            if (currentIndex > 0) setSelectedRound(rounds[currentIndex - 1])
+          }}
+          disabled={!selectedRound || rounds.indexOf(selectedRound) <= 0}
+          className="p-1.5 rounded bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
+          title="Vorheriger Spieltag"
+        >
+          <i className="sap-icon sap-icon-navigation-left-arrow text-[14px]" />
+        </button>
+        <select
+          value={selectedRound || ''}
+          onChange={(e) => setSelectedRound(e.target.value ? Number(e.target.value) : null)}
+          className="input-field border border-border rounded px-3 py-1.5 text-sm focus:outline-none focus:border-accent"
+        >
+          {rounds.map(round => (
+            <option key={round} value={round}>
+              Spieltag {round}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={() => {
+            const currentIndex = rounds.indexOf(selectedRound!)
+            if (currentIndex < rounds.length - 1) setSelectedRound(rounds[currentIndex + 1])
+          }}
+          disabled={!selectedRound || rounds.indexOf(selectedRound) >= rounds.length - 1}
+          className="p-1.5 rounded bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
+          title="Nächster Spieltag"
+        >
+          <i className="sap-icon sap-icon-navigation-right-arrow text-[14px]" />
+        </button>
+      </div>
+
+      <Button
+        variant="emphasized"
+        size="compact"
+        onClick={onMailSend}
+        disabled={mailDisabled}
+      >
+        <i className="sap-icon sap-icon-email text-[14px] mr-1.5" />
+        Spieltagsmail
+      </Button>
+    </div>
+  )
+}
+
 export default function Games() {
+  const isMobile = useIsMobile()
   const { data: games, isLoading: gamesLoading, error } = useGames()
   const { data: currentSeason } = useCurrentSeason()
   const [sortKey, setSortKey] = useState<SortKey>('roundNumber')
@@ -45,13 +207,9 @@ export default function Games() {
     }
   }
 
-  const getSortIcon = (key: SortKey) => {
-    if (sortKey !== key) return '⇅'
-    return sortOrder === 'asc' ? '↑' : '↓'
-  }
-
-  const getSortIconColor = (key: SortKey) => {
-    return sortKey === key ? 'text-accent' : 'text-subtle'
+  const SortIcon = ({ column }: { column: SortKey }) => {
+    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
+    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
   const filteredGames = useMemo(() => {
@@ -91,159 +249,153 @@ export default function Games() {
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="flex items-center gap-3">
-          <i className="sap-icon sap-icon-calendar text-[28px] text-primary" />
-          <h1 className="text-sm font-medium text-primary">Spiele</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <i className="sap-icon sap-icon-calendar text-xl text-primary" />
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Spiele</h1>
         </div>
-        {currentSeason && (
-          <p className="text-sm text-muted mt-1.5">
-            Saison {currentSeason.name}
-          </p>
-        )}
-      </div>
-      
-      <div className="mb-4 flex items-center gap-2">
-        <label className="text-muted text-sm">Spieltag:</label>
-        <button
-          onClick={() => {
-            const currentIndex = rounds.indexOf(selectedRound!)
-            if (currentIndex > 0) setSelectedRound(rounds[currentIndex - 1])
-          }}
-          disabled={!selectedRound || rounds.indexOf(selectedRound) <= 0}
-          className="p-2 rounded-lg bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
-          title="Vorheriger Spieltag"
-        >
-          ←
-        </button>
-        <select
-          value={selectedRound || ''}
-          onChange={(e) => setSelectedRound(e.target.value ? Number(e.target.value) : null)}
-          className="input-field border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-accent"
-        >
-          {rounds.map(round => (
-            <option key={round} value={round}>
-              Spieltag {round}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={() => {
-            const currentIndex = rounds.indexOf(selectedRound!)
-            if (currentIndex < rounds.length - 1) setSelectedRound(rounds[currentIndex + 1])
-          }}
-          disabled={!selectedRound || rounds.indexOf(selectedRound) >= rounds.length - 1}
-          className="p-2 rounded-lg bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
-          title="Nächster Spieltag"
-        >
-          →
-        </button>
-        <Button
-          variant="emphasized"
-          onClick={() => setMailDialogOpen(true)}
-          disabled={!selectedRound || !currentSeason?.id}
-        >
-          Spieltagsmail
-        </Button>
       </div>
 
-      {sortedGames.length > 0 ? (
-        <div className="bg-surface rounded-lg border border-border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-elevated">
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-muted">
-                    Name
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left text-sm font-semibold text-muted cursor-pointer hover:text-primary transition-colors"
-                    onClick={() => handleSort('hostName')}
-                  >
-                    Heimmannschaft <span className={getSortIconColor('hostName')}>{getSortIcon('hostName')}</span>
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-muted">
-                    Ergebnis
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left text-sm font-semibold text-muted cursor-pointer hover:text-primary transition-colors"
-                    onClick={() => handleSort('visitorName')}
-                  >
-                    Gastmannschaft <span className={getSortIconColor('visitorName')}>{getSortIcon('visitorName')}</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedGames.map((game, index) => (
-                  <tr key={game.id} className={`border-b border-border hover:bg-card-hover transition-colors ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                    <td className="px-4 py-3 text-foreground">
-                      <RouterLink to={`/games/${game.id}`} className="link hover:text-primary">
-                        {game.name || '-'}
-                      </RouterLink>
-                    </td>
-                    <td className="px-4 py-3 text-foreground">
-                      <div className="flex items-center gap-3">
-                        {game.hostLogoUrl && (
-                          <img 
-                            src={game.hostLogoUrl} 
-                            alt={game.hostName}
-                            className="h-8 w-8 object-contain flex-shrink-0"
-                          />
-                        )}
-                        <div>
-                          <div className="font-medium">{game.hostName || '-'}</div>
-                          {game.hostShortName && (
-                            <div className="text-sm text-subtle">{game.hostShortName}</div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded bg-elevated">
-                          <span className="text-foreground font-semibold">{game.goalHost ?? '-'}</span>
-                          <span className="text-subtle">:</span>
-                          <span className="text-foreground font-semibold">{game.goalVisitor ?? '-'}</span>
-                        </span>
-                        {game.goalHost == null && game.goalVisitor == null && (
-                          <Button
-                            variant="emphasized"
-                            size="sm"
-                            onClick={() => setImportGameId(game.id)}
-                          >
-                            Import
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-foreground">
-                      <div className="flex items-center gap-3">
-                        {game.visitorLogoUrl && (
-                          <img 
-                            src={game.visitorLogoUrl} 
-                            alt={game.visitorName}
-                            className="h-8 w-8 object-contain flex-shrink-0"
-                          />
-                        )}
-                        <div>
-                          <div className="font-medium">{game.visitorName || '-'}</div>
-                          {game.visitorShortName && (
-                            <div className="text-sm text-subtle">{game.visitorShortName}</div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
+      <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
+        <FilterBar
+          selectedRound={selectedRound}
+          setSelectedRound={setSelectedRound}
+          rounds={rounds}
+          onMailSend={() => setMailDialogOpen(true)}
+          mailDisabled={!selectedRound || !currentSeason?.id}
+        />
+
+        <div className="flex-1 px-6 pb-6 overflow-x-auto">
+          {!isMobile && (
+            <div className="rounded-lg border border-border">
+              <table className="w-full">
+                <thead className="bg-elevated sticky top-0">
+                  <tr>
+                    <th
+                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                      onClick={() => handleSort('name')}
+                    >
+                      Name<SortIcon column="name" />
+                    </th>
+                    <th
+                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                      onClick={() => handleSort('hostName')}
+                    >
+                      Heimmannschaft<SortIcon column="hostName" />
+                    </th>
+                    <th
+                      className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                      onClick={() => handleSort('goalHost')}
+                    >
+                      Ergebnis<SortIcon column="goalHost" />
+                    </th>
+                    <th
+                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                      onClick={() => handleSort('visitorName')}
+                    >
+                      Gastmannschaft<SortIcon column="visitorName" />
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="bg-surface text-sm">
+                  {sortedGames.length > 0 ? (
+                    sortedGames.map((game, index) => (
+                      <tr key={game.id} className={`border-b border-border hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                        <td className="px-3 py-2">
+                          <RouterLink
+                            to={`/games/${game.id}`}
+                            className="hover:text-accent-hover link text-primary"
+                          >
+                            {game.name || '-'}
+                          </RouterLink>
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-3">
+                            {game.hostLogoUrl && (
+                              <img 
+                                src={game.hostLogoUrl} 
+                                alt={game.hostName}
+                                className="h-8 w-8 object-contain flex-shrink-0"
+                              />
+                            )}
+                            <div>
+                              <div className="font-medium">{game.hostName || '-'}</div>
+                              {game.hostShortName && (
+                                <div className="text-sm text-subtle">{game.hostShortName}</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded bg-elevated">
+                              <span className="text-foreground font-semibold">{game.goalHost ?? '-'}</span>
+                              <span className="text-subtle">:</span>
+                              <span className="text-foreground font-semibold">{game.goalVisitor ?? '-'}</span>
+                            </span>
+                            {game.goalHost == null && game.goalVisitor == null && (
+                              <Button
+                                variant="emphasized"
+                                size="sm"
+                                onClick={() => setImportGameId(game.id)}
+                              >
+                                Import
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-3">
+                            {game.visitorLogoUrl && (
+                              <img 
+                                src={game.visitorLogoUrl} 
+                                alt={game.visitorName}
+                                className="h-8 w-8 object-contain flex-shrink-0"
+                              />
+                            )}
+                            <div>
+                              <div className="font-medium">{game.visitorName || '-'}</div>
+                              {game.visitorShortName && (
+                                <div className="text-sm text-subtle">{game.visitorShortName}</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="text-center text-subtle py-8">
+                        Keine Spiele gefunden
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {isMobile && (
+            <div className="grid gap-4 mt-4">
+              {sortedGames.length > 0 ? (
+                sortedGames.map((game) => (
+                  <GameCard key={game.id} game={game} onImport={setImportGameId} />
+                ))
+              ) : (
+                <div className="text-center text-subtle py-8">
+                  Keine Spiele gefunden
+                </div>
+              )}
+            </div>
+          )}
+
+          {sortedGames.length > 0 && (
+            <div className="mt-4 text-sm text-subtle">
+              {sortedGames.length} von {games?.length || 0} Spielen
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="text-center py-8 text-subtle">
-          Keine Spiele gefunden
-        </div>
-      )}
+      </div>
 
       <FormationImportDialog
         isOpen={importGameId !== null}

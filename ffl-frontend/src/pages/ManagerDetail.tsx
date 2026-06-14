@@ -1,8 +1,10 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { useManager, useManagerRoundDetails, useManagerGroups } from '../hooks/useManagers'
 import { useManagerGroupsWithStats } from '../hooks/useManagerGroups'
+import { useAuth } from '../context/AuthContext'
+import { useAvatar, useUploadAvatar } from '../hooks/useAvatar'
 import { positionLabels, positionColors } from './Players'
 import Badge from '../components/Badge'
 import type { Player, ManagerGroup, RulePoint } from '../types'
@@ -35,10 +37,10 @@ const positionOrder: Record<string, number> = {
 type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position' | 'team'
 type SortOrder = 'asc' | 'desc'
 
-function PlayerRow({ player, index }: { player: Player; index: number }) {
+function PlayerRow({ player }: { player: Player }) {
   const currentTeam = player.teams[player.teams.length - 1]
   return (
-    <tr className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+    <tr className="border-b border-border hover:bg-card-hover">
       <td className="px-3 py-2 text-center font-medium text-foreground">
         {player.positionTotal ? `${player.positionTotal}.` : '-'}
       </td>
@@ -165,70 +167,70 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
 
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-semibold text-foreground mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-3">{title}</h2>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full">
-          <thead className="bg-surface">
+          <thead className="bg-elevated sticky top-0">
             <tr>
               <th 
-                className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('positionTotal')}
               >
                 Pos<SortIcon column="positionTotal" />
               </th>
               <th 
-                className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('positionChange')}
               >
                 +-<SortIcon column="positionChange" />
               </th>
               <th 
-                className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('nameKicker')}
               >
                 Name<SortIcon column="nameKicker" />
               </th>
               <th 
-                className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('points')}
               >
                 Pkt<SortIcon column="points" />
               </th>
               <th 
-                className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('pointsLastRound')}
               >
                 Spieltag<SortIcon column="pointsLastRound" />
               </th>
               <th 
-                className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('managerCount')}
               >
                 Manager<SortIcon column="managerCount" />
               </th>
               <th 
-                className="px-3 py-2 text-right text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-right text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('prize')}
               >
                 Preis<SortIcon column="prize" />
               </th>
               <th 
-                className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('position')}
               >
                 Position<SortIcon column="position" />
               </th>
               <th 
-                className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('team')}
               >
                 Team<SortIcon column="team" />
               </th>
             </tr>
           </thead>
-          <tbody className="bg-surface">
-            {sortedPlayers.map((player, index) => (
-              <PlayerRow key={player.id} player={player} index={index} />
+          <tbody className="bg-surface text-sm">
+            {sortedPlayers.map((player) => (
+              <PlayerRow key={player.id} player={player} />
             ))}
           </tbody>
         </table>
@@ -283,49 +285,49 @@ function ManagerGroupTable({ group, currentManagerId }: { group: ManagerGroup; c
 
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-semibold text-foreground mb-4">{group.name}</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-3">{group.name}</h2>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full">
-          <thead className="bg-surface">
+          <thead className="bg-elevated sticky top-0">
             <tr>
               <th 
-                className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('position')}
               >
                 Pos<SortIcon column="position" />
               </th>
               <th 
-                className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('playerName')}
               >
                 Kürzel<SortIcon column="playerName" />
               </th>
               <th 
-                className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('firstName')}
               >
                 Vorname<SortIcon column="firstName" />
               </th>
               <th 
-                className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('lastName')}
               >
                 Nachname<SortIcon column="lastName" />
               </th>
               <th 
-                className="px-3 py-2 text-right text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-right text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('points')}
               >
                 Pkt<SortIcon column="points" />
               </th>
-              <th className="px-3 py-2 text-right text-muted font-medium border-b border-border">Letzter Spieltag</th>
+              <th className="px-3 py-2 text-right text-xs text-muted font-bold border-b border-border">Letzter Spieltag</th>
             </tr>
           </thead>
-          <tbody className="bg-surface">
-            {sortedManagers.map((m, index) => (
+          <tbody className="bg-surface text-sm">
+            {sortedManagers.map((m) => (
               <tr 
                 key={m.id} 
-                className={`hover:bg-card-hover border-b border-border ${m.id === currentManagerId ? 'bg-default' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
+                className={`hover:bg-card-hover border-b border-border ${m.id === currentManagerId ? 'bg-default' : ''}`}
               >
                 <td className="px-3 py-2 text-foreground font-medium">{m.positionTotal ? `${m.positionTotal}.` : '-'}</td>
                 <td className="px-3 py-2">
@@ -355,6 +357,12 @@ export default function ManagerDetail() {
   const { data: roundDetails } = useManagerRoundDetails(Number(id))
   const { data: managerGroups } = useManagerGroups(Number(id))
   const { data: managerGroupsWithStats } = useManagerGroupsWithStats(Number(id), true)
+  const { user } = useAuth()
+  const uploadAvatar = useUploadAvatar()
+  const { data: managerAvatarUrl } = useAvatar(manager?.userId ?? null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const isOwnManager = !!(user && manager && manager.login === user.login)
 
   const [selectedGroupId, setSelectedGroupId] = useState<string>('')
 
@@ -363,6 +371,24 @@ export default function ManagerDetail() {
       setSelectedGroupId(managerGroupsWithStats[0].groupId.toString())
     }
   }, [managerGroupsWithStats, selectedGroupId])
+
+  const handleAvatarClick = () => {
+    if (isOwnManager) {
+      fileInputRef.current?.click()
+    }
+  }
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !manager?.userId) return
+    try {
+      await uploadAvatar.mutateAsync({ file, userId: manager.userId })
+    } catch (err) {
+      console.error('Avatar upload failed:', err)
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   const selectedGroup = useMemo(() => {
     if (!managerGroupsWithStats || !selectedGroupId) return null
@@ -500,58 +526,123 @@ export default function ManagerDetail() {
 
   return (
     <div>
-      <RouterLink to="/managers" className="text-primary hover:text-primary-hover mb-4 inline-block link">
-        &larr; Zurück zur Übersicht
+      <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+        <i className="sap-icon sap-icon-nav-back text-base" />
+        Zurück zur Übersicht
       </RouterLink>
       
-      <div className="p-6 mt-4 bg-surface border border-border">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3">
-            <i className="sap-icon sap-icon-employee text-[28px] text-primary mt-1" />
-            <div>
-              <h1 className="text-sm font-medium text-primary">{manager.name}</h1>
-              <div className="flex items-center gap-3 mt-1.5">
-                {manager.shortName && (
-                  <Badge>{manager.shortName}</Badge>
+      <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] md:grid-rows-[auto_auto] gap-3 md:gap-x-6 md:gap-y-3">
+            <div className="relative group w-24 h-24 shrink-0 justify-self-center md:justify-self-start row-span-1 md:row-span-2">
+              <button
+                onClick={handleAvatarClick}
+                className={`w-24 h-24 p-0 rounded-full overflow-hidden ${isOwnManager ? 'cursor-pointer' : 'cursor-default'}`}
+                disabled={!isOwnManager || uploadAvatar.isPending}
+                title={isOwnManager ? 'Profilbild ändern' : undefined}
+              >
+                {managerAvatarUrl ? (
+                  <img
+                    src={managerAvatarUrl}
+                    alt={manager.name}
+                    className="w-24 h-24 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-elevated flex items-center justify-center">
+                    <i className="sap-icon sap-icon-employee text-[28px] text-primary" />
+                  </div>
                 )}
-                <Badge variant="muted">Manager</Badge>
+              </button>
+              {isOwnManager && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
+                  <i className="sap-icon sap-icon-camera text-white text-xl" />
+                </div>
+              )}
+              {uploadAvatar.isPending && (
+                <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
+                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-xl font-bold text-foreground">{manager.name}</h1>
+              {manager.shortName && (
+                <Badge>{manager.shortName}</Badge>
+              )}
+              <Badge variant="muted">Manager</Badge>
+              <span className={`text-xs font-medium px-2 py-0.5 rounded ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
+                {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 md:flex md:items-start md:gap-2">
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-badge text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Position (Saison)</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{manager.positionTotal ? `${manager.positionTotal}.` : '-'}</p>
+                </div>
               </div>
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-horizontal-bar-chart text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Punkte (Saison)</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{manager.pointsTotal ?? '-'}</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-calendar text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Letzte Runde</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{manager.pointsLastRound ?? '-'} Pkt</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-date-time text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Spieltag</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{currentRoundNumber || '-'}</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-money-bills text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Hinrunde-Wert</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{(hinrundeBudget / 1000000).toFixed(2)} Mio. €</p>
+                </div>
+              </div>
+              {hasExchanges && (
+                <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                  <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <i className="sap-icon sap-icon-money-bills text-base text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted leading-tight">Rückrunde-Wert</p>
+                    <p className="text-sm font-bold text-foreground leading-tight">{(rueckrundeBudget / 1000000).toFixed(2)} Mio. €</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-          <span className={`text-xs font-medium px-2 py-0.5 rounded ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
-            {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
-          </span>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-elevated border border-border-hover">
-            <p className="text-sm text-muted">Position (Saison)</p>
-            <p className="text-2xl font-bold text-foreground">{manager.positionTotal ? `${manager.positionTotal}.` : '-'}</p>
-          </div>
-          <div className="p-4 bg-elevated border border-border-hover">
-            <p className="text-sm text-muted">Punkte (Saison)</p>
-            <p className="text-2xl font-bold text-primary">{manager.pointsTotal ?? '-'}</p>
-          </div>
-          <div className="p-4 bg-elevated border border-border-hover">
-            <p className="text-sm text-muted">Letzte Runde</p>
-            <p className="text-2xl font-bold text-primary">{manager.pointsLastRound ?? '-'} Pkt</p>
-          </div>
-          <div className="p-4 bg-elevated border border-border-hover">
-            <p className="text-sm text-muted">Aktueller Spieltag</p>
-            <p className="text-2xl font-bold text-foreground">{currentRoundNumber || '-'}</p>
-          </div>
-          <div className="p-4 bg-elevated border border-border-hover">
-            <p className="text-sm text-muted">Hinrunde-Teamwert</p>
-            <p className="text-2xl font-bold text-primary">{(hinrundeBudget / 1000000).toFixed(2)} Mio. €</p>
-          </div>
-          {hasExchanges && (
-            <div className="p-4 bg-elevated border border-border-hover">
-              <p className="text-sm text-muted">Rückrunde-Teamwert</p>
-              <p className="text-2xl font-bold text-primary">{(rueckrundeBudget / 1000000).toFixed(2)} Mio. €</p>
-            </div>
-          )}
-        </div>
-
+        <div className="px-6 pb-6">
         {lastRoundPlayerPoints.length > 0 && (
           <LastRoundPlayerTable players={lastRoundPlayerPoints} allPlayers={rueckrundePlayers.length > 0 ? rueckrundePlayers : hinrundePlayers} />
         )}
@@ -570,7 +661,7 @@ export default function ManagerDetail() {
 
         {hasExchanges && (
           <div className="mt-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">Winterwechsel</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Winterwechsel</h2>
             
             {oldPlayers.length > 0 && (
               <PlayerTable players={oldPlayers} title="Raus:" />
@@ -588,14 +679,14 @@ export default function ManagerDetail() {
 
         {chartData.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">Punkte pro Spieltag</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Punkte pro Spieltag</h2>
             <div className="bg-surface p-4 rounded-lg border border-border">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#2a3a4e" />
                   <XAxis dataKey="name" stroke="#c5c5c5" />
                   <YAxis stroke="#c5c5c5" />
-                  <RechartsTooltip content={<CustomTooltip />} />
+                  <RechartsTooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
                   <Bar dataKey="punkte" fill="#0a6ed1" />
                 </BarChart>
               </ResponsiveContainer>
@@ -605,7 +696,7 @@ export default function ManagerDetail() {
 
         {positionChartData.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">Gesamtposition pro Spieltag</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Gesamtposition pro Spieltag</h2>
             <div className="bg-surface p-4 rounded-lg border border-border">
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={positionChartData}>
@@ -613,6 +704,8 @@ export default function ManagerDetail() {
                   <XAxis dataKey="name" stroke="#c5c5c5" label={{ value: 'Spieltag', position: 'bottom', fill: '#c5c5c5' }} />
                   <YAxis stroke="#c5c5c5" reversed domain={[1, 'auto']} tickCount={10} />
                   <RechartsTooltip 
+                    cursor={false}
+                    wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
                     content={({ active, payload, label }) => {
                       if (active && payload && payload.length) {
                         return (
@@ -635,7 +728,7 @@ export default function ManagerDetail() {
         {managerGroupsWithStats && managerGroupsWithStats.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">Punkte-Entwicklung in Gruppe</h2>
+              <h2 className="text-lg font-semibold text-foreground">Punkte-Entwicklung in Gruppe</h2>
               <select
                 value={selectedGroupId}
                 onChange={(e) => setSelectedGroupId(e.target.value)}
@@ -657,7 +750,7 @@ export default function ManagerDetail() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#2a3a4e" />
                     <XAxis dataKey="round" stroke="#8999a8" />
                     <YAxis stroke="#8999a8" />
-                    <RechartsTooltip content={<GroupCustomTooltip />} />
+                    <RechartsTooltip content={<GroupCustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
                     {sortedGroupManagers.map((m, index) => (
                       <Line
                         key={m.managerId}
@@ -679,6 +772,7 @@ export default function ManagerDetail() {
             )}
           </div>
         )}
+        </div>
       </div>
     </div>
   )
@@ -749,52 +843,52 @@ function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: nu
 
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-semibold text-foreground mb-4">Punkte letzte Runde</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-3">Punkte letzte Runde</h2>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full">
-          <thead className="bg-surface">
+          <thead className="bg-elevated sticky top-0">
             <tr>
               <th 
-                className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('nameKicker')}
               >
                 Spieler<SortIcon column="nameKicker" />
               </th>
               <th 
-                className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('team')}
               >
                 Team<SortIcon column="team" />
               </th>
               <th 
-                className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('position')}
               >
                 Position<SortIcon column="position" />
               </th>
               <th 
-                className="px-3 py-2 text-right text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-right text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('prize')}
               >
                 Wert<SortIcon column="prize" />
               </th>
               <th 
-                className="px-3 py-2 text-right text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
+                className="px-3 py-2 text-right text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
                 onClick={() => handleSort('points')}
               >
                 Punkte<SortIcon column="points" />
               </th>
             </tr>
           </thead>
-          <tbody className="bg-surface">
-            {sortedPlayers.map((pp, index) => {
+          <tbody className="bg-surface text-sm">
+            {sortedPlayers.map((pp) => {
               const player = pp.player
               const currentTeam = player?.teams[player.teams.length - 1]
               const rulesText = pp.rules && pp.rules.length > 0 
                 ? pp.rules.map(r => `${r.ruleLabel}${r.count > 1 ? ` (${r.count}x)` : ''}`).join(', ')
                 : '-'
               return (
-                <tr key={pp.playerId} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                <tr key={pp.playerId} className="hover:bg-card-hover border-b border-border">
                   <td className="px-3 py-2">
                     <RouterLink
                       to={`/players/${pp.playerId}`}

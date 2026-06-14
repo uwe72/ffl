@@ -16,6 +16,7 @@ public class UserDto {
     private String birthday;
     private String role;
     private List<ManagerInfo> managers;
+    private String avatarUrl;
 
     public static UserDto fromEntity(User user) {
         UserDto dto = new UserDto();
@@ -28,6 +29,9 @@ public class UserDto {
         dto.setCity(user.getCity());
         dto.setBirthday(user.getBirthday() != null ? user.getBirthday().toString() : null);
         dto.setRole(user.getRole() != null ? user.getRole().name() : null);
+        if (user.getAvatar() != null && user.getAvatar().length > 0) {
+            dto.setAvatarUrl("/api/users/" + user.getId() + "/avatar");
+        }
         return dto;
     }
 
@@ -71,6 +75,8 @@ public class UserDto {
     public void setRole(String role) { this.role = role; }
     public List<ManagerInfo> getManagers() { return managers; }
     public void setManagers(List<ManagerInfo> managers) { this.managers = managers; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 
     public static class ManagerInfo {
         private Long id;

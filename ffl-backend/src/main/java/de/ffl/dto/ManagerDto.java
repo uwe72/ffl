@@ -12,6 +12,7 @@ public class ManagerDto {
     private String lastName;
     private String email;
     private String login;
+    private Long userId;
     private Integer teamValue;
     private String paymentState;
     private String description;
@@ -41,6 +42,7 @@ public class ManagerDto {
     private PlayerDto playerExchangedNew3;
     private Integer currentMatchday;
     private Integer positionChange;
+    private String avatarUrl;
 
     public static ManagerDto fromEntity(Manager manager) {
         ManagerDto dto = new ManagerDto();
@@ -53,6 +55,10 @@ public class ManagerDto {
             dto.setLastName(manager.getUser().getLastName());
             dto.setEmail(manager.getUser().getEmail());
             dto.setLogin(manager.getUser().getLogin());
+            dto.setUserId(manager.getUser().getId());
+            if (manager.getUser().getAvatar() != null && manager.getUser().getAvatar().length > 0) {
+                dto.setAvatarUrl("/api/users/" + manager.getUser().getId() + "/avatar");
+            }
         }
         
         dto.setPaymentState(manager.getPaymentState().name());
@@ -154,6 +160,8 @@ public class ManagerDto {
     public void setEmail(String email) { this.email = email; }
     public String getLogin() { return login; }
     public void setLogin(String login) { this.login = login; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
     public Integer getTeamValue() { return teamValue; }
     public void setTeamValue(Integer teamValue) { this.teamValue = teamValue; }
     public String getPaymentState() { return paymentState; }
@@ -212,4 +220,6 @@ public class ManagerDto {
     public void setPositionChange(Integer positionChange) { this.positionChange = positionChange; }
     public String getMailTheme() { return mailTheme; }
     public void setMailTheme(String mailTheme) { this.mailTheme = mailTheme; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 }

@@ -85,8 +85,8 @@ function FilterBar({ searchTerm, setSearchTerm, onExport, hasFilter }: {
       </div>
 
       <Button
-        variant="ghost"
         onClick={onExport}
+        size="compact"
       >
         Excel Export
       </Button>

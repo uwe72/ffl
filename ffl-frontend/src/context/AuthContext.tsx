@@ -6,7 +6,7 @@ import type { LoginRequest, RegisterRequest, AuthContextType } from '../types'
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<{ login: string; role: string } | null>(null)
+  const [user, setUser] = useState<{ id?: number; login: string; role: string; avatarUrl?: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -17,6 +17,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(parsed)
         setMatomoUserId(parsed.login)
         setMatomoCustomDimension(1, parsed.role)
+        authApi.getProfile().then(profile => {
+          const updated = { id: profile.id, login: parsed.login, role: parsed.role, avatarUrl: profile.avatarUrl }
+          setUser(updated)
+          localStorage.setItem('user', JSON.stringify(updated))
+        }).catch(() => {})
       } catch {
         localStorage.removeItem('user')
         localStorage.removeItem('token')
@@ -35,6 +40,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData)
     setMatomoUserId(userData.login)
     setMatomoCustomDimension(1, userData.role)
+    authApi.getProfile().then(profile => {
+      const updated = { id: profile.id, login: userData.login, role: userData.role, avatarUrl: profile.avatarUrl }
+      setUser(updated)
+      localStorage.setItem('user', JSON.stringify(updated))
+    }).catch(() => {})
   }
 
   const register = async (data: RegisterRequest) => {
@@ -78,6 +88,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const updateAvatarUrl = (url: string | null) => {
+    setUser(prev => {
+      if (!prev) return null
+      const updated = { ...prev, avatarUrl: url ?? undefined }
+      localStorage.setItem('user', JSON.stringify(updated))
+      return updated
+    })
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -88,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         refreshAccessToken,
+        updateAvatarUrl,
       }}
     >
       {children}

@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import SidebarItem from './SidebarItem'
 import { useAuth } from '../context/AuthContext'
 import { useFeedback } from '../context/FeedbackContext'
+import { useAvatar, useUploadAvatar } from '../hooks/useAvatar'
 
 const SIDEBAR_COLLAPSED_KEY = 'ffl-sidebar-collapsed'
 
@@ -26,6 +27,9 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const { user, isAuthenticated, logout } = useAuth()
   const location = useLocation()
   const { open: openFeedback } = useFeedback()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadAvatar = useUploadAvatar()
+  const { data: avatarUrl } = useAvatar(user?.id ?? null)
 
   const isOnVerwaltung = location.pathname.startsWith('/season') ||
     location.pathname.startsWith('/users') ||
@@ -41,6 +45,22 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const handleLogout = () => {
     logout()
     window.location.href = '/login'
+  }
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !user?.id) return
+    try {
+      await uploadAvatar.mutateAsync({ file, userId: user.id })
+    } catch (err) {
+      console.error('Avatar upload failed:', err)
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
   }
 
   const sidebarContent = (
@@ -101,9 +121,31 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         {collapsed ? (
           <>
             {isAuthenticated && (
-              <>
-                <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
-                  {user?.login?.charAt(0).toUpperCase() || 'U'}
+                  <>
+                <div className="relative w-8 h-8">
+                  <button
+                    onClick={handleAvatarClick}
+                    className="w-8 h-8 p-0 rounded-full overflow-hidden"
+                    title="Profilbild ändern"
+                    disabled={uploadAvatar.isPending}
+                  >
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={user?.login || ''}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
+                        {user?.login?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                    )}
+                  </button>
+                  {uploadAvatar.isPending && (
+                    <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
+                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
                 </div>
                   <button
                     onClick={handleLogout}
@@ -119,8 +161,30 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
           <div className="flex items-center justify-between">
             {isAuthenticated ? (
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">
-                  {user?.login?.charAt(0).toUpperCase() || 'U'}
+                <div className="relative w-7 h-7 shrink-0">
+                  <button
+                    onClick={handleAvatarClick}
+                    className="w-7 h-7 p-0 rounded-full overflow-hidden"
+                    title="Profilbild ändern"
+                    disabled={uploadAvatar.isPending}
+                  >
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={user?.login || ''}
+                        className="w-7 h-7 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
+                        {user?.login?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                    )}
+                  </button>
+                  {uploadAvatar.isPending && (
+                    <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
+                      <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
                 </div>
                 <span className="text-sm text-primary truncate">{user?.login}</span>
               </div>
@@ -148,6 +212,14 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
           <i className={`sap-icon sap-icon-navigation-left-arrow text-[20px] transition-transform ${collapsed ? 'rotate-180' : ''}`} />
         </button>
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleAvatarChange}
+      />
     </div>
   )
 
