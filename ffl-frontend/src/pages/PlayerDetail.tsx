@@ -233,43 +233,81 @@ export default function PlayerDetail() {
                 ))}
               </div>
             </div>
+            <div className="hidden md:flex items-start gap-2 flex-shrink-0">
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-badge text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Position</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{player.positionTotal ? `${player.positionTotal}.` : '-'}</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-horizontal-bar-chart text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Pkt. Saison</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{player.points ?? '-'}</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-calendar text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Pkt. Spieltag</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{player.pointsLastRound ?? '-'}</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-money-bills text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Preis</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{formatPrice(player.prize)}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 bg-elevated border border-border-hover rounded-lg flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <i className="sap-icon sap-icon-badge text-xl text-primary" />
+          <div className="md:hidden mt-4 grid grid-cols-2 gap-2">
+            <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+              <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <i className="sap-icon sap-icon-badge text-base text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted">Position</p>
-                <p className="text-2xl font-bold text-foreground">{player.positionTotal ? `${player.positionTotal}.` : '-'}</p>
+                <p className="text-[10px] text-muted leading-tight">Position</p>
+                <p className="text-sm font-bold text-foreground leading-tight">{player.positionTotal ? `${player.positionTotal}.` : '-'}</p>
               </div>
             </div>
-            <div className="p-4 bg-elevated border border-border-hover rounded-lg flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <i className="sap-icon sap-icon-horizontal-bar-chart text-xl text-primary" />
+            <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+              <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <i className="sap-icon sap-icon-horizontal-bar-chart text-base text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted">Pkt. Saison</p>
-                <p className="text-2xl font-bold text-foreground">{player.points ?? '-'}</p>
+                <p className="text-[10px] text-muted leading-tight">Pkt. Saison</p>
+                <p className="text-sm font-bold text-foreground leading-tight">{player.points ?? '-'}</p>
               </div>
             </div>
-            <div className="p-4 bg-elevated border border-border-hover rounded-lg flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <i className="sap-icon sap-icon-calendar text-xl text-primary" />
+            <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+              <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <i className="sap-icon sap-icon-calendar text-base text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted">Pkt. Spieltag</p>
-                <p className="text-2xl font-bold text-foreground">{player.pointsLastRound ?? '-'}</p>
+                <p className="text-[10px] text-muted leading-tight">Pkt. Spieltag</p>
+                <p className="text-sm font-bold text-foreground leading-tight">{player.pointsLastRound ?? '-'}</p>
               </div>
             </div>
-            <div className="p-4 bg-elevated border border-border-hover rounded-lg flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <i className="sap-icon sap-icon-money-bills text-xl text-primary" />
+            <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+              <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <i className="sap-icon sap-icon-money-bills text-base text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted">Preis</p>
-                <p className="text-2xl font-bold text-foreground">{formatPrice(player.prize)}</p>
+                <p className="text-[10px] text-muted leading-tight">Preis</p>
+                <p className="text-sm font-bold text-foreground leading-tight">{formatPrice(player.prize)}</p>
               </div>
             </div>
           </div>
