@@ -204,7 +204,7 @@ export default function PlayerDetail() {
                 <span className="text-3xl text-subtle">👤</span>
               </div>
             )}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h1 className="text-xl font-bold text-foreground">{player.nameKicker}</h1>
               {player.firstName && player.lastName && (
                 <p className="text-sm text-muted mt-0.5">
@@ -233,35 +233,65 @@ export default function PlayerDetail() {
                 ))}
               </div>
             </div>
+            <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+              <div className="p-2 bg-elevated border border-border rounded-lg flex items-center gap-2">
+                <i className="sap-icon sap-icon-ranking text-lg text-primary" />
+                <div>
+                  <p className="text-[10px] text-subtle leading-tight">Position</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{player.positionTotal ? `${player.positionTotal}.` : '-'}</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border rounded-lg flex items-center gap-2">
+                <i className="sap-icon sap-icon-horizontal-bar-chart text-lg text-primary" />
+                <div>
+                  <p className="text-[10px] text-subtle leading-tight">Pkt. Saison</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{player.points ?? '-'}</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border rounded-lg flex items-center gap-2">
+                <i className="sap-icon sap-icon-calendar text-lg text-primary" />
+                <div>
+                  <p className="text-[10px] text-subtle leading-tight">Pkt. Spieltag</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{player.pointsLastRound ?? '-'}</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border rounded-lg flex items-center gap-2">
+                <i className="sap-icon sap-icon-money-bills text-lg text-primary" />
+                <div>
+                  <p className="text-[10px] text-subtle leading-tight">Preis</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{formatPrice(player.prize)}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-3 bg-elevated border border-border rounded-lg flex items-center gap-3">
-              <i className="sap-icon sap-icon-ranking text-2xl text-primary" />
+          <div className="md:hidden mt-4 grid grid-cols-2 gap-2">
+            <div className="p-2 bg-elevated border border-border rounded-lg flex items-center gap-2">
+              <i className="sap-icon sap-icon-ranking text-lg text-primary" />
               <div>
-                <p className="text-xs text-subtle">Gesamtposition</p>
-                <p className="text-lg font-bold text-foreground">{player.positionTotal ? `${player.positionTotal}.` : '-'}</p>
+                <p className="text-[10px] text-subtle leading-tight">Position</p>
+                <p className="text-sm font-bold text-foreground leading-tight">{player.positionTotal ? `${player.positionTotal}.` : '-'}</p>
               </div>
             </div>
-            <div className="p-3 bg-elevated border border-border rounded-lg flex items-center gap-3">
-              <i className="sap-icon sap-icon-horizontal-bar-chart text-2xl text-primary" />
+            <div className="p-2 bg-elevated border border-border rounded-lg flex items-center gap-2">
+              <i className="sap-icon sap-icon-horizontal-bar-chart text-lg text-primary" />
               <div>
-                <p className="text-xs text-subtle">Punkte (Saison)</p>
-                <p className="text-lg font-bold text-foreground">{player.points ?? '-'}</p>
+                <p className="text-[10px] text-subtle leading-tight">Pkt. Saison</p>
+                <p className="text-sm font-bold text-foreground leading-tight">{player.points ?? '-'}</p>
               </div>
             </div>
-            <div className="p-3 bg-elevated border border-border rounded-lg flex items-center gap-3">
-              <i className="sap-icon sap-icon-calendar text-2xl text-primary" />
+            <div className="p-2 bg-elevated border border-border rounded-lg flex items-center gap-2">
+              <i className="sap-icon sap-icon-calendar text-lg text-primary" />
               <div>
-                <p className="text-xs text-subtle">Punkte (Spieltag)</p>
-                <p className="text-lg font-bold text-foreground">{player.pointsLastRound ?? '-'}</p>
+                <p className="text-[10px] text-subtle leading-tight">Pkt. Spieltag</p>
+                <p className="text-sm font-bold text-foreground leading-tight">{player.pointsLastRound ?? '-'}</p>
               </div>
             </div>
-            <div className="p-3 bg-elevated border border-border rounded-lg flex items-center gap-3">
-              <i className="sap-icon sap-icon-money-bills text-2xl text-primary" />
+            <div className="p-2 bg-elevated border border-border rounded-lg flex items-center gap-2">
+              <i className="sap-icon sap-icon-money-bills text-lg text-primary" />
               <div>
-                <p className="text-xs text-subtle">Marktwert</p>
-                <p className="text-lg font-bold text-foreground">{formatPrice(player.prize)}</p>
+                <p className="text-[10px] text-subtle leading-tight">Preis</p>
+                <p className="text-sm font-bold text-foreground leading-tight">{formatPrice(player.prize)}</p>
               </div>
             </div>
           </div>
