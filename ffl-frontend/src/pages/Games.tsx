@@ -3,6 +3,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import { useGames, useGame } from '../hooks/useGames'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '../context/AuthContext'
 import FormationImportDialog from '../components/FormationImportDialog'
 import MatchdayMailSendDialog from '../components/MatchdayMailSendDialog'
 import Button from '../components/Button'
@@ -36,7 +37,7 @@ interface Game {
   formationExtern?: string
 }
 
-function GameCard({ game, onImport }: { game: Game; onImport: (id: number) => void }) {
+function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: number) => void; isAdmin: boolean }) {
   return (
     <div className="card p-4 bg-surface border border-border">
       <div className="flex flex-col gap-4">
@@ -90,7 +91,7 @@ function GameCard({ game, onImport }: { game: Game; onImport: (id: number) => vo
           </div>
         </div>
         
-        {game.goalHost == null && game.goalVisitor == null && (
+        {isAdmin && game.goalHost == null && game.goalVisitor == null && (
           <div className="flex justify-end">
             <Button
               variant="emphasized"
@@ -111,13 +112,15 @@ function FilterBar({
   setSelectedRound, 
   rounds, 
   onMailSend,
-  mailDisabled 
+  mailDisabled,
+  isAdmin
 }: { 
   selectedRound: number | null
   setSelectedRound: (r: number | null) => void
   rounds: number[]
   onMailSend: () => void
   mailDisabled: boolean
+  isAdmin: boolean
 }) {
   return (
     <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap">
@@ -158,21 +161,25 @@ function FilterBar({
         </button>
       </div>
 
-      <Button
-        variant="emphasized"
-        size="compact"
-        onClick={onMailSend}
-        disabled={mailDisabled}
-      >
-        <i className="sap-icon sap-icon-email text-[14px] mr-1.5" />
-        Spieltagsmail
-      </Button>
+      {isAdmin && (
+        <Button
+          variant="emphasized"
+          size="compact"
+          onClick={onMailSend}
+          disabled={mailDisabled}
+        >
+          <i className="sap-icon sap-icon-email text-[14px] mr-1.5" />
+          Spieltagsmail
+        </Button>
+      )}
     </div>
   )
 }
 
 export default function Games() {
   const isMobile = useIsMobile()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
   const { data: games, isLoading: gamesLoading, error } = useGames()
   const { data: currentSeason } = useCurrentSeason()
   const [sortKey, setSortKey] = useState<SortKey>('roundNumber')
@@ -263,6 +270,7 @@ export default function Games() {
           rounds={rounds}
           onMailSend={() => setMailDialogOpen(true)}
           mailDisabled={!selectedRound || !currentSeason?.id}
+          isAdmin={isAdmin}
         />
 
         <div className="flex-1 px-6 pb-6 overflow-x-auto">
@@ -333,7 +341,7 @@ export default function Games() {
                               <span className="text-subtle">:</span>
                               <span className="text-foreground font-semibold">{game.goalVisitor ?? '-'}</span>
                             </span>
-                            {game.goalHost == null && game.goalVisitor == null && (
+                            {isAdmin && game.goalHost == null && game.goalVisitor == null && (
                               <Button
                                 variant="emphasized"
                                 size="sm"
@@ -379,7 +387,7 @@ export default function Games() {
             <div className="grid gap-4 mt-4">
               {sortedGames.length > 0 ? (
                 sortedGames.map((game) => (
-                  <GameCard key={game.id} game={game} onImport={setImportGameId} />
+                  <GameCard key={game.id} game={game} onImport={setImportGameId} isAdmin={isAdmin} />
                 ))
               ) : (
                 <div className="text-center text-subtle py-8">
@@ -397,21 +405,23 @@ export default function Games() {
         </div>
       </div>
 
-      <FormationImportDialog
-        isOpen={importGameId !== null}
-        onClose={() => setImportGameId(null)}
-        onImport={() => {
-          queryClient.invalidateQueries({ queryKey: ['games'] })
-          if (importGameId) {
-            queryClient.invalidateQueries({ queryKey: ['games', importGameId] })
-          }
-        }}
-        initialValue={importGame?.formationExtern || ''}
-        gameId={importGameId || 0}
-        game={importGame}
-      />
+      {isAdmin && (
+        <FormationImportDialog
+          isOpen={importGameId !== null}
+          onClose={() => setImportGameId(null)}
+          onImport={() => {
+            queryClient.invalidateQueries({ queryKey: ['games'] })
+            if (importGameId) {
+              queryClient.invalidateQueries({ queryKey: ['games', importGameId] })
+            }
+          }}
+          initialValue={importGame?.formationExtern || ''}
+          gameId={importGameId || 0}
+          game={importGame}
+        />
+      )}
 
-      {currentSeason?.id && selectedRound && (
+      {isAdmin && currentSeason?.id && selectedRound && (
         <MatchdayMailSendDialog
           isOpen={mailDialogOpen}
           onClose={() => setMailDialogOpen(false)}

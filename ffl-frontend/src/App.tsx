@@ -69,12 +69,12 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="games" element={
-              <ProtectedRoute requiredRole="ADMIN">
+              <ProtectedRoute>
                 <Games />
               </ProtectedRoute>
             } />
             <Route path="games/:id" element={
-              <ProtectedRoute requiredRole="ADMIN">
+              <ProtectedRoute>
                 <GameDetail />
               </ProtectedRoute>
             } />

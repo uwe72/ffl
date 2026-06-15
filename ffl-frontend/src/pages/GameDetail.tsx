@@ -1,10 +1,11 @@
-import { useParams, Link as RouterLink } from 'react-router-dom'
+import { useParams, Link as RouterLink, Link } from 'react-router-dom'
 import { useGame } from '../hooks/useGames'
 import { gameApi } from '../api/games'
 import { useQueryClient } from '@tanstack/react-query'
 import type { PlayerPoints } from '../types'
 import { useState, useEffect } from 'react'
 import { positionLabels, positionColors } from './Players'
+import { useAuth } from '../context/AuthContext'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
 import FormationImportDialog from '../components/FormationImportDialog'
@@ -33,36 +34,43 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
       {sortedPlayers.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-surface">
-                <th className="px-4 py-2 text-left text-sm font-semibold text-muted">Spieler</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-muted">Position</th>
-                <th className="px-4 py-2 text-center text-sm font-semibold text-muted">Punkte</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-muted">Regeln</th>
+            <thead className="bg-elevated sticky top-0">
+              <tr>
+                <th className="px-3 py-2 text-left text-xs text-muted font-bold border-b border-border">Spieler</th>
+                <th className="px-3 py-2 text-left text-xs text-muted font-bold border-b border-border">Position</th>
+                <th className="px-3 py-2 text-center text-xs text-muted font-bold border-b border-border">Punkte</th>
+                <th className="px-3 py-2 text-left text-xs text-muted font-bold border-b border-border">Regeln</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-surface text-sm">
               {sortedPlayers.map((player, index) => {
                 const altNames = [player.nameKickerAlt1, player.nameKickerAlt2, player.nameKickerAlt3].filter(Boolean)
                 return (
                   <tr key={player.playerId} className={`border-b border-border hover:bg-card-hover transition-colors ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                    <td className="px-4 py-2 text-foreground">
-                      <div>
-                        <div className="font-medium">{player.playerName}</div>
-                        <div className="text-sm text-subtle">{altNames.length > 0 ? altNames.join(' | ') : '[Kein alternativer Name]'}</div>
+                    <td className="px-3 py-2 text-foreground">
+                      <div className="flex items-center">
+                        {player.pictureUrl && (
+                          <img src={player.pictureUrl} alt={player.playerName} className="w-10 h-10 rounded-full object-cover mr-3" />
+                        )}
+                        <div>
+                          <Link to={`/players/${player.playerId}`} className="font-medium hover:text-accent-hover link">
+                            {player.playerName}
+                          </Link>
+                          <div className="text-xs text-subtle">{altNames.length > 0 ? altNames.join(' | ') : '[Kein alternativer Name]'}</div>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-3 py-2">
                       {player.position ? (
                         <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
                           {positionLabels[player.position]}
                         </span>
                       ) : '-'}
                     </td>
-                    <td className="px-4 py-2 text-center">
+                    <td className="px-3 py-2 text-center">
                       <span className="font-semibold text-primary">{player.totalPoints || '-'}</span>
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-3 py-2">
                       {player.rules && player.rules.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {player.rules.map((rule, idx) => (
@@ -93,6 +101,8 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
 export default function GameDetail() {
   const { id } = useParams<{ id: string }>()
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
   const { data: game, isLoading, error } = useGame(Number(id))
   const [showFormation, setShowFormation] = useState(false)
   const [formation, setFormation] = useState<string>('')
@@ -128,28 +138,32 @@ export default function GameDetail() {
         <RouterLink to="/games" className="text-muted hover:text-primary link">
           ← Spiele
         </RouterLink>
-        <div className="flex gap-2">
-          <Button
-            variant="emphasized"
-            size="sm"
-            onClick={() => setShowImportDialog(true)}
-          >
-            + Import
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="flex gap-2">
+            <Button
+              variant="emphasized"
+              size="sm"
+              onClick={() => setShowImportDialog(true)}
+            >
+              + Import
+            </Button>
+          </div>
+        )}
       </div>
 
-      <FormationImportDialog
-        isOpen={showImportDialog}
-        onClose={() => setShowImportDialog(false)}
-        onImport={() => {
-          queryClient.invalidateQueries({ queryKey: ['games'] })
-          queryClient.invalidateQueries({ queryKey: ['games', Number(id)] })
-        }}
-        initialValue={game?.formationExtern || ''}
-        gameId={Number(id)}
-        game={game}
-      />
+      {isAdmin && (
+        <FormationImportDialog
+          isOpen={showImportDialog}
+          onClose={() => setShowImportDialog(false)}
+          onImport={() => {
+            queryClient.invalidateQueries({ queryKey: ['games'] })
+            queryClient.invalidateQueries({ queryKey: ['games', Number(id)] })
+          }}
+          initialValue={game?.formationExtern || ''}
+          gameId={Number(id)}
+          game={game}
+        />
+      )}
 
       <div className="bg-surface rounded-lg border border-border p-6 mb-6">
         <div className="flex items-center justify-between">
@@ -193,34 +207,36 @@ export default function GameDetail() {
         </div>
       </div>
 
-      <div className="bg-surface rounded-lg border border-border mb-6 overflow-hidden">
-        <button
-          onClick={() => setShowFormation(!showFormation)}
-          className="w-full px-4 py-3 flex items-center justify-between text-lg font-semibold text-foreground bg-elevated hover:bg-default transition-colors"
-        >
-          <span>Formation</span>
-          <span className="text-muted">{showFormation ? '▲' : '▼'}</span>
-        </button>
-        {showFormation && (
-          <div className="p-4">
-            <textarea
-              value={formation}
-              onChange={(e) => setFormation(e.target.value)}
-              className="w-full h-64 px-3 py-2 rounded border border-border bg-elevated text-muted font-mono text-sm resize-y"
-              placeholder="Formation-String hier einfügen..."
-            />
-            <div className="flex justify-end mt-2">
-              <Button
-                variant="emphasized"
-                onClick={handleSaveFormation}
-                disabled={saving}
-              >
-                {saving ? 'Speichere...' : 'Speichern'}
-              </Button>
+      {isAdmin && (
+        <div className="bg-surface rounded-lg border border-border mb-6 overflow-hidden">
+          <button
+            onClick={() => setShowFormation(!showFormation)}
+            className="w-full px-4 py-3 flex items-center justify-between text-lg font-semibold text-foreground bg-elevated hover:bg-default transition-colors"
+          >
+            <span>Formation</span>
+            <span className="text-muted">{showFormation ? '▲' : '▼'}</span>
+          </button>
+          {showFormation && (
+            <div className="p-4">
+              <textarea
+                value={formation}
+                onChange={(e) => setFormation(e.target.value)}
+                className="w-full h-64 px-3 py-2 rounded border border-border bg-elevated text-muted font-mono text-sm resize-y"
+                placeholder="Formation-String hier einfügen..."
+              />
+              <div className="flex justify-end mt-2">
+                <Button
+                  variant="emphasized"
+                  onClick={handleSaveFormation}
+                  disabled={saving}
+                >
+                  {saving ? 'Speichere...' : 'Speichern'}
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <PlayerPointsTable players={game.playersHost} teamName={game.hostName || 'Heim'} />
