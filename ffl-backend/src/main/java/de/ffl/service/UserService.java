@@ -33,12 +33,14 @@ public class UserService {
         this.managerGroupRepository = managerGroupRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
             .map(UserDto::fromEntity)
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public UserDto findById(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {

@@ -52,6 +52,7 @@ public class AuthController {
         this.userService = userService;
     }
 
+    @Transactional(readOnly = true)
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
@@ -67,6 +68,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(jwt, refreshToken, user.getLogin(), user.getRole().name()));
     }
 
+    @Transactional
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         if (userRepository.existsByLogin(request.getLogin())) {
@@ -97,6 +99,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(jwt, refreshToken, user.getLogin(), user.getRole().name()));
     }
 
+    @Transactional(readOnly = true)
     @GetMapping("/me")
     public ResponseEntity<?> me() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -207,6 +210,7 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @Transactional(readOnly = true)
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@Valid @RequestBody RefreshRequest request) {
         String refreshToken = request.getRefreshToken();
