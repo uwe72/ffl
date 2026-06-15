@@ -17,6 +17,7 @@ public class ManagerGroupDto {
     private String createdByLastName;
     private String emailTo;
     private boolean editable;
+    private boolean hasLogo;
 
     public static ManagerGroupDto fromEntity(ManagerGroup group) {
         ManagerGroupDto dto = new ManagerGroupDto();
@@ -40,6 +41,7 @@ public class ManagerGroupDto {
         if (group.getEmailTo() != null) {
             dto.setEmailTo(group.getEmailTo().name());
         }
+        dto.setHasLogo(group.getLogo() != null && group.getLogo().length > 0);
         return dto;
     }
 
@@ -65,6 +67,8 @@ public class ManagerGroupDto {
     public void setEmailTo(String emailTo) { this.emailTo = emailTo; }
     public boolean isEditable() { return editable; }
     public void setEditable(boolean editable) { this.editable = editable; }
+    public boolean isHasLogo() { return hasLogo; }
+    public void setHasLogo(boolean hasLogo) { this.hasLogo = hasLogo; }
 
     public static class ManagerInGroupDto {
         private Long id;

@@ -42,6 +42,11 @@ public class ManagerGroup {
     @Builder.Default
     private EmailToOption emailTo = EmailToOption.ALL_MANAGERS;
 
+    @Lob
+    private byte[] logo;
+
+    private String logoContentType;
+
     @ManyToMany
     @JoinTable(
         name = "manager_group_2_manager",

@@ -299,6 +299,7 @@ public class ManagerService {
             dto.setLastName(manager.getUser().getLastName());
             dto.setEmail(manager.getUser().getEmail());
             dto.setLogin(manager.getUser().getLogin());
+            dto.setUserId(manager.getUser().getId());
         }
 
         dto.setPaymentState(manager.getPaymentState().name());

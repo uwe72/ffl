@@ -22,6 +22,7 @@ public class PlayerSearchDto {
     private String firstName;
     private String lastName;
     private String position;
+    private String pictureUrl;
     private List<TeamInfo> teams;
 
     public static PlayerSearchDto fromEntity(Player player) {
@@ -34,6 +35,7 @@ public class PlayerSearchDto {
             .firstName(player.getFirstName())
             .lastName(player.getLastName())
             .position(player.getPosition() != null ? player.getPosition().name() : null)
+            .pictureUrl(player.getPictureUrl())
             .teams(player.getTeams() != null ? 
                 player.getTeams().stream()
                     .map(t -> new TeamInfo(t.getId(), t.getName()))

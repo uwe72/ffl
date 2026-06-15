@@ -18,6 +18,7 @@ public class PlayerPointsDto {
     private String nameKickerAlt1;
     private String nameKickerAlt2;
     private String nameKickerAlt3;
+    private String pictureUrl;
     private String position;
     private Integer totalPoints;
     @Builder.Default

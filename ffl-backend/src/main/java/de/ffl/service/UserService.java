@@ -168,6 +168,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional(readOnly = true)
     public byte[] getAvatar(Long userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null || user.getAvatar() == null) {
@@ -176,6 +177,7 @@ public class UserService {
         return user.getAvatar();
     }
 
+    @Transactional(readOnly = true)
     public String getAvatarContentType(Long userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null || user.getAvatarContentType() == null) {

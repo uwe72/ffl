@@ -45,7 +45,7 @@ public class UserController {
         }
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType(contentType))
-            .header(HttpHeaders.CACHE_CONTROL, "max-age=3600")
+            .header(HttpHeaders.CACHE_CONTROL, "no-cache")
             .body(avatar);
     }
 

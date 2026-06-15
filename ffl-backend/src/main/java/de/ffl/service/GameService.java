@@ -172,6 +172,7 @@ public class GameService {
                     .nameKickerAlt2(player.getNameKickerAlt2())
                     .nameKickerAlt3(player.getNameKickerAlt3())
                     .position(player.getPosition() != null ? player.getPosition().name() : null)
+                    .pictureUrl(player.getPictureUrl())
                     .totalPoints(0)
                     .rules(new ArrayList<>())
                     .build();

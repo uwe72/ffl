@@ -15,16 +15,22 @@ import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.UserRepository;
 import org.hibernate.Hibernate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class ManagerGroupService {
+
+    private static final Logger log = LoggerFactory.getLogger(ManagerGroupService.class);
 
     private final ManagerGroupRepository managerGroupRepository;
     private final ManagerRankRepository managerRankRepository;
@@ -260,6 +266,98 @@ public class ManagerGroupService {
         return dto;
     }
 
+    @Transactional
+    public ManagerGroupDto updateLogo(Long groupId, MultipartFile file) throws IOException {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            log.warn("updateLogo: no current user for groupId={}", groupId);
+            return null;
+        }
+
+        Optional<ManagerGroup> groupOpt = managerGroupRepository.findById(groupId);
+        if (groupOpt.isEmpty()) {
+            log.warn("updateLogo: group not found, groupId={}", groupId);
+            return null;
+        }
+
+        ManagerGroup group = groupOpt.get();
+        Hibernate.initialize(group.getCreatedBy());
+        if (!canEditGroup(group, currentUser)) {
+            log.warn("updateLogo: user {} cannot edit group {}", currentUser.getLogin(), groupId);
+            return null;
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png") && !contentType.equals("image/webp"))) {
+            throw new IllegalArgumentException("Nur JPG, PNG und WebP Bilder sind erlaubt");
+        }
+        if (file.getSize() > 2 * 1024 * 1024) {
+            throw new IllegalArgumentException("Bild darf maximal 2 MB groß sein");
+        }
+
+        group.setLogo(file.getBytes());
+        group.setLogoContentType(contentType);
+        ManagerGroup saved = managerGroupRepository.save(group);
+        ManagerGroupDto dto = toDtoWithRankData(saved);
+        dto.setEditable(true);
+        return dto;
+    }
+
+    @Transactional
+    public ManagerGroupDto removeLogo(Long groupId) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            log.warn("removeLogo: no current user for groupId={}", groupId);
+            return null;
+        }
+
+        Optional<ManagerGroup> groupOpt = managerGroupRepository.findById(groupId);
+        if (groupOpt.isEmpty()) {
+            log.warn("removeLogo: group not found, groupId={}", groupId);
+            return null;
+        }
+
+        ManagerGroup group = groupOpt.get();
+        Hibernate.initialize(group.getCreatedBy());
+        if (!canEditGroup(group, currentUser)) {
+            log.warn("removeLogo: user {} cannot edit group {}", currentUser.getLogin(), groupId);
+            return null;
+        }
+
+        group.setLogo(null);
+        group.setLogoContentType(null);
+        ManagerGroup saved = managerGroupRepository.save(group);
+        ManagerGroupDto dto = toDtoWithRankData(saved);
+        dto.setEditable(true);
+        return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] getLogo(Long groupId) {
+        Optional<ManagerGroup> groupOpt = managerGroupRepository.findById(groupId);
+        if (groupOpt.isEmpty()) {
+            return null;
+        }
+        ManagerGroup group = groupOpt.get();
+        if (group.getLogo() == null) {
+            return null;
+        }
+        return group.getLogo();
+    }
+
+    @Transactional(readOnly = true)
+    public String getLogoContentType(Long groupId) {
+        Optional<ManagerGroup> groupOpt = managerGroupRepository.findById(groupId);
+        if (groupOpt.isEmpty()) {
+            return null;
+        }
+        ManagerGroup group = groupOpt.get();
+        if (group.getLogoContentType() == null) {
+            return null;
+        }
+        return group.getLogoContentType();
+    }
+
     @Transactional(readOnly = true)
     public List<ManagerGroupDto> getGroupsForManager(Long managerId) {
         List<ManagerGroup> groups = managerGroupRepository.findByManagerIdWithManagers(managerId);
@@ -335,6 +433,7 @@ public class ManagerGroupService {
         if (group.getEmailTo() != null) {
             dto.setEmailTo(group.getEmailTo().name());
         }
+        dto.setHasLogo(group.getLogo() != null && group.getLogo().length > 0);
         
         Hibernate.initialize(group.getManagers());
         
