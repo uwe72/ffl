@@ -2,9 +2,6 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
 const api = axios.create({
   baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
 })
 
 let isRefreshing = false

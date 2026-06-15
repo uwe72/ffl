@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { useManager, useManagerRoundDetails, useManagerGroups } from '../hooks/useManagers'
 import { useManagerGroupsWithStats } from '../hooks/useManagerGroups'
 import { useAuth } from '../context/AuthContext'
-import { useAvatar, useUploadAvatar } from '../hooks/useAvatar'
+import { useAvatar, useUploadAvatar, useDeleteAvatar } from '../hooks/useAvatar'
 import { positionLabels, positionColors } from './Players'
 import Badge from '../components/Badge'
 import type { Player, ManagerGroup, RulePoint } from '../types'
@@ -87,7 +87,7 @@ function PlayerRow({ player }: { player: Player }) {
         {player.prize.toLocaleString()} €
       </td>
       <td className="px-3 py-2">
-        <span className={`text-xs font-medium px-2 py-0.5 rounded chip-${positionColors[player.position]}`}>
+        <span className={`text-xs font-medium px-2 py-0.5 rounded ${positionColors[player.position]}`}>
           {positionLabels[player.position]}
         </span>
       </td>
@@ -359,10 +359,18 @@ export default function ManagerDetail() {
   const { data: managerGroupsWithStats } = useManagerGroupsWithStats(Number(id), true)
   const { user } = useAuth()
   const uploadAvatar = useUploadAvatar()
+  const deleteAvatar = useDeleteAvatar()
   const { data: managerAvatarUrl } = useAvatar(manager?.userId ?? null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isOwnManager = !!(user && manager && manager.login === user.login)
+
+  const managerInitials = useMemo(() => {
+    if (!manager) return ''
+    const first = manager.firstName?.trim()?.[0] ?? ''
+    const last = manager.lastName?.trim()?.[0] ?? ''
+    return (first + last).toUpperCase()
+  }, [manager])
 
   const [selectedGroupId, setSelectedGroupId] = useState<string>('')
 
@@ -387,6 +395,17 @@ export default function ManagerDetail() {
       console.error('Avatar upload failed:', err)
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleAvatarDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!manager?.userId) return
+    if (!window.confirm('Profilbild wirklich löschen?')) return
+    try {
+      await deleteAvatar.mutateAsync({ userId: manager.userId })
+    } catch (err) {
+      console.error('Avatar delete failed:', err)
     }
   }
 
@@ -538,7 +557,7 @@ export default function ManagerDetail() {
               <button
                 onClick={handleAvatarClick}
                 className={`w-24 h-24 p-0 rounded-full overflow-hidden ${isOwnManager ? 'cursor-pointer' : 'cursor-default'}`}
-                disabled={!isOwnManager || uploadAvatar.isPending}
+                disabled={!isOwnManager || uploadAvatar.isPending || deleteAvatar.isPending}
                 title={isOwnManager ? 'Profilbild ändern' : undefined}
               >
                 {managerAvatarUrl ? (
@@ -549,7 +568,11 @@ export default function ManagerDetail() {
                   />
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-elevated flex items-center justify-center">
-                    <i className="sap-icon sap-icon-employee text-[28px] text-primary" />
+                    {managerInitials ? (
+                      <span className="text-2xl font-bold text-primary">{managerInitials}</span>
+                    ) : (
+                      <i className="sap-icon sap-icon-employee text-[28px] text-primary" />
+                    )}
                   </div>
                 )}
               </button>
@@ -558,7 +581,18 @@ export default function ManagerDetail() {
                   <i className="sap-icon sap-icon-camera text-white text-xl" />
                 </div>
               )}
-              {uploadAvatar.isPending && (
+              {isOwnManager && managerAvatarUrl && (
+                <button
+                  type="button"
+                  onClick={handleAvatarDelete}
+                  disabled={deleteAvatar.isPending || uploadAvatar.isPending}
+                  className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
+                  title="Profilbild löschen"
+                >
+                  <i className="sap-icon sap-icon-delete text-sm" />
+                </button>
+              )}
+              {(uploadAvatar.isPending || deleteAvatar.isPending) && (
                 <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
                   <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 </div>
@@ -892,9 +926,12 @@ function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: nu
                   <td className="px-3 py-2">
                     <RouterLink
                       to={`/players/${pp.playerId}`}
-                      className="hover:text-primary link text-foreground"
+                      className="flex items-center hover:text-foreground link"
                     >
-                      {pp.playerName}
+                      {pp.player?.pictureUrl && (
+                        <img src={pp.player.pictureUrl} alt={pp.playerName} className="w-10 h-10 rounded-full object-cover mr-3" />
+                      )}
+                      <div className="font-medium text-primary">{pp.playerName}</div>
                     </RouterLink>
                   </td>
                   <td className="px-3 py-2">
@@ -910,7 +947,7 @@ function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: nu
                   </td>
                   <td className="px-3 py-2">
                     {player && (
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded chip-${positionColors[player.position]}`}>
+        <span className={`text-xs font-medium px-2 py-0.5 rounded ${positionColors[player.position]}`}>
                         {positionLabels[player.position]}
                       </span>
                     )}

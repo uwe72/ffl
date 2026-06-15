@@ -415,7 +415,14 @@ export default function FormationImportDialog({
                                     : idx % 2 === 1 ? 'bg-zebra hover:bg-card-hover' : 'hover:bg-card-hover'
                                 }`}
                               >
-                                <td className="px-2 py-2 text-foreground">{player.nameKicker}</td>
+                                <td className="px-2 py-2">
+                                  <div className="flex items-center">
+                                    {player.pictureUrl && (
+                                      <img src={player.pictureUrl} alt={player.nameKicker} className="w-8 h-8 rounded-full object-cover mr-2" />
+                                    )}
+                                    <span className="text-foreground">{player.nameKicker}</span>
+                                  </div>
+                                </td>
                                 <td className="px-2 py-2 text-muted text-xs">{player.nameKickerAlt1 || '-'}</td>
                                 <td className="px-2 py-2 text-muted text-xs">{player.nameKickerAlt2 || '-'}</td>
                                 <td className="px-2 py-2 text-muted text-xs">{player.nameKickerAlt3 || '-'}</td>

@@ -351,16 +351,15 @@ export default function Home() {
                             )}
                           </td>
                           <td className="px-3 py-2">
-                            {isMobile ? (
-                              <span className="text-primary">{pp.playerName}</span>
-                            ) : (
-                              <RouterLink
-                                to={`/players/${pp.playerId}`}
-                                className="hover:text-accent-hover link text-primary"
-                              >
-                                {pp.playerName}
-                              </RouterLink>
-                            )}
+                            <RouterLink
+                              to={`/players/${pp.playerId}`}
+                              className="flex items-center hover:text-foreground link"
+                            >
+                              {pp.pictureUrl && (
+                                <img src={pp.pictureUrl} alt={pp.playerName} className="w-10 h-10 rounded-full object-cover mr-3" />
+                              )}
+                              <div className="font-medium text-primary">{pp.playerName}</div>
+                            </RouterLink>
                           </td>
                           <td className="px-3 py-2 text-center text-foreground">
                             {pp.pointsTotal ?? '-'}

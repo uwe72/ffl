@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useRef } from 'react'
 import { managerGroupApi } from '../api/managerGroups'
 
 export const useManagerGroups = () => {
@@ -13,6 +14,66 @@ export const useManagerGroup = (id: number) => {
     queryKey: ['manager-group', id],
     queryFn: () => managerGroupApi.getById(id).then(res => res.data),
     enabled: !!id,
+  })
+}
+
+export const useGroupLogo = (groupId: number | null | undefined) => {
+  const objectUrlRef = useRef<string | null>(null)
+
+  const query = useQuery({
+    queryKey: ['group-logo', groupId],
+    queryFn: async () => {
+      if (!groupId) return null
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current)
+        objectUrlRef.current = null
+      }
+      try {
+        const blob = await managerGroupApi.getLogo(groupId).then(res => res.data)
+        const url = URL.createObjectURL(blob)
+        objectUrlRef.current = url
+        return url
+      } catch {
+        return null
+      }
+    },
+    enabled: !!groupId,
+    staleTime: 1000 * 60 * 5,
+  })
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current)
+        objectUrlRef.current = null
+      }
+    }
+  }, [])
+
+  return query
+}
+
+export const useUploadGroupLogo = (groupId: number) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (file: File) => managerGroupApi.uploadLogo(groupId, file).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['group-logo', groupId] })
+      queryClient.invalidateQueries({ queryKey: ['manager-group', groupId] })
+    },
+  })
+}
+
+export const useDeleteGroupLogo = (groupId: number) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => managerGroupApi.deleteLogo(groupId).then(() => {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['group-logo', groupId] })
+      queryClient.invalidateQueries({ queryKey: ['manager-group', groupId] })
+    },
   })
 }
 

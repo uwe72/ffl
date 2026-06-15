@@ -325,8 +325,11 @@ export default function TeamDetail() {
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      <RouterLink to={`/players/${player.id}`} className="hover:text-accent-hover link text-primary">
-                        {player.nameKicker}
+                      <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-foreground link">
+                        {player.pictureUrl && (
+                          <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
+                        )}
+                        <div className="font-medium text-primary">{player.nameKicker}</div>
                       </RouterLink>
                     </td>
                     <td className="px-3 py-2 text-center text-foreground">

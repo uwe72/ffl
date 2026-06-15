@@ -30,9 +30,7 @@ export const authApi = {
   uploadAvatar: async (file: File): Promise<User> => {
     const formData = new FormData()
     formData.append('file', file)
-    const response = await api.post<User>('/auth/me/avatar', formData, {
-      headers: { 'Content-Type': undefined },
-    })
+    const response = await api.post<User>('/auth/me/avatar', formData)
     return response.data
   },
 
@@ -43,6 +41,7 @@ export const authApi = {
   getAvatar: async (userId: number): Promise<Blob> => {
     const response = await api.get(`/users/${userId}/avatar`, {
       responseType: 'blob',
+      params: { _: Date.now() },
     })
     return response.data
   },

@@ -18,7 +18,8 @@ export function useAvatar(userId: number | null | undefined) {
         const url = URL.createObjectURL(blob)
         objectUrlRef.current = url
         return url
-      } catch {
+      } catch (err) {
+        console.error('Failed to load avatar:', err)
         return null
       }
     },
@@ -44,6 +45,19 @@ export function useUploadAvatar() {
   return useMutation({
     mutationFn: ({ file, userId }: { file: File; userId: number }) =>
       authApi.uploadAvatar(file).then(res => ({ res, userId })),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['avatar', variables.userId] })
+      queryClient.invalidateQueries({ queryKey: ['manager'] })
+    },
+  })
+}
+
+export function useDeleteAvatar() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ userId }: { userId: number }) =>
+      authApi.deleteAvatar().then(() => ({ userId })),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['avatar', variables.userId] })
       queryClient.invalidateQueries({ queryKey: ['manager'] })

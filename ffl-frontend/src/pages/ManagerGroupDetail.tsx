@@ -1,11 +1,12 @@
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
-import { useState, useMemo, useEffect } from 'react'
-import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator, useCreateManagerGroup } from '../hooks/useManagerGroups'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator, useCreateManagerGroup, useGroupLogo, useUploadGroupLogo, useDeleteGroupLogo } from '../hooks/useManagerGroups'
 import { useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useUsers } from '../hooks/useUsers'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/Button'
+import Badge from '../components/Badge'
 import type { ManagerInGroup } from '../types'
 
 type SortKey = 'positionTotal' | 'shortName' | 'firstName' | 'lastName' | 'pointsTotal' | 'pointsLastRound'
@@ -48,6 +49,12 @@ export default function ManagerGroupDetail() {
   const [hasChanges, setHasChanges] = useState(false)
   const [selectedManagerIds, setSelectedManagerIds] = useState<number[]>([])
   const [errorMessage, setErrorMessage] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadGroupLogo = useUploadGroupLogo(isNewMode ? 0 : groupId)
+  const deleteGroupLogo = useDeleteGroupLogo(isNewMode ? 0 : groupId)
+  const { data: groupLogoUrl } = useGroupLogo(group?.hasLogo ? groupId : null)
 
   const isAdmin = user?.role === 'ADMIN'
 
@@ -223,6 +230,50 @@ export default function ManagerGroupDetail() {
       emailTo: editEmailTo as 'ALL_MANAGERS' | 'CREATOR_ONLY'
     })
     setHasChanges(false)
+    setIsEditing(false)
+  }
+
+  const handleCancelEdit = () => {
+    if (group) {
+      setEditName(group.name)
+      setEditDescription(group.description || '')
+      setEditEmailTo(group.emailTo || 'ALL_MANAGERS')
+      setHasChanges(false)
+    }
+    setIsEditing(false)
+  }
+
+  const handleLogoClick = () => {
+    if (!canEdit) return
+    fileInputRef.current?.click()
+  }
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !groupId) return
+    try {
+      await uploadGroupLogo.mutateAsync(file)
+      setErrorMessage('')
+    } catch (err: any) {
+      console.error('Logo upload failed:', err)
+      const msg = err?.response?.data || err?.message || 'Fehler beim Hochladen des Logos.'
+      setErrorMessage(typeof msg === 'string' ? msg : 'Fehler beim Hochladen des Logos.')
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleLogoDelete = async () => {
+    if (!groupId) return
+    try {
+      await deleteGroupLogo.mutateAsync()
+      setErrorMessage('')
+    } catch (err: any) {
+      console.error('Logo delete failed:', err)
+      const msg = err?.response?.data || err?.message || 'Fehler beim Löschen des Logos.'
+      setErrorMessage(typeof msg === 'string' ? msg : 'Fehler beim Löschen des Logos.')
+    }
   }
 
   const handleChange = (field: 'name' | 'description' | 'emailTo', value: string) => {
@@ -252,18 +303,15 @@ export default function ManagerGroupDetail() {
 
   const pageTitle = isNewMode ? 'Neue Gruppe erstellen' : (group?.name || 'Gruppe')
   const canEdit = isNewMode || group?.editable
+  const managerCount = isNewMode ? selectedManagerIds.length : (group?.managers?.length ?? 0)
+  const emailToLabel = emailToOptions.find(o => o.value === editEmailTo)?.label || '-'
 
   return (
     <div>
-      <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-6">
+      <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
-      
-      <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-group-2 text-[28px] text-primary" />
-        <h1 className="text-sm font-medium text-primary">{pageTitle}</h1>
-      </div>
 
       {!currentSeason && isNewMode && (
         <div className="p-4 mb-6 bg-danger-bg border border-danger">
@@ -278,239 +326,346 @@ export default function ManagerGroupDetail() {
           <p className="text-danger">{errorMessage}</p>
         </div>
       )}
-      
-      <div className="grid gap-6 md:grid-cols-2 mb-6">
-        <div className="p-6 bg-surface border border-border">
-          <label className="text-muted block mb-2">Name <span className="text-danger">*</span></label>
-          <input
-            type="text"
-            value={editName}
-            onChange={(e) => handleChange('name', e.target.value)}
-            readOnly={!canEdit}
-            className={`input-field w-full px-3 py-2 rounded focus:outline-none ${!canEdit ? 'opacity-70' : ''}`}
-          />
-        </div>
 
-        <div className="p-6 bg-surface border border-border">
-          <label className="text-muted block mb-2">Beschreibung <span className="text-danger">*</span></label>
-          <textarea
-            value={editDescription}
-            onChange={(e) => handleChange('description', e.target.value)}
-            readOnly={!canEdit}
-            className={`input-field w-full px-3 py-2 rounded resize-y focus:outline-none ${!canEdit ? 'opacity-70' : ''}`}
-          />
-        </div>
-
-        <div className="p-6 bg-surface border border-border">
-          <label className="text-muted block mb-3">Email an</label>
-          <div className="flex gap-4">
-            {emailToOptions.map((option) => (
-              <label
-                key={option.value}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all ${
-                  editEmailTo === option.value
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-elevated text-muted hover:bg-border-hover'
-                } ${!canEdit ? 'pointer-events-none opacity-70' : ''}`}
+      <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] md:grid-rows-[auto_auto] gap-3 md:gap-x-6 md:gap-y-3">
+            <div className="relative group w-24 h-24 shrink-0 justify-self-center md:justify-self-start row-span-1 md:row-span-2">
+              <button
+                onClick={handleLogoClick}
+                className={`w-24 h-24 p-0 rounded-full overflow-hidden ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
+                disabled={!canEdit || uploadGroupLogo.isPending || deleteGroupLogo.isPending}
+                title={canEdit ? 'Logo ändern' : undefined}
               >
-                <input
-                  type="radio"
-                  name="emailTo"
-                  value={option.value}
-                  checked={editEmailTo === option.value}
-                  onChange={(e) => handleChange('emailTo', e.target.value)}
-                  disabled={!canEdit}
-                  className="hidden"
-                />
-                {option.label}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="p-6 bg-surface border border-border">
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-muted">Ersteller</label>
-            {isAdmin && !isNewMode && (
-              <Button
-                variant="transparent"
-                size="compact"
-                onClick={() => setIsCreatorModalOpen(true)}
-              >
-                Ändern
-              </Button>
-            )}
-          </div>
-          <input
-            type="text"
-            value={getCreatorDisplayName()}
-            readOnly
-            className="input-field w-full px-3 py-2 rounded focus:outline-none opacity-70"
-          />
-        </div>
-      </div>
-
-      <div className="p-6 bg-surface border border-border mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-foreground">Manager ({filteredAndSortedManagers.length})</h2>
-          <div className="flex gap-3 items-center">
-            <input
-              type="text"
-              placeholder="Manager suchen..."
-              value={managerFilter}
-              onChange={(e) => setManagerFilter(e.target.value)}
-              className="input-field w-64 px-3 py-2 rounded focus:outline-none"
-            />
-            {canEdit && (
-              <Button
-                variant="emphasized"
-                onClick={() => setIsAddModalOpen(true)}
-              >
-                Manager hinzufügen
-              </Button>
-            )}
-          </div>
-        </div>
-
-        <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="w-full">
-            <thead className="bg-surface">
-              <tr>
-                <th 
-                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
-                  onClick={() => handleSort('positionTotal')}
-                >
-                  Pos<SortIcon column="positionTotal" />
-                </th>
-                <th 
-                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
-                  onClick={() => handleSort('shortName')}
-                >
-                  Manager<SortIcon column="shortName" />
-                </th>
-                <th 
-                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
-                  onClick={() => handleSort('firstName')}
-                >
-                  Vorname<SortIcon column="firstName" />
-                </th>
-                <th 
-                  className="px-3 py-2 text-left text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
-                  onClick={() => handleSort('lastName')}
-                >
-                  Nachname<SortIcon column="lastName" />
-                </th>
-                <th 
-                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
-                  onClick={() => handleSort('pointsTotal')}
-                >
-                  Pkt<SortIcon column="pointsTotal" />
-                </th>
-                <th 
-                  className="px-3 py-2 text-center text-muted font-medium cursor-pointer hover:text-primary border-b border-border"
-                  onClick={() => handleSort('pointsLastRound')}
-                >
-                  Letzter Spieltag<SortIcon column="pointsLastRound" />
-                </th>
-                {canEdit && (
-                  <th className="px-3 py-2 text-right text-muted font-medium border-b border-border">
-                    Aktionen
-                  </th>
+                {groupLogoUrl ? (
+                  <img
+                    src={groupLogoUrl}
+                    alt={pageTitle}
+                    className="w-24 h-24 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-elevated flex items-center justify-center">
+                    <i className="sap-icon sap-icon-group-2 text-[36px] text-primary" />
+                  </div>
                 )}
-              </tr>
-            </thead>
-            <tbody className="bg-surface">
-              {filteredAndSortedManagers.length > 0 ? (
-                filteredAndSortedManagers.map((manager, index) => (
-                  <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                    <td className="px-3 py-2 text-center font-medium text-foreground">
-                      {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
-                    </td>
-                    <td className="px-3 py-2">
-                      <RouterLink
-                        to={`/managers/${manager.id}`}
-                        className="text-primary hover:text-foreground link font-medium"
+              </button>
+              {canEdit && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
+                  <i className="sap-icon sap-icon-camera text-white text-xl" />
+                </div>
+              )}
+              {canEdit && groupLogoUrl && (
+                <button
+                  type="button"
+                  onClick={handleLogoDelete}
+                  disabled={deleteGroupLogo.isPending || uploadGroupLogo.isPending}
+                  className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
+                  title="Logo löschen"
+                >
+                  <i className="sap-icon sap-icon-delete text-sm" />
+                </button>
+              )}
+              {(uploadGroupLogo.isPending || deleteGroupLogo.isPending) && (
+                <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
+                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleLogoChange}
+            />
+
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-xl font-bold text-foreground">{pageTitle}</h1>
+              <Badge variant="muted">Gruppe</Badge>
+              {isNewMode && <Badge variant="accent">Neu</Badge>}
+              {canEdit && !isNewMode && !isEditing && (
+                <Button variant="transparent" size="compact" onClick={() => setIsEditing(true)}>
+                  Bearbeiten
+                </Button>
+              )}
+              {canEdit && !isNewMode && isEditing && (
+                <Button variant="transparent" size="compact" onClick={handleCancelEdit}>
+                  Abbrechen
+                </Button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 md:flex md:items-start md:gap-2">
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-group-2 text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Manager</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{managerCount}</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-employee text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Ersteller</p>
+                  <p className="text-sm font-bold text-foreground leading-tight truncate max-w-[120px]">{getCreatorDisplayName()}</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-email text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Email an</p>
+                  <p className="text-sm font-bold text-foreground leading-tight">{emailToLabel}</p>
+                </div>
+              </div>
+              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <i className="sap-icon sap-icon-document-text text-base text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted leading-tight">Beschreibung</p>
+                  <p className="text-sm font-bold text-foreground leading-tight truncate max-w-[120px]">{editDescription || '-'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-6 pb-6">
+          {(isEditing || isNewMode) && canEdit && (
+            <div className="mt-6 p-4 bg-elevated border border-border rounded-lg">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-muted block mb-2 text-sm">Name <span className="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => handleChange('name', e.target.value)}
+                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-muted block mb-2 text-sm">Beschreibung <span className="text-danger">*</span></label>
+                  <textarea
+                    value={editDescription}
+                    onChange={(e) => handleChange('description', e.target.value)}
+                    className="input-field w-full px-3 py-2 rounded resize-y focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-muted block mb-2 text-sm">Email an</label>
+                  <div className="flex gap-4">
+                    {emailToOptions.map((option) => (
+                      <label
+                        key={option.value}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all ${
+                          editEmailTo === option.value
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-surface text-muted hover:bg-border-hover'
+                        }`}
                       >
-                        {manager.shortName || manager.name}
-                      </RouterLink>
-                    </td>
-                    <td className="px-3 py-2 text-muted">
-                      {manager.firstName || '-'}
-                    </td>
-                    <td className="px-3 py-2 text-muted">
-                      {manager.lastName || '-'}
-                    </td>
-                    <td className="px-3 py-2 text-center font-medium text-foreground">
-                      {manager.pointsTotal ?? '-'}
-                    </td>
-                    <td className="px-3 py-2 text-center text-muted">
-                      {manager.pointsLastRound ?? '-'}
-                    </td>
+                        <input
+                          type="radio"
+                          name="emailTo"
+                          value={option.value}
+                          checked={editEmailTo === option.value}
+                          onChange={(e) => handleChange('emailTo', e.target.value)}
+                          className="hidden"
+                        />
+                        {option.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-muted block mb-2 text-sm">Ersteller</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={getCreatorDisplayName()}
+                      readOnly
+                      className="input-field w-full px-3 py-2 rounded focus:outline-none opacity-70"
+                    />
+                    {isAdmin && !isNewMode && (
+                      <Button
+                        variant="transparent"
+                        size="compact"
+                        onClick={() => setIsCreatorModalOpen(true)}
+                      >
+                        Ändern
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(isNewMode || (canEdit && isEditing)) && (
+            <div className="mt-4 flex gap-4">
+              {isNewMode ? (
+                <>
+                  <Button
+                    variant="emphasized"
+                    onClick={handleCreate}
+                    disabled={!editName.trim() || !editDescription.trim() || !currentSeason || createMutation.isPending}
+                  >
+                    {createMutation.isPending ? 'Wird erstellt...' : 'Erstellen'}
+                  </Button>
+                  <Button
+                    variant="transparent"
+                    onClick={() => navigate('/manager-groups')}
+                  >
+                    Abbrechen
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="emphasized"
+                    onClick={handleSaveChanges}
+                    disabled={updateMutation.isPending || !hasChanges || !editDescription.trim()}
+                  >
+                    {updateMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={handleCancelEdit}
+                  >
+                    Abbrechen
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">Manager ({filteredAndSortedManagers.length})</h2>
+              <div className="flex gap-3 items-center">
+                <input
+                  type="text"
+                  placeholder="Manager suchen..."
+                  value={managerFilter}
+                  onChange={(e) => setManagerFilter(e.target.value)}
+                  className="input-field w-64 px-3 py-2 rounded focus:outline-none"
+                />
+                {canEdit && (
+                  <Button
+                    variant="emphasized"
+                    onClick={() => setIsAddModalOpen(true)}
+                  >
+                    Manager hinzufügen
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full">
+                <thead className="bg-elevated sticky top-0">
+                  <tr>
+                    <th 
+                      className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                      onClick={() => handleSort('positionTotal')}
+                    >
+                      Pos<SortIcon column="positionTotal" />
+                    </th>
+                    <th 
+                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                      onClick={() => handleSort('shortName')}
+                    >
+                      Manager<SortIcon column="shortName" />
+                    </th>
+                    <th 
+                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                      onClick={() => handleSort('firstName')}
+                    >
+                      Vorname<SortIcon column="firstName" />
+                    </th>
+                    <th 
+                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                      onClick={() => handleSort('lastName')}
+                    >
+                      Nachname<SortIcon column="lastName" />
+                    </th>
+                    <th 
+                      className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                      onClick={() => handleSort('pointsTotal')}
+                    >
+                      Pkt<SortIcon column="pointsTotal" />
+                    </th>
+                    <th 
+                      className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                      onClick={() => handleSort('pointsLastRound')}
+                    >
+                      Letzter Spieltag<SortIcon column="pointsLastRound" />
+                    </th>
                     {canEdit && (
-                      <td className="px-3 py-2 text-right">
-                        <Button
-                          variant="negative"
-                          size="compact"
-                          onClick={() => handleRemoveManager(manager.id)}
-                        >
-                          Entfernen
-                        </Button>
-                      </td>
+                      <th className="px-3 py-2 text-right text-xs text-muted font-bold border-b border-border">
+                        Aktionen
+                      </th>
                     )}
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={canEdit ? 7 : 6} className="text-center text-subtle py-8">
-                    Keine Manager in dieser Gruppe
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="bg-surface text-sm">
+                  {filteredAndSortedManagers.length > 0 ? (
+                    filteredAndSortedManagers.map((manager, index) => (
+                      <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                        <td className="px-3 py-2 text-center font-medium text-foreground">
+                          {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
+                        </td>
+                        <td className="px-3 py-2">
+                          <RouterLink
+                            to={`/managers/${manager.id}`}
+                            className="text-primary hover:text-foreground link font-medium"
+                          >
+                            {manager.shortName || manager.name}
+                          </RouterLink>
+                        </td>
+                        <td className="px-3 py-2 text-muted">
+                          {manager.firstName || '-'}
+                        </td>
+                        <td className="px-3 py-2 text-muted">
+                          {manager.lastName || '-'}
+                        </td>
+                        <td className="px-3 py-2 text-center font-medium text-foreground">
+                          {manager.pointsTotal ?? '-'}
+                        </td>
+                        <td className="px-3 py-2 text-center text-muted">
+                          {manager.pointsLastRound ?? '-'}
+                        </td>
+                        {canEdit && (
+                          <td className="px-3 py-2 text-right">
+                            <Button
+                              variant="negative"
+                              size="compact"
+                              onClick={() => handleRemoveManager(manager.id)}
+                            >
+                              Entfernen
+                            </Button>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={canEdit ? 7 : 6} className="text-center text-subtle py-8">
+                        Keine Manager in dieser Gruppe
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
-
-      {isNewMode ? (
-        <div className="flex gap-4">
-          <Button
-            variant="emphasized"
-            onClick={handleCreate}
-            disabled={!editName.trim() || !editDescription.trim() || !currentSeason || createMutation.isPending}
-          >
-            {createMutation.isPending ? 'Wird erstellt...' : 'Erstellen'}
-          </Button>
-          <Button
-            variant="transparent"
-            onClick={() => navigate('/manager-groups')}
-          >
-            Abbrechen
-          </Button>
-        </div>
-      ) : canEdit && hasChanges && (
-        <div className="mt-6 flex gap-4">
-          <Button
-            variant="emphasized"
-            onClick={handleSaveChanges}
-            disabled={updateMutation.isPending || !editDescription.trim()}
-          >
-            {updateMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              if (group) {
-                setEditName(group.name)
-                setEditDescription(group.description || '')
-                setEditEmailTo(group.emailTo || 'ALL_MANAGERS')
-                setHasChanges(false)
-              }
-            }}
-          >
-            Abbrechen
-          </Button>
-        </div>
-      )}
 
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">

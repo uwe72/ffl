@@ -322,6 +322,7 @@ export interface ManagerGroup {
   createdByLastName?: string
   emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY'
   editable?: boolean
+  hasLogo?: boolean
 }
 
 export interface ManagerGroupListDto {
@@ -403,6 +404,7 @@ export interface PlayerPoints {
   position?: string
   totalPoints: number
   rules: RulePoint[]
+  pictureUrl?: string
 }
 
 export interface GameImportResult {
@@ -443,6 +445,7 @@ export interface PlayerSearchDto {
   firstName?: string
   lastName?: string
   position?: string
+  pictureUrl?: string
   teams: Array<{ id: number; name: string }>
 }
 

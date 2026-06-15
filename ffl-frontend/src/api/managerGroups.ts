@@ -22,4 +22,14 @@ export const managerGroupApi = {
     api.put<ManagerGroup>(`/manager-groups/${groupId}/creator`, { newCreatorId }),
   getMyGroupsWithStats: () => api.get<ManagerGroupRoundStats[]>('/manager-groups/my-groups-with-stats'),
   getGroupsWithStatsByManagerId: (managerId: number) => api.get<ManagerGroupRoundStats[]>(`/manager-groups/manager/${managerId}/with-stats`),
+  uploadLogo: (groupId: number, file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post<ManagerGroup>(`/manager-groups/${groupId}/logo`, formData)
+  },
+  deleteLogo: (groupId: number) => api.delete(`/manager-groups/${groupId}/logo`),
+  getLogo: (groupId: number) => api.get(`/manager-groups/${groupId}/logo`, {
+    responseType: 'blob',
+    params: { _: Date.now() },
+  }),
 }
