@@ -3,6 +3,8 @@ package de.ffl.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -42,7 +44,7 @@ public class ManagerGroup {
     @Builder.Default
     private EmailToOption emailTo = EmailToOption.ALL_MANAGERS;
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.VARBINARY)
     private byte[] logo;
 
     private String logoContentType;

@@ -2,6 +2,8 @@ package de.ffl.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -41,7 +43,7 @@ public class User {
     @Builder.Default
     private UserRole role = UserRole.NORMAL;
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.VARBINARY)
     private byte[] avatar;
 
     private String avatarContentType;
