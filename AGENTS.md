@@ -296,3 +296,8 @@ export interface Player {
 - **Swagger UI** available at `/swagger-ui.html`
 - **Database tables** use `ffl_` prefix
 - **JWT authentication** is required for most API endpoints (except `/api/auth/**`, `/api/public/**`, `/api/migration/**`)
+
+## Workflow Preferences
+
+- **Always commit and push** - After every change, always commit and push to the remote repository. This applies across all sessions.
+- **Consistent UI** - All UI patterns that have been unified (colors, sorting, table styles, accent colors, hover states, layout spacing, card designs, etc.) must be maintained consistently in all future changes. Never introduce deviating styles or patterns.
