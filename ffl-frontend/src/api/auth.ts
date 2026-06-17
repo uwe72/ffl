@@ -7,8 +7,23 @@ export const authApi = {
     return response.data
   },
 
-  register: async (data: RegisterRequest): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/register', data)
+  register: async (data: RegisterRequest, avatar?: File): Promise<{ message: string }> => {
+    const formData = new FormData()
+    formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }))
+    if (avatar) {
+      formData.append('avatar', avatar)
+    }
+    const response = await api.post<{ message: string }>('/auth/register', formData)
+    return response.data
+  },
+
+  checkLogin: async (login: string): Promise<boolean> => {
+    const response = await api.get<boolean>('/auth/check-login', { params: { login } })
+    return response.data
+  },
+
+  checkEmail: async (email: string): Promise<boolean> => {
+    const response = await api.get<boolean>('/auth/check-email', { params: { email } })
     return response.data
   },
 

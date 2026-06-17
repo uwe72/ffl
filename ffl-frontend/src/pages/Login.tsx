@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useFeedback } from '../context/FeedbackContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
@@ -21,7 +21,9 @@ export default function Login() {
   const { open: openFeedback } = useFeedback()
   const { data: season } = useCurrentSeason()
   const navigate = useNavigate()
+  const location = useLocation()
   const firstInputRef = useRef<HTMLInputElement>(null)
+  const justRegistered = (location.state as { registered?: boolean })?.registered === true
 
   const validateField = (field: keyof FieldErrors, value: string) => {
     if (!value.trim()) {
@@ -91,6 +93,13 @@ export default function Login() {
 
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <form className="space-y-4 mt-2" onSubmit={handleSubmit} noValidate>
+            {justRegistered && (
+              <div className="flex items-center gap-3 p-3 bg-success-bg border border-success/30 rounded-md">
+                <i className="sap-icon sap-icon-message-success text-[18px] text-success shrink-0" />
+                <p className="text-success text-sm">Registrierung erfolgreich! Du kannst dich jetzt anmelden.</p>
+              </div>
+            )}
+
             {error && (
               <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-md">
                 <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />

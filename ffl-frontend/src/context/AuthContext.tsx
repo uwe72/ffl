@@ -47,15 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).catch(() => {})
   }
 
-  const register = async (data: RegisterRequest) => {
-    const response = await authApi.register(data)
-    localStorage.setItem('token', response.token)
-    localStorage.setItem('refreshToken', response.refreshToken)
-    const userData = { login: response.login, role: response.role }
-    localStorage.setItem('user', JSON.stringify(userData))
-    setUser(userData)
-    setMatomoUserId(userData.login)
-    setMatomoCustomDimension(1, userData.role)
+  const register = async (data: RegisterRequest, avatar?: File) => {
+    await authApi.register(data, avatar)
   }
 
   const logout = () => {

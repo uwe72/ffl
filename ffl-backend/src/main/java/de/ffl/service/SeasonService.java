@@ -37,7 +37,6 @@ public class SeasonService {
 
     public Optional<Season> findCurrentSeason() {
         return seasonRepository.findAll().stream()
-            .filter(s -> s.getSeasonState() != SeasonState.BEFORE_SEASON)
             .findFirst();
     }
 

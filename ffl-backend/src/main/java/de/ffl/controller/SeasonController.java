@@ -48,7 +48,6 @@ public class SeasonController {
     @GetMapping("/current")
     public ResponseEntity<Season> getCurrentSeason() {
         return seasonRepository.findAll().stream()
-            .filter(s -> s.getSeasonState() != SeasonState.BEFORE_SEASON)
             .findFirst()
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());

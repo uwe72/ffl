@@ -275,8 +275,19 @@ export interface RegisterRequest {
   login: string
   email: string
   password: string
-  firstName?: string
-  lastName?: string
+  firstName: string
+  lastName: string
+  playerGoalkeeperId: number
+  playerDefender1Id: number
+  playerDefender2Id: number
+  playerDefender3Id: number
+  playerMidfield1Id: number
+  playerMidfield2Id: number
+  playerMidfield3Id: number
+  playerStriker1Id: number
+  playerStriker2Id: number
+  playerStriker3Id: number
+  playerFreeChoiceId: number
 }
 
 export interface AuthResponse {
@@ -292,7 +303,7 @@ export interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   login: (credentials: LoginRequest) => Promise<void>
-  register: (data: RegisterRequest) => Promise<void>
+  register: (data: RegisterRequest, avatar?: File) => Promise<void>
   logout: () => void
   refreshAccessToken: () => Promise<boolean>
   updateAvatarUrl: (url: string | null) => void

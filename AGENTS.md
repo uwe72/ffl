@@ -267,15 +267,16 @@ export interface Player {
 ```
 
 #### Color Conventions
-- **Bronze-gold color (#c9a66b)**: Use ONLY for clickable links and interactive elements
-- **Neutral text colors**: Use `text-[#f5f5f5]` (white) or `text-[#a0aec0]` (gray) for non-interactive text
-- Example: In a detail view, labels like "Position", "Marktwert" use gray, values use white, and links use gold
+- **Accent color (text-accent / #0a6ed1)**: Use for clickable links, interactive elements, and active states
+- **Accent hover (text-accent-hover / #085caf)**: Use for hover states on interactive elements
+- **Neutral text colors**: Use `text-foreground` (white) or `text-muted` (gray) for non-interactive text
+- Example: In a detail view, labels use muted, values use foreground, and links use accent
 
 ```tsx
-<p className="text-sm text-[#a0aec0]">Position</p>
-<p className="text-xl font-bold text-[#f5f5f5]">Torwart</p>
+<p className="text-sm text-muted">Position</p>
+<p className="text-xl font-bold text-foreground">Torwart</p>
 
-<a className="text-[#c9a66b] hover:text-[#d4b77a]" href="/players">Zurück</a>
+<a className="text-accent hover:text-accent-hover" href="/players">Zurück</a>
 ```
 
 #### Table Sorting Requirements
@@ -283,8 +284,8 @@ export interface Player {
 - Default sort order: GOALKEEPER → DEFENDER → MIDFIELD → STRIKER (for player tables)
 - Use state for `sortKey` and `sortOrder` ('asc' | 'desc')
 - Show sort icons: ⇅ (unsorted), ↑ (ascending), ↓ (descending)
-- Sort icons should use bronze-gold color (#c9a66b) when active, gray (#6b7280) when inactive
-- Column headers must have `cursor-pointer hover:text-[#c9a66b]` classes
+- Sort icons should use accent color (text-accent) when active, gray (#6b7280) when inactive
+- Column headers must have `cursor-pointer hover:text-accent` classes
 
 ## Important Notes
 

@@ -3,6 +3,8 @@ package de.ffl.controller;
 import de.ffl.config.JwtTokenProvider;
 import de.ffl.domain.MailTheme;
 import de.ffl.domain.Manager;
+import de.ffl.domain.Player;
+import de.ffl.domain.Season;
 import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.AuthResponse;
@@ -11,7 +13,10 @@ import de.ffl.dto.RefreshRequest;
 import de.ffl.dto.RegisterRequest;
 import de.ffl.dto.UserDto;
 import de.ffl.repository.ManagerRepository;
+import de.ffl.repository.PlayerRepository;
+import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.UserRepository;
+import de.ffl.service.ManagerService;
 import de.ffl.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
@@ -25,7 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -37,19 +45,28 @@ public class AuthController {
     private final JwtTokenProvider tokenProvider;
     private final ManagerRepository managerRepository;
     private final UserService userService;
+    private final SeasonRepository seasonRepository;
+    private final PlayerRepository playerRepository;
+    private final ManagerService managerService;
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           JwtTokenProvider tokenProvider,
                           ManagerRepository managerRepository,
-                          UserService userService) {
+                          UserService userService,
+                          SeasonRepository seasonRepository,
+                          PlayerRepository playerRepository,
+                          ManagerService managerService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
         this.managerRepository = managerRepository;
         this.userService = userService;
+        this.seasonRepository = seasonRepository;
+        this.playerRepository = playerRepository;
+        this.managerService = managerService;
     }
 
     @Transactional(readOnly = true)
@@ -69,14 +86,60 @@ public class AuthController {
     }
 
     @Transactional
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> register(@Valid @RequestPart("data") RegisterRequest request,
+                                       @RequestPart(value = "avatar", required = false) MultipartFile avatar) {
         if (userRepository.existsByLogin(request.getLogin())) {
             return ResponseEntity.badRequest().body("Login bereits vergeben");
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().body("E-Mail bereits registriert");
+        }
+
+        Season season = seasonRepository.findAll().stream().findFirst().orElse(null);
+        if (season == null) {
+            return ResponseEntity.badRequest().body("Keine Season vorhanden");
+        }
+
+        List<Long> playerIds = List.of(
+            request.getPlayerGoalkeeperId(),
+            request.getPlayerDefender1Id(),
+            request.getPlayerDefender2Id(),
+            request.getPlayerDefender3Id(),
+            request.getPlayerMidfield1Id(),
+            request.getPlayerMidfield2Id(),
+            request.getPlayerMidfield3Id(),
+            request.getPlayerStriker1Id(),
+            request.getPlayerStriker2Id(),
+            request.getPlayerStriker3Id(),
+            request.getPlayerFreeChoiceId()
+        );
+
+        Set<Long> uniqueIds = new HashSet<>(playerIds);
+        if (uniqueIds.size() != 11) {
+            return ResponseEntity.badRequest().body("Jeder Spieler darf nur einmal ausgewählt werden");
+        }
+
+        List<Player> players = playerRepository.findByIdsWithTeams(playerIds);
+        if (players.size() != 11) {
+            return ResponseEntity.badRequest().body("Nicht alle Spieler gefunden");
+        }
+
+        Map<Long, Player> playerMap = new java.util.HashMap<>();
+        for (Player p : players) {
+            playerMap.put(p.getId(), p);
+        }
+
+        Manager validationManager = Manager.builder()
+            .budget(season.getBudget())
+            .players(new HashSet<>(players))
+            .build();
+
+        try {
+            managerService.validateTeam(validationManager);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
 
         User user = User.builder()
@@ -90,13 +153,59 @@ public class AuthController {
 
         userRepository.save(user);
 
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.getLogin(), request.getPassword())
-        );
+        if (avatar != null && !avatar.isEmpty()) {
+            String contentType = avatar.getContentType();
+            if (contentType != null && (contentType.equals("image/jpeg") || contentType.equals("image/png") || contentType.equals("image/webp"))) {
+                if (avatar.getSize() <= 2 * 1024 * 1024) {
+                    try {
+                        user.setAvatar(avatar.getBytes());
+                        user.setAvatarContentType(contentType);
+                        userRepository.save(user);
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        }
 
-        String jwt = tokenProvider.generateToken(authentication);
-        String refreshToken = tokenProvider.generateRefreshToken(request.getLogin(), UserRole.NORMAL.name());
-        return ResponseEntity.ok(new AuthResponse(jwt, refreshToken, user.getLogin(), user.getRole().name()));
+        String managerName = buildManagerName(request);
+
+        Manager manager = Manager.builder()
+            .name(managerName)
+            .user(user)
+            .season(season)
+            .budget(season.getBudget())
+            .playerGoalkeeper(playerMap.get(request.getPlayerGoalkeeperId()))
+            .playerDefender1(playerMap.get(request.getPlayerDefender1Id()))
+            .playerDefender2(playerMap.get(request.getPlayerDefender2Id()))
+            .playerDefender3(playerMap.get(request.getPlayerDefender3Id()))
+            .playerMidfield1(playerMap.get(request.getPlayerMidfield1Id()))
+            .playerMidfield2(playerMap.get(request.getPlayerMidfield2Id()))
+            .playerMidfield3(playerMap.get(request.getPlayerMidfield3Id()))
+            .playerStriker1(playerMap.get(request.getPlayerStriker1Id()))
+            .playerStriker2(playerMap.get(request.getPlayerStriker2Id()))
+            .playerStriker3(playerMap.get(request.getPlayerStriker3Id()))
+            .playerFreeChoice(playerMap.get(request.getPlayerFreeChoiceId()))
+            .players(new HashSet<>(players))
+            .build();
+
+        managerRepository.save(manager);
+
+        return ResponseEntity.status(201).body(Map.of("message", "Registrierung erfolgreich"));
+    }
+
+    private String buildManagerName(RegisterRequest request) {
+        String firstName = request.getFirstName();
+        String lastName = request.getLastName();
+        if (firstName != null && !firstName.isBlank() && lastName != null && !lastName.isBlank()) {
+            return firstName.trim() + " " + lastName.trim();
+        }
+        if (firstName != null && !firstName.isBlank()) {
+            return firstName.trim();
+        }
+        if (lastName != null && !lastName.isBlank()) {
+            return lastName.trim();
+        }
+        return request.getLogin();
     }
 
     @Transactional(readOnly = true)
@@ -208,6 +317,16 @@ public class AuthController {
         }
         userService.removeAvatar(auth.getName());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/check-login")
+    public ResponseEntity<Boolean> checkLoginAvailable(@RequestParam String login) {
+        return ResponseEntity.ok(!userRepository.existsByLogin(login));
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmailAvailable(@RequestParam String email) {
+        return ResponseEntity.ok(!userRepository.existsByEmail(email));
     }
 
     @Transactional(readOnly = true)
