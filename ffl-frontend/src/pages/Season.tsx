@@ -13,6 +13,10 @@ import CalculationDialog from '../components/CalculationDialog'
 import PrizeDistributionMailSendDialog from '../components/PrizeDistributionMailSendDialog'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
+import PageHeader from '../components/PageHeader'
+import Tabs from '../components/Tabs'
+import FormCard from '../components/FormCard'
+import { TableHead, Th, TableBody } from '../components/Table'
 import type { Season, SeasonState, PrizeDistributionLog, PrizePayout, PayoutStatus } from '../types'
 
 const seasonStateOptions: { value: SeasonState; label: string }[] = [
@@ -24,6 +28,12 @@ const seasonStateOptions: { value: SeasonState; label: string }[] = [
 const COLOR_FIRST = '#90EE90'
 const COLOR_NORMAL = '#87CEFA'
 const COLOR_LAST = '#FFA500'
+
+const tabItems = [
+  { key: 'saisondaten', label: 'Saisondaten' },
+  { key: 'gewinnausschuettung', label: 'Gewinnausschüttung' },
+  { key: 'saisonabschlussmail', label: 'Saisonabschlussmail' }
+]
 
 function formatPrizeLabel(value: number): string {
   if (value % 1 === 0) {
@@ -72,7 +82,7 @@ function PrizeDistributionChart({ prizeDistributionLog }: { prizeDistributionLog
   }
 
   return (
-    <div className="bg-surface border border-border p-6">
+    <div className="bg-surface border border-border rounded-lg p-6">
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData} margin={{ top: 30, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#2a3a4e" horizontal={true} vertical={false} />
@@ -228,71 +238,36 @@ export default function Season() {
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="flex items-center gap-3">
-          <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
-          <h1 className="text-sm font-medium text-primary">Saison</h1>
-        </div>
-        <div className="flex items-center gap-3 mt-1.5">
-          <Badge>
-            {seasonStateOptions.find(o => o.value === season.seasonState)?.label || season.seasonState}
-          </Badge>
-          {season.currentMatchday && (
-            <span className="text-sm text-muted">
-              {season.currentMatchday}. Spieltag
-            </span>
-          )}
-        </div>
-      </div>
+      <PageHeader icon="sap-icon-settings" title="Saison">
+        <Badge>
+          {seasonStateOptions.find(o => o.value === season.seasonState)?.label || season.seasonState}
+        </Badge>
+        {season.currentMatchday && (
+          <span className="text-sm text-muted">
+            {season.currentMatchday}. Spieltag
+          </span>
+        )}
+      </PageHeader>
 
-      <div className="border-b border-border mb-6">
-        <div className="flex gap-6">
-          <button
-            onClick={() => setActiveTab('saisondaten')}
-            className={`pb-3 px-1 text-lg font-medium transition-colors ${
-              activeTab === 'saisondaten'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted hover:text-foreground'
-            }`}
-          >
-            Saisondaten
-          </button>
-          <button
-            onClick={() => setActiveTab('gewinnausschuettung')}
-            className={`pb-3 px-1 text-lg font-medium transition-colors ${
-              activeTab === 'gewinnausschuettung'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted hover:text-foreground'
-            }`}
-          >
-            Gewinnausschüttung
-          </button>
-          <button
-            onClick={() => setActiveTab('saisonabschlussmail')}
-            className={`pb-3 px-1 text-lg font-medium transition-colors ${
-              activeTab === 'saisonabschlussmail'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted hover:text-foreground'
-            }`}
-          >
-            Saisonabschlussmail
-          </button>
-        </div>
-      </div>
+      <Tabs
+        items={tabItems}
+        active={activeTab}
+        onChange={(key) => setActiveTab(key as 'saisondaten' | 'gewinnausschuettung' | 'saisonabschlussmail')}
+      />
 
       {activeTab === 'saisondaten' && (
         <>
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="p-6 bg-surface border border-border">
+            <FormCard>
               <label className="block text-sm text-muted mb-1">Name</label>
               <input
                 value={formData.name || ''}
                 onChange={(e) => handleChange('name', e.target.value)}
                 className="input-field w-full px-3 py-2 rounded focus:outline-none"
               />
-            </div>
+            </FormCard>
 
-            <div className="p-6 bg-surface border border-border">
+            <FormCard>
               <label className="block text-sm text-muted mb-1">Budget (€)</label>
               <input
                 value={formData.budget ? formData.budget.toLocaleString('de-DE') : ''}
@@ -302,9 +277,9 @@ export default function Season() {
                 }}
                 className="input-field w-full px-3 py-2 rounded focus:outline-none"
               />
-            </div>
+            </FormCard>
 
-            <div className="p-6 bg-surface border border-border">
+            <FormCard>
               <label className="block text-sm text-muted mb-1">Start Spieltag Rückrunde</label>
               <input
                 type="number"
@@ -312,18 +287,18 @@ export default function Season() {
                 onChange={(e) => handleChange('startRoundRueckrunde', parseInt(e.target.value) || 16)}
                 className="input-field w-full px-3 py-2 rounded focus:outline-none"
               />
-            </div>
+            </FormCard>
 
-            <div className="p-6 bg-surface border border-border">
+            <FormCard>
               <label className="block text-sm text-muted mb-1">Aktueller Spieltag</label>
               <input
                 value={season.currentMatchday?.toString() ?? '-'}
                 readOnly
                 className="input-field w-full px-3 py-2 rounded focus:outline-none opacity-70"
               />
-            </div>
+            </FormCard>
 
-            <div className="p-6 bg-surface border border-border md:col-span-2">
+            <FormCard className="md:col-span-2">
               <label className="block text-sm text-muted mb-3">Saisonphase</label>
               <div className="flex gap-4">
                 {seasonStateOptions.map((option) => (
@@ -347,7 +322,7 @@ export default function Season() {
                   </label>
                 ))}
               </div>
-            </div>
+            </FormCard>
           </div>
 
           <div className="mt-6 flex gap-4">
@@ -382,7 +357,7 @@ export default function Season() {
       {activeTab === 'gewinnausschuettung' && (
         <>
           <div className="grid gap-6 md:grid-cols-3">
-            <div className={`p-6 bg-surface border ${validationErrors.spieleinsatzEuro ? 'border-danger' : 'border-border'}`}>
+            <FormCard className={validationErrors.spieleinsatzEuro ? 'border-danger' : ''}>
               <label className="block text-sm text-muted mb-1">Spieleinsatz (€)</label>
               <input
                 type="number"
@@ -392,9 +367,9 @@ export default function Season() {
                 className={`input-field w-full px-3 py-2 rounded focus:outline-none ${validationErrors.spieleinsatzEuro ? 'border-danger' : ''}`}
               />
               {validationErrors.spieleinsatzEuro && <p className="text-danger text-sm mt-1">{validationErrors.spieleinsatzEuro}</p>}
-            </div>
+            </FormCard>
 
-            <div className={`p-6 bg-surface border ${validationErrors.serverkostenEuro ? 'border-danger' : 'border-border'}`}>
+            <FormCard className={validationErrors.serverkostenEuro ? 'border-danger' : ''}>
               <label className="block text-sm text-muted mb-1">Serverkosten (€)</label>
               <input
                 type="number"
@@ -404,9 +379,9 @@ export default function Season() {
                 className={`input-field w-full px-3 py-2 rounded focus:outline-none ${validationErrors.serverkostenEuro ? 'border-danger' : ''}`}
               />
               {validationErrors.serverkostenEuro && <p className="text-danger text-sm mt-1">{validationErrors.serverkostenEuro}</p>}
-            </div>
+            </FormCard>
 
-            <div className={`p-6 bg-surface border ${validationErrors.anzahlSpielleiter ? 'border-danger' : 'border-border'}`}>
+            <FormCard className={validationErrors.anzahlSpielleiter ? 'border-danger' : ''}>
               <label className="block text-sm text-muted mb-1">Anzahl Spielleiter</label>
               <input
                 type="number"
@@ -415,9 +390,9 @@ export default function Season() {
                 className={`input-field w-full px-3 py-2 rounded focus:outline-none ${validationErrors.anzahlSpielleiter ? 'border-danger' : ''}`}
               />
               {validationErrors.anzahlSpielleiter && <p className="text-danger text-sm mt-1">{validationErrors.anzahlSpielleiter}</p>}
-            </div>
+            </FormCard>
 
-            <div className={`p-6 bg-surface border ${validationErrors.gewinnErsterPlatzProzent ? 'border-danger' : 'border-border'}`}>
+            <FormCard className={validationErrors.gewinnErsterPlatzProzent ? 'border-danger' : ''}>
               <label className="block text-sm text-muted mb-1">Gewinn 1. Platz (%)</label>
               <input
                 type="number"
@@ -426,9 +401,9 @@ export default function Season() {
                 className={`input-field w-full px-3 py-2 rounded focus:outline-none ${validationErrors.gewinnErsterPlatzProzent ? 'border-danger' : ''}`}
               />
               {validationErrors.gewinnErsterPlatzProzent && <p className="text-danger text-sm mt-1">{validationErrors.gewinnErsterPlatzProzent}</p>}
-            </div>
+            </FormCard>
 
-            <div className={`p-6 bg-surface border ${validationErrors.gewinnLetzterPlatzEuro ? 'border-danger' : 'border-border'}`}>
+            <FormCard className={validationErrors.gewinnLetzterPlatzEuro ? 'border-danger' : ''}>
               <label className="block text-sm text-muted mb-1">Gewinn letzter Platz (€)</label>
               <input
                 type="number"
@@ -438,7 +413,7 @@ export default function Season() {
                 className={`input-field w-full px-3 py-2 rounded focus:outline-none ${validationErrors.gewinnLetzterPlatzEuro ? 'border-danger' : ''}`}
               />
               {validationErrors.gewinnLetzterPlatzEuro && <p className="text-danger text-sm mt-1">{validationErrors.gewinnLetzterPlatzEuro}</p>}
-            </div>
+            </FormCard>
           </div>
 
           {hasChanges && (
@@ -486,9 +461,9 @@ export default function Season() {
           {prizeDistributionLog && (
             <div className="mt-6">
               <h2 className="text-xl font-bold text-foreground mb-4">Berechnungsstatistik</h2>
-              <div className="bg-surface border border-border p-6">
+              <FormCard>
                 <div dangerouslySetInnerHTML={{ __html: prizeDistributionLog.statisticsHtml }} />
-              </div>
+              </FormCard>
             </div>
           )}
 
@@ -504,7 +479,7 @@ export default function Season() {
               <h2 className="text-xl font-bold text-foreground mb-4 mt-6">
                 Gewinnverteilung
               </h2>
-              <div className="bg-surface border border-border p-3 mb-4">
+              <div className="bg-surface border border-border rounded-lg p-3 mb-4">
                 <div className="flex items-center gap-6 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="text-muted">Gesamt:</span>
@@ -539,40 +514,40 @@ export default function Season() {
                   </div>
                 </div>
               </div>
-              <div className="bg-surface border border-border overflow-x-auto">
+              <div className="rounded-lg border border-border overflow-x-auto">
                 <table className="w-full min-w-[900px]">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left py-3 px-4 text-muted font-medium whitespace-nowrap">Platz</th>
-                      <th className="text-left py-3 px-4 text-muted font-medium whitespace-nowrap">Manager</th>
-                      <th className="text-left py-3 px-4 text-muted font-medium whitespace-nowrap">Vorname</th>
-                      <th className="text-left py-3 px-4 text-muted font-medium whitespace-nowrap">Nachname</th>
-                      <th className="text-left py-3 px-4 text-muted font-medium whitespace-nowrap">E-Mail</th>
-                      <th className="text-right py-3 px-4 text-muted font-medium whitespace-nowrap">Punkte</th>
-                      <th className="text-right py-3 px-4 text-muted font-medium whitespace-nowrap">Gewinn (€)</th>
-                      <th className="text-center py-3 px-4 text-muted font-medium whitespace-nowrap">Status</th>
-                      <th className="text-center py-3 px-4 text-muted font-medium whitespace-nowrap">Kommentar</th>
+                  <TableHead>
+                    <tr>
+                      <Th className="whitespace-nowrap">Platz</Th>
+                      <Th className="whitespace-nowrap">Manager</Th>
+                      <Th className="whitespace-nowrap">Vorname</Th>
+                      <Th className="whitespace-nowrap">Nachname</Th>
+                      <Th className="whitespace-nowrap">E-Mail</Th>
+                      <Th align="right" className="whitespace-nowrap">Punkte</Th>
+                      <Th align="right" className="whitespace-nowrap">Gewinn (€)</Th>
+                      <Th align="center" className="whitespace-nowrap">Status</Th>
+                      <Th align="center" className="whitespace-nowrap">Kommentar</Th>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {prizeDistribution.map((payout, index) => (
+                  </TableHead>
+                  <TableBody>
+                    {prizeDistribution.map((payout) => (
                       <tr 
                         key={payout.managerId} 
-                        className={`border-b border-border last:border-b-0 hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}
+                        className="border-b border-border last:border-b-0 hover:bg-card-hover"
                         style={{ borderLeftWidth: '4px', borderLeftColor: payout.payoutStatus === 'PAID' ? '#36b37e' : '#2a3a4e' }}
                       >
-                        <td className="py-3 px-4 text-foreground font-medium">{payout.position}</td>
-                        <td className="py-3 px-4 text-foreground">{payout.managerName}</td>
-                        <td className="py-3 px-4 text-foreground">{payout.managerFirstName || '-'}</td>
-                        <td className="py-3 px-4 text-foreground">{payout.managerLastName || '-'}</td>
-                        <td className="py-3 px-4 text-foreground">{payout.managerEmail || '-'}</td>
-                        <td className="py-3 px-4 text-right text-foreground">{payout.pointsTotal}</td>
-                        <td className="py-3 px-4 text-right text-primary font-medium">
+                        <td className="px-3 py-2 text-foreground font-medium">{payout.position}</td>
+                        <td className="px-3 py-2 text-foreground">{payout.managerName}</td>
+                        <td className="px-3 py-2 text-muted">{payout.managerFirstName || '-'}</td>
+                        <td className="px-3 py-2 text-muted">{payout.managerLastName || '-'}</td>
+                        <td className="px-3 py-2 text-muted">{payout.managerEmail || '-'}</td>
+                        <td className="px-3 py-2 text-right text-foreground">{payout.pointsTotal}</td>
+                        <td className="px-3 py-2 text-right text-primary font-medium">
                           {payout.prizeAmount % 1 === 0
                             ? Math.round(payout.prizeAmount)
                             : payout.prizeAmount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="px-3 py-2 text-center">
                           <select
                             value={payout.payoutStatus || 'UNPAID'}
                             onChange={(e) => {
@@ -591,7 +566,7 @@ export default function Season() {
                             <option value="PAID">Ausbezahlt</option>
                           </select>
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="px-3 py-2 text-center">
                           <button
                             onClick={() => {
                               setCommentDialogManager(payout)
@@ -609,7 +584,7 @@ export default function Season() {
                         </td>
                       </tr>
                     ))}
-                   </tbody>
+                   </TableBody>
                  </table>
                </div>
              </div>
@@ -620,7 +595,7 @@ export default function Season() {
       {activeTab === 'saisonabschlussmail' && (
          <>
             <div className="grid gap-6">
-               <div className="p-6 bg-surface border border-border overflow visible">
+               <FormCard className="overflow-visible">
                  <label className="block text-sm text-muted mb-2">Saisonabschlussmail</label>
                  <div className="quill-mail">
                    <ReactQuill
@@ -639,7 +614,7 @@ export default function Season() {
                        }}
                    />
                  </div>
-               </div>
+               </FormCard>
             </div>
 
           <div className="mt-6 flex gap-4">
@@ -692,7 +667,7 @@ export default function Season() {
 
       {showPreviewModal && previewHtml && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface border border-border p-6 w-full max-w-4xl max-h-[90vh] flex flex-col">
+          <FormCard className="w-full max-w-4xl max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-foreground">E-Mail Vorschau</h3>
               <Button
@@ -724,7 +699,7 @@ export default function Season() {
                 Schließen
               </Button>
             </div>
-          </div>
+          </FormCard>
         </div>
       )}
 
@@ -747,7 +722,7 @@ export default function Season() {
 
       {showConfirmDialog && season && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-surface border border-border p-6 max-w-md">
+          <FormCard className="max-w-md">
             <h3 className="text-xl font-bold text-foreground mb-4">Gewinnverteilung berechnen</h3>
             <p className="text-muted mb-6">
               Die bisherige Gewinnverteilung wird überschrieben. Möchten Sie fortfahren?
@@ -777,13 +752,13 @@ export default function Season() {
                 Berechnen
               </Button>
             </div>
-          </div>
+          </FormCard>
         </div>
       )}
 
       {commentDialogManager && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface border border-border p-6 w-full max-w-5xl">
+          <FormCard className="w-full max-w-5xl">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="text-xl font-bold text-foreground">Kommentar</h3>
@@ -824,7 +799,7 @@ export default function Season() {
                 Speichern
               </Button>
             </div>
-          </div>
+          </FormCard>
         </div>
       )}
     </div>

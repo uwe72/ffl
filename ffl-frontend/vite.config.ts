@@ -30,7 +30,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192.png', 'icon-512.png'],
       devOptions: {
-        enabled: true
+        enabled: true,
+        suppressWarnings: true
       },
       manifest: {
         id: 'de.ffl.app',

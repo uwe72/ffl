@@ -1,15 +1,19 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useEmails, useCreateEmail, useBulkCreateEmails, useDeleteEmail } from '../hooks/useEmails'
+import PageHeader from '../components/PageHeader'
+import CardContainer from '../components/CardContainer'
+import SortIcon from '../components/SortIcon'
+import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
+import FormCard from '../components/FormCard'
 import Button from '../components/Button'
 import type { EmailAddress } from '../types'
 
 type SortKey = 'id' | 'email'
-type SortOrder = 'asc' | 'desc'
 
 export default function Emails() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('email')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showImportDialog, setShowImportDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -30,11 +34,6 @@ export default function Emails() {
       setSortKey(key)
       setSortOrder('asc')
     }
-  }
-
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
-    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
   const sortedEmails = useMemo(() => {
@@ -114,68 +113,76 @@ export default function Emails() {
   if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
   if (fetchError) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
+  const hasActiveFilter = searchTerm !== ''
+
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
-        <h1 className="text-sm font-medium text-primary">
-          E-Mail-Adressen <span className="text-lg text-subtle">({emails?.length ?? 0})</span>
-        </h1>
-      </div>
+      <PageHeader icon="sap-icon-email" title="E-Mail-Adressen">
+        <span className="text-sm text-muted">({emails?.length ?? 0})</span>
+      </PageHeader>
 
-      <div className="p-4 bg-surface border border-border">
-        <div className="flex flex-wrap gap-3 mb-4 items-center">
-          <input
-            placeholder="E-Mail suchen..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field max-w-md w-full px-3 py-2 rounded focus:outline-none"
-          />
+      <CardContainer>
+        <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap">
+          <div className="relative flex-1 min-w-[180px] max-w-[280px]">
+            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+            <input
+              type="text"
+              placeholder="E-Mail suchen..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input-field pl-8 pr-3 py-1.5 text-xs w-full"
+            />
+          </div>
+
           <Button
             variant="emphasized"
-            size="sm"
+            size="compact"
             onClick={() => { setShowCreateDialog(true); setNewEmail(''); setError('') }}
           >
             + Neue E-Mail
           </Button>
           <Button
             variant="ghost"
-            size="sm"
+            size="compact"
             onClick={() => { setShowImportDialog(true); setImportText(''); setError('') }}
           >
             + Importieren
           </Button>
+
+          {hasActiveFilter && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="p-1 rounded text-subtle hover:text-danger transition-colors"
+              title="Filter zurücksetzen"
+            >
+              <i className="sap-icon sap-icon-decline text-[14px]" />
+            </button>
+          )}
         </div>
 
-        <div className="overflow-x-auto">
+        <TableContent count={sortedEmails.length} total={emails?.length ?? 0} countLabel="E-Mail-Adressen">
           <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th
-                  className="px-4 py-2 text-left cursor-pointer hover:text-primary text-muted"
-                  onClick={() => handleSort('id')}
-                >
-                  # <SortIcon column="id" />
-                </th>
-                <th
-                  className="px-4 py-2 text-left cursor-pointer hover:text-primary text-muted"
-                  onClick={() => handleSort('email')}
-                >
-                  E-Mail <SortIcon column="email" />
-                </th>
-                <th className="px-4 py-2 text-right text-muted">Aktionen</th>
+            <TableHead>
+              <tr>
+                <ThSortable onClick={() => handleSort('id')}>
+                  #<SortIcon column="id" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable onClick={() => handleSort('email')}>
+                  E-Mail<SortIcon column="email" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <Th align="right">Aktionen</Th>
               </tr>
-            </thead>
-            <tbody>
+            </TableHead>
+            <TableBody>
               {sortedEmails.length > 0 ? (
-                sortedEmails.map((email, index) => (
-                  <tr key={email.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                    <td className="px-4 py-2 text-subtle">{email.id}</td>
-                    <td className="px-4 py-2 text-foreground">{email.email}</td>
-                    <td className="px-4 py-2 text-right">
+                sortedEmails.map((email) => (
+                  <tr key={email.id} className="border-b border-border hover:bg-card-hover">
+                    <td className="px-3 py-2 text-subtle">{email.id}</td>
+                    <td className="px-3 py-2 text-foreground">{email.email}</td>
+                    <td className="px-3 py-2 text-right">
                       <Button
                         variant="negative"
-                        size="sm"
+                        size="compact"
                         onClick={() => { setDeleteTarget(email); setShowDeleteDialog(true); setError('') }}
                       >
                         Löschen
@@ -190,20 +197,14 @@ export default function Emails() {
                   </td>
                 </tr>
               )}
-            </tbody>
+            </TableBody>
           </table>
-        </div>
-
-        {sortedEmails.length > 0 && (
-          <div className="mt-4 text-sm text-subtle">
-            {sortedEmails.length} E-Mail-Adress{sortedEmails.length === 1 ? 'e' : 'en'}
-          </div>
-        )}
-      </div>
+        </TableContent>
+      </CardContainer>
 
       {showCreateDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="p-6 bg-surface border border-border w-full max-w-md">
+          <FormCard className="w-full max-w-md">
             <h2 className="text-xl font-bold text-foreground mb-4">Neue E-Mail-Adresse</h2>
             {error && <p className="text-danger mb-3 text-sm">{error}</p>}
             <input
@@ -225,13 +226,13 @@ export default function Emails() {
                 {createEmail.isPending ? 'Wird angelegt...' : 'Anlegen'}
               </Button>
             </div>
-          </div>
+          </FormCard>
         </div>
       )}
 
       {showImportDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="p-6 bg-surface border border-border w-full max-w-lg">
+          <FormCard className="w-full max-w-lg">
             <h2 className="text-xl font-bold text-foreground mb-4">E-Mail-Adressen importieren</h2>
             <p className="text-muted text-sm mb-3">
               E-Mail-Adressen komma- oder zeilengetrennt eingeben. Duplikate und ungültige Adressen werden übersprungen.
@@ -255,13 +256,13 @@ export default function Emails() {
                 {bulkCreateEmails.isPending ? 'Wird importiert...' : 'Importieren'}
               </Button>
             </div>
-          </div>
+          </FormCard>
         </div>
       )}
 
       {showDeleteDialog && deleteTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="p-6 bg-surface border border-border w-full max-w-md">
+          <FormCard className="w-full max-w-md">
             <h2 className="text-xl font-bold text-foreground mb-4">E-Mail-Adresse löschen</h2>
             <p className="text-muted mb-6">
               Möchten Sie die E-Mail-Adresse <strong className="text-foreground">{deleteTarget.email}</strong> wirklich löschen?
@@ -279,7 +280,7 @@ export default function Emails() {
                 {deleteEmail.isPending ? 'Wird gelöscht...' : 'Löschen'}
               </button>
             </div>
-          </div>
+          </FormCard>
         </div>
       )}
     </div>

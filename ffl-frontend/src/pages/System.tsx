@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useSystemConfig, useUpdateSystemConfig, useSendTestMail } from '../hooks/useSystemConfig'
+import PageHeader from '../components/PageHeader'
+import Tabs from '../components/Tabs'
+import FormCard from '../components/FormCard'
 import Button from '../components/Button'
 import type { SystemConfig, TestMailResult } from '../types'
 
@@ -81,31 +84,21 @@ export default function System() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
-        <h1 className="text-sm font-medium text-primary">System</h1>
-      </div>
+      <PageHeader icon="sap-icon-settings" title="System" />
 
-      <div className="flex gap-1 mb-6">
-        <button
-          onClick={() => setActiveTab('general')}
-          className={activeTab === 'general' ? 'bg-primary text-primary-foreground font-medium px-3 py-1.5 rounded' : 'bg-elevated text-muted hover:bg-default px-3 py-1.5 rounded'}
-        >
-          Allgemein
-        </button>
-        <button
-          onClick={() => setActiveTab('mail')}
-          className={activeTab === 'mail' ? 'bg-primary text-primary-foreground font-medium px-3 py-1.5 rounded' : 'bg-elevated text-muted hover:bg-default px-3 py-1.5 rounded'}
-        >
-          Mailkonfiguration
-        </button>
-      </div>
+      <Tabs
+        items={[
+          { key: 'general', label: 'Allgemein' },
+          { key: 'mail', label: 'Mailkonfiguration' },
+        ]}
+        active={activeTab}
+        onChange={(key) => setActiveTab(key as 'general' | 'mail')}
+      />
 
       {activeTab === 'general' && (
-        <div>
-          <h2 className="text-xl font-semibold text-primary mb-4">Allgemeine Einstellungen</h2>
-          <div className="p-6 bg-surface border border-border">
-            <div>
+        <>
+          <div className="grid gap-6">
+            <FormCard>
               <label className="block text-sm text-muted mb-1">Web-URL der FFL-Seite</label>
               <input
                 type="url"
@@ -114,34 +107,34 @@ export default function System() {
                 placeholder="https://ffl.example.com"
                 className="input-field w-full px-3 py-2 rounded focus:outline-none"
               />
-            </div>
-            <p className="text-xs text-subtle mt-2">
-              Öffentliche Basis-URL der FFL-Seite (z.B. für Links in Mails). Ohne abschließenden Slash.
-            </p>
-          </div>
+              <p className="text-xs text-subtle mt-2">
+                Öffentliche Basis-URL der FFL-Seite (z.B. für Links in Mails). Ohne abschließenden Slash.
+              </p>
+            </FormCard>
 
-          <h2 className="text-xl font-semibold text-primary mt-6 mb-4">LLM (OpenRouter)</h2>
-          <div className="p-6 bg-surface border border-border">
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-              <div>
-                <label className="block text-sm text-muted mb-1">OpenRouter API-Key</label>
-                <input
-                  type="text"
-                  value={formData.openrouterApiKey || ''}
-                  onChange={(e) => handleChange('openrouterApiKey', e.target.value)}
-                  className="input-field w-full px-3 py-2 rounded focus:outline-none font-mono"
-                />
+            <FormCard>
+              <label className="block text-sm text-muted mb-3">LLM (OpenRouter)</label>
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm text-muted mb-1">API-Key</label>
+                  <input
+                    type="text"
+                    value={formData.openrouterApiKey || ''}
+                    onChange={(e) => handleChange('openrouterApiKey', e.target.value)}
+                    className="input-field w-full px-3 py-2 rounded focus:outline-none font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-muted mb-1">Modell</label>
+                  <input
+                    value={formData.openrouterModel || ''}
+                    onChange={(e) => handleChange('openrouterModel', e.target.value)}
+                    placeholder="openai/gpt-4o-mini"
+                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm text-muted mb-1">Modell</label>
-                <input
-                  value={formData.openrouterModel || ''}
-                  onChange={(e) => handleChange('openrouterModel', e.target.value)}
-                  placeholder="openai/gpt-4o-mini"
-                  className="input-field w-full px-3 py-2 rounded focus:outline-none"
-                />
-              </div>
-            </div>
+            </FormCard>
           </div>
 
           <div className="mt-6 flex items-center gap-4">
@@ -158,16 +151,15 @@ export default function System() {
               </span>
             )}
           </div>
-        </div>
+        </>
       )}
 
       {activeTab === 'mail' && (
-        <div>
-          <h2 className="text-xl font-semibold text-primary mb-4">Gmail Sende-Account</h2>
-
-          <div className="grid gap-4">
-            <div className="p-6 bg-surface border border-border">
-              <div className="grid gap-4 grid-cols-4">
+        <>
+          <div className="grid gap-6">
+            <FormCard>
+              <label className="block text-sm text-muted mb-3">Gmail Sende-Account</label>
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <label className="block text-sm text-muted mb-1">Absender E-Mail</label>
                   <input
@@ -210,7 +202,7 @@ export default function System() {
               <p className="text-xs text-subtle mt-2">
                 Erstelle ein App-Passwort unter myaccount.google.com → Sicherheit → App-Passwörter
               </p>
-            </div>
+            </FormCard>
           </div>
 
           <div className="mt-6 flex items-center gap-4">
@@ -222,19 +214,15 @@ export default function System() {
               {updateConfig.isPending ? 'Speichern...' : 'Speichern'}
             </Button>
             {saveMessage && (
-              <span
-                className={
-                  saveMessage.includes('Fehler') ? 'text-danger' : 'text-success'
-                }
-              >
+              <span className={saveMessage.includes('Fehler') ? 'text-danger' : 'text-success'}>
                 {saveMessage}
               </span>
             )}
           </div>
 
           <div className="mt-8 pt-6 border-t border-border">
-            <h3 className="text-lg font-semibold text-primary mb-4">Test-Mail senden</h3>
-            <div className="p-6 bg-surface border border-border">
+            <FormCard>
+              <label className="block text-sm text-muted mb-3">Test-Mail senden</label>
               <div className="flex gap-4 items-end">
                 <div className="flex-1">
                   <label className="block text-sm text-muted mb-1">Empfänger</label>
@@ -254,10 +242,10 @@ export default function System() {
                   {sendTestMail.isPending ? 'Sende...' : 'Test-Mail senden'}
                 </Button>
               </div>
-            </div>
+            </FormCard>
 
             {testMailResult && (
-              <div className="mt-4 p-6 bg-surface border border-border">
+              <FormCard className="mt-4">
                 <div className="mb-4">
                   <span className={testMailResult.success ? 'text-success' : 'text-danger'}>
                     {testMailResult.success ? '✓ ' : '✗ '}{testMailResult.message}
@@ -269,10 +257,10 @@ export default function System() {
                   <p><span className="text-subtle">SMTP Server:</span> {testMailResult.usedSmtpServer || '-'}</p>
                   <p><span className="text-subtle">SMTP Port:</span> {testMailResult.usedSmtpPort || '-'}</p>
                 </div>
-              </div>
+              </FormCard>
             )}
           </div>
-        </div>
+        </>
       )}
     </div>
   )

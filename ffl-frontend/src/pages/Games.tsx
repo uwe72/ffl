@@ -7,17 +7,11 @@ import { useAuth } from '../context/AuthContext'
 import FormationImportDialog from '../components/FormationImportDialog'
 import MatchdayMailSendDialog from '../components/MatchdayMailSendDialog'
 import Button from '../components/Button'
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-  return isMobile
-}
+import PageHeader from '../components/PageHeader'
+import CardContainer from '../components/CardContainer'
+import SortIcon from '../components/SortIcon'
+import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
+import useIsMobile from '../hooks/useIsMobile'
 
 type SortKey = 'roundNumber' | 'name' | 'hostName' | 'visitorName' | 'goalHost' | 'goalVisitor'
 type SortOrder = 'asc' | 'desc'
@@ -214,11 +208,6 @@ export default function Games() {
     }
   }
 
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
-    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-  }
-
   const filteredGames = useMemo(() => {
     if (!games) return []
     return games.filter(g => selectedRound === null || g.roundNumber === selectedRound)
@@ -256,14 +245,9 @@ export default function Games() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-calendar text-xl text-primary" />
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Spiele</h1>
-        </div>
-      </div>
+      <PageHeader icon="sap-icon-calendar" title="Spiele" />
 
-      <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
+      <CardContainer>
         <FilterBar
           selectedRound={selectedRound}
           setSelectedRound={setSelectedRound}
@@ -273,117 +257,105 @@ export default function Games() {
           isAdmin={isAdmin}
         />
 
-        <div className="flex-1 px-6 pb-6 overflow-x-auto">
-          {!isMobile && (
-            <div className="rounded-lg border border-border">
-              <table className="w-full">
-                <thead className="bg-elevated sticky top-0">
-                  <tr>
-                    <th
-                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
-                      onClick={() => handleSort('name')}
-                    >
-                      Name<SortIcon column="name" />
-                    </th>
-                    <th
-                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
-                      onClick={() => handleSort('hostName')}
-                    >
-                      Heimmannschaft<SortIcon column="hostName" />
-                    </th>
-                    <th
-                      className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
-                      onClick={() => handleSort('goalHost')}
-                    >
-                      Ergebnis<SortIcon column="goalHost" />
-                    </th>
-                    <th
-                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
-                      onClick={() => handleSort('visitorName')}
-                    >
-                      Gastmannschaft<SortIcon column="visitorName" />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-surface text-sm">
-                  {sortedGames.length > 0 ? (
-                    sortedGames.map((game, index) => (
-                      <tr key={game.id} className={`border-b border-border hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                        <td className="px-3 py-2">
-                          <RouterLink
-                            to={`/games/${game.id}`}
-                            className="hover:text-accent-hover link text-primary"
-                          >
-                            {game.name || '-'}
-                          </RouterLink>
-                        </td>
-                        <td className="px-3 py-2">
-                          <div className="flex items-center gap-3">
-                            {game.hostLogoUrl && (
-                              <img 
-                                src={game.hostLogoUrl} 
-                                alt={game.hostName}
-                                className="h-8 w-8 object-contain flex-shrink-0"
-                              />
-                            )}
-                            <div>
-                              <div className="font-medium">{game.hostName || '-'}</div>
-                              {game.hostShortName && (
-                                <div className="text-sm text-subtle">{game.hostShortName}</div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded bg-elevated">
-                              <span className="text-foreground font-semibold">{game.goalHost ?? '-'}</span>
-                              <span className="text-subtle">:</span>
-                              <span className="text-foreground font-semibold">{game.goalVisitor ?? '-'}</span>
-                            </span>
-                            {isAdmin && game.goalHost == null && game.goalVisitor == null && (
-                              <Button
-                                variant="emphasized"
-                                size="sm"
-                                onClick={() => setImportGameId(game.id)}
-                              >
-                                Import
-                              </Button>
+        {!isMobile && (
+          <TableContent count={sortedGames.length} total={games?.length || 0} countLabel="Spielen">
+            <table className="w-full">
+              <TableHead>
+                <tr>
+                  <ThSortable onClick={() => handleSort('name')}>
+                    Name<SortIcon column="name" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  <ThSortable onClick={() => handleSort('hostName')}>
+                    Heimmannschaft<SortIcon column="hostName" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  <ThSortable align="center" onClick={() => handleSort('goalHost')}>
+                    Ergebnis<SortIcon column="goalHost" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  <ThSortable onClick={() => handleSort('visitorName')}>
+                    Gastmannschaft<SortIcon column="visitorName" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                </tr>
+              </TableHead>
+              <TableBody>
+                {sortedGames.length > 0 ? (
+                  sortedGames.map((game, index) => (
+                    <tr key={game.id} className={`border-b border-border hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                      <td className="px-3 py-2">
+                        <RouterLink
+                          to={`/games/${game.id}`}
+                          className="hover:text-accent-hover link text-primary"
+                        >
+                          {game.name || '-'}
+                        </RouterLink>
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-3">
+                          {game.hostLogoUrl && (
+                            <img 
+                              src={game.hostLogoUrl} 
+                              alt={game.hostName}
+                              className="h-8 w-8 object-contain flex-shrink-0"
+                            />
+                          )}
+                          <div>
+                            <div className="font-medium">{game.hostName || '-'}</div>
+                            {game.hostShortName && (
+                              <div className="text-sm text-subtle">{game.hostShortName}</div>
                             )}
                           </div>
-                        </td>
-                        <td className="px-3 py-2">
-                          <div className="flex items-center gap-3">
-                            {game.visitorLogoUrl && (
-                              <img 
-                                src={game.visitorLogoUrl} 
-                                alt={game.visitorName}
-                                className="h-8 w-8 object-contain flex-shrink-0"
-                              />
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded bg-elevated">
+                            <span className="text-foreground font-semibold">{game.goalHost ?? '-'}</span>
+                            <span className="text-subtle">:</span>
+                            <span className="text-foreground font-semibold">{game.goalVisitor ?? '-'}</span>
+                          </span>
+                          {isAdmin && game.goalHost == null && game.goalVisitor == null && (
+                            <Button
+                              variant="emphasized"
+                              size="sm"
+                              onClick={() => setImportGameId(game.id)}
+                            >
+                              Import
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-3">
+                          {game.visitorLogoUrl && (
+                            <img 
+                              src={game.visitorLogoUrl} 
+                              alt={game.visitorName}
+                              className="h-8 w-8 object-contain flex-shrink-0"
+                            />
+                          )}
+                          <div>
+                            <div className="font-medium">{game.visitorName || '-'}</div>
+                            {game.visitorShortName && (
+                              <div className="text-sm text-subtle">{game.visitorShortName}</div>
                             )}
-                            <div>
-                              <div className="font-medium">{game.visitorName || '-'}</div>
-                              {game.visitorShortName && (
-                                <div className="text-sm text-subtle">{game.visitorShortName}</div>
-                              )}
-                            </div>
                           </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4} className="text-center text-subtle py-8">
-                        Keine Spiele gefunden
+                        </div>
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="text-center text-subtle py-8">
+                      Keine Spiele gefunden
+                    </td>
+                  </tr>
+                )}
+              </TableBody>
+            </table>
+          </TableContent>
+        )}
 
-          {isMobile && (
+        {isMobile && (
+          <div className="flex-1 px-6 pb-6 overflow-x-auto">
             <div className="grid gap-4 mt-4">
               {sortedGames.length > 0 ? (
                 sortedGames.map((game) => (
@@ -395,15 +367,15 @@ export default function Games() {
                 </div>
               )}
             </div>
-          )}
 
-          {sortedGames.length > 0 && (
-            <div className="mt-4 text-sm text-subtle">
-              {sortedGames.length} von {games?.length || 0} Spielen
-            </div>
-          )}
-        </div>
-      </div>
+            {sortedGames.length > 0 && (
+              <div className="mt-4 text-sm text-subtle">
+                {sortedGames.length} von {games?.length || 0} Spielen
+              </div>
+            )}
+          </div>
+        )}
+      </CardContainer>
 
       {isAdmin && (
         <FormationImportDialog

@@ -5,6 +5,10 @@ import { usePlayer, useUpdatePlayer, usePlayerRanks } from '../hooks/usePlayers'
 import { useAuth } from '../context/AuthContext'
 import { positionLabels, positionColors } from './Players'
 import Button from '../components/Button'
+import CardContainer from '../components/CardContainer'
+import SortIcon from '../components/SortIcon'
+import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
+import useIsMobile from '../hooks/useIsMobile'
 import type { Position } from '../types'
 
 type SortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue' | 'hinrunde' | 'rueckrunde'
@@ -22,17 +26,6 @@ function formatPrice(price: number | undefined): string {
     return `${millions % 1 === 0 ? millions : millions.toFixed(1)}M €`
   }
   return `${Math.round(price / 1_000)}K €`
-}
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-  return isMobile
 }
 
 export default function PlayerDetail() {
@@ -142,11 +135,6 @@ export default function PlayerDetail() {
     }
   }
 
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
-    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-  }
-
   const sortedManagers = useMemo(() => {
     if (!player?.managers) return []
     
@@ -198,7 +186,7 @@ export default function PlayerDetail() {
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
-      <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
+      <CardContainer>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] md:grid-rows-[auto_auto] gap-3 md:gap-x-6 md:gap-y-3">
             {player.pictureUrl ? (
@@ -337,50 +325,52 @@ export default function PlayerDetail() {
         )}
 
         {player.managers && player.managers.length > 0 && (
-          <div className="px-6 pb-6">
-            <h2 className="text-lg font-semibold text-foreground mb-3">
-              Manager mit diesem Spieler ({player.managers.length})
-            </h2>
+          <>
+            <div className="px-6 mb-3">
+              <h2 className="text-lg font-semibold text-foreground">
+                Manager mit diesem Spieler ({player.managers.length})
+              </h2>
+            </div>
 
             {!isMobile && (
-            <div className="rounded-lg border border-border">
+            <TableContent>
               <table className="w-full">
-                <thead className="bg-elevated sticky top-0">
+                <TableHead>
                   <tr>
-                    <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionTotal')}>
-                      Pos<SortIcon column="positionTotal" />
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionChange')}>
-                      +-<SortIcon column="positionChange" />
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('shortName')}>
-                      Manager<SortIcon column="shortName" />
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('pointsTotal')}>
-                      Pkt<SortIcon column="pointsTotal" />
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('pointsLastRound')}>
-                      Spieltag<SortIcon column="pointsLastRound" />
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('firstName')}>
-                      Vorname<SortIcon column="firstName" />
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('lastName')}>
-                      Nachname<SortIcon column="lastName" />
-                    </th>
-                    {isAdmin && <th className="px-3 py-2 text-left text-xs text-muted font-bold border-b border-border">Status</th>}
-                    <th className="px-3 py-2 text-right text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('teamValue')}>
-                      Teamwert<SortIcon column="teamValue" />
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('hinrunde')}>
-                      Hinrunde<SortIcon column="hinrunde" />
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('rueckrunde')}>
-                      Rückrunde<SortIcon column="rueckrunde" />
-                    </th>
+                    <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
+                      Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('positionChange')}>
+                      +-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleSort('shortName')}>
+                      Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('pointsTotal')}>
+                      Pkt<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
+                      Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleSort('firstName')}>
+                      Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleSort('lastName')}>
+                      Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    {isAdmin && <Th align="left">Status</Th>}
+                    <ThSortable align="right" onClick={() => handleSort('teamValue')}>
+                      Teamwert<SortIcon column="teamValue" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('hinrunde')}>
+                      Hinrunde<SortIcon column="hinrunde" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('rueckrunde')}>
+                      Rückrunde<SortIcon column="rueckrunde" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
                   </tr>
-                </thead>
-                <tbody className="bg-surface text-sm">
+                </TableHead>
+                <TableBody>
                   {sortedManagers.map((manager) => (
                     <tr key={manager.id} className="border-b border-border hover:bg-card-hover">
                       <td className="px-3 py-2 text-center text-foreground">
@@ -440,13 +430,13 @@ export default function PlayerDetail() {
                       </td>
                     </tr>
                   ))}
-                </tbody>
+                </TableBody>
               </table>
-            </div>
+            </TableContent>
             )}
 
             {isMobile && (
-            <div className="grid gap-4">
+            <div className="px-6 pb-6 grid gap-4">
               {sortedManagers.map((manager) => (
                 <div key={manager.id} className="card p-4 bg-surface border border-border">
                   <div className="flex items-center gap-3 mb-3">
@@ -495,9 +485,9 @@ export default function PlayerDetail() {
               ))}
             </div>
             )}
-          </div>
+          </>
         )}
-      </div>
+      </CardContainer>
     </div>
   )
 }

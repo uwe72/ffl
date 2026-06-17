@@ -1,21 +1,15 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import * as XLSX from 'xlsx'
 import { useManagers } from '../hooks/useManagers'
 import { useAuth } from '../context/AuthContext'
 import { trackEvent } from '../hooks/useMatomo'
 import Button from '../components/Button'
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-  return isMobile
-}
+import PageHeader from '../components/PageHeader'
+import CardContainer from '../components/CardContainer'
+import SortIcon from '../components/SortIcon'
+import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
+import useIsMobile from '../hooks/useIsMobile'
 
 const paymentStateLabels = {
   PAID: 'Bezahlt',
@@ -23,7 +17,6 @@ const paymentStateLabels = {
 }
 
 type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
-type SortOrder = 'asc' | 'desc'
 
 function ManagerCard({ manager }: { manager: any }) {
   return (
@@ -108,7 +101,7 @@ export default function Managers() {
   const isMobile = useIsMobile()
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const { data: managers, isLoading, error } = useManagers()
   const { user } = useAuth()
@@ -194,11 +187,6 @@ export default function Managers() {
     trackEvent('manager', 'export_excel')
   }
 
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
-    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-  }
-
   const hasActiveFilter = searchTerm !== ''
 
   if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
@@ -206,12 +194,9 @@ export default function Managers() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-employee text-xl text-primary" />
-        <h1 className="text-xl font-bold text-foreground">Manager</h1>
-      </div>
+      <PageHeader icon="sap-icon-employee" title="Manager" />
 
-      <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
+      <CardContainer>
         <FilterBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -219,119 +204,119 @@ export default function Managers() {
           hasFilter={hasActiveFilter}
         />
 
-        <div className="flex-1 px-6 pb-6 overflow-x-auto">
         {!isMobile && (
-        <div className="rounded-lg border border-border">
-          <table className="w-full">
-            <thead className="bg-elevated sticky top-0">
-              <tr>
-                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionTotal')}>
-                  Pos<SortIcon column="positionTotal" />
-                </th>
-                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionChange')}>
-                  +-<SortIcon column="positionChange" />
-                </th>
-                <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('shortName')}>
-                  Manager<SortIcon column="shortName" />
-                </th>
-                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('pointsTotal')}>
-                  Pkt<SortIcon column="pointsTotal" />
-                </th>
-                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('pointsLastRound')}>
-                  Spieltag<SortIcon column="pointsLastRound" />
-                </th>
-                <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('firstName')}>
-                  Vorname<SortIcon column="firstName" />
-                </th>
-                <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('lastName')}>
-                  Nachname<SortIcon column="lastName" />
-                </th>
-                {isAdmin && <th className="px-3 py-2 text-left text-xs text-muted font-bold border-b border-border">Status</th>}
-                <th className="px-3 py-2 text-right text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('teamValue')}>
-                  Teamwert<SortIcon column="teamValue" />
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-surface text-sm">
-              {filteredManagers && filteredManagers.length > 0 ? (
-                filteredManagers.map((manager) => (
-                  <tr key={manager.id} className="border-b border-border hover:bg-card-hover">
-                    <td className="px-3 py-2 text-center text-foreground">
-                      {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      {manager.positionChange != null && manager.positionChange !== 0 ? (
-                        <span className={`${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
-                          {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
-                        </span>
-                      ) : (
-                        <span className="text-subtle">-</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2">
-                      <RouterLink to={`/managers/${manager.id}`} className="hover:text-accent-hover link text-primary">
-                        {manager.shortName || '-'}
-                      </RouterLink>
-                    </td>
-                    <td className="px-3 py-2 text-center text-foreground">
-                      {manager.pointsTotal ?? '-'}
-                    </td>
-                    <td className="px-3 py-2 text-center text-muted">
-                      {manager.pointsLastRound ?? '-'}
-                    </td>
-                    <td className="px-3 py-2 text-muted">
-                      {manager.firstName || '-'}
-                    </td>
-                    <td className="px-3 py-2 text-muted">
-                      {manager.lastName || '-'}
-                    </td>
-                    {isAdmin && (
-                      <td className="px-3 py-2">
-                        <span
-                          className={`text-xs font-medium px-2 py-0.5 rounded ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}
-                        >
-                          {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
-                        </span>
+          <TableContent count={filteredManagers.length} total={managers?.length || 0} countLabel="Managern">
+            <table className="w-full">
+              <TableHead>
+                <tr>
+                  <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
+                    Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  <ThSortable align="center" onClick={() => handleSort('positionChange')}>
+                    +-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  <ThSortable onClick={() => handleSort('shortName')}>
+                    Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  <ThSortable align="center" onClick={() => handleSort('pointsTotal')}>
+                    Pkt<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
+                    Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  <ThSortable onClick={() => handleSort('firstName')}>
+                    Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  <ThSortable onClick={() => handleSort('lastName')}>
+                    Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  {isAdmin && <Th>Status</Th>}
+                  <ThSortable align="right" onClick={() => handleSort('teamValue')}>
+                    Teamwert<SortIcon column="teamValue" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                </tr>
+              </TableHead>
+              <TableBody>
+                {filteredManagers && filteredManagers.length > 0 ? (
+                  filteredManagers.map((manager) => (
+                    <tr key={manager.id} className="border-b border-border hover:bg-card-hover">
+                      <td className="px-3 py-2 text-center text-foreground">
+                        {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
                       </td>
-                    )}
-                    <td className="px-3 py-2 text-right text-foreground">
-                      {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
+                      <td className="px-3 py-2 text-center">
+                        {manager.positionChange != null && manager.positionChange !== 0 ? (
+                          <span className={`${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                            {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
+                          </span>
+                        ) : (
+                          <span className="text-subtle">-</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <RouterLink to={`/managers/${manager.id}`} className="hover:text-accent-hover link text-primary">
+                          {manager.shortName || '-'}
+                        </RouterLink>
+                      </td>
+                      <td className="px-3 py-2 text-center text-foreground">
+                        {manager.pointsTotal ?? '-'}
+                      </td>
+                      <td className="px-3 py-2 text-center text-muted">
+                        {manager.pointsLastRound ?? '-'}
+                      </td>
+                      <td className="px-3 py-2 text-muted">
+                        {manager.firstName || '-'}
+                      </td>
+                      <td className="px-3 py-2 text-muted">
+                        {manager.lastName || '-'}
+                      </td>
+                      {isAdmin && (
+                        <td className="px-3 py-2">
+                          <span
+                            className={`text-xs font-medium px-2 py-0.5 rounded ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}
+                          >
+                            {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
+                          </span>
+                        </td>
+                      )}
+                      <td className="px-3 py-2 text-right text-foreground">
+                        {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={isAdmin ? 9 : 8} className="text-center text-subtle py-8">
+                      Keine Manager gefunden
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={isAdmin ? 9 : 8} className="text-center text-subtle py-8">
-                    Keine Manager gefunden
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </TableBody>
+            </table>
+          </TableContent>
         )}
 
         {isMobile && (
-          <div className="grid gap-4 mt-4">
-            {filteredManagers && filteredManagers.length > 0 ? (
-              filteredManagers.map((manager) => (
-                <ManagerCard key={manager.id} manager={manager} />
-              ))
-            ) : (
-              <div className="text-center text-subtle py-8">
-                Keine Manager gefunden
+          <div className="flex-1 px-6 pb-6 overflow-x-auto">
+            <div className="grid gap-4 mt-4">
+              {filteredManagers && filteredManagers.length > 0 ? (
+                filteredManagers.map((manager) => (
+                  <ManagerCard key={manager.id} manager={manager} />
+                ))
+              ) : (
+                <div className="text-center text-subtle py-8">
+                  Keine Manager gefunden
+                </div>
+              )}
+            </div>
+
+            {filteredManagers && (
+              <div className="mt-4 text-sm text-subtle">
+                {filteredManagers.length} von {managers?.length || 0} Managern
               </div>
             )}
           </div>
         )}
-
-        {filteredManagers && (
-          <div className="mt-4 text-sm text-subtle">
-            {filteredManagers.length} von {managers?.length || 0} Managern
-          </div>
-        )}
-        </div>
-      </div>
+      </CardContainer>
     </div>
   )
 }

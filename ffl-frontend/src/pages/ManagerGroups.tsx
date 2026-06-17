@@ -1,18 +1,12 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useManagerGroups, useDeleteManagerGroup } from '../hooks/useManagerGroups'
 import Button from '../components/Button'
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-  return isMobile
-}
+import PageHeader from '../components/PageHeader'
+import CardContainer from '../components/CardContainer'
+import SortIcon from '../components/SortIcon'
+import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
+import useIsMobile from '../hooks/useIsMobile'
 
 type SortKey = 'name' | 'managerCount' | 'createdByLogin'
 type SortOrder = 'asc' | 'desc'
@@ -117,11 +111,6 @@ export default function ManagerGroups() {
     }
   }
 
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
-    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-  }
-
   const filteredGroups = useMemo(() => {
     if (!groups) return []
     
@@ -165,12 +154,9 @@ export default function ManagerGroups() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-group-2 text-xl text-primary" />
-        <h1 className="text-xl font-bold text-foreground">Gruppen</h1>
-      </div>
+      <PageHeader icon="sap-icon-group-2" title="Gruppen" />
 
-      <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
+      <CardContainer>
         <FilterBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -179,39 +165,40 @@ export default function ManagerGroups() {
           onClearFilter={clearFilter}
         />
 
-        <div className="flex-1 px-6 pb-6 overflow-x-auto">
         {!isMobile && (
-        <div className="rounded-lg border border-border">
+        <TableContent
+          count={filteredGroups.length > 0 ? filteredGroups.length : undefined}
+          total={filteredGroups.length > 0 ? groups?.length : undefined}
+          countLabel={filteredGroups.length > 0 ? "Gruppen" : undefined}
+        >
           <table className="w-full">
-            <thead className="bg-elevated sticky top-0">
+            <TableHead>
               <tr>
-                <th
-                  className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                <ThSortable
                   onClick={() => handleSort('name')}
                 >
-                  Name<SortIcon column="name" />
-                </th>
-                <th className="px-3 py-2 text-left text-xs text-muted font-bold border-b border-border">
+                  Name<SortIcon column="name" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <Th>
                   Beschreibung
-                </th>
-                <th
-                  className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                </Th>
+                <ThSortable
+                  align="center"
                   onClick={() => handleSort('managerCount')}
                 >
-                  Manager<SortIcon column="managerCount" />
-                </th>
-                <th
-                  className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
+                  Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable
                   onClick={() => handleSort('createdByLogin')}
                 >
-                  Erstellt von<SortIcon column="createdByLogin" />
-                </th>
-                <th className="px-3 py-2 text-right text-xs text-muted font-bold border-b border-border">
+                  Erstellt von<SortIcon column="createdByLogin" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <Th align="right">
                   Aktionen
-                </th>
+                </Th>
               </tr>
-            </thead>
-            <tbody className="bg-surface text-sm">
+            </TableHead>
+            <TableBody>
               {filteredGroups.length > 0 ? (
                 filteredGroups.map((group) => (
                   <tr key={group.id} className="border-b border-border hover:bg-card-hover">
@@ -252,32 +239,33 @@ export default function ManagerGroups() {
                   </td>
                 </tr>
               )}
-            </tbody>
+            </TableBody>
           </table>
-        </div>
+        </TableContent>
         )}
 
         {isMobile && (
-          <div className="grid gap-4 mt-4">
-            {filteredGroups.length > 0 ? (
-              filteredGroups.map((group) => (
-                <ManagerGroupCard key={group.id} group={group} onDelete={handleDeleteGroup} />
-              ))
-            ) : (
-              <div className="text-center text-subtle py-8">
-                Keine Gruppen gefunden
+          <div className="flex-1 px-6 pb-6 overflow-x-auto">
+            <div className="grid gap-4 mt-4">
+              {filteredGroups.length > 0 ? (
+                filteredGroups.map((group) => (
+                  <ManagerGroupCard key={group.id} group={group} onDelete={handleDeleteGroup} />
+                ))
+              ) : (
+                <div className="text-center text-subtle py-8">
+                  Keine Gruppen gefunden
+                </div>
+              )}
+            </div>
+
+            {filteredGroups.length > 0 && (
+              <div className="mt-4 text-sm text-subtle">
+                {filteredGroups.length} von {groups?.length || 0} Gruppen
               </div>
             )}
           </div>
         )}
-
-        {filteredGroups.length > 0 && (
-          <div className="mt-4 text-sm text-subtle">
-            {filteredGroups.length} von {groups?.length || 0} Gruppen
-          </div>
-        )}
-        </div>
-      </div>
+      </CardContainer>
     </div>
   )
 }

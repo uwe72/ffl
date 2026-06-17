@@ -7,6 +7,9 @@ import { useUsers } from '../hooks/useUsers'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/Button'
 import Badge from '../components/Badge'
+import CardContainer from '../components/CardContainer'
+import SortIcon from '../components/SortIcon'
+import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import type { ManagerInGroup } from '../types'
 
 type SortKey = 'positionTotal' | 'shortName' | 'firstName' | 'lastName' | 'pointsTotal' | 'pointsLastRound'
@@ -80,11 +83,6 @@ export default function ManagerGroupDetail() {
       setSortKey(key)
       setSortOrder('asc')
     }
-  }
-
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
-    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
   const selectedManagers = useMemo(() => {
@@ -327,7 +325,7 @@ export default function ManagerGroupDetail() {
         </div>
       )}
 
-      <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
+      <CardContainer>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] md:grid-rows-[auto_auto] gap-3 md:gap-x-6 md:gap-y-3">
             <div className="relative group w-24 h-24 shrink-0 justify-self-center md:justify-self-start row-span-1 md:row-span-2">
@@ -568,52 +566,34 @@ export default function ManagerGroupDetail() {
 
             <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full">
-                <thead className="bg-elevated sticky top-0">
+                <TableHead>
                   <tr>
-                    <th 
-                      className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
-                      onClick={() => handleSort('positionTotal')}
-                    >
-                      Pos<SortIcon column="positionTotal" />
-                    </th>
-                    <th 
-                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
-                      onClick={() => handleSort('shortName')}
-                    >
-                      Manager<SortIcon column="shortName" />
-                    </th>
-                    <th 
-                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
-                      onClick={() => handleSort('firstName')}
-                    >
-                      Vorname<SortIcon column="firstName" />
-                    </th>
-                    <th 
-                      className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
-                      onClick={() => handleSort('lastName')}
-                    >
-                      Nachname<SortIcon column="lastName" />
-                    </th>
-                    <th 
-                      className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
-                      onClick={() => handleSort('pointsTotal')}
-                    >
-                      Pkt<SortIcon column="pointsTotal" />
-                    </th>
-                    <th 
-                      className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border"
-                      onClick={() => handleSort('pointsLastRound')}
-                    >
-                      Letzter Spieltag<SortIcon column="pointsLastRound" />
-                    </th>
+                    <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
+                      Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable onClick={() => handleSort('shortName')}>
+                      Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable onClick={() => handleSort('firstName')}>
+                      Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable onClick={() => handleSort('lastName')}>
+                      Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('pointsTotal')}>
+                      Pkt<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
+                      Letzter Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
                     {canEdit && (
-                      <th className="px-3 py-2 text-right text-xs text-muted font-bold border-b border-border">
+                      <Th align="right">
                         Aktionen
-                      </th>
+                      </Th>
                     )}
                   </tr>
-                </thead>
-                <tbody className="bg-surface text-sm">
+                </TableHead>
+                <TableBody>
                   {filteredAndSortedManagers.length > 0 ? (
                     filteredAndSortedManagers.map((manager, index) => (
                       <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
@@ -660,12 +640,12 @@ export default function ManagerGroupDetail() {
                       </td>
                     </tr>
                   )}
-                </tbody>
+                </TableBody>
               </table>
             </div>
           </div>
         </div>
-      </div>
+      </CardContainer>
 
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useUser, useUpdateUser, useDeleteUser } from '../hooks/useUsers'
 import Button from '../components/Button'
+import PageHeader from '../components/PageHeader'
+import FormCard from '../components/FormCard'
 import type { User } from '../types'
 
 const roleLabels: Record<string, string> = {
@@ -87,47 +89,44 @@ export default function UserDetail() {
         Zurück zur Übersicht
       </RouterLink>
 
-      <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
-        <h1 className="text-sm font-medium text-primary">Benutzer bearbeiten</h1>
-      </div>
+      <PageHeader icon="sap-icon-settings" title="Benutzer bearbeiten" />
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-1">Login-Name</label>
           <input
             value={user.login}
             readOnly
             className="input-field w-full px-3 py-2 rounded focus:outline-none opacity-70"
           />
-        </div>
+        </FormCard>
 
-        <div className="p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-2">Rolle</label>
           <span className={`${roleChipClass[user.role as keyof typeof roleChipClass] || 'chip-accent'} text-xs font-medium px-2 py-0.5 rounded`}>
             {roleLabels[user.role as keyof typeof roleLabels] || user.role}
           </span>
-        </div>
+        </FormCard>
 
-        <div className="p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-1">Vorname <span className="text-danger">*</span></label>
           <input
             value={formData.firstName || ''}
             onChange={(e) => handleChange('firstName', e.target.value)}
             className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
-        </div>
+        </FormCard>
 
-        <div className="p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-1">Nachname <span className="text-danger">*</span></label>
           <input
             value={formData.lastName || ''}
             onChange={(e) => handleChange('lastName', e.target.value)}
             className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
-        </div>
+        </FormCard>
 
-        <div className="p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-1">E-Mail <span className="text-danger">*</span></label>
           <input
             type="email"
@@ -135,9 +134,9 @@ export default function UserDetail() {
             onChange={(e) => handleChange('email', e.target.value)}
             className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
-        </div>
+        </FormCard>
 
-        <div className="p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-1">Geburtsdatum</label>
           <input
             type="date"
@@ -145,25 +144,25 @@ export default function UserDetail() {
             onChange={(e) => handleChange('birthday', e.target.value)}
             className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
-        </div>
+        </FormCard>
 
-        <div className="p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-1">Straße</label>
           <input
             value={formData.street || ''}
             onChange={(e) => handleChange('street', e.target.value)}
             className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
-        </div>
+        </FormCard>
 
-        <div className="p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-1">Stadt</label>
           <input
             value={formData.city || ''}
             onChange={(e) => handleChange('city', e.target.value)}
             className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
-        </div>
+        </FormCard>
       </div>
 
       <div className="mt-6 flex gap-4">
@@ -187,7 +186,7 @@ export default function UserDetail() {
       </div>
 
       {user.managers && user.managers.length > 0 && (
-        <div className="p-6 mt-6 bg-surface border border-border">
+        <FormCard className="mt-6">
           <h2 className="text-xl font-semibold text-foreground mb-4">Zugehörige Manager</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -216,7 +215,7 @@ export default function UserDetail() {
               </tbody>
             </table>
           </div>
-        </div>
+        </FormCard>
       )}
 
       <div className="mt-8">
@@ -230,7 +229,7 @@ export default function UserDetail() {
 
       {deleteDialogOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="p-6 bg-surface border border-border w-full max-w-md">
+          <FormCard className="w-full max-w-md">
             <h2 className="text-xl font-bold text-foreground mb-4">Benutzer löschen</h2>
             <p className="text-muted mb-2">
               Möchten Sie den Benutzer <strong className="text-foreground">"{user.login}"</strong> wirklich löschen?
@@ -253,7 +252,7 @@ export default function UserDetail() {
                 {deleteUser.isPending ? 'Wird gelöscht...' : 'Löschen'}
               </button>
             </div>
-          </div>
+          </FormCard>
         </div>
       )}
     </div>

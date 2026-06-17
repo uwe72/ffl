@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
 import FormationImportDialog from '../components/FormationImportDialog'
+import { TableHead, Th, TableBody } from '../components/Table'
 
 const POSITION_ORDER: Record<string, number> = {
   'GOALKEEPER': 1,
@@ -34,15 +35,15 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
       {sortedPlayers.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-elevated sticky top-0">
+            <TableHead>
               <tr>
-                <th className="px-3 py-2 text-left text-xs text-muted font-bold border-b border-border">Spieler</th>
-                <th className="px-3 py-2 text-left text-xs text-muted font-bold border-b border-border">Position</th>
-                <th className="px-3 py-2 text-center text-xs text-muted font-bold border-b border-border">Punkte</th>
-                <th className="px-3 py-2 text-left text-xs text-muted font-bold border-b border-border">Regeln</th>
+                <Th>Spieler</Th>
+                <Th>Position</Th>
+                <Th align="center">Punkte</Th>
+                <Th>Regeln</Th>
               </tr>
-            </thead>
-            <tbody className="bg-surface text-sm">
+            </TableHead>
+            <TableBody>
               {sortedPlayers.map((player, index) => {
                 const altNames = [player.nameKickerAlt1, player.nameKickerAlt2, player.nameKickerAlt3].filter(Boolean)
                 return (
@@ -86,7 +87,7 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
                   </tr>
                 )
               })}
-            </tbody>
+            </TableBody>
           </table>
         </div>
       ) : (

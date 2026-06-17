@@ -1,6 +1,10 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useUsers } from '../hooks/useUsers'
+import PageHeader from '../components/PageHeader'
+import CardContainer from '../components/CardContainer'
+import SortIcon from '../components/SortIcon'
+import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
 
 const roleLabels: Record<string, string> = {
   ADMIN: 'Admin',
@@ -15,12 +19,11 @@ const roleChipClass: Record<string, string> = {
 }
 
 type SortKey = 'login' | 'email' | 'firstName' | 'lastName' | 'role'
-type SortOrder = 'asc' | 'desc'
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('login')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const { data: users, isLoading, error } = useUsers()
 
@@ -31,11 +34,6 @@ export default function Users() {
       setSortKey(key)
       setSortOrder('asc')
     }
-  }
-
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
-    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
   const filteredUsers = useMemo(() => {
@@ -74,63 +72,69 @@ export default function Users() {
   if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
+  const hasActiveFilter = searchTerm !== ''
+
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
-        <h1 className="text-sm font-medium text-primary">Benutzer</h1>
-      </div>
+      <PageHeader icon="sap-icon-personnel-view" title="Benutzer" />
 
-      <div className="p-4 bg-surface border border-border">
-        <div className="mb-4">
-          <input
-            placeholder="Benutzer suchen..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field max-w-md w-full px-3 py-2 rounded focus:outline-none"
-          />
+      <CardContainer>
+        <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border">
+          <div className="relative flex-1 min-w-[180px] max-w-[280px]">
+            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+            <input
+              type="text"
+              placeholder="Benutzer suchen..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input-field pl-8 pr-3 py-1.5 text-xs w-full"
+            />
+          </div>
+          {hasActiveFilter && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="p-1 rounded text-subtle hover:text-danger transition-colors"
+              title="Filter zurücksetzen"
+            >
+              <i className="sap-icon sap-icon-decline text-[14px]" />
+            </button>
+          )}
         </div>
 
-        <div className="overflow-x-auto">
+        <TableContent count={filteredUsers.length} total={users?.length || 0} countLabel="Benutzern">
           <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 text-primary cursor-pointer hover:text-foreground" onClick={() => handleSort('login')}>
-                  Login<SortIcon column="login" />
-                </th>
-                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-primary" onClick={() => handleSort('email')}>
-                  E-Mail<SortIcon column="email" />
-                </th>
-                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-primary" onClick={() => handleSort('firstName')}>
-                  Vorname<SortIcon column="firstName" />
-                </th>
-                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-primary" onClick={() => handleSort('lastName')}>
-                  Nachname<SortIcon column="lastName" />
-                </th>
-                <th className="text-left py-3 px-4 text-muted cursor-pointer hover:text-primary" onClick={() => handleSort('role')}>
-                  Rolle<SortIcon column="role" />
-                </th>
+            <TableHead>
+              <tr>
+                <ThSortable onClick={() => handleSort('login')}>
+                  Login<SortIcon column="login" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable onClick={() => handleSort('email')}>
+                  E-Mail<SortIcon column="email" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable onClick={() => handleSort('firstName')}>
+                  Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable onClick={() => handleSort('lastName')}>
+                  Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable onClick={() => handleSort('role')}>
+                  Rolle<SortIcon column="role" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
               </tr>
-            </thead>
-            <tbody>
+            </TableHead>
+            <TableBody>
               {filteredUsers && filteredUsers.length > 0 ? (
-                filteredUsers.map((user, index) => (
-                  <tr key={user.id} className={`border-b border-border hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                    <td className="py-3 px-4 text-primary">
-                      <RouterLink to={`/users/${user.id}`} className="hover:text-foreground link font-medium">
+                filteredUsers.map((user) => (
+                  <tr key={user.id} className="border-b border-border hover:bg-card-hover">
+                    <td className="px-3 py-2">
+                      <RouterLink to={`/users/${user.id}`} className="hover:text-accent-hover link text-primary font-medium">
                         {user.login}
                       </RouterLink>
                     </td>
-                    <td className="py-3 px-4 text-muted">
-                      {user.email}
-                    </td>
-                    <td className="py-3 px-4 text-muted">
-                      {user.firstName || '-'}
-                    </td>
-                    <td className="py-3 px-4 text-muted">
-                      {user.lastName || '-'}
-                    </td>
-                    <td className="py-3 px-4">
+                    <td className="px-3 py-2 text-muted">{user.email}</td>
+                    <td className="px-3 py-2 text-muted">{user.firstName || '-'}</td>
+                    <td className="px-3 py-2 text-muted">{user.lastName || '-'}</td>
+                    <td className="px-3 py-2">
                       <span className={`${roleChipClass[user.role as keyof typeof roleChipClass] || 'chip-accent'} text-xs font-medium px-2 py-0.5 rounded`}>
                         {roleLabels[user.role as keyof typeof roleLabels] || user.role}
                       </span>
@@ -144,16 +148,10 @@ export default function Users() {
                   </td>
                 </tr>
               )}
-            </tbody>
+            </TableBody>
           </table>
-        </div>
-
-        {filteredUsers && (
-          <div className="mt-4 text-sm text-subtle">
-            {filteredUsers.length} von {users?.length || 0} Benutzern
-          </div>
-        )}
-      </div>
+        </TableContent>
+      </CardContainer>
     </div>
   )
 }

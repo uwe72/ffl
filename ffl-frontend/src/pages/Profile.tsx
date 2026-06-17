@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useProfile, useUpdateProfile } from '../hooks/useProfile'
 import Button from '../components/Button'
+import PageHeader from '../components/PageHeader'
+import FormCard from '../components/FormCard'
 import type { MailTheme } from '../types'
 
 const mailThemeLabels: Record<MailTheme, string> = {
@@ -59,18 +61,15 @@ export default function Profile() {
         Zurück zur Startseite
       </RouterLink>
 
-      <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-settings text-[28px] text-primary" />
-        <h1 className="text-sm font-medium text-primary">Mein Profil</h1>
-      </div>
+      <PageHeader icon="sap-icon-settings" title="Mein Profil" />
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="card p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-2">Login-Name</label>
           <p className="text-foreground text-lg">{user.login}</p>
-        </div>
+        </FormCard>
 
-        <div className="card p-6 bg-surface border border-border">
+        <FormCard>
           <div>
             <label className="block text-sm text-muted mb-1">E-Mail</label>
             <input
@@ -80,19 +79,19 @@ export default function Profile() {
               className="input-field w-full px-3 py-2 rounded focus:outline-none"
             />
           </div>
-        </div>
+        </FormCard>
 
-        <div className="card p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-2">Vorname</label>
           <p className="text-foreground text-lg">{user.firstName || '-'}</p>
-        </div>
+        </FormCard>
 
-        <div className="card p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-2">Nachname</label>
           <p className="text-foreground text-lg">{user.lastName || '-'}</p>
-        </div>
+        </FormCard>
 
-        <div className="card p-6 bg-surface border border-border">
+        <FormCard>
           <label className="block text-sm text-muted mb-2">Theme Spieltagsmail</label>
           <select
             value={mailTheme}
@@ -103,7 +102,7 @@ export default function Profile() {
               <option key={key} value={key}>{label}</option>
             ))}
           </select>
-        </div>
+        </FormCard>
       </div>
 
       {hasChanges && (

@@ -3,19 +3,13 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { useCurrentManager, useManagersBySeason, useManagerCurrentPlayers } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
+import PageHeader from '../components/PageHeader'
+import CardContainer from '../components/CardContainer'
+import SortIcon from '../components/SortIcon'
+import { TableHead, ThSortable, TableBody } from '../components/Table'
+import useIsMobile from '../hooks/useIsMobile'
 
 import type { PlayerPoint } from '../types'
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-  return isMobile
-}
 
 const positionLabels: Record<string, string> = {
   GOALKEEPER: 'Torwart',
@@ -256,27 +250,14 @@ export default function Home() {
     }
   }
 
-  const ManagerSortIcon = ({ column }: { column: ManagerSortKey }) => {
-    if (managerSortKey !== column) return <span className="text-subtle ml-1">⇅</span>
-    return <span className="text-accent ml-1">{managerSortOrder === 'asc' ? '↑' : '↓'}</span>
-  }
-
-  const PlayerSortIcon = ({ column }: { column: PlayerSortKey }) => {
-    if (playerSortKey !== column) return <span className="text-subtle ml-1">⇅</span>
-    return <span className="text-accent ml-1">{playerSortOrder === 'asc' ? '↑' : '↓'}</span>
-  }
-
   return (
     <div className="pb-6">
-      <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-bbyd-dashboard text-xl text-primary" />
-        <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
-      </div>
+      <PageHeader icon="sap-icon-bbyd-dashboard" title="Dashboard" />
 
       {displayManager && (
         <>
           {currentPlayers && currentPlayers.length > 0 && (
-            <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col mb-8">
+            <CardContainer className="mb-8">
               <div className="px-6 pt-6 pb-2">
                 <label className="flex items-center gap-2 cursor-pointer text-sm text-[#a0aec0]">
                   <input
@@ -292,42 +273,42 @@ export default function Home() {
               <div className="flex-1 px-6 pb-6 overflow-x-auto">
               <div className="rounded-lg border border-border hidden md:block">
                 <table className="w-full">
-<thead className="bg-elevated sticky top-0">
+                  <TableHead>
                     <tr>
-                      <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handlePlayerSort('positionTotal')}>
-                        Pos<PlayerSortIcon column="positionTotal" />
-                      </th>
-                      <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handlePlayerSort('positionChange')}>
-                        +-<PlayerSortIcon column="positionChange" />
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handlePlayerSort('nameKicker')}>
-                        Name<PlayerSortIcon column="nameKicker" />
-                      </th>
-                      <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handlePlayerSort('points')}>
-                        Pkt<PlayerSortIcon column="points" />
-                      </th>
-                      <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handlePlayerSort('pointsLastRound')}>
-                        Spieltag<PlayerSortIcon column="pointsLastRound" />
-                      </th>
+                      <ThSortable align="center" onClick={() => handlePlayerSort('positionTotal')}>
+                        Pos<SortIcon column="positionTotal" activeKey={playerSortKey} order={playerSortOrder} />
+                      </ThSortable>
+                      <ThSortable align="center" onClick={() => handlePlayerSort('positionChange')}>
+                        +-<SortIcon column="positionChange" activeKey={playerSortKey} order={playerSortOrder} />
+                      </ThSortable>
+                      <ThSortable align="left" onClick={() => handlePlayerSort('nameKicker')}>
+                        Name<SortIcon column="nameKicker" activeKey={playerSortKey} order={playerSortOrder} />
+                      </ThSortable>
+                      <ThSortable align="center" onClick={() => handlePlayerSort('points')}>
+                        Pkt<SortIcon column="points" activeKey={playerSortKey} order={playerSortOrder} />
+                      </ThSortable>
+                      <ThSortable align="center" onClick={() => handlePlayerSort('pointsLastRound')}>
+                        Spieltag<SortIcon column="pointsLastRound" activeKey={playerSortKey} order={playerSortOrder} />
+                      </ThSortable>
                       {!isMobile && (
                         <>
-                          <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handlePlayerSort('managerCount')}>
-                            Manager<PlayerSortIcon column="managerCount" />
-                          </th>
-                          <th className="px-3 py-2 text-right text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handlePlayerSort('prize')}>
-                            Preis<PlayerSortIcon column="prize" />
-                          </th>
+                          <ThSortable align="center" onClick={() => handlePlayerSort('managerCount')}>
+                            Manager<SortIcon column="managerCount" activeKey={playerSortKey} order={playerSortOrder} />
+                          </ThSortable>
+                          <ThSortable align="right" onClick={() => handlePlayerSort('prize')}>
+                            Preis<SortIcon column="prize" activeKey={playerSortKey} order={playerSortOrder} />
+                          </ThSortable>
                         </>
                       )}
-                      <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handlePlayerSort('position')}>
-                        Position<PlayerSortIcon column="position" />
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handlePlayerSort('team')}>
-                        Team<PlayerSortIcon column="team" />
-                      </th>
+                      <ThSortable align="left" onClick={() => handlePlayerSort('position')}>
+                        Position<SortIcon column="position" activeKey={playerSortKey} order={playerSortOrder} />
+                      </ThSortable>
+                      <ThSortable align="left" onClick={() => handlePlayerSort('team')}>
+                        Team<SortIcon column="team" activeKey={playerSortKey} order={playerSortOrder} />
+                      </ThSortable>
                     </tr>
-                  </thead>
-                  <tbody className="bg-surface text-sm">
+                  </TableHead>
+                  <TableBody>
                     {sortedPlayerPoints.map(pp => {
                       return (
                         <tr 
@@ -407,7 +388,7 @@ export default function Home() {
                         </tr>
                       )
                     })}
-                  </tbody>
+                  </TableBody>
                 </table>
               </div>
 
@@ -417,10 +398,10 @@ export default function Home() {
                 ))}
               </div>
               </div>
-            </div>
+            </CardContainer>
           )}
 
-          <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
+          <CardContainer>
             <div className="flex items-center gap-2 px-6 py-3 flex-wrap border-b border-border bg-elevated/50">
               <div className="relative min-w-[140px] max-w-[220px]">
                 <i className="sap-icon sap-icon-search absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-subtle" />
@@ -457,39 +438,39 @@ export default function Home() {
             <div className="flex-1 px-6 pb-6 overflow-x-auto">
             <div className={`rounded-lg border border-border ${!showAllManagers ? 'max-h-[264px] overflow-y-auto' : ''}`}>
               <table className={`w-full ${isMobile ? 'min-w-[500px]' : ''}`}>
-                <thead className="bg-elevated sticky top-0 z-20">
+                <TableHead>
                   <tr>
-                    <th className={`px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border ${isMobile ? 'sticky left-0 w-[50px] bg-elevated z-10' : ''}`} onClick={() => handleManagerSort('positionTotal')}>
-                      Pos<ManagerSortIcon column="positionTotal" />
-                    </th>
-                    <th className={`px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border ${isMobile ? 'sticky left-[50px] w-[50px] bg-elevated z-10' : ''}`} onClick={() => handleManagerSort('positionChange')}>
-                      +-<ManagerSortIcon column="positionChange" />
-                    </th>
-                    <th className={`px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border bg-elevated ${isMobile ? 'min-w-[120px]' : ''}`} onClick={() => handleManagerSort('shortName')}>
-                      Manager<ManagerSortIcon column="shortName" />
-                    </th>
-                    <th className={`px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border ${isMobile ? 'sticky right-[70px] w-[60px] bg-elevated z-10' : ''}`} onClick={() => handleManagerSort('pointsTotal')}>
-                      Pkt<ManagerSortIcon column="pointsTotal" />
-                    </th>
-                    <th className={`px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border ${isMobile ? 'sticky right-0 w-[70px] bg-elevated z-10' : ''}`} onClick={() => handleManagerSort('pointsLastRound')}>
-                      Spieltag<ManagerSortIcon column="pointsLastRound" />
-                    </th>
+                    <ThSortable align="center" className={isMobile ? 'sticky left-0 w-[50px] bg-elevated z-10' : ''} onClick={() => handleManagerSort('positionTotal')}>
+                      Pos<SortIcon column="positionTotal" activeKey={managerSortKey} order={managerSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" className={isMobile ? 'sticky left-[50px] w-[50px] bg-elevated z-10' : ''} onClick={() => handleManagerSort('positionChange')}>
+                      +-<SortIcon column="positionChange" activeKey={managerSortKey} order={managerSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" className={`bg-elevated ${isMobile ? 'min-w-[120px]' : ''}`} onClick={() => handleManagerSort('shortName')}>
+                      Manager<SortIcon column="shortName" activeKey={managerSortKey} order={managerSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" className={isMobile ? 'sticky right-[70px] w-[60px] bg-elevated z-10' : ''} onClick={() => handleManagerSort('pointsTotal')}>
+                      Pkt<SortIcon column="pointsTotal" activeKey={managerSortKey} order={managerSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" className={isMobile ? 'sticky right-0 w-[70px] bg-elevated z-10' : ''} onClick={() => handleManagerSort('pointsLastRound')}>
+                      Spieltag<SortIcon column="pointsLastRound" activeKey={managerSortKey} order={managerSortOrder} />
+                    </ThSortable>
                     {!isMobile && (
                       <>
-                        <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border bg-elevated" onClick={() => handleManagerSort('firstName')}>
-                          Vorname<ManagerSortIcon column="firstName" />
-                        </th>
-                        <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border bg-elevated" onClick={() => handleManagerSort('lastName')}>
-                          Nachname<ManagerSortIcon column="lastName" />
-                        </th>
-                        <th className="px-3 py-2 text-right text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border bg-elevated" onClick={() => handleManagerSort('teamValue')}>
-                          Teamwert<ManagerSortIcon column="teamValue" />
-                        </th>
+                        <ThSortable align="left" className="bg-elevated" onClick={() => handleManagerSort('firstName')}>
+                          Vorname<SortIcon column="firstName" activeKey={managerSortKey} order={managerSortOrder} />
+                        </ThSortable>
+                        <ThSortable align="left" className="bg-elevated" onClick={() => handleManagerSort('lastName')}>
+                          Nachname<SortIcon column="lastName" activeKey={managerSortKey} order={managerSortOrder} />
+                        </ThSortable>
+                        <ThSortable align="right" className="bg-elevated" onClick={() => handleManagerSort('teamValue')}>
+                          Teamwert<SortIcon column="teamValue" activeKey={managerSortKey} order={managerSortOrder} />
+                        </ThSortable>
                       </>
                     )}
                   </tr>
-                </thead>
-                <tbody className="bg-surface text-sm">
+                </TableHead>
+                <TableBody>
                   {filteredManagers.map(m => {
                     const isCurrentManager = m.id === displayManager?.id
                     const stickyBg = isCurrentManager ? 'bg-default' : 'bg-surface'
@@ -545,11 +526,11 @@ export default function Home() {
                       </tr>
                     )
                   })}
-                </tbody>
+                </TableBody>
               </table>
             </div>
             </div>
-          </div>
+          </CardContainer>
         </>
       )}
     </div>

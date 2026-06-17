@@ -1,18 +1,12 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { usePlayers } from '../hooks/usePlayers'
+import useIsMobile from '../hooks/useIsMobile'
+import PageHeader from '../components/PageHeader'
+import CardContainer from '../components/CardContainer'
+import SortIcon from '../components/SortIcon'
+import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import type { Team, Player } from '../types'
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-  return isMobile
-}
 
 export const positionLabels: Record<string, string> = {
   GOALKEEPER: 'Torwart',
@@ -52,7 +46,6 @@ const positionChipActiveColors: Record<string, string> = {
 const chipInactive = 'bg-elevated text-muted border-border'
 
 type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position'
-type SortOrder = 'asc' | 'desc'
 
 interface TeamDropdownProps {
   teams: Team[]
@@ -276,7 +269,7 @@ export default function Players() {
   const [selectedTeamId, setSelectedTeamId] = useState<number | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('position')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const { data: players, isLoading, error } = usePlayers()
 
@@ -294,11 +287,6 @@ export default function Players() {
       setSortKey(key)
       setSortOrder('asc')
     }
-  }
-
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <span className="text-subtle ml-1">⇅</span>
-    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
   }
 
   const hasActiveFilter = selectedPositions.size > 0 || selectedTeamId !== 'ALL' || searchTerm !== ''
@@ -355,12 +343,9 @@ export default function Players() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <i className="sap-icon sap-icon-group text-xl text-primary" />
-        <h1 className="text-xl font-bold text-foreground">Spieler</h1>
-      </div>
+      <PageHeader icon="sap-icon-group" title="Spieler" />
 
-      <div className="bg-surface border border-border rounded-lg shadow-2xl flex flex-col">
+      <CardContainer>
         <FilterBar
           selectedPositions={selectedPositions}
           setSelectedPositions={setSelectedPositions}
@@ -372,41 +357,39 @@ export default function Players() {
           hasFilter={hasActiveFilter}
         />
 
-        <div className="flex-1 px-6 pb-6 overflow-x-auto">
-
         {!isMobile && (
-        <div className="rounded-lg border border-border">
+        <TableContent count={filteredPlayers.length} total={players?.length || 0} countLabel="Spielern">
           <table className="w-full">
-            <thead className="bg-elevated sticky top-0">
+            <TableHead>
               <tr>
-                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionTotal')}>
-                  Pos<SortIcon column="positionTotal" />
-                </th>
-                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('positionChange')}>
-                  +-<SortIcon column="positionChange" />
-                </th>
-                <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('nameKicker')}>
-                  Name<SortIcon column="nameKicker" />
-                </th>
-                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('points')}>
-                  Pkt<SortIcon column="points" />
-                </th>
-                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('pointsLastRound')}>
-                  Spieltag<SortIcon column="pointsLastRound" />
-                </th>
-                <th className="px-3 py-2 text-center text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('managerCount')}>
-                  Manager<SortIcon column="managerCount" />
-                </th>
-                <th className="px-3 py-2 text-right text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('prize')}>
-                  Preis<SortIcon column="prize" />
-                </th>
-                <th className="px-3 py-2 text-left text-xs text-muted font-bold cursor-pointer hover:text-primary border-b border-border" onClick={() => handleSort('position')}>
-                  Position<SortIcon column="position" />
-                </th>
-                <th className="px-3 py-2 text-left text-xs text-muted font-bold border-b border-border">Team</th>
+                <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
+                  Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable align="center" onClick={() => handleSort('positionChange')}>
+                  +-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable align="left" onClick={() => handleSort('nameKicker')}>
+                  Name<SortIcon column="nameKicker" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable align="center" onClick={() => handleSort('points')}>
+                  Pkt<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
+                  Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable align="center" onClick={() => handleSort('managerCount')}>
+                  Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable align="right" onClick={() => handleSort('prize')}>
+                  Preis<SortIcon column="prize" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable align="left" onClick={() => handleSort('position')}>
+                  Position<SortIcon column="position" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <Th align="left">Team</Th>
               </tr>
-            </thead>
-            <tbody className="bg-surface text-sm">
+            </TableHead>
+            <TableBody>
               {filteredPlayers && filteredPlayers.length > 0 ? (
                 filteredPlayers.map((player) => (
                   <tr key={player.id} className="border-b border-border hover:bg-card-hover">
@@ -476,32 +459,32 @@ export default function Players() {
                   </td>
                 </tr>
               )}
-            </tbody>
+            </TableBody>
           </table>
-        </div>
+        </TableContent>
         )}
 
         {isMobile && (
-        <div className="grid gap-4 mt-4">
-          {filteredPlayers && filteredPlayers.length > 0 ? (
-            filteredPlayers.map((player) => (
-              <PlayerCard key={player.id} player={player} />
-            ))
-          ) : (
-            <div className="text-center text-subtle py-8">
-              Keine Spieler gefunden
+        <div className="flex-1 px-6 pb-6 overflow-x-auto">
+          <div className="grid gap-4 mt-4">
+            {filteredPlayers && filteredPlayers.length > 0 ? (
+              filteredPlayers.map((player) => (
+                <PlayerCard key={player.id} player={player} />
+              ))
+            ) : (
+              <div className="text-center text-subtle py-8">
+                Keine Spieler gefunden
+              </div>
+            )}
+          </div>
+          {filteredPlayers && (
+            <div className="mt-4 text-sm text-subtle">
+              {filteredPlayers.length} von {players?.length || 0} Spielern
             </div>
           )}
         </div>
         )}
-
-        {filteredPlayers && (
-          <div className="mt-4 text-sm text-subtle">
-            {filteredPlayers.length} von {players?.length || 0} Spielern
-          </div>
-        )}
-        </div>
-      </div>
+      </CardContainer>
     </div>
   )
 }
