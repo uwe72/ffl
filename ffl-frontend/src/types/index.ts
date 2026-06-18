@@ -37,6 +37,11 @@ export interface Season {
   gewinnErsterPlatzProzent?: number
   gewinnLetzterPlatzEuro?: number
   mailText?: string
+  paypalLink?: string
+  bankName?: string
+  iban?: string
+  bic?: string
+  kontoinhaber?: string
 }
 
 export type SeasonState = 'BEFORE_SEASON' | 'RUNNING_HINRUNDE' | 'RUNNING_RUECKRUNDE'

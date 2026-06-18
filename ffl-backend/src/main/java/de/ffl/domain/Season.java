@@ -66,6 +66,21 @@ public class Season {
     @Column(name = "mail_text", columnDefinition = "TEXT")
     private String mailText;
 
+    @Column(name = "paypal_link")
+    private String paypalLink;
+
+    @Column(name = "bank_name")
+    private String bankName;
+
+    @Column(name = "iban")
+    private String iban;
+
+    @Column(name = "bic")
+    private String bic;
+
+    @Column(name = "kontoinhaber")
+    private String kontoinhaber;
+
     @ManyToMany
     @JoinTable(
         name = "season_2_team",

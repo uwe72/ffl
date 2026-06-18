@@ -31,6 +31,7 @@ const COLOR_LAST = '#FFA500'
 
 const tabItems = [
   { key: 'saisondaten', label: 'Saisondaten' },
+  { key: 'bankverbindung', label: 'Bankverbindung' },
   { key: 'gewinnausschuettung', label: 'Gewinnausschüttung' },
   { key: 'saisonabschlussmail', label: 'Saisonabschlussmail' }
 ]
@@ -139,7 +140,7 @@ export default function Season() {
   const updatePrizePayout = useUpdatePrizePayout(season?.id ?? 0)
   const { refetch: fetchPreview, isFetching: isFetchingPreview } = usePrizeDistributionMailPreview(season?.id ?? 0)
   
-  const [activeTab, setActiveTab] = useState<'saisondaten' | 'gewinnausschuettung' | 'saisonabschlussmail'>('saisondaten')
+  const [activeTab, setActiveTab] = useState<'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'saisonabschlussmail'>('saisondaten')
   const [formData, setFormData] = useState<Partial<Season>>({})
   const [hasChanges, setHasChanges] = useState(false)
   const [showCalcDialog, setShowCalcDialog] = useState(false)
@@ -164,7 +165,12 @@ export default function Season() {
         anzahlSpielleiter: season.anzahlSpielleiter ?? 2,
         gewinnErsterPlatzProzent: season.gewinnErsterPlatzProzent ?? 10,
         gewinnLetzterPlatzEuro: season.gewinnLetzterPlatzEuro ?? 15,
-        mailText: season.mailText ?? ''
+        mailText: season.mailText ?? '',
+        paypalLink: season.paypalLink ?? '',
+        bankName: season.bankName ?? '',
+        iban: season.iban ?? '',
+        bic: season.bic ?? '',
+        kontoinhaber: season.kontoinhaber ?? ''
       })
       setHasChanges(false)
     }
@@ -227,7 +233,12 @@ export default function Season() {
       anzahlSpielleiter: season.anzahlSpielleiter ?? 2,
       gewinnErsterPlatzProzent: season.gewinnErsterPlatzProzent ?? 10,
       gewinnLetzterPlatzEuro: season.gewinnLetzterPlatzEuro ?? 15,
-      mailText: season.mailText ?? ''
+      mailText: season.mailText ?? '',
+      paypalLink: season.paypalLink ?? '',
+      bankName: season.bankName ?? '',
+      iban: season.iban ?? '',
+      bic: season.bic ?? '',
+      kontoinhaber: season.kontoinhaber ?? ''
     })
     setHasChanges(false)
   }
@@ -252,7 +263,7 @@ export default function Season() {
       <Tabs
         items={tabItems}
         active={activeTab}
-        onChange={(key) => setActiveTab(key as 'saisondaten' | 'gewinnausschuettung' | 'saisonabschlussmail')}
+        onChange={(key) => setActiveTab(key as 'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'saisonabschlussmail')}
       />
 
       {activeTab === 'saisondaten' && (
@@ -351,6 +362,80 @@ export default function Season() {
               Punkte neu berechnen
             </Button>
           </div>
+        </>
+      )}
+
+      {activeTab === 'bankverbindung' && (
+        <>
+          <h2 className="text-lg font-bold text-foreground mb-4">PayPal</h2>
+          <div className="grid gap-6 md:grid-cols-2">
+            <FormCard>
+              <label className="block text-sm text-muted mb-1">PayPal-Link</label>
+              <input
+                value={formData.paypalLink || ''}
+                onChange={(e) => handleChange('paypalLink', e.target.value)}
+                placeholder="https://paypal.me/..."
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
+              />
+            </FormCard>
+          </div>
+
+          <h2 className="text-lg font-bold text-foreground mb-4 mt-8">Bankverbindung</h2>
+          <div className="grid gap-6 md:grid-cols-2">
+            <FormCard>
+              <label className="block text-sm text-muted mb-1">Kontoinhaber</label>
+              <input
+                value={formData.kontoinhaber || ''}
+                onChange={(e) => handleChange('kontoinhaber', e.target.value)}
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
+              />
+            </FormCard>
+
+            <FormCard>
+              <label className="block text-sm text-muted mb-1">Bankname</label>
+              <input
+                value={formData.bankName || ''}
+                onChange={(e) => handleChange('bankName', e.target.value)}
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
+              />
+            </FormCard>
+
+            <FormCard>
+              <label className="block text-sm text-muted mb-1">IBAN</label>
+              <input
+                value={formData.iban || ''}
+                onChange={(e) => handleChange('iban', e.target.value)}
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
+              />
+            </FormCard>
+
+            <FormCard>
+              <label className="block text-sm text-muted mb-1">BIC</label>
+              <input
+                value={formData.bic || ''}
+                onChange={(e) => handleChange('bic', e.target.value)}
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
+              />
+            </FormCard>
+          </div>
+
+          {hasChanges && (
+            <div className="mt-6 flex gap-4">
+              <Button
+                variant="emphasized"
+                onClick={handleSave}
+                disabled={updateSeason.isPending}
+              >
+                {updateSeason.isPending ? 'Wird gespeichert...' : 'Speichern'}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={resetFormData}
+              >
+                Abbrechen
+              </Button>
+            </div>
+          )}
         </>
       )}
 
