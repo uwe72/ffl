@@ -1403,7 +1403,7 @@ export default function Register() {
                       {season.name && (
                         <>
                           <span className="text-muted">Verwendungszweck</span>
-                          <span className="text-foreground text-xs">{season.name}</span>
+                          <span className="text-foreground text-xs">{season.name} – {login}</span>
                         </>
                       )}
                     </div>
