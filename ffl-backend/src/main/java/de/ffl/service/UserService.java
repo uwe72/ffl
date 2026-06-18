@@ -57,9 +57,6 @@ public class UserService {
             return null;
         }
 
-        String oldFirstName = user.getFirstName();
-        String oldLastName = user.getLastName();
-
         if (updateData.getEmail() != null) {
             user.setEmail(updateData.getEmail());
         }
@@ -82,41 +79,10 @@ public class UserService {
             }
         }
 
-        boolean nameChanged = !java.util.Objects.equals(oldFirstName, user.getFirstName()) ||
-                              !java.util.Objects.equals(oldLastName, user.getLastName());
-
         User saved = userRepository.save(user);
-
-        if (nameChanged) {
-            updateManagerNames(saved);
-        }
 
         List<Manager> managers = managerRepository.findAllByUserId(id);
         return UserDto.fromEntityWithManagers(saved, managers);
-    }
-
-    private void updateManagerNames(User user) {
-        List<Manager> managers = managerRepository.findAllByUserId(user.getId());
-        
-        String firstName = user.getFirstName() != null ? user.getFirstName().trim() : "";
-        String lastName = user.getLastName() != null ? user.getLastName().trim() : "";
-
-        for (Manager manager : managers) {
-            if (!firstName.isEmpty() && !lastName.isEmpty()) {
-                manager.setName(firstName + " " + lastName);
-                String shortName = firstName.substring(0, 1).toUpperCase() + 
-                                   lastName.substring(0, 1).toUpperCase();
-                manager.setShortName(shortName);
-            } else if (!firstName.isEmpty()) {
-                manager.setName(firstName);
-                manager.setShortName(firstName.substring(0, 1).toUpperCase());
-            } else if (!lastName.isEmpty()) {
-                manager.setName(lastName);
-                manager.setShortName(lastName.substring(0, 1).toUpperCase());
-            }
-        }
-        
-        managerRepository.saveAll(managers);
     }
 
     @Transactional

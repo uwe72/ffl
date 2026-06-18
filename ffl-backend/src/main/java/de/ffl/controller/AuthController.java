@@ -163,11 +163,7 @@ public class AuthController {
             }
         }
 
-        String managerName = buildManagerName(request);
-
         Manager manager = Manager.builder()
-            .name(managerName)
-            .shortName(request.getLogin())
             .user(user)
             .season(season)
             .budget(season.getBudget())
@@ -188,21 +184,6 @@ public class AuthController {
         managerRepository.save(manager);
 
         return ResponseEntity.status(201).body(Map.of("message", "Registrierung erfolgreich"));
-    }
-
-    private String buildManagerName(RegisterRequest request) {
-        String firstName = request.getFirstName();
-        String lastName = request.getLastName();
-        if (firstName != null && !firstName.isBlank() && lastName != null && !lastName.isBlank()) {
-            return firstName.trim() + " " + lastName.trim();
-        }
-        if (firstName != null && !firstName.isBlank()) {
-            return firstName.trim();
-        }
-        if (lastName != null && !lastName.isBlank()) {
-            return lastName.trim();
-        }
-        return request.getLogin();
     }
 
     @Transactional(readOnly = true)

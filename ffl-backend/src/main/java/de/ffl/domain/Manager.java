@@ -21,11 +21,6 @@ public class Manager {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
-
-    private String shortName;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
@@ -127,4 +122,18 @@ public class Manager {
     @Builder.Default
     @JsonIgnore
     private Set<ManagerGroup> managerGroups = new HashSet<>();
+
+    public String getName() {
+        if (user == null) return null;
+        String first = user.getFirstName();
+        String last = user.getLastName();
+        if (first != null && last != null) return first + " " + last;
+        if (first != null) return first;
+        return last;
+    }
+
+    public String getShortName() {
+        if (user == null) return null;
+        return user.getLogin();
+    }
 }
