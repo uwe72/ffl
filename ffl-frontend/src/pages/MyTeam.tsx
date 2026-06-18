@@ -130,8 +130,12 @@ export default function MyTeam() {
         const sel = buildSelectedPlayers(mgr, freePos)
         setSelectedPlayers(sel)
         setOriginalPlayers({ ...sel })
-      } catch {
-        setError('Daten konnten nicht geladen werden.')
+      } catch (err) {
+        const axiosErr = err as AxiosError
+        const status = axiosErr.response?.status
+        const data = axiosErr.response?.data
+        console.error('MyTeam load error:', status, data, err)
+        setError(`Daten konnten nicht geladen werden.${status ? ` (HTTP ${status})` : ''}`)
       } finally {
         setLoading(false)
       }

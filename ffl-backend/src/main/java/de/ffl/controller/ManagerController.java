@@ -16,6 +16,8 @@ import de.ffl.service.ManagerGroupService;
 import de.ffl.service.ManagerService;
 import de.ffl.service.ManagerRoundService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/managers")
 public class ManagerController {
+
+    private static final Logger log = LoggerFactory.getLogger(ManagerController.class);
 
     private final ManagerService managerService;
     private final ManagerRankRepository managerRankRepository;
@@ -138,9 +142,10 @@ public class ManagerController {
     }
 
     @GetMapping("/current")
-    public ResponseEntity<ManagerDto> getCurrentManager() {
+    public ResponseEntity<?> getCurrentManager() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            log.warn("getCurrentManager: not authenticated (principal={})", auth != null ? auth.getPrincipal() : "null");
             return ResponseEntity.status(401).build();
         }
         String login = auth.getName();
@@ -148,13 +153,20 @@ public class ManagerController {
             .map(u -> u.getId())
             .orElse(null);
         if (userId == null) {
+            log.warn("getCurrentManager: user not found for login={}", login);
             return ResponseEntity.status(401).build();
         }
-        ManagerDto manager = managerService.findByUserId(userId);
-        if (manager == null) {
-            return ResponseEntity.notFound().build();
+        try {
+            ManagerDto manager = managerService.findByUserId(userId);
+            if (manager == null) {
+                log.info("getCurrentManager: no manager for userId={}", userId);
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(manager);
+        } catch (Exception e) {
+            log.error("getCurrentManager: error for userId={}, login={}", userId, login, e);
+            return ResponseEntity.internalServerError().body("Fehler beim Laden des Managers: " + e.getMessage());
         }
-        return ResponseEntity.ok(manager);
     }
 
     @PutMapping("/current/lineup")
