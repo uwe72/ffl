@@ -19,7 +19,7 @@ public class User {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 25)
     private String login;
 
     @Column(nullable = false)
@@ -28,7 +28,10 @@ public class User {
     @Column(nullable = false)
     private String email;
 
+    @Column(length = 25)
     private String firstName;
+
+    @Column(length = 25)
     private String lastName;
     private String street;
     private String city;

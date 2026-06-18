@@ -29,6 +29,8 @@ export interface Season {
   budget: number
   seasonState: SeasonState
   finalRegistrationDate?: string
+  seasonStartDate?: string
+  seasonStartTime?: string
   startRoundRueckrunde?: number
   currentMatchday?: number
   spieleinsatzEuro?: number

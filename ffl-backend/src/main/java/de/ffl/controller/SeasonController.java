@@ -68,6 +68,8 @@ public class SeasonController {
                 existing.setBudget(season.getBudget());
                 existing.setSeasonState(season.getSeasonState());
                 existing.setFinalRegistrationDate(season.getFinalRegistrationDate());
+                existing.setSeasonStartDate(season.getSeasonStartDate());
+                existing.setSeasonStartTime(season.getSeasonStartTime());
                 existing.setStartRoundRueckrunde(season.getStartRoundRueckrunde());
                 existing.setSpieleinsatzEuro(season.getSpieleinsatzEuro());
                 existing.setServerkostenEuro(season.getServerkostenEuro());

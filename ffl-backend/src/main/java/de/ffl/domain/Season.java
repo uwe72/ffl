@@ -1,11 +1,13 @@
 package de.ffl.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,7 +36,16 @@ public class Season {
     @Builder.Default
     private SeasonState seasonState = SeasonState.BEFORE_SEASON;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate finalRegistrationDate;
+
+    @Column(name = "season_start_date")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate seasonStartDate;
+
+    @Column(name = "season_start_time")
+    @JsonFormat(pattern = "HH:mm")
+    private LocalTime seasonStartTime;
 
     @Column(name = "start_round_rueckrunde")
     @Builder.Default

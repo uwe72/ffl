@@ -17,6 +17,7 @@ import de.ffl.repository.PlayerRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.UserRepository;
 import de.ffl.service.ManagerService;
+import de.ffl.service.RegistrationMailService;
 import de.ffl.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
@@ -48,6 +49,7 @@ public class AuthController {
     private final SeasonRepository seasonRepository;
     private final PlayerRepository playerRepository;
     private final ManagerService managerService;
+    private final RegistrationMailService registrationMailService;
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
@@ -57,7 +59,8 @@ public class AuthController {
                           UserService userService,
                           SeasonRepository seasonRepository,
                           PlayerRepository playerRepository,
-                          ManagerService managerService) {
+                          ManagerService managerService,
+                          RegistrationMailService registrationMailService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -67,6 +70,7 @@ public class AuthController {
         this.seasonRepository = seasonRepository;
         this.playerRepository = playerRepository;
         this.managerService = managerService;
+        this.registrationMailService = registrationMailService;
     }
 
     @Transactional(readOnly = true)
@@ -182,6 +186,8 @@ public class AuthController {
             .build();
 
         managerRepository.save(manager);
+
+        registrationMailService.sendRegistrationConfirmation(user, manager);
 
         return ResponseEntity.status(201).body(Map.of("message", "Registrierung erfolgreich"));
     }

@@ -409,8 +409,8 @@ export default function Register() {
       setFieldErrors(prev => ({ ...prev, [field]: 'Login muss mindestens 3 Zeichen lang sein.' }))
       return false
     }
-    if (field === 'login' && value.trim().length > 50) {
-      setFieldErrors(prev => ({ ...prev, [field]: 'Login darf maximal 50 Zeichen lang sein.' }))
+    if (field === 'login' && value.trim().length > 25) {
+      setFieldErrors(prev => ({ ...prev, [field]: 'Login darf maximal 25 Zeichen lang sein.' }))
       return false
     }
     if (field === 'password' && value.length < 6) {
@@ -444,7 +444,7 @@ export default function Register() {
     const errors: FieldErrors = {}
     if (!login.trim()) errors.login = 'Dieses Feld ist erforderlich.'
     else if (login.trim().length < 3) errors.login = 'Login muss mindestens 3 Zeichen lang sein.'
-    else if (login.trim().length > 50) errors.login = 'Login darf maximal 50 Zeichen lang sein.'
+    else if (login.trim().length > 25) errors.login = 'Login darf maximal 25 Zeichen lang sein.'
     if (!email.trim()) errors.email = 'Dieses Feld ist erforderlich.'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Bitte eine gültige E-Mail-Adresse eingeben.'
     if (!password.trim()) errors.password = 'Dieses Feld ist erforderlich.'
@@ -452,7 +452,9 @@ export default function Register() {
     if (!confirmPassword.trim()) errors.confirmPassword = 'Dieses Feld ist erforderlich.'
     else if (confirmPassword !== password) errors.confirmPassword = 'Passwörter stimmen nicht überein.'
     if (!firstName.trim()) errors.firstName = 'Dieses Feld ist erforderlich.'
+    else if (firstName.trim().length > 25) errors.firstName = 'Vorname darf maximal 25 Zeichen lang sein.'
     if (!lastName.trim()) errors.lastName = 'Dieses Feld ist erforderlich.'
+    else if (lastName.trim().length > 25) errors.lastName = 'Nachname darf maximal 25 Zeichen lang sein.'
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
@@ -804,7 +806,7 @@ export default function Register() {
                       ref={firstInputRef}
                       type="text"
                       required
-                      maxLength={15}
+                      maxLength={25}
                       placeholder="Login"
                       value={login}
                       onChange={(e) => {
@@ -911,7 +913,7 @@ export default function Register() {
                     <input
                       type="text"
                       required
-                      maxLength={15}
+                      maxLength={25}
                       placeholder="Vorname"
                       value={firstName}
                       onChange={(e) => {

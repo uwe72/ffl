@@ -159,6 +159,8 @@ export default function Season() {
         name: season.name,
         budget: season.budget,
         seasonState: season.seasonState,
+        seasonStartDate: season.seasonStartDate ?? '',
+        seasonStartTime: season.seasonStartTime ?? '',
         startRoundRueckrunde: season.startRoundRueckrunde,
         spieleinsatzEuro: season.spieleinsatzEuro ?? 10,
         serverkostenEuro: season.serverkostenEuro ?? 60,
@@ -227,6 +229,8 @@ export default function Season() {
       name: season.name,
       budget: season.budget,
       seasonState: season.seasonState,
+      seasonStartDate: season.seasonStartDate ?? '',
+      seasonStartTime: season.seasonStartTime ?? '',
       startRoundRueckrunde: season.startRoundRueckrunde,
       spieleinsatzEuro: season.spieleinsatzEuro ?? 10,
       serverkostenEuro: season.serverkostenEuro ?? 60,
@@ -286,6 +290,26 @@ export default function Season() {
                   const value = e.target.value.replace(/\./g, '')
                   handleChange('budget', parseInt(value) || 0)
                 }}
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
+              />
+            </FormCard>
+
+            <FormCard>
+              <label className="block text-sm text-muted mb-1">Saisonstart Datum</label>
+              <input
+                type="date"
+                value={formData.seasonStartDate || ''}
+                onChange={(e) => handleChange('seasonStartDate', e.target.value)}
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
+              />
+            </FormCard>
+
+            <FormCard>
+              <label className="block text-sm text-muted mb-1">Saisonstart Uhrzeit</label>
+              <input
+                type="time"
+                value={formData.seasonStartTime || ''}
+                onChange={(e) => handleChange('seasonStartTime', e.target.value)}
                 className="input-field w-full px-3 py-2 rounded focus:outline-none"
               />
             </FormCard>
