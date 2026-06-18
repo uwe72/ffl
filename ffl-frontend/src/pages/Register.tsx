@@ -1403,7 +1403,7 @@ export default function Register() {
                       {season.name && (
                         <>
                           <span className="text-muted">Verwendungszweck</span>
-                          <span className="text-foreground text-xs">{season.name} – {login}</span>
+                          <span className="text-foreground text-xs">FFL {season.name.replace(/^Saison\s*/i, '')} {login}</span>
                         </>
                       )}
                     </div>
