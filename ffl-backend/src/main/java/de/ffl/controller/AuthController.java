@@ -167,6 +167,7 @@ public class AuthController {
 
         Manager manager = Manager.builder()
             .name(managerName)
+            .shortName(request.getLogin())
             .user(user)
             .season(season)
             .budget(season.getBudget())
