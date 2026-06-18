@@ -140,7 +140,7 @@ public class ManagerController {
     @GetMapping("/current")
     public ResponseEntity<ManagerDto> getCurrentManager() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return ResponseEntity.status(401).build();
         }
         String login = auth.getName();
@@ -160,7 +160,7 @@ public class ManagerController {
     @PutMapping("/current/lineup")
     public ResponseEntity<?> updateCurrentLineup(@Valid @RequestBody UpdateLineupRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return ResponseEntity.status(401).build();
         }
         String login = auth.getName();

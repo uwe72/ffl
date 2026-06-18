@@ -10,6 +10,7 @@ import PageHeader from '../components/PageHeader'
 import PlayerSelect from '../components/PlayerSelect'
 import type { PlayerSlot } from '../components/PlayerSelect'
 import type { Player, Season, Position, Manager } from '../types'
+import type { AxiosError } from 'axios'
 
 const PLAYER_SLOTS: PlayerSlot[] = [
   { key: 'playerGoalkeeperId', label: 'Torwart', position: 'GOALKEEPER' },
@@ -76,6 +77,7 @@ export default function MyTeam() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [notFound, setNotFound] = useState(false)
 
   const [freePosition, setFreePosition] = useState<'DEFENDER' | 'MIDFIELD' | 'STRIKER'>('DEFENDER')
   const [selectedPlayers, setSelectedPlayers] = useState<Record<string, number | null>>(() => {
@@ -96,14 +98,23 @@ export default function MyTeam() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [managerRes, seasonRes] = await Promise.all([
-          managerApi.getCurrent(),
-          seasonApi.getAll(),
-        ])
+        let mgr: Manager | null = null
+        try {
+          const managerRes = await managerApi.getCurrent()
+          mgr = managerRes.data
+        } catch (err) {
+          const axiosErr = err as AxiosError
+          if (axiosErr.response?.status === 404) {
+            setNotFound(true)
+            setLoading(false)
+            return
+          }
+          throw err
+        }
 
-        const mgr = managerRes.data
         setManager(mgr)
 
+        const seasonRes = await seasonApi.getAll()
         const s = seasonRes.data?.[0] ?? null
         setSeason(s)
 
@@ -298,7 +309,39 @@ export default function MyTeam() {
   }
 
   if (loading) return <div className="text-center py-8 text-muted">Laden...</div>
-  if (!manager) return <div className="text-center py-8 text-subtle">Kein Manager-Profil gefunden.</div>
+
+  if (notFound) {
+    return (
+      <div>
+        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+          <i className="sap-icon sap-icon-nav-back text-base" />
+          Zurück zur Startseite
+        </RouterLink>
+        <PageHeader icon="sap-icon-competitor" title="Mein Team" />
+        <div className="p-6 bg-surface border border-border rounded-lg text-center">
+          <i className="sap-icon sap-icon-person-placeholder text-[40px] text-subtle mb-3" />
+          <p className="text-foreground font-medium mb-2">Du hast noch kein Team registriert.</p>
+          <p className="text-sm text-muted">Melde dich über die Registrierung an, um dein Team zusammenzustellen.</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!manager) {
+    return (
+      <div>
+        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+          <i className="sap-icon sap-icon-nav-back text-base" />
+          Zurück zur Startseite
+        </RouterLink>
+        <PageHeader icon="sap-icon-competitor" title="Mein Team" />
+        <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-lg">
+          <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
+          <p className="text-danger text-sm">{error || 'Daten konnten nicht geladen werden.'}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>
