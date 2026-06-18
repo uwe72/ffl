@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { trackEvent } from '../hooks/useMatomo'
@@ -307,11 +307,13 @@ export default function Register() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const { register } = useAuth()
   const navigate = useNavigate()
   const firstInputRef = useRef<HTMLInputElement>(null)
   const avatarInputRef = useRef<HTMLInputElement>(null)
+  const successDialogRef = useRef<HTMLDivElement>(null)
 
   const [season, setSeason] = useState<Season | null>(null)
   const [allPlayers, setAllPlayers] = useState<Player[]>([])
@@ -626,7 +628,7 @@ export default function Register() {
         playerFreeChoiceId: freeChoiceId,
       }, avatarFile ?? undefined)
       trackEvent('auth', 'register', 'success')
-      navigate('/login', { state: { registered: true } })
+      setShowSuccessDialog(true)
     } catch (err: unknown) {
       trackEvent('auth', 'register', 'failure')
       const axiosError = err as { response?: { data?: string } }
@@ -651,6 +653,53 @@ export default function Register() {
       if (avatarPreview) URL.revokeObjectURL(avatarPreview)
     }
   }, [avatarPreview])
+
+  const handleCloseSuccessDialog = useCallback(() => {
+    setShowSuccessDialog(false)
+    navigate('/login')
+  }, [navigate])
+
+  const handleSuccessDialogKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      handleCloseSuccessDialog()
+      return
+    }
+    if (e.key === 'Tab' && successDialogRef.current) {
+      const focusable = successDialogRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+  }, [handleCloseSuccessDialog])
+
+  useEffect(() => {
+    if (showSuccessDialog) {
+      document.addEventListener('keydown', handleSuccessDialogKeyDown)
+      document.body.style.overflow = 'hidden'
+      setTimeout(() => {
+        const firstFocusable = successDialogRef.current?.querySelector<HTMLElement>(
+          'button, [href], [tabindex]:not([tabindex="-1"])'
+        )
+        firstFocusable?.focus()
+      }, 50)
+    }
+    return () => {
+      document.removeEventListener('keydown', handleSuccessDialogKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [showSuccessDialog, handleSuccessDialogKeyDown])
 
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -1235,6 +1284,118 @@ export default function Register() {
           )}
         </div>
       </div>
+
+      {showSuccessDialog && (
+        <div
+          className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4"
+          role="presentation"
+        >
+          <div
+            ref={successDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="success-dialog-title"
+            className="bg-surface border border-border rounded-lg w-full max-w-[500px] max-h-[90vh] flex flex-col shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-end px-6 pt-4">
+              <Button
+                variant="transparent"
+                size="sm"
+                onClick={handleCloseSuccessDialog}
+                aria-label="Schließen"
+                className="p-1.5 -mr-1.5"
+              >
+                <i className="sap-icon sap-icon-decline text-[20px]" />
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-8 pb-8">
+              <div className="flex flex-col items-center text-center mb-6">
+                <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mb-4">
+                  <i className="sap-icon sap-icon-message-success text-[32px] text-success" />
+                </div>
+                <h2 id="success-dialog-title" className="text-2xl font-bold text-foreground">
+                  Anmeldung erfolgreich!
+                </h2>
+              </div>
+
+              <p className="text-foreground text-center mb-6">
+                {firstName}, bitte überweise die Startgebühr von{' '}
+                <span className="font-semibold">
+                  {season?.spieleinsatzEuro != null
+                    ? `${Number(season.spieleinsatzEuro).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
+                    : '–'}
+                </span>.
+              </p>
+
+              {season?.paypalLink && (
+                <a
+                  href={season.paypalLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-3 w-full border border-border rounded-lg px-6 py-4 mb-6 hover:bg-hover transition-colors"
+                >
+                  <img src="/paypal.png" alt="PayPal" className="h-8 object-contain" />
+                  <span className="text-foreground font-medium">Jetzt mit PayPal bezahlen</span>
+                  <i className="sap-icon sap-icon-action text-muted text-[14px]" />
+                </a>
+              )}
+
+              {(season?.iban || season?.bankName) && (
+                <>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-xs text-muted uppercase tracking-wider">Alternativ per Überweisung</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+
+                  <div className="bg-hover/50 rounded-lg px-5 py-4 mb-6">
+                    <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+                      {season.kontoinhaber && (
+                        <>
+                          <span className="text-muted">Kontoinhaber</span>
+                          <span className="text-foreground">{season.kontoinhaber}</span>
+                        </>
+                      )}
+                      {season.iban && (
+                        <>
+                          <span className="text-muted">IBAN</span>
+                          <span className="text-foreground font-mono text-xs tracking-wide">{season.iban}</span>
+                        </>
+                      )}
+                      {season.bic && (
+                        <>
+                          <span className="text-muted">BIC</span>
+                          <span className="text-foreground font-mono text-xs tracking-wide">{season.bic}</span>
+                        </>
+                      )}
+                      {season.bankName && (
+                        <>
+                          <span className="text-muted">Bank</span>
+                          <span className="text-foreground">{season.bankName}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <p className="text-xs text-muted text-center mb-6">
+                Eine Zusammenfassung erhältst du per E-Mail.
+              </p>
+
+              <Button
+                variant="emphasized"
+                onClick={handleCloseSuccessDialog}
+                className="w-full"
+              >
+                Fenster schließen
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

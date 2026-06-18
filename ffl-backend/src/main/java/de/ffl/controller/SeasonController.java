@@ -75,6 +75,11 @@ public class SeasonController {
                 existing.setGewinnErsterPlatzProzent(season.getGewinnErsterPlatzProzent());
                 existing.setGewinnLetzterPlatzEuro(season.getGewinnLetzterPlatzEuro());
                 existing.setMailText(season.getMailText());
+                existing.setPaypalLink(season.getPaypalLink());
+                existing.setBankName(season.getBankName());
+                existing.setIban(season.getIban());
+                existing.setBic(season.getBic());
+                existing.setKontoinhaber(season.getKontoinhaber());
                 return ResponseEntity.ok(seasonRepository.save(existing));
             })
             .orElse(ResponseEntity.notFound().build());
