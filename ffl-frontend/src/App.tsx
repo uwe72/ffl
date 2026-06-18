@@ -21,6 +21,7 @@ import Emails from './pages/Emails'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Profile from './pages/Profile'
+import MyTeam from './pages/MyTeam'
 import ProtectedRoute from './components/ProtectedRoute'
 import { useMatomoPageView } from './hooks/useMatomo'
 
@@ -43,6 +44,11 @@ function App() {
             <Route path="profile" element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="my-team" element={
+              <ProtectedRoute>
+                <MyTeam />
               </ProtectedRoute>
             } />
             <Route path="season" element={

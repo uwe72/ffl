@@ -85,6 +85,9 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
 
       <nav className="flex-1 px-2 py-4 flex flex-col gap-1 overflow-y-auto">
         <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
+        {isAuthenticated && (
+          <SidebarItem to="/my-team" label="Mein Team" icon="sap-icon-competitor" collapsed={collapsed} />
+        )}
         <SidebarItem to="/teams" label="Teams" icon="sap-icon-shield" collapsed={collapsed} />
         <SidebarItem to="/players" label="Spieler" icon="sap-icon-group" collapsed={collapsed} />
         <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />

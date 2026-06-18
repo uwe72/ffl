@@ -8,6 +8,7 @@ import de.ffl.dto.ManagerRankDto;
 import de.ffl.dto.ManagerRoundStatsDto;
 import de.ffl.dto.PositionStatsDto;
 import de.ffl.dto.RoundDetailDto;
+import de.ffl.dto.UpdateLineupRequest;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.PointsRepository;
 import de.ffl.repository.UserRepository;
@@ -154,6 +155,28 @@ public class ManagerController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(manager);
+    }
+
+    @PutMapping("/current/lineup")
+    public ResponseEntity<?> updateCurrentLineup(@Valid @RequestBody UpdateLineupRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        String login = auth.getName();
+        Long userId = userRepository.findByLogin(login)
+            .map(u -> u.getId())
+            .orElse(null);
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+        try {
+            managerService.updateLineup(userId, request);
+            ManagerDto updated = managerService.findByUserId(userId);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}/position-stats")

@@ -13,6 +13,7 @@ import de.ffl.dto.ManagerDto;
 import de.ffl.dto.ManagerRoundStatsDto;
 import de.ffl.dto.PlayerDto;
 import de.ffl.dto.PositionStatsDto;
+import de.ffl.dto.UpdateLineupRequest;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.PlayerRankRepository;
@@ -484,6 +485,69 @@ public class ManagerService {
     @Transactional
     public Manager updateManager(Manager manager) {
         validateTeam(manager);
+        return managerRepository.save(manager);
+    }
+
+    @Transactional
+    public Manager updateLineup(Long userId, UpdateLineupRequest request) {
+        Manager manager = managerRepository.findByUserId(userId);
+        if (manager == null) {
+            throw new IllegalArgumentException("Manager nicht gefunden");
+        }
+
+        Season season = manager.getSeason();
+        if (season == null || season.getSeasonState() != SeasonState.BEFORE_SEASON) {
+            throw new IllegalArgumentException("Aufstellung kann nach Saisonstart nicht mehr geändert werden");
+        }
+
+        List<Long> playerIds = List.of(
+            request.getPlayerGoalkeeperId(),
+            request.getPlayerDefender1Id(),
+            request.getPlayerDefender2Id(),
+            request.getPlayerDefender3Id(),
+            request.getPlayerMidfield1Id(),
+            request.getPlayerMidfield2Id(),
+            request.getPlayerMidfield3Id(),
+            request.getPlayerStriker1Id(),
+            request.getPlayerStriker2Id(),
+            request.getPlayerStriker3Id(),
+            request.getPlayerFreeChoiceId()
+        );
+
+        Set<Long> uniqueIds = new HashSet<>(playerIds);
+        if (uniqueIds.size() != 11) {
+            throw new IllegalArgumentException("Jeder Spieler darf nur einmal ausgewählt werden");
+        }
+
+        List<Player> players = playerRepository.findByIdsWithTeams(playerIds);
+        if (players.size() != 11) {
+            throw new IllegalArgumentException("Nicht alle Spieler gefunden");
+        }
+
+        Map<Long, Player> playerMap = new HashMap<>();
+        for (Player p : players) {
+            playerMap.put(p.getId(), p);
+        }
+
+        Manager validationManager = Manager.builder()
+            .budget(season.getBudget())
+            .players(new HashSet<>(players))
+            .build();
+        validateTeam(validationManager);
+
+        manager.setPlayerGoalkeeper(playerMap.get(request.getPlayerGoalkeeperId()));
+        manager.setPlayerDefender1(playerMap.get(request.getPlayerDefender1Id()));
+        manager.setPlayerDefender2(playerMap.get(request.getPlayerDefender2Id()));
+        manager.setPlayerDefender3(playerMap.get(request.getPlayerDefender3Id()));
+        manager.setPlayerMidfield1(playerMap.get(request.getPlayerMidfield1Id()));
+        manager.setPlayerMidfield2(playerMap.get(request.getPlayerMidfield2Id()));
+        manager.setPlayerMidfield3(playerMap.get(request.getPlayerMidfield3Id()));
+        manager.setPlayerStriker1(playerMap.get(request.getPlayerStriker1Id()));
+        manager.setPlayerStriker2(playerMap.get(request.getPlayerStriker2Id()));
+        manager.setPlayerStriker3(playerMap.get(request.getPlayerStriker3Id()));
+        manager.setPlayerFreeChoice(playerMap.get(request.getPlayerFreeChoiceId()));
+        manager.setPlayers(new HashSet<>(players));
+
         return managerRepository.save(manager);
     }
 

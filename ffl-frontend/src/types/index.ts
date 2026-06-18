@@ -297,6 +297,20 @@ export interface RegisterRequest {
   playerFreeChoiceId: number
 }
 
+export interface UpdateLineupRequest {
+  playerGoalkeeperId: number
+  playerDefender1Id: number
+  playerDefender2Id: number
+  playerDefender3Id: number
+  playerMidfield1Id: number
+  playerMidfield2Id: number
+  playerMidfield3Id: number
+  playerStriker1Id: number
+  playerStriker2Id: number
+  playerStriker3Id: number
+  playerFreeChoiceId: number
+}
+
 export interface AuthResponse {
   token: string
   refreshToken: string
