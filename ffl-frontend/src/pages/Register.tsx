@@ -446,13 +446,9 @@ export default function Register() {
 
     setIsLoading(true)
     try {
-      const [loginAvailable, emailAvailable] = await Promise.all([
-        authApi.checkLogin(login),
-        authApi.checkEmail(email),
-      ])
+      const loginAvailable = await authApi.checkLogin(login)
 
       if (!loginAvailable) errors.login = 'Login bereits vergeben.'
-      if (!emailAvailable) errors.email = 'E-Mail bereits registriert.'
 
       if (Object.keys(errors).length > 0) {
         setFieldErrors(errors)
@@ -609,6 +605,14 @@ export default function Register() {
     }
 
     try {
+      const loginAvailable = await authApi.checkLogin(login)
+      if (!loginAvailable) {
+        setFieldErrors({ login: 'Login bereits vergeben.' })
+        setStep(1)
+        setIsLoading(false)
+        return
+      }
+
       await register({
         login,
         email,
@@ -633,9 +637,14 @@ export default function Register() {
       trackEvent('auth', 'register', 'failure')
       const axiosError = err as { response?: { data?: string } }
       if (axiosError.response?.data && typeof axiosError.response.data === 'string') {
-        setError(axiosError.response.data)
+        if (axiosError.response.data.includes('Login bereits vergeben')) {
+          setFieldErrors({ login: 'Login bereits vergeben.' })
+          setStep(1)
+        } else {
+          setError(axiosError.response.data)
+        }
       } else {
-        setError('Registrierung fehlgeschlagen. Login oder E-Mail bereits vergeben.')
+        setError('Registrierung fehlgeschlagen. Bitte versuche es erneut.')
       }
     } finally {
       setIsLoading(false)

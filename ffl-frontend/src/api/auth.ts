@@ -22,11 +22,6 @@ export const authApi = {
     return response.data
   },
 
-  checkEmail: async (email: string): Promise<boolean> => {
-    const response = await api.get<boolean>('/auth/check-email', { params: { email } })
-    return response.data
-  },
-
   refresh: async (refreshToken: string): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/refresh', { refreshToken })
     return response.data

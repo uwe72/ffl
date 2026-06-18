@@ -93,10 +93,6 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Login bereits vergeben");
         }
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            return ResponseEntity.badRequest().body("E-Mail bereits registriert");
-        }
-
         Season season = seasonRepository.findAll().stream().findFirst().orElse(null);
         if (season == null) {
             return ResponseEntity.badRequest().body("Keine Season vorhanden");
@@ -252,9 +248,6 @@ public class AuthController {
         }
         if (updates.containsKey("email")) {
             String newEmail = updates.get("email");
-            if (newEmail != null && !newEmail.equals(user.getEmail()) && userRepository.existsByEmail(newEmail)) {
-                return ResponseEntity.badRequest().body("E-Mail bereits registriert");
-            }
             user.setEmail(newEmail);
         }
         userRepository.save(user);
@@ -324,10 +317,7 @@ public class AuthController {
         return ResponseEntity.ok(!userRepository.existsByLogin(login));
     }
 
-    @GetMapping("/check-email")
-    public ResponseEntity<Boolean> checkEmailAvailable(@RequestParam String email) {
-        return ResponseEntity.ok(!userRepository.existsByEmail(email));
-    }
+
 
     @Transactional(readOnly = true)
     @PostMapping("/refresh")
