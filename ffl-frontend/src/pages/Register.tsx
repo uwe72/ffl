@@ -1358,10 +1358,10 @@ export default function Register() {
                   href={season.paypalLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-3 w-full border border-accent rounded-lg px-6 py-4 mb-6 hover:bg-accent-muted transition-colors"
+                  className="flex items-center justify-center gap-3 w-full border border-success rounded-lg px-6 py-4 mb-6 hover:bg-success/10 transition-colors"
                 >
                   <img src="/paypal.png" alt="PayPal" className="h-8 object-contain" />
-                  <span className="text-accent font-medium">Jetzt mit PayPal bezahlen</span>
+                  <span className="text-success font-medium">Jetzt mit PayPal bezahlen</span>
                   <i className="sap-icon sap-icon-action text-muted text-[14px]" />
                 </a>
               )}
