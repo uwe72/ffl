@@ -495,7 +495,9 @@ public class ManagerGroupService {
             return Collections.emptyList();
         }
 
-        Manager currentManager = managerRepository.findByUserId(currentUser.getId());
+        Manager currentManager = managerRepository.findAllByUserId(currentUser.getId()).stream()
+            .max(java.util.Comparator.comparing(Manager::getId))
+            .orElse(null);
         if (currentManager == null) {
             return Collections.emptyList();
         }

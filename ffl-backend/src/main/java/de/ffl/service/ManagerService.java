@@ -490,7 +490,10 @@ public class ManagerService {
 
     @Transactional
     public Manager updateLineup(Long userId, UpdateLineupRequest request) {
-        Manager manager = managerRepository.findByUserId(userId);
+        List<Manager> managers = managerRepository.findAllByUserId(userId);
+        Manager manager = managers.stream()
+            .max(Comparator.comparing(Manager::getId))
+            .orElse(null);
         if (manager == null) {
             throw new IllegalArgumentException("Manager nicht gefunden");
         }
@@ -600,7 +603,12 @@ public class ManagerService {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) return null;
         
-        Manager manager = managerRepository.findByUserId(userId);
+        List<Manager> managers = managerRepository.findAllByUserId(userId);
+        if (managers.isEmpty()) return null;
+        
+        Manager manager = managers.stream()
+            .max(Comparator.comparing(Manager::getId))
+            .orElse(null);
         if (manager == null) return null;
         
         return findById(manager.getId());
@@ -720,7 +728,9 @@ public class ManagerService {
         boolean currentUserIncluded = managerDtos.stream().anyMatch(d -> d.getId().equals(currentUserId));
         
         if (!currentUserIncluded && currentUserId != null) {
-            Manager currentUserManager = managerRepository.findByUserId(currentUserId);
+            Manager currentUserManager = managerRepository.findAllByUserId(currentUserId).stream()
+                .max(Comparator.comparing(Manager::getId))
+                .orElse(null);
             if (currentUserManager != null) {
                 ManagerDto userDto = findById(currentUserManager.getId());
                 if (userDto != null) {

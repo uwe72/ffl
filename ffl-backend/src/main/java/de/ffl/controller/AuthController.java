@@ -211,7 +211,9 @@ public class AuthController {
         body.put("lastName", user.getLastName());
         body.put("role", user.getRole().name());
         
-        Manager manager = managerRepository.findByUserId(user.getId());
+        Manager manager = managerRepository.findAllByUserId(user.getId()).stream()
+            .max(java.util.Comparator.comparing(Manager::getId))
+            .orElse(null);
         if (manager != null) {
             body.put("mailTheme", manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
         }
@@ -241,7 +243,9 @@ public class AuthController {
         userRepository.save(user);
         
         if (updates.containsKey("mailTheme")) {
-            Manager manager = managerRepository.findByUserId(user.getId());
+            Manager manager = managerRepository.findAllByUserId(user.getId()).stream()
+                .max(java.util.Comparator.comparing(Manager::getId))
+                .orElse(null);
             if (manager != null) {
                 try {
                     manager.setMailTheme(MailTheme.valueOf(updates.get("mailTheme")));
@@ -259,7 +263,9 @@ public class AuthController {
         body.put("lastName", user.getLastName());
         body.put("role", user.getRole().name());
         
-        Manager manager = managerRepository.findByUserId(user.getId());
+        Manager manager = managerRepository.findAllByUserId(user.getId()).stream()
+            .max(java.util.Comparator.comparing(Manager::getId))
+            .orElse(null);
         if (manager != null) {
             body.put("mailTheme", manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
         }
