@@ -405,6 +405,18 @@ export default function Register() {
       setFieldErrors(prev => ({ ...prev, [field]: 'Dieses Feld ist erforderlich.' }))
       return false
     }
+    if (field === 'login' && value.trim().length < 3) {
+      setFieldErrors(prev => ({ ...prev, [field]: 'Login muss mindestens 3 Zeichen lang sein.' }))
+      return false
+    }
+    if (field === 'login' && value.trim().length > 50) {
+      setFieldErrors(prev => ({ ...prev, [field]: 'Login darf maximal 50 Zeichen lang sein.' }))
+      return false
+    }
+    if (field === 'password' && value.length < 6) {
+      setFieldErrors(prev => ({ ...prev, [field]: 'Passwort muss mindestens 6 Zeichen lang sein.' }))
+      return false
+    }
     if (field === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       setFieldErrors(prev => ({ ...prev, [field]: 'Bitte eine gültige E-Mail-Adresse eingeben.' }))
       return false
@@ -431,9 +443,12 @@ export default function Register() {
 
     const errors: FieldErrors = {}
     if (!login.trim()) errors.login = 'Dieses Feld ist erforderlich.'
+    else if (login.trim().length < 3) errors.login = 'Login muss mindestens 3 Zeichen lang sein.'
+    else if (login.trim().length > 50) errors.login = 'Login darf maximal 50 Zeichen lang sein.'
     if (!email.trim()) errors.email = 'Dieses Feld ist erforderlich.'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Bitte eine gültige E-Mail-Adresse eingeben.'
     if (!password.trim()) errors.password = 'Dieses Feld ist erforderlich.'
+    else if (password.length < 6) errors.password = 'Passwort muss mindestens 6 Zeichen lang sein.'
     if (!confirmPassword.trim()) errors.confirmPassword = 'Dieses Feld ist erforderlich.'
     else if (confirmPassword !== password) errors.confirmPassword = 'Passwörter stimmen nicht überein.'
     if (!firstName.trim()) errors.firstName = 'Dieses Feld ist erforderlich.'
