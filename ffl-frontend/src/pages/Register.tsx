@@ -1397,7 +1397,13 @@ export default function Register() {
                       {season.bankName && (
                         <>
                           <span className="text-muted">Bank</span>
-                          <span className="text-foreground">{season.bankName}</span>
+                          <span className="text-foreground text-xs">{season.bankName}</span>
+                        </>
+                      )}
+                      {season.name && (
+                        <>
+                          <span className="text-muted">Verwendungszweck</span>
+                          <span className="text-foreground text-xs">{season.name}</span>
                         </>
                       )}
                     </div>
