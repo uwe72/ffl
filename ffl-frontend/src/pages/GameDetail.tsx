@@ -140,20 +140,6 @@ export default function GameDetail() {
         Zurück zur Übersicht
       </RouterLink>
 
-      <div className="flex items-center justify-end gap-2 mb-6">
-        {isAdmin && (
-          <div className="flex gap-2">
-            <Button
-              variant="emphasized"
-              size="sm"
-              onClick={() => setShowImportDialog(true)}
-            >
-              + Import
-            </Button>
-          </div>
-        )}
-      </div>
-
       {isAdmin && (
         <FormationImportDialog
           isOpen={showImportDialog}
@@ -217,7 +203,16 @@ export default function GameDetail() {
             className="w-full px-4 py-3 flex items-center justify-between text-lg font-semibold text-foreground bg-elevated hover:bg-default transition-colors"
           >
             <span>Formation</span>
-            <span className="text-muted">{showFormation ? '▲' : '▼'}</span>
+            <span className="flex items-center gap-2">
+              <Button
+                variant="emphasized"
+                size="sm"
+                onClick={(e: React.MouseEvent) => { e.stopPropagation(); setShowImportDialog(true) }}
+              >
+                + Import
+              </Button>
+              <span className="text-muted">{showFormation ? '▲' : '▼'}</span>
+            </span>
           </button>
           {showFormation && (
             <div className="p-4">
