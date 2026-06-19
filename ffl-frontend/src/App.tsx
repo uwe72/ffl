@@ -59,8 +59,8 @@ function App() {
             } />
             <Route path="teams" element={<SeasonRestrictedRoute><Teams /></SeasonRestrictedRoute>} />
             <Route path="teams/:id" element={<SeasonRestrictedRoute><TeamDetail /></SeasonRestrictedRoute>} />
-            <Route path="players" element={<SeasonRestrictedRoute><Players /></SeasonRestrictedRoute>} />
-            <Route path="players/:id" element={<SeasonRestrictedRoute><PlayerDetail /></SeasonRestrictedRoute>} />
+            <Route path="players" element={<Players />} />
+            <Route path="players/:id" element={<PlayerDetail />} />
             <Route path="managers" element={<SeasonRestrictedRoute><Managers /></SeasonRestrictedRoute>} />
             <Route path="managers/:id" element={<SeasonRestrictedRoute><ManagerDetail /></SeasonRestrictedRoute>} />
             <Route path="manager-groups" element={<ManagerGroups />} />

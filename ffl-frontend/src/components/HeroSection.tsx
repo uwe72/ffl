@@ -20,7 +20,9 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
   const { data: managers } = useManagers()
   const { data: season } = useCurrentSeason()
   const { data: players } = usePlayers()
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
+
+  const isRestricted = isAuthenticated && season?.seasonState === 'BEFORE_SEASON' && user?.role !== 'ADMIN'
 
   const phaseLabel = season
     ? season.seasonState === 'RUNNING_HINRUNDE'
@@ -71,15 +73,17 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link to="/managers" className="hero-stat-card px-4 py-3 flex items-center gap-3 hover:bg-surface/90 transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
-                <i className="sap-icon sap-icon-employee text-[18px] text-primary" />
-              </div>
-              <div>
-                <p className="text-xl font-bold text-foreground leading-tight">{managers?.length ?? 0}</p>
-                <p className="text-xs text-muted">Manager</p>
-              </div>
-            </Link>
+            {!isRestricted && (
+              <Link to="/managers" className="hero-stat-card px-4 py-3 flex items-center gap-3 hover:bg-surface/90 transition-colors">
+                  <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
+                  <i className="sap-icon sap-icon-employee text-[18px] text-primary" />
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-foreground leading-tight">{managers?.length ?? 0}</p>
+                  <p className="text-xs text-muted">Manager</p>
+                </div>
+              </Link>
+            )}
 
             <Link to="/players" className="hero-stat-card px-4 py-3 flex items-center gap-3 hover:bg-surface/90 transition-colors">
                 <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
