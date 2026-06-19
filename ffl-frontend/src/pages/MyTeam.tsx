@@ -426,9 +426,9 @@ export default function MyTeam() {
         </div>
       )}
 
-      <div className="p-4 bg-surface border border-border rounded-lg mb-6">
-        <div className="flex flex-col md:flex-row md:items-start gap-4">
-          <div className="relative group w-16 h-16 shrink-0 self-center md:self-start">
+      <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-4 mb-6">
+        <div className="p-4 bg-surface border border-border rounded-lg flex items-center justify-center">
+          <div className="relative group w-16 h-16 shrink-0">
             <button
               onClick={() => isBeforeSeason && avatarInputRef.current?.click()}
               className={`w-16 h-16 p-0 rounded-full overflow-hidden ${isBeforeSeason ? 'cursor-pointer' : 'cursor-default'}`}
@@ -472,90 +472,90 @@ export default function MyTeam() {
               onChange={handleAvatarChange}
             />
           </div>
+        </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-              <div>
-                <span className="text-xs text-muted">Loginname</span>
-                <p className="text-sm font-medium text-foreground">{manager?.login || '-'}</p>
-              </div>
-              <div>
-                <span className="text-xs text-muted">Vorname</span>
-                {isBeforeSeason ? (
-                  <input
-                    type="text"
-                    value={profileFirstName}
-                    onChange={(e) => setProfileFirstName(e.target.value)}
-                    className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
-                  />
-                ) : (
-                  <p className="text-sm font-medium text-foreground">{profileFirstName || '-'}</p>
-                )}
-              </div>
-              <div>
-                <span className="text-xs text-muted">E-Mail</span>
+        <div className="p-4 bg-surface border border-border rounded-lg">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <div>
+              <span className="text-xs text-muted">Loginname</span>
+              <p className="text-sm font-medium text-foreground">{manager?.login || '-'}</p>
+            </div>
+            <div>
+              <span className="text-xs text-muted">Vorname</span>
+              {isBeforeSeason ? (
                 <input
-                  type="email"
-                  value={profileEmail}
-                  onChange={(e) => setProfileEmail(e.target.value)}
+                  type="text"
+                  value={profileFirstName}
+                  onChange={(e) => setProfileFirstName(e.target.value)}
                   className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
                 />
-              </div>
-              <div>
-                <span className="text-xs text-muted">Nachname</span>
-                {isBeforeSeason ? (
-                  <input
-                    type="text"
-                    value={profileLastName}
-                    onChange={(e) => setProfileLastName(e.target.value)}
-                    className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
-                  />
-                ) : (
-                  <p className="text-sm font-medium text-foreground">{profileLastName || '-'}</p>
-                )}
-              </div>
+              ) : (
+                <p className="text-sm font-medium text-foreground">{profileFirstName || '-'}</p>
+              )}
             </div>
-            {hasProfileChanges && (
-              <div className="mt-3 flex gap-2">
-                <Button
-                  variant="emphasized"
-                  size="sm"
-                  onClick={handleSaveProfile}
-                  disabled={savingProfile}
-                >
-                  {savingProfile ? 'Speichern...' : 'Speichern'}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleResetProfile}
-                >
-                  Abbrechen
-                </Button>
-              </div>
-            )}
-            {profileSuccess && (
-              <p className="text-success text-xs mt-2">{profileSuccess}</p>
-            )}
+            <div>
+              <span className="text-xs text-muted">E-Mail</span>
+              <input
+                type="email"
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+                className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
+              />
+            </div>
+            <div>
+              <span className="text-xs text-muted">Nachname</span>
+              {isBeforeSeason ? (
+                <input
+                  type="text"
+                  value={profileLastName}
+                  onChange={(e) => setProfileLastName(e.target.value)}
+                  className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
+                />
+              ) : (
+                <p className="text-sm font-medium text-foreground">{profileLastName || '-'}</p>
+              )}
+            </div>
           </div>
+          {hasProfileChanges && (
+            <div className="mt-3 flex gap-2">
+              <Button
+                variant="emphasized"
+                size="sm"
+                onClick={handleSaveProfile}
+                disabled={savingProfile}
+              >
+                {savingProfile ? 'Speichern...' : 'Speichern'}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleResetProfile}
+              >
+                Abbrechen
+              </Button>
+            </div>
+          )}
+          {profileSuccess && (
+            <p className="text-success text-xs mt-2">{profileSuccess}</p>
+          )}
+        </div>
 
-          <div className="shrink-0 md:border-l md:border-border md:pl-4 md:min-w-[180px]">
-            <span className="text-xs text-muted">Budget</span>
-            <div className="space-y-1 mt-1">
-              <div className="flex justify-between items-center gap-4">
-                <span className="text-xs text-muted">Saison</span>
-                <span className="text-sm font-semibold text-foreground">{budget.toLocaleString('de-DE')} €</span>
-              </div>
-              <div className="flex justify-between items-center gap-4">
-                <span className="text-xs text-muted">Ausgegeben</span>
-                <span className="text-sm font-semibold text-foreground">{totalCost.toLocaleString('de-DE')} €</span>
-              </div>
-              <div className="border-t border-border pt-1 flex justify-between items-center gap-4">
-                <span className="text-xs text-muted">Verbleibend</span>
-                <span className={`text-sm font-bold ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>
-                  {remaining.toLocaleString('de-DE')} €
-                </span>
-              </div>
+        <div className="p-4 bg-surface border border-border rounded-lg">
+          <span className="text-xs text-muted">Budget</span>
+          <div className="space-y-1 mt-1">
+            <div className="flex justify-between items-center gap-4">
+              <span className="text-xs text-muted">Saison</span>
+              <span className="text-sm font-semibold text-foreground">{budget.toLocaleString('de-DE')} €</span>
+            </div>
+            <div className="flex justify-between items-center gap-4">
+              <span className="text-xs text-muted">Ausgegeben</span>
+              <span className="text-sm font-semibold text-foreground">{totalCost.toLocaleString('de-DE')} €</span>
+            </div>
+            <div className="border-t border-border pt-1 flex justify-between items-center gap-4">
+              <span className="text-xs text-muted">Verbleibend</span>
+              <span className={`text-sm font-bold ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>
+                {remaining.toLocaleString('de-DE')} €
+              </span>
             </div>
           </div>
         </div>
