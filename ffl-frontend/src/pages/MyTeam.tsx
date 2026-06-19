@@ -193,6 +193,10 @@ export default function MyTeam() {
   const remaining = budget - totalCost
   const isBudgetExceeded = remaining < 0
 
+  const avatarInitials = (profileFirstName && profileLastName)
+    ? `${profileFirstName.charAt(0)}${profileLastName.charAt(0)}`.toUpperCase()
+    : user?.login?.charAt(0).toUpperCase() || 'U'
+
   const teamCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     Object.values(selectedPlayers).forEach(id => {
@@ -441,7 +445,7 @@ export default function MyTeam() {
                 <img src={avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover" />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xl font-bold">
-                  {user?.login?.charAt(0).toUpperCase() || 'U'}
+                  {avatarInitials}
                 </div>
               )}
             </button>
@@ -546,20 +550,20 @@ export default function MyTeam() {
 
         <div className="p-4 bg-surface border border-border rounded-lg">
           <h3 className="text-sm font-semibold text-foreground mb-3">Budget</h3>
-          <div className="space-y-1">
-            <div className="flex justify-between items-center gap-4">
+          <div className="grid grid-cols-3 gap-x-4">
+            <div>
               <span className="text-xs text-muted">Saison</span>
-              <span className="text-sm font-semibold text-foreground">{budget.toLocaleString('de-DE')} €</span>
+              <p className="text-sm font-medium text-foreground">{budget.toLocaleString('de-DE')} €</p>
             </div>
-            <div className="flex justify-between items-center gap-4">
+            <div>
               <span className="text-xs text-muted">Ausgegeben</span>
-              <span className="text-sm font-semibold text-foreground">{totalCost.toLocaleString('de-DE')} €</span>
+              <p className="text-sm font-medium text-foreground">{totalCost.toLocaleString('de-DE')} €</p>
             </div>
-            <div className="border-t border-border pt-1 flex justify-between items-center gap-4">
+            <div>
               <span className="text-xs text-muted">Verbleibend</span>
-              <span className={`text-sm font-bold ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>
+              <p className={`text-sm font-bold ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>
                 {remaining.toLocaleString('de-DE')} €
-              </span>
+              </p>
             </div>
           </div>
         </div>
