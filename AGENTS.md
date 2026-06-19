@@ -287,6 +287,22 @@ export interface Player {
 - Sort icons should use accent color (text-accent) when active, gray (#6b7280) when inactive
 - Column headers must have `cursor-pointer hover:text-accent` classes
 
+#### Detail Page Back Navigation
+- **ALL detail pages (routes with `:id`) must have a unified "Zurück zur Übersicht" link at the top**
+- The link must be placed as the first element inside the main `<div>`, before any `<PageHeader>` or content
+- Use exactly this pattern:
+
+```tsx
+<RouterLink to="/parent-route" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+  <i className="sap-icon sap-icon-nav-back text-base" />
+  Zurück zur Übersicht
+</RouterLink>
+```
+
+- Replace `/parent-route` with the corresponding list route (e.g., `/players`, `/teams`, `/games`, `/managers`)
+- Do NOT use different text (like "← Spiele") or different styling
+- The link uses gold accent colors (`#c9a66b` / `#d4b77a`), the SAP nav-back icon, and the text "Zurück zur Übersicht"
+
 ## Important Notes
 
 - **No comments in code** unless explicitly requested

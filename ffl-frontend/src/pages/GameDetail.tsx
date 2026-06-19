@@ -135,10 +135,12 @@ export default function GameDetail() {
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-2 mb-6">
-        <RouterLink to="/games" className="text-muted hover:text-primary link">
-          ← Spiele
-        </RouterLink>
+      <RouterLink to="/games" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+        <i className="sap-icon sap-icon-nav-back text-base" />
+        Zurück zur Übersicht
+      </RouterLink>
+
+      <div className="flex items-center justify-end gap-2 mb-6">
         {isAdmin && (
           <div className="flex gap-2">
             <Button

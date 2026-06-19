@@ -248,6 +248,11 @@ export default function TeamDetail() {
 
   return (
     <div>
+      <RouterLink to="/teams" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+        <i className="sap-icon sap-icon-nav-back text-base" />
+        Zurück zur Übersicht
+      </RouterLink>
+
       <PageHeader icon="sap-icon-shield" title={team?.name || 'Laden...'}>
         {team?.logoSUrl && (
           <img src={team.logoSUrl} alt={team.name} className="w-8 h-8 object-contain" />
