@@ -28,7 +28,7 @@ jobs:
           cache-dependency-path: ffl-backend/pom.xml
 
       - name: Run backend tests
-        run: ./mvnw test
+        run: mvn test
         working-directory: ffl-backend
 
       - name: Set up Node.js
