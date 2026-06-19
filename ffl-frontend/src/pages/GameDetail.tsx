@@ -169,6 +169,10 @@ export default function GameDetail() {
       )}
 
       <div className="bg-surface rounded-lg border border-border p-6 mb-6">
+        <div className="text-center mb-4">
+          <Badge>{game.roundNumber ? `${game.roundNumber}. Spieltag` : 'Spieltag'}</Badge>
+        </div>
+
         <div className="flex items-center justify-between">
           <div className="flex-1 flex flex-col items-center">
             {game.hostLogoUrl && (
@@ -203,10 +207,6 @@ export default function GameDetail() {
               <div className="text-sm text-subtle">{game.visitorShortName}</div>
             )}
           </div>
-        </div>
-        
-        <div className="text-center mt-4 pt-4 border-t border-border">
-          <Badge>{game.roundNumber ? `${game.roundNumber}. Spieltag` : 'Spieltag'}</Badge>
         </div>
       </div>
 
