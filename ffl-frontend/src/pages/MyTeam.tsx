@@ -426,11 +426,15 @@ export default function MyTeam() {
         </div>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2 mb-6">
-        <div className="p-6 bg-surface border border-border rounded-lg">
-          <label className="block text-sm text-muted mb-3">Avatar</label>
-          <div className="flex items-center gap-4">
-            <div className="relative w-16 h-16 shrink-0">
+      <div className="p-4 bg-surface border border-border rounded-lg mb-6">
+        <div className="flex flex-col md:flex-row md:items-start gap-4">
+          <div className="relative group w-16 h-16 shrink-0 self-center md:self-start">
+            <button
+              onClick={() => isBeforeSeason && avatarInputRef.current?.click()}
+              className={`w-16 h-16 p-0 rounded-full overflow-hidden ${isBeforeSeason ? 'cursor-pointer' : 'cursor-default'}`}
+              disabled={!isBeforeSeason || uploadAvatar.isPending || deleteAvatar.isPending}
+              title={isBeforeSeason ? 'Profilbild ändern' : undefined}
+            >
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover" />
               ) : (
@@ -438,128 +442,122 @@ export default function MyTeam() {
                   {user?.login?.charAt(0).toUpperCase() || 'U'}
                 </div>
               )}
-            </div>
+            </button>
             {isBeforeSeason && (
-              <div className="flex flex-col gap-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => avatarInputRef.current?.click()}
-                  disabled={uploadAvatar.isPending}
-                >
-                  {uploadAvatar.isPending ? 'Hochladen...' : 'Bild ändern'}
-                </Button>
-                {avatarUrl && (
-                  <Button
-                    variant="ghost"
-                    onClick={handleAvatarDelete}
-                    disabled={deleteAvatar.isPending}
-                  >
-                    Entfernen
-                  </Button>
-                )}
+              <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
+                <i className="sap-icon sap-icon-camera text-white text-lg" />
               </div>
             )}
-          </div>
-          <input
-            ref={avatarInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="hidden"
-            onChange={handleAvatarChange}
-          />
-        </div>
-
-        <div className="p-6 bg-surface border border-border rounded-lg">
-          <label className="block text-sm text-muted mb-3">Persönliche Daten</label>
-          <div className="space-y-3">
-            <div>
-              <span className="text-xs text-muted">Loginname</span>
-              <p className="text-sm font-medium text-foreground">{manager?.login || '-'}</p>
-            </div>
-            <div>
-              <span className="text-xs text-muted">Vorname</span>
-              {isBeforeSeason ? (
-                <input
-                  type="text"
-                  value={profileFirstName}
-                  onChange={(e) => setProfileFirstName(e.target.value)}
-                  className="input-field w-full px-3 py-1.5 rounded text-sm mt-0.5"
-                />
-              ) : (
-                <p className="text-sm font-medium text-foreground">{profileFirstName || '-'}</p>
-              )}
-            </div>
-            <div>
-              <span className="text-xs text-muted">Nachname</span>
-              {isBeforeSeason ? (
-                <input
-                  type="text"
-                  value={profileLastName}
-                  onChange={(e) => setProfileLastName(e.target.value)}
-                  className="input-field w-full px-3 py-1.5 rounded text-sm mt-0.5"
-                />
-              ) : (
-                <p className="text-sm font-medium text-foreground">{profileLastName || '-'}</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6 bg-surface border border-border rounded-lg">
-          <label className="block text-sm text-muted mb-3">Budget</label>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted">Saisonbudget</span>
-              <span className="text-sm font-semibold text-foreground">{budget.toLocaleString('de-DE')} €</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted">Ausgegeben</span>
-              <span className="text-sm font-semibold text-foreground">{totalCost.toLocaleString('de-DE')} €</span>
-            </div>
-            <div className="border-t border-border pt-2 flex justify-between items-center">
-              <span className="text-sm text-muted">Verbleibend</span>
-              <span className={`text-sm font-bold ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>
-                {remaining.toLocaleString('de-DE')} €
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6 bg-surface border border-border rounded-lg">
-          <label className="block text-sm text-muted mb-3">Kontakt</label>
-          <div className="space-y-3">
-            <div>
-              <span className="text-xs text-muted">E-Mail</span>
-              <input
-                type="email"
-                value={profileEmail}
-                onChange={(e) => setProfileEmail(e.target.value)}
-                className="input-field w-full px-3 py-1.5 rounded text-sm mt-0.5"
-              />
-            </div>
-          </div>
-          {hasProfileChanges && (
-            <div className="mt-4 flex gap-2">
-              <Button
-                variant="emphasized"
-                size="sm"
-                onClick={handleSaveProfile}
-                disabled={savingProfile}
+            {isBeforeSeason && avatarUrl && (
+              <button
+                type="button"
+                onClick={handleAvatarDelete}
+                disabled={deleteAvatar.isPending || uploadAvatar.isPending}
+                className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                title="Profilbild löschen"
               >
-                {savingProfile ? 'Speichern...' : 'Speichern'}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleResetProfile}
-              >
-                Abbrechen
-              </Button>
+                <i className="sap-icon sap-icon-delete text-xs" />
+              </button>
+            )}
+            {(uploadAvatar.isPending || deleteAvatar.isPending) && (
+              <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <div>
+                <span className="text-xs text-muted">Loginname</span>
+                <p className="text-sm font-medium text-foreground">{manager?.login || '-'}</p>
+              </div>
+              <div>
+                <span className="text-xs text-muted">Vorname</span>
+                {isBeforeSeason ? (
+                  <input
+                    type="text"
+                    value={profileFirstName}
+                    onChange={(e) => setProfileFirstName(e.target.value)}
+                    className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
+                  />
+                ) : (
+                  <p className="text-sm font-medium text-foreground">{profileFirstName || '-'}</p>
+                )}
+              </div>
+              <div>
+                <span className="text-xs text-muted">E-Mail</span>
+                <input
+                  type="email"
+                  value={profileEmail}
+                  onChange={(e) => setProfileEmail(e.target.value)}
+                  className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
+                />
+              </div>
+              <div>
+                <span className="text-xs text-muted">Nachname</span>
+                {isBeforeSeason ? (
+                  <input
+                    type="text"
+                    value={profileLastName}
+                    onChange={(e) => setProfileLastName(e.target.value)}
+                    className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
+                  />
+                ) : (
+                  <p className="text-sm font-medium text-foreground">{profileLastName || '-'}</p>
+                )}
+              </div>
             </div>
-          )}
-          {profileSuccess && (
-            <p className="text-success text-xs mt-2">{profileSuccess}</p>
-          )}
+            {hasProfileChanges && (
+              <div className="mt-3 flex gap-2">
+                <Button
+                  variant="emphasized"
+                  size="sm"
+                  onClick={handleSaveProfile}
+                  disabled={savingProfile}
+                >
+                  {savingProfile ? 'Speichern...' : 'Speichern'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetProfile}
+                >
+                  Abbrechen
+                </Button>
+              </div>
+            )}
+            {profileSuccess && (
+              <p className="text-success text-xs mt-2">{profileSuccess}</p>
+            )}
+          </div>
+
+          <div className="shrink-0 md:border-l md:border-border md:pl-4 md:min-w-[180px]">
+            <span className="text-xs text-muted">Budget</span>
+            <div className="space-y-1 mt-1">
+              <div className="flex justify-between items-center gap-4">
+                <span className="text-xs text-muted">Saison</span>
+                <span className="text-sm font-semibold text-foreground">{budget.toLocaleString('de-DE')} €</span>
+              </div>
+              <div className="flex justify-between items-center gap-4">
+                <span className="text-xs text-muted">Ausgegeben</span>
+                <span className="text-sm font-semibold text-foreground">{totalCost.toLocaleString('de-DE')} €</span>
+              </div>
+              <div className="border-t border-border pt-1 flex justify-between items-center gap-4">
+                <span className="text-xs text-muted">Verbleibend</span>
+                <span className={`text-sm font-bold ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>
+                  {remaining.toLocaleString('de-DE')} €
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
