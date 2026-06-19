@@ -42,7 +42,7 @@ public class User {
     @Builder.Default
     private UserRole role = UserRole.NORMAL;
 
-    @Lob
+    @Column(columnDefinition = "bytea")
     private byte[] avatar;
 
     private String avatarContentType;
