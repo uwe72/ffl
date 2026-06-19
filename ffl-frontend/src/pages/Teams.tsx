@@ -10,7 +10,7 @@ export default function Teams() {
 
   return (
     <div>
-      <PageHeader icon="sap-icon-shield" title="Teams" />
+      <PageHeader icon="sap-icon-shield" title="Vereine" />
       {teams && teams.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {teams.map(team => (

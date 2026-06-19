@@ -90,11 +90,11 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         {!isRestricted && (
           <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
         )}
-        {isAuthenticated && (
+        {isAuthenticated && user?.role !== 'ADMIN' && (
           <SidebarItem to="/my-team" label="Mein Team" icon="sap-icon-competitor" collapsed={collapsed} />
         )}
         {!isRestricted && (
-          <SidebarItem to="/teams" label="Teams" icon="sap-icon-shield" collapsed={collapsed} />
+          <SidebarItem to="/teams" label="Vereine" icon="sap-icon-shield" collapsed={collapsed} />
         )}
         {!isRestricted && (
           <SidebarItem to="/players" label="Spieler" icon="sap-icon-group" collapsed={collapsed} />
