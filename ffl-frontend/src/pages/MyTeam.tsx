@@ -349,11 +349,6 @@ export default function MyTeam() {
 
   return (
     <div>
-      <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
-        <i className="sap-icon sap-icon-nav-back text-base" />
-        Zurück zur Startseite
-      </RouterLink>
-
       <PageHeader icon="sap-icon-competitor" title="Mein Team" />
 
       {isBeforeSeason && season?.seasonStartDate && (
