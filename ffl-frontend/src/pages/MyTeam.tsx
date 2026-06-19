@@ -496,41 +496,41 @@ export default function MyTeam() {
 
         <div className="p-4 bg-surface border border-border rounded-lg">
           <h3 className="text-sm font-semibold text-foreground mb-3">Persönliche Daten</h3>
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted w-24 shrink-0">Loginname <span className="text-danger">*</span></span>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted whitespace-nowrap">Loginname <span className="text-danger">*</span></span>
               <p className="text-sm font-medium text-foreground">{manager?.login || '-'}</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted w-24 shrink-0">E-Mail <span className="text-danger">*</span></span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted whitespace-nowrap">E-Mail <span className="text-danger">*</span></span>
               <input
                 type="email"
                 value={profileEmail}
                 onChange={(e) => setProfileEmail(e.target.value)}
-                className="input-field flex-1 px-2 py-1 rounded text-sm"
+                className="input-field px-2 py-1 rounded text-sm w-48"
               />
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted w-24 shrink-0">Vorname <span className="text-danger">*</span></span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted whitespace-nowrap">Vorname <span className="text-danger">*</span></span>
               {isBeforeSeason ? (
                 <input
                   type="text"
                   value={profileFirstName}
                   onChange={(e) => setProfileFirstName(e.target.value)}
-                  className="input-field flex-1 px-2 py-1 rounded text-sm"
+                  className="input-field px-2 py-1 rounded text-sm w-32"
                 />
               ) : (
                 <p className="text-sm font-medium text-foreground">{profileFirstName || '-'}</p>
               )}
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted w-24 shrink-0">Nachname <span className="text-danger">*</span></span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted whitespace-nowrap">Nachname <span className="text-danger">*</span></span>
               {isBeforeSeason ? (
                 <input
                   type="text"
                   value={profileLastName}
                   onChange={(e) => setProfileLastName(e.target.value)}
-                  className="input-field flex-1 px-2 py-1 rounded text-sm"
+                  className="input-field px-2 py-1 rounded text-sm w-32"
                 />
               ) : (
                 <p className="text-sm font-medium text-foreground">{profileLastName || '-'}</p>
@@ -563,18 +563,18 @@ export default function MyTeam() {
 
         <div className="p-4 bg-surface border border-border rounded-lg">
           <h3 className="text-sm font-semibold text-foreground mb-3">Budget</h3>
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted w-24 shrink-0">Saisonbudget</span>
-              <p className="text-sm font-medium text-foreground">{budget.toLocaleString('de-DE')} €</p>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted whitespace-nowrap">Saisonbudget</span>
+              <p className="text-sm font-medium text-foreground whitespace-nowrap">{budget.toLocaleString('de-DE')} €</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted w-24 shrink-0">Ausgegeben</span>
-              <p className="text-sm font-medium text-foreground">{totalCost.toLocaleString('de-DE')} €</p>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted whitespace-nowrap">Ausgegeben</span>
+              <p className="text-sm font-medium text-foreground whitespace-nowrap">{totalCost.toLocaleString('de-DE')} €</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted w-24 shrink-0">Verbleibend</span>
-              <p className={`text-sm font-bold ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted whitespace-nowrap">Verbleibend</span>
+              <p className={`text-sm font-bold whitespace-nowrap ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>
                 {remaining.toLocaleString('de-DE')} €
               </p>
             </div>
