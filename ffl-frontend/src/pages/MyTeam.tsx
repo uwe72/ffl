@@ -327,16 +327,29 @@ export default function MyTeam() {
     || profileEmail !== originalProfile.email
 
   const handleSaveProfile = async () => {
-    setSavingProfile(true)
     setProfileSuccess('')
+    if (!profileEmail.trim()) {
+      setError('E-Mail ist ein Pflichtfeld.')
+      return
+    }
+    if (isBeforeSeason && !profileFirstName.trim()) {
+      setError('Vorname ist ein Pflichtfeld.')
+      return
+    }
+    if (isBeforeSeason && !profileLastName.trim()) {
+      setError('Nachname ist ein Pflichtfeld.')
+      return
+    }
+    setSavingProfile(true)
+    setError('')
     try {
-      const data: { email: string; firstName?: string; lastName?: string } = { email: profileEmail }
+      const data: { email: string; firstName?: string; lastName?: string } = { email: profileEmail.trim() }
       if (isBeforeSeason) {
-        data.firstName = profileFirstName
-        data.lastName = profileLastName
+        data.firstName = profileFirstName.trim()
+        data.lastName = profileLastName.trim()
       }
       await authApi.updateProfile(data)
-      setOriginalProfile({ firstName: profileFirstName, lastName: profileLastName, email: profileEmail })
+      setOriginalProfile({ firstName: profileFirstName.trim(), lastName: profileLastName.trim(), email: profileEmail.trim() })
       setProfileSuccess('Profildaten gespeichert.')
       setTimeout(() => setProfileSuccess(''), 4000)
     } catch {
@@ -485,11 +498,11 @@ export default function MyTeam() {
           <h3 className="text-sm font-semibold text-foreground mb-3">Persönliche Daten</h3>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             <div>
-              <span className="text-xs text-muted">Loginname</span>
+              <span className="text-xs text-muted">Loginname <span className="text-danger">*</span></span>
               <p className="text-sm font-medium text-foreground">{manager?.login || '-'}</p>
             </div>
             <div>
-              <span className="text-xs text-muted">E-Mail</span>
+              <span className="text-xs text-muted">E-Mail <span className="text-danger">*</span></span>
               <input
                 type="email"
                 value={profileEmail}
@@ -498,7 +511,7 @@ export default function MyTeam() {
               />
             </div>
             <div>
-              <span className="text-xs text-muted">Vorname</span>
+              <span className="text-xs text-muted">Vorname <span className="text-danger">*</span></span>
               {isBeforeSeason ? (
                 <input
                   type="text"
@@ -511,7 +524,7 @@ export default function MyTeam() {
               )}
             </div>
             <div>
-              <span className="text-xs text-muted">Nachname</span>
+              <span className="text-xs text-muted">Nachname <span className="text-danger">*</span></span>
               {isBeforeSeason ? (
                 <input
                   type="text"
