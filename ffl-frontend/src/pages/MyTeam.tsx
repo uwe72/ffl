@@ -475,10 +475,20 @@ export default function MyTeam() {
         </div>
 
         <div className="p-4 bg-surface border border-border rounded-lg">
+          <h3 className="text-sm font-semibold text-foreground mb-3">Persönliche Daten</h3>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             <div>
               <span className="text-xs text-muted">Loginname</span>
               <p className="text-sm font-medium text-foreground">{manager?.login || '-'}</p>
+            </div>
+            <div>
+              <span className="text-xs text-muted">E-Mail</span>
+              <input
+                type="email"
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+                className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
+              />
             </div>
             <div>
               <span className="text-xs text-muted">Vorname</span>
@@ -492,15 +502,6 @@ export default function MyTeam() {
               ) : (
                 <p className="text-sm font-medium text-foreground">{profileFirstName || '-'}</p>
               )}
-            </div>
-            <div>
-              <span className="text-xs text-muted">E-Mail</span>
-              <input
-                type="email"
-                value={profileEmail}
-                onChange={(e) => setProfileEmail(e.target.value)}
-                className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
-              />
             </div>
             <div>
               <span className="text-xs text-muted">Nachname</span>
