@@ -39,17 +39,8 @@ public class EmbeddedPostgresConfig {
 
         try (var conn = dataSource.getConnection();
              var stmt = conn.createStatement()) {
-            stmt.execute("""
-                DO $$ BEGIN
-                    IF EXISTS (
-                        SELECT 1 FROM information_schema.columns
-                        WHERE table_name = 'ffl_user' AND column_name = 'avatar' AND data_type = 'oid'
-                    ) THEN
-                        ALTER TABLE ffl_user ALTER COLUMN avatar SET DATA TYPE bytea USING avatar::bytea;
-                    END IF;
-                END $$;
-                """);
-            log.info("  Avatar-Spalte Migration geprüft");
+            stmt.execute("ALTER TABLE IF EXISTS ffl_user DROP COLUMN IF EXISTS avatar");
+            log.info("  Avatar-Spalte (oid) entfernt, wird als bytea neu angelegt");
         } catch (Exception e) {
             log.warn("  Avatar-Spalte Migration: {}", e.getMessage());
         }
