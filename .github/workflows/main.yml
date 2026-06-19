@@ -19,6 +19,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+          cache-dependency-path: ffl-backend/pom.xml
+
+      - name: Run backend tests
+        run: ./mvnw test
+        working-directory: ffl-backend
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
