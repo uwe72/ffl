@@ -4,6 +4,7 @@ import SidebarItem from './SidebarItem'
 import { useAuth } from '../context/AuthContext'
 import { useFeedback } from '../context/FeedbackContext'
 import { useAvatar, useUploadAvatar } from '../hooks/useAvatar'
+import { useCurrentSeason } from '../hooks/useSeasons'
 
 const SIDEBAR_COLLAPSED_KEY = 'ffl-sidebar-collapsed'
 
@@ -30,6 +31,8 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadAvatar = useUploadAvatar()
   const { data: avatarUrl } = useAvatar(user?.id ?? null)
+  const { data: currentSeason } = useCurrentSeason()
+  const isRestricted = isAuthenticated && currentSeason?.seasonState === 'BEFORE_SEASON' && user?.role !== 'ADMIN'
 
   const isOnVerwaltung = location.pathname.startsWith('/season') ||
     location.pathname.startsWith('/users') ||
@@ -84,15 +87,25 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
       </div>
 
       <nav className="flex-1 px-2 py-4 flex flex-col gap-1 overflow-y-auto">
-        <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
+        {!isRestricted && (
+          <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
+        )}
         {isAuthenticated && (
           <SidebarItem to="/my-team" label="Mein Team" icon="sap-icon-competitor" collapsed={collapsed} />
         )}
-        <SidebarItem to="/teams" label="Teams" icon="sap-icon-shield" collapsed={collapsed} />
-        <SidebarItem to="/players" label="Spieler" icon="sap-icon-group" collapsed={collapsed} />
-        <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
+        {!isRestricted && (
+          <SidebarItem to="/teams" label="Teams" icon="sap-icon-shield" collapsed={collapsed} />
+        )}
+        {!isRestricted && (
+          <SidebarItem to="/players" label="Spieler" icon="sap-icon-group" collapsed={collapsed} />
+        )}
+        {!isRestricted && (
+          <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
+        )}
         <SidebarItem to="/manager-groups" label="Gruppen" icon="sap-icon-group-2" collapsed={collapsed} />
-        <SidebarItem to="/games" label="Spiele" icon="sap-icon-calendar" collapsed={collapsed} />
+        {!isRestricted && (
+          <SidebarItem to="/games" label="Spiele" icon="sap-icon-calendar" collapsed={collapsed} />
+        )}
         <button
           onClick={openFeedback}
           title={collapsed ? 'Feedback' : undefined}

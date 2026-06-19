@@ -23,6 +23,7 @@ import Register from './pages/Register'
 import Profile from './pages/Profile'
 import MyTeam from './pages/MyTeam'
 import ProtectedRoute from './components/ProtectedRoute'
+import SeasonRestrictedRoute from './components/SeasonRestrictedRoute'
 import { useMatomoPageView } from './hooks/useMatomo'
 
 function MatomoTracker() {
@@ -40,7 +41,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
+            <Route index element={<SeasonRestrictedRoute><Home /></SeasonRestrictedRoute>} />
             <Route path="profile" element={
               <ProtectedRoute>
                 <Profile />
@@ -56,12 +57,12 @@ function App() {
                 <Season />
               </ProtectedRoute>
             } />
-            <Route path="teams" element={<Teams />} />
-            <Route path="teams/:id" element={<TeamDetail />} />
-            <Route path="players" element={<Players />} />
-            <Route path="players/:id" element={<PlayerDetail />} />
-            <Route path="managers" element={<Managers />} />
-            <Route path="managers/:id" element={<ManagerDetail />} />
+            <Route path="teams" element={<SeasonRestrictedRoute><Teams /></SeasonRestrictedRoute>} />
+            <Route path="teams/:id" element={<SeasonRestrictedRoute><TeamDetail /></SeasonRestrictedRoute>} />
+            <Route path="players" element={<SeasonRestrictedRoute><Players /></SeasonRestrictedRoute>} />
+            <Route path="players/:id" element={<SeasonRestrictedRoute><PlayerDetail /></SeasonRestrictedRoute>} />
+            <Route path="managers" element={<SeasonRestrictedRoute><Managers /></SeasonRestrictedRoute>} />
+            <Route path="managers/:id" element={<SeasonRestrictedRoute><ManagerDetail /></SeasonRestrictedRoute>} />
             <Route path="manager-groups" element={<ManagerGroups />} />
             <Route path="manager-groups/:id" element={<ManagerGroupDetail />} />
             <Route path="users" element={
@@ -76,12 +77,12 @@ function App() {
             } />
             <Route path="games" element={
               <ProtectedRoute>
-                <Games />
+                <SeasonRestrictedRoute><Games /></SeasonRestrictedRoute>
               </ProtectedRoute>
             } />
             <Route path="games/:id" element={
               <ProtectedRoute>
-                <GameDetail />
+                <SeasonRestrictedRoute><GameDetail /></SeasonRestrictedRoute>
               </ProtectedRoute>
             } />
             <Route path="system" element={
