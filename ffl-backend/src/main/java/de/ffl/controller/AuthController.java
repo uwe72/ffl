@@ -240,6 +240,12 @@ public class AuthController {
             String newEmail = updates.get("email");
             user.setEmail(newEmail);
         }
+        if (updates.containsKey("firstName")) {
+            user.setFirstName(updates.get("firstName"));
+        }
+        if (updates.containsKey("lastName")) {
+            user.setLastName(updates.get("lastName"));
+        }
         userRepository.save(user);
         
         if (updates.containsKey("mailTheme")) {

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { managerApi } from '../api/managers'
+import { authApi } from '../api/auth'
 import { seasonApi } from '../api/seasons'
 import { playerApi } from '../api/players'
 import { useAvatar, useUploadAvatar, useDeleteAvatar } from '../hooks/useAvatar'
@@ -88,6 +89,13 @@ export default function MyTeam() {
   const [originalPlayers, setOriginalPlayers] = useState<Record<string, number | null>>({})
   const [originalFreePosition, setOriginalFreePosition] = useState<'DEFENDER' | 'MIDFIELD' | 'STRIKER'>('DEFENDER')
 
+  const [profileFirstName, setProfileFirstName] = useState('')
+  const [profileLastName, setProfileLastName] = useState('')
+  const [profileEmail, setProfileEmail] = useState('')
+  const [originalProfile, setOriginalProfile] = useState({ firstName: '', lastName: '', email: '' })
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [profileSuccess, setProfileSuccess] = useState('')
+
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const { data: avatarUrl } = useAvatar(user?.id ?? null)
   const uploadAvatar = useUploadAvatar()
@@ -113,6 +121,10 @@ export default function MyTeam() {
         }
 
         setManager(mgr)
+        setProfileFirstName(mgr.firstName || '')
+        setProfileLastName(mgr.lastName || '')
+        setProfileEmail(mgr.email || '')
+        setOriginalProfile({ firstName: mgr.firstName || '', lastName: mgr.lastName || '', email: mgr.email || '' })
 
         const seasonRes = await seasonApi.getAll()
         const s = seasonRes.data?.[0] ?? null
@@ -306,6 +318,36 @@ export default function MyTeam() {
     }
   }
 
+  const hasProfileChanges = profileFirstName !== originalProfile.firstName
+    || profileLastName !== originalProfile.lastName
+    || profileEmail !== originalProfile.email
+
+  const handleSaveProfile = async () => {
+    setSavingProfile(true)
+    setProfileSuccess('')
+    try {
+      const data: { email: string; firstName?: string; lastName?: string } = { email: profileEmail }
+      if (isBeforeSeason) {
+        data.firstName = profileFirstName
+        data.lastName = profileLastName
+      }
+      await authApi.updateProfile(data)
+      setOriginalProfile({ firstName: profileFirstName, lastName: profileLastName, email: profileEmail })
+      setProfileSuccess('Profildaten gespeichert.')
+      setTimeout(() => setProfileSuccess(''), 4000)
+    } catch {
+      setError('Fehler beim Speichern der Profildaten.')
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  const handleResetProfile = () => {
+    setProfileFirstName(originalProfile.firstName)
+    setProfileLastName(originalProfile.lastName)
+    setProfileEmail(originalProfile.email)
+  }
+
   const formatDate = (date?: string) => {
     if (!date) return ''
     const [y, m, d] = date.split('-')
@@ -428,6 +470,42 @@ export default function MyTeam() {
         </div>
 
         <div className="p-6 bg-surface border border-border rounded-lg">
+          <label className="block text-sm text-muted mb-3">Persönliche Daten</label>
+          <div className="space-y-3">
+            <div>
+              <span className="text-xs text-muted">Loginname</span>
+              <p className="text-sm font-medium text-foreground">{manager?.login || '-'}</p>
+            </div>
+            <div>
+              <span className="text-xs text-muted">Vorname</span>
+              {isBeforeSeason ? (
+                <input
+                  type="text"
+                  value={profileFirstName}
+                  onChange={(e) => setProfileFirstName(e.target.value)}
+                  className="input-field w-full px-3 py-1.5 rounded text-sm mt-0.5"
+                />
+              ) : (
+                <p className="text-sm font-medium text-foreground">{profileFirstName || '-'}</p>
+              )}
+            </div>
+            <div>
+              <span className="text-xs text-muted">Nachname</span>
+              {isBeforeSeason ? (
+                <input
+                  type="text"
+                  value={profileLastName}
+                  onChange={(e) => setProfileLastName(e.target.value)}
+                  className="input-field w-full px-3 py-1.5 rounded text-sm mt-0.5"
+                />
+              ) : (
+                <p className="text-sm font-medium text-foreground">{profileLastName || '-'}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 bg-surface border border-border rounded-lg">
           <label className="block text-sm text-muted mb-3">Budget</label>
           <div className="space-y-2">
             <div className="flex justify-between items-center">
@@ -445,6 +523,43 @@ export default function MyTeam() {
               </span>
             </div>
           </div>
+        </div>
+
+        <div className="p-6 bg-surface border border-border rounded-lg">
+          <label className="block text-sm text-muted mb-3">Kontakt</label>
+          <div className="space-y-3">
+            <div>
+              <span className="text-xs text-muted">E-Mail</span>
+              <input
+                type="email"
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+                className="input-field w-full px-3 py-1.5 rounded text-sm mt-0.5"
+              />
+            </div>
+          </div>
+          {hasProfileChanges && (
+            <div className="mt-4 flex gap-2">
+              <Button
+                variant="emphasized"
+                size="sm"
+                onClick={handleSaveProfile}
+                disabled={savingProfile}
+              >
+                {savingProfile ? 'Speichern...' : 'Speichern'}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleResetProfile}
+              >
+                Abbrechen
+              </Button>
+            </div>
+          )}
+          {profileSuccess && (
+            <p className="text-success text-xs mt-2">{profileSuccess}</p>
+          )}
         </div>
       </div>
 
