@@ -202,17 +202,17 @@ export default function GameDetail() {
             onClick={() => setShowFormation(!showFormation)}
             className="w-full px-4 py-3 flex items-center justify-between text-lg font-semibold text-foreground bg-elevated hover:bg-default transition-colors"
           >
-            <span>Formation</span>
             <span className="flex items-center gap-2">
-              <Button
-                variant="emphasized"
-                size="sm"
-                onClick={(e: React.MouseEvent) => { e.stopPropagation(); setShowImportDialog(true) }}
-              >
-                + Import
-              </Button>
+              <span>Formation</span>
               <span className="text-muted">{showFormation ? '▲' : '▼'}</span>
             </span>
+            <Button
+              variant="emphasized"
+              size="sm"
+              onClick={(e: React.MouseEvent) => { e.stopPropagation(); setShowImportDialog(true) }}
+            >
+              + Import
+            </Button>
           </button>
           {showFormation && (
             <div className="p-4">
