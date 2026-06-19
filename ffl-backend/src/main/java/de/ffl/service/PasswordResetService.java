@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -34,14 +35,46 @@ public class PasswordResetService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    public enum ResetRequestResult {
+        SENT,
+        MULTIPLE_ACCOUNTS,
+        NO_ACCOUNT
+    }
+
     @Transactional
-    public void requestPasswordReset(String email) {
-        User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) {
-            log.info("Passwort-Reset angefordert für unbekannte E-Mail: {}", email);
-            return;
+    public ResetRequestResult requestPasswordReset(String email, String login) {
+        if (login != null && !login.isBlank()) {
+            User user = userRepository.findByLogin(login).orElse(null);
+            if (user == null || !user.getEmail().equalsIgnoreCase(email)) {
+                log.info("Passwort-Reset: Login '{}' nicht gefunden oder E-Mail stimmt nicht überein", login);
+                return ResetRequestResult.NO_ACCOUNT;
+            }
+            createTokenAndSendMail(user);
+            return ResetRequestResult.SENT;
         }
 
+        List<User> users = userRepository.findAllByEmail(email);
+
+        if (users.isEmpty()) {
+            log.info("Passwort-Reset angefordert für unbekannte E-Mail: {}", email);
+            return ResetRequestResult.NO_ACCOUNT;
+        }
+
+        if (users.size() == 1) {
+            createTokenAndSendMail(users.get(0));
+            return ResetRequestResult.SENT;
+        }
+
+        return ResetRequestResult.MULTIPLE_ACCOUNTS;
+    }
+
+    public List<String> getLoginsForEmail(String email) {
+        return userRepository.findAllByEmail(email).stream()
+            .map(User::getLogin)
+            .toList();
+    }
+
+    private void createTokenAndSendMail(User user) {
         tokenRepository.deleteByUserId(user.getId());
 
         String token = UUID.randomUUID().toString();

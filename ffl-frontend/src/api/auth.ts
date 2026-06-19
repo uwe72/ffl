@@ -56,8 +56,8 @@ export const authApi = {
     return response.data
   },
 
-  forgotPassword: async (email: string): Promise<{ message: string }> => {
-    const response = await api.post<{ message: string }>('/auth/forgot-password', { email })
+  forgotPassword: async (email: string, login?: string): Promise<{ message?: string; multipleAccounts?: boolean; logins?: string[] }> => {
+    const response = await api.post<{ message?: string; multipleAccounts?: boolean; logins?: string[] }>('/auth/forgot-password', { email, login })
     return response.data
   },
 

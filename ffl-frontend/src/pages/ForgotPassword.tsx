@@ -9,6 +9,8 @@ export default function ForgotPassword() {
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [fieldError, setFieldError] = useState('')
+  const [logins, setLogins] = useState<string[]>([])
+  const [selectedLogin, setSelectedLogin] = useState('')
   const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -31,10 +33,20 @@ export default function ForgotPassword() {
 
     if (!validateEmail(email)) return
 
+    if (logins.length > 0 && !selectedLogin) {
+      setError('Bitte wähle einen Account aus.')
+      return
+    }
+
     setIsLoading(true)
     try {
-      await authApi.forgotPassword(email)
-      setSuccess(true)
+      const result = await authApi.forgotPassword(email, selectedLogin || undefined)
+      if (result.multipleAccounts && result.logins) {
+        setLogins(result.logins)
+        setSelectedLogin('')
+      } else {
+        setSuccess(true)
+      }
     } catch {
       setSuccess(true)
     } finally {
@@ -88,7 +100,10 @@ export default function ForgotPassword() {
           ) : (
             <form className="space-y-4 mt-2" onSubmit={handleSubmit} noValidate>
               <p className="text-muted text-sm">
-                Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen deines Passworts.
+                {logins.length > 0
+                  ? 'Zu dieser E-Mail-Adresse gehören mehrere Accounts. Bitte wähle den Account aus, für den du das Passwort zurücksetzen möchtest.'
+                  : 'Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen deines Passworts.'
+                }
               </p>
 
               {error && (
@@ -108,26 +123,62 @@ export default function ForgotPassword() {
                   required
                   placeholder="name@beispiel.de"
                   value={email}
+                  disabled={logins.length > 0}
                   onChange={(e) => {
                     setEmail(e.target.value)
                     if (fieldError) validateEmail(e.target.value)
                   }}
                   onBlur={() => validateEmail(email)}
-                  className={`input-field w-full px-3 py-2 text-sm ${fieldError ? 'border-danger focus:border-danger' : ''}`}
+                  className={`input-field w-full px-3 py-2 text-sm ${fieldError ? 'border-danger focus:border-danger' : ''} ${logins.length > 0 ? 'opacity-60' : ''}`}
                 />
                 {fieldError && (
                   <p className="text-xs text-danger mt-1">{fieldError}</p>
                 )}
               </div>
 
+              {logins.length > 0 && (
+                <div>
+                  <label className="block text-sm text-muted mb-1.5">
+                    Account auswählen <span className="text-primary">*</span>
+                  </label>
+                  <select
+                    value={selectedLogin}
+                    onChange={(e) => {
+                      setSelectedLogin(e.target.value)
+                      setError('')
+                    }}
+                    className="input-field w-full px-3 py-2 text-sm"
+                  >
+                    <option value="">Bitte wählen...</option>
+                    {logins.map((login) => (
+                      <option key={login} value={login}>{login}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="border-t border-border pt-4 flex gap-3 justify-between items-center">
-                <Button
-                  variant="ghost"
-                  type="button"
-                  onClick={() => navigate('/login')}
-                >
-                  Zurück
-                </Button>
+                {logins.length > 0 ? (
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    onClick={() => {
+                      setLogins([])
+                      setSelectedLogin('')
+                      setError('')
+                    }}
+                  >
+                    Zurück
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    onClick={() => navigate('/login')}
+                  >
+                    Zurück
+                  </Button>
+                )}
                 <Button
                   variant="emphasized"
                   type="submit"

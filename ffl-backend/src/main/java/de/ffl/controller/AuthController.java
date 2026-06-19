@@ -325,7 +325,16 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        passwordResetService.requestPasswordReset(request.getEmail());
+        var result = passwordResetService.requestPasswordReset(request.getEmail(), request.getLogin());
+
+        if (result == de.ffl.service.PasswordResetService.ResetRequestResult.MULTIPLE_ACCOUNTS) {
+            var logins = passwordResetService.getLoginsForEmail(request.getEmail());
+            return ResponseEntity.ok(Map.of(
+                "multipleAccounts", true,
+                "logins", logins
+            ));
+        }
+
         return ResponseEntity.ok(Map.of("message", "Falls ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen gesendet."));
     }
 
