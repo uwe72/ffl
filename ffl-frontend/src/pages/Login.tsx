@@ -24,6 +24,7 @@ export default function Login() {
   const location = useLocation()
   const firstInputRef = useRef<HTMLInputElement>(null)
   const justRegistered = (location.state as { registered?: boolean })?.registered === true
+  const passwordReset = (location.state as { passwordReset?: boolean })?.passwordReset === true
 
   const validateField = (field: keyof FieldErrors, value: string) => {
     if (!value.trim()) {
@@ -100,6 +101,13 @@ export default function Login() {
               </div>
             )}
 
+            {passwordReset && (
+              <div className="flex items-center gap-3 p-3 bg-success-bg border border-success/30 rounded-md">
+                <i className="sap-icon sap-icon-message-success text-[18px] text-success shrink-0" />
+                <p className="text-success text-sm">Passwort wurde zurückgesetzt. Du kannst dich jetzt mit deinem neuen Passwort anmelden.</p>
+              </div>
+            )}
+
             {error && (
               <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-md">
                 <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
@@ -148,6 +156,13 @@ export default function Login() {
               {fieldErrors.password && (
                 <p className="text-xs text-danger mt-1">{fieldErrors.password}</p>
               )}
+              <button
+                type="button"
+                onClick={() => navigate('/forgot-password')}
+                className="text-xs text-accent hover:text-accent-hover hover:underline mt-1.5 inline-block"
+              >
+                Passwort vergessen?
+              </button>
             </div>
 
             <div className="border-t border-border pt-4 flex gap-3 justify-between items-center">

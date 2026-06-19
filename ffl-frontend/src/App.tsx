@@ -20,6 +20,8 @@ import UserDetail from './pages/UserDetail'
 import Emails from './pages/Emails'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Profile from './pages/Profile'
 import MyTeam from './pages/MyTeam'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -40,6 +42,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<SeasonRestrictedRoute><Home /></SeasonRestrictedRoute>} />
             <Route path="profile" element={

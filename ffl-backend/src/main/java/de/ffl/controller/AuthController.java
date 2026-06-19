@@ -8,15 +8,18 @@ import de.ffl.domain.Season;
 import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.AuthResponse;
+import de.ffl.dto.ForgotPasswordRequest;
 import de.ffl.dto.LoginRequest;
 import de.ffl.dto.RefreshRequest;
 import de.ffl.dto.RegisterRequest;
+import de.ffl.dto.ResetPasswordRequest;
 import de.ffl.dto.UserDto;
 import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.PlayerRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.UserRepository;
 import de.ffl.service.ManagerService;
+import de.ffl.service.PasswordResetService;
 import de.ffl.service.RegistrationMailService;
 import de.ffl.service.UserService;
 import jakarta.validation.Valid;
@@ -50,6 +53,7 @@ public class AuthController {
     private final PlayerRepository playerRepository;
     private final ManagerService managerService;
     private final RegistrationMailService registrationMailService;
+    private final PasswordResetService passwordResetService;
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
@@ -60,7 +64,8 @@ public class AuthController {
                           SeasonRepository seasonRepository,
                           PlayerRepository playerRepository,
                           ManagerService managerService,
-                          RegistrationMailService registrationMailService) {
+                          RegistrationMailService registrationMailService,
+                          PasswordResetService passwordResetService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -71,6 +76,7 @@ public class AuthController {
         this.playerRepository = playerRepository;
         this.managerService = managerService;
         this.registrationMailService = registrationMailService;
+        this.passwordResetService = passwordResetService;
     }
 
     @Transactional(readOnly = true)
@@ -315,6 +321,22 @@ public class AuthController {
     @GetMapping("/check-login")
     public ResponseEntity<Boolean> checkLoginAvailable(@RequestParam String login) {
         return ResponseEntity.ok(!userRepository.existsByLogin(login));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordResetService.requestPasswordReset(request.getEmail());
+        return ResponseEntity.ok(Map.of("message", "Falls ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen gesendet."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "Passwort wurde erfolgreich zurückgesetzt."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
 
