@@ -1,15 +1,14 @@
 package de.ffl.service;
 
-import de.ffl.domain.ManagerRank;
-import de.ffl.domain.Round;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import de.ffl.domain.*;
+import org.junit.jupiter.api.*;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SeasonIntegrationTest extends AbstractSeasonTestBase {
 
     @BeforeEach
@@ -18,6 +17,7 @@ class SeasonIntegrationTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    @Order(1)
     void calculateSeason_shouldComputeCorrectTotalPointsForManager() {
         seasonCalculationService.calculateSeason(season.getId());
 
@@ -30,6 +30,7 @@ class SeasonIntegrationTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    @Order(2)
     void calculateSeason_shouldComputeCorrectPerRoundPoints() {
         seasonCalculationService.calculateSeason(season.getId());
 
@@ -46,6 +47,7 @@ class SeasonIntegrationTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    @Order(3)
     void calculateSeason_shouldComputeCorrectPointsBeforeTransferRound() {
         seasonCalculationService.calculateSeason(season.getId());
 
@@ -58,6 +60,7 @@ class SeasonIntegrationTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    @Order(4)
     void calculateSeason_shouldComputeCorrectPointsAtTransferRound() {
         seasonCalculationService.calculateSeason(season.getId());
 
@@ -70,10 +73,46 @@ class SeasonIntegrationTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    @Order(5)
     void calculateSeason_shouldSetCurrentMatchday() {
         seasonCalculationService.calculateSeason(season.getId());
 
         season = seasonRepository.findById(season.getId()).orElseThrow();
         assertThat(season.getCurrentMatchday()).isEqualTo(34);
+    }
+
+    @Test
+    @Order(Integer.MAX_VALUE)
+    void printTestSummary() {
+        seasonCalculationService.calculateSeason(season.getId());
+
+        Round round34 = roundMap.get(34);
+        Optional<ManagerRank> rank = managerRankRepository.findByManagerIdAndRoundId(
+                managerUwe72.getId(), round34.getId());
+        int managerActual = rank.map(ManagerRank::getPointsTotal).orElse(-1);
+
+        String[] playerNames = {"Harry Kane", "Manuel Neuer", "Kevin Diks"};
+        int[] playerExpected = {108, 35, 59};
+
+        System.out.println();
+        System.out.println("=== Test Summary ===");
+        System.out.printf("Manager uwe72: expected=390, actual=%d%n", managerActual);
+
+        for (int i = 0; i < playerNames.length; i++) {
+            String name = playerNames[i];
+            int expected = playerExpected[i];
+            int actual = findPlayerPointsByName(name, round34.getId());
+            System.out.printf("%-14s expected=%-3d, actual=%d%n", name + ":", expected, actual);
+        }
+        System.out.println();
+    }
+
+    private int findPlayerPointsByName(String name, Long roundId) {
+        return playerMap.values().stream()
+                .filter(p -> name.equals(p.getNameKicker()))
+                .findFirst()
+                .flatMap(p -> playerRankRepository.findByPlayerIdAndRoundId(p.getId(), roundId))
+                .map(PlayerRank::getPointsTotal)
+                .orElse(-1);
     }
 }
