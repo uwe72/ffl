@@ -53,7 +53,6 @@ public class SpaForwardFilter implements Filter {
 
     private boolean isSwaggerRequest(String path) {
         return path.startsWith("/swagger-ui") ||
-               path.startsWith("/v3/api-docs") ||
-               path.startsWith("/h2-console");
+               path.startsWith("/v3/api-docs");
     }
 }
