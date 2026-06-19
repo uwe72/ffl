@@ -2,6 +2,8 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { usePlayers } from '../hooks/usePlayers'
 import useIsMobile from '../hooks/useIsMobile'
+import { useAuth } from '../context/AuthContext'
+import { useCurrentSeason } from '../hooks/useSeasons'
 import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
@@ -193,7 +195,7 @@ function formatPrice(price: number | undefined): string {
   return `${Math.round(price / 1_000)}K €`
 }
 
-function PlayerCard({ player }: { player: Player }) {
+function PlayerCard({ player, hideManager }: { player: Player; hideManager?: boolean }) {
   return (
     <div className="card p-4 bg-surface border border-border">
       <div className="flex gap-4 items-center">
@@ -250,10 +252,12 @@ function PlayerCard({ player }: { player: Player }) {
             <span className="text-subtle">-</span>
           )}
         </div>
+        {!hideManager && (
         <div>
           <span className="text-subtle">Manager: </span>
           <span className="font-medium text-foreground">{player.managerCount ?? 0}</span>
         </div>
+        )}
         <div>
           <span className="text-subtle">Preis: </span>
           <span className="font-medium text-foreground">{formatPrice(player.prize)}</span>
@@ -265,6 +269,10 @@ function PlayerCard({ player }: { player: Player }) {
 
 export default function Players() {
   const isMobile = useIsMobile()
+  const { user } = useAuth()
+  const { data: currentSeason } = useCurrentSeason()
+  const isAdmin = user?.role === 'ADMIN'
+  const isBeforeSeasonNonAdmin = currentSeason?.seasonState === 'BEFORE_SEASON' && !isAdmin
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set())
   const [selectedTeamId, setSelectedTeamId] = useState<number | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
@@ -377,9 +385,11 @@ export default function Players() {
                 <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
                   Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
+                {!isBeforeSeasonNonAdmin && (
                 <ThSortable align="center" onClick={() => handleSort('managerCount')}>
                   Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
+                )}
                 <ThSortable align="right" onClick={() => handleSort('prize')}>
                   Preis<SortIcon column="prize" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
@@ -406,12 +416,21 @@ export default function Players() {
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-foreground link">
-                        {player.pictureUrl && (
-                          <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
-                        )}
-                        <div className="font-medium text-primary">{player.nameKicker}</div>
-                      </RouterLink>
+                      {isBeforeSeasonNonAdmin ? (
+                        <div className="flex items-center">
+                          {player.pictureUrl && (
+                            <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
+                          )}
+                          <div className="font-medium text-foreground">{player.nameKicker}</div>
+                        </div>
+                      ) : (
+                        <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-foreground link">
+                          {player.pictureUrl && (
+                            <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
+                          )}
+                          <div className="font-medium text-primary">{player.nameKicker}</div>
+                        </RouterLink>
+                      )}
                     </td>
                     <td className="px-3 py-2 text-center text-foreground">
                       {player.points ?? '-'}
@@ -419,6 +438,7 @@ export default function Players() {
                     <td className="px-3 py-2 text-center text-muted">
                       {player.pointsLastRound ?? '-'}
                     </td>
+                    {!isBeforeSeasonNonAdmin && (
                     <td className="px-3 py-2 text-center">
                       <RouterLink to={`/players/${player.id}`}>
                         <span
@@ -428,6 +448,7 @@ export default function Players() {
                         </span>
                       </RouterLink>
                     </td>
+                    )}
                     <td className="px-3 py-2 text-right text-foreground">
                       {player.prize ? player.prize.toLocaleString() : '-'} €
                     </td>
@@ -454,7 +475,7 @@ export default function Players() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9} className="text-center text-subtle py-8">
+                  <td colSpan={isBeforeSeasonNonAdmin ? 8 : 9} className="text-center text-subtle py-8">
                     Keine Spieler gefunden
                   </td>
                 </tr>
@@ -469,7 +490,7 @@ export default function Players() {
           <div className="grid gap-4 mt-4">
             {filteredPlayers && filteredPlayers.length > 0 ? (
               filteredPlayers.map((player) => (
-                <PlayerCard key={player.id} player={player} />
+                <PlayerCard key={player.id} player={player} hideManager={isBeforeSeasonNonAdmin} />
               ))
             ) : (
               <div className="text-center text-subtle py-8">
