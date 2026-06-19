@@ -31,4 +31,5 @@ export const seasonApi = {
   updatePrizePayout: (seasonId: number, managerId: number, data: UpdatePayoutRequest) => 
     api.put<PrizePayout>(`/seasons/${seasonId}/prize-payouts/${managerId}`, data),
   getPrizeDistributionMailPreview: (id: number) => api.get<MailPreviewResponse>(`/seasons/${id}/prize-distribution/mail/preview`),
+  sendSeasonReport: (id: number) => api.post<{ message: string }>(`/seasons/${id}/report-mail`),
 }

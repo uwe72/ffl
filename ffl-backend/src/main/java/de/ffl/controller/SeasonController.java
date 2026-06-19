@@ -8,6 +8,7 @@ import de.ffl.dto.UpdatePayoutRequest;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.service.PrizeDistributionMailService;
 import de.ffl.service.PrizeDistributionService;
+import de.ffl.service.SeasonReportMailService;
 import de.ffl.service.SeasonService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +26,14 @@ public class SeasonController {
     private final SeasonService seasonService;
     private final PrizeDistributionService prizeDistributionService;
     private final PrizeDistributionMailService prizeDistributionMailService;
+    private final SeasonReportMailService seasonReportMailService;
 
-    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService) {
+    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, SeasonReportMailService seasonReportMailService) {
         this.seasonRepository = seasonRepository;
         this.seasonService = seasonService;
         this.prizeDistributionService = prizeDistributionService;
         this.prizeDistributionMailService = prizeDistributionMailService;
+        this.seasonReportMailService = seasonReportMailService;
     }
 
     @GetMapping
@@ -218,6 +221,31 @@ public class SeasonController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
         }
+    }
+
+    @PostMapping("/{id}/report-mail")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> sendSeasonReport(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            seasonReportMailService.sendSeasonReport(id);
+            return ResponseEntity.ok(new MessageResponse("Saison-Report wurde erfolgreich versendet."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    public static class MessageResponse {
+        private String message;
+
+        public MessageResponse(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
     }
 
     public static class ErrorResponse {

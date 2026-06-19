@@ -99,3 +99,10 @@ export function usePrizeDistributionMailPreview(seasonId: number) {
     enabled: false,
   })
 }
+
+export function useSendSeasonReport() {
+  return useMutation({
+    mutationFn: (seasonId: number) =>
+      seasonApi.sendSeasonReport(seasonId).then(res => res.data),
+  })
+}
