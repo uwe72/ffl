@@ -42,7 +42,7 @@ public interface ManagerGroupRepository extends JpaRepository<ManagerGroup, Long
     @Query("SELECT mg FROM ManagerGroup mg WHERE mg.season.id = :seasonId AND mg.name <> 'Alle'")
     List<ManagerGroup> findBySeasonIdFiltered(@Param("seasonId") Long seasonId);
 
-    @Query("SELECT DISTINCT mg FROM ManagerGroup mg JOIN FETCH mg.managers WHERE mg.id = :id")
+    @Query("SELECT DISTINCT mg FROM ManagerGroup mg LEFT JOIN FETCH mg.managers WHERE mg.id = :id")
     java.util.Optional<ManagerGroup> findByIdWithManagers(@Param("id") Long id);
 
     @org.springframework.data.jpa.repository.Modifying
