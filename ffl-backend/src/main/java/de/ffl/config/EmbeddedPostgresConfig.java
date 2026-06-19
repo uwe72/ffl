@@ -37,6 +37,23 @@ public class EmbeddedPostgresConfig {
         log.info("  Datenbank: postgres");
         log.info("  Embedded PostgreSQL gestartet");
 
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.createStatement()) {
+            stmt.execute("""
+                DO $$ BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = 'ffl_user' AND column_name = 'avatar' AND data_type = 'oid'
+                    ) THEN
+                        ALTER TABLE ffl_user ALTER COLUMN avatar SET DATA TYPE bytea USING avatar::bytea;
+                    END IF;
+                END $$;
+                """);
+            log.info("  Avatar-Spalte Migration geprüft");
+        } catch (Exception e) {
+            log.warn("  Avatar-Spalte Migration: {}", e.getMessage());
+        }
+
         return dataSource;
     }
 }
