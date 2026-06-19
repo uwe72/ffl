@@ -41,3 +41,4 @@ ffl-backend/data/*.trace.db
 *.json
 !package.json
 !package-lock.json
+!**/src/test/resources/**/*.json

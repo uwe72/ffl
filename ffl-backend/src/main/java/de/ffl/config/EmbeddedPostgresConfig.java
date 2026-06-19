@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Configuration
-@Profile("!docker")
+@Profile("!docker & !test")
 public class EmbeddedPostgresConfig {
 
     private static final Logger log = LoggerFactory.getLogger(EmbeddedPostgresConfig.class);
