@@ -427,7 +427,9 @@ export default function MyTeam() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-4 mb-6">
-        <div className="p-4 bg-surface border border-border rounded-lg flex items-center justify-center">
+        <div className="p-4 bg-surface border border-border rounded-lg">
+          <h3 className="text-sm font-semibold text-foreground mb-3">Avatar</h3>
+          <div className="flex items-center justify-center">
           <div className="relative group w-16 h-16 shrink-0">
             <button
               onClick={() => isBeforeSeason && avatarInputRef.current?.click()}
@@ -471,6 +473,7 @@ export default function MyTeam() {
               className="hidden"
               onChange={handleAvatarChange}
             />
+          </div>
           </div>
         </div>
 
@@ -542,8 +545,8 @@ export default function MyTeam() {
         </div>
 
         <div className="p-4 bg-surface border border-border rounded-lg">
-          <span className="text-xs text-muted">Budget</span>
-          <div className="space-y-1 mt-1">
+          <h3 className="text-sm font-semibold text-foreground mb-3">Budget</h3>
+          <div className="space-y-1">
             <div className="flex justify-between items-center gap-4">
               <span className="text-xs text-muted">Saison</span>
               <span className="text-sm font-semibold text-foreground">{budget.toLocaleString('de-DE')} €</span>
