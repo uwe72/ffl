@@ -306,7 +306,7 @@ export interface Player {
 ## Important Notes
 
 - **No comments in code** unless explicitly requested
-- **No tests exist yet** - when adding tests, place them in `ffl-backend/src/test/java/de/ffl/`
+- **Tests exist** in `ffl-backend/src/test/java/de/ffl/` and run automatically in the CI pipeline (GitHub Actions) on every push to `main`
 - **Port 8080** is the default backend port
 - **H2 Console** available at `/h2-console` (JDBC URL: `jdbc:h2:file:./data/ffl`)
 - **Swagger UI** available at `/swagger-ui.html`
@@ -317,3 +317,4 @@ export interface Player {
 
 - **Always commit and push** - After every change, always commit and push to the remote repository. This applies across all sessions.
 - **Consistent UI** - All UI patterns that have been unified (colors, sorting, table styles, accent colors, hover states, layout spacing, card designs, etc.) must be maintained consistently in all future changes. Never introduce deviating styles or patterns.
+- **Tests are sacrosanct** - Existing tests must NEVER be removed, weakened, or modified to make them pass after a refactoring. Tests may only be adjusted when the expected business behavior intentionally changes. If a test fails after a code change, fix the code -- not the test. New features should be accompanied by new tests where possible.
