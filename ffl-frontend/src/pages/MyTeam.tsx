@@ -550,11 +550,11 @@ export default function MyTeam() {
 
         <div className="p-4 bg-surface border border-border rounded-lg">
           <h3 className="text-sm font-semibold text-foreground mb-3">Budget</h3>
-          <div className="grid grid-cols-3 gap-x-4">
-            <div>
-              <span className="text-xs text-muted">Saison</span>
-              <p className="text-sm font-medium text-foreground">{budget.toLocaleString('de-DE')} €</p>
-            </div>
+          <div>
+            <span className="text-xs text-muted">Saisonbudget</span>
+            <p className="text-sm font-medium text-foreground mb-2">{budget.toLocaleString('de-DE')} €</p>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4">
             <div>
               <span className="text-xs text-muted">Ausgegeben</span>
               <p className="text-sm font-medium text-foreground">{totalCost.toLocaleString('de-DE')} €</p>
