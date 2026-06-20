@@ -8,9 +8,10 @@ import { trackEvent } from '../hooks/useMatomo'
 const Size = Quill.import('formats/size') as any
 Size.whitelist = ['8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px']
 Quill.register(Size, true)
-import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePrizeDistributionMailPreview, useSendSeasonReport } from '../hooks/useSeasons'
+import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePrizeDistributionMailPreview, useInvitationMailPreview, useSendSeasonReport } from '../hooks/useSeasons'
 import CalculationDialog from '../components/CalculationDialog'
 import PrizeDistributionMailSendDialog from '../components/PrizeDistributionMailSendDialog'
+import InvitationMailSendDialog from '../components/InvitationMailSendDialog'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
 import PageHeader from '../components/PageHeader'
@@ -33,6 +34,7 @@ const tabItems = [
   { key: 'saisondaten', label: 'Saisondaten' },
   { key: 'bankverbindung', label: 'Bankverbindung' },
   { key: 'gewinnausschuettung', label: 'Gewinnausschüttung' },
+  { key: 'saisoneinladung', label: 'Saisoneinladung' },
   { key: 'saisonabschlussmail', label: 'Saisonabschlussmail' },
   { key: 'adminreport', label: 'Admin-Report (Ende Saison)' }
 ]
@@ -140,9 +142,10 @@ export default function Season() {
   const calculatePrize = useCalculatePrizeDistribution()
   const updatePrizePayout = useUpdatePrizePayout(season?.id ?? 0)
   const { refetch: fetchPreview, isFetching: isFetchingPreview } = usePrizeDistributionMailPreview(season?.id ?? 0)
+  const { refetch: fetchInvitationPreview, isFetching: isFetchingInvitationPreview } = useInvitationMailPreview(season?.id ?? 0)
   const sendSeasonReport = useSendSeasonReport()
   
-  const [activeTab, setActiveTab] = useState<'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'saisonabschlussmail' | 'adminreport'>('saisondaten')
+  const [activeTab, setActiveTab] = useState<'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'saisoneinladung' | 'saisonabschlussmail' | 'adminreport'>('saisondaten')
   const [formData, setFormData] = useState<Partial<Season>>({})
   const [hasChanges, setHasChanges] = useState(false)
   const [showCalcDialog, setShowCalcDialog] = useState(false)
@@ -154,6 +157,7 @@ export default function Season() {
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [previewHtml, setPreviewHtml] = useState<string | null>(null)
   const [showMailSendDialog, setShowMailSendDialog] = useState(false)
+  const [showInvitationMailSendDialog, setShowInvitationMailSendDialog] = useState(false)
 
   useEffect(() => {
     if (season) {
@@ -170,6 +174,8 @@ export default function Season() {
         gewinnErsterPlatzProzent: season.gewinnErsterPlatzProzent ?? 10,
         gewinnLetzterPlatzEuro: season.gewinnLetzterPlatzEuro ?? 15,
         mailText: season.mailText ?? '',
+        invitationMailText: season.invitationMailText ?? '',
+        invitationMailSubject: season.invitationMailSubject ?? '',
         paypalLink: season.paypalLink ?? '',
         bankName: season.bankName ?? '',
         iban: season.iban ?? '',
@@ -240,6 +246,8 @@ export default function Season() {
       gewinnErsterPlatzProzent: season.gewinnErsterPlatzProzent ?? 10,
       gewinnLetzterPlatzEuro: season.gewinnLetzterPlatzEuro ?? 15,
       mailText: season.mailText ?? '',
+      invitationMailText: season.invitationMailText ?? '',
+      invitationMailSubject: season.invitationMailSubject ?? '',
       paypalLink: season.paypalLink ?? '',
       bankName: season.bankName ?? '',
       iban: season.iban ?? '',
@@ -703,6 +711,87 @@ export default function Season() {
          </>
        )}
 
+      {activeTab === 'saisoneinladung' && (
+        <>
+          <div className="grid gap-6">
+            <FormCard className="overflow-visible">
+              <label className="block text-sm text-muted mb-2">Betreff</label>
+              <input
+                type="text"
+                value={formData.invitationMailSubject ?? ''}
+                onChange={(e) => handleChange('invitationMailSubject', e.target.value)}
+                placeholder="z.B. FFL | Saison 25/26 | Einladung"
+                className="input-field w-full px-3 py-2 focus:outline-none mb-4"
+              />
+              <label className="block text-sm text-muted mb-2">Einladungsmail</label>
+              <div className="quill-mail">
+                <ReactQuill
+                  theme="snow"
+                  value={formData.invitationMailText ?? ''}
+                  onChange={(value) => handleChange('invitationMailText', value)}
+                  placeholder="Einladungstext, Informationen zur neuen Saison, Anmeldelink..."
+                  modules={{
+                    toolbar: [
+                      [{ 'size': ['8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px'] }],
+                      ['bold', 'italic', 'underline'],
+                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                      ['link'],
+                      ['clean']
+                    ]
+                  }}
+                />
+              </div>
+            </FormCard>
+          </div>
+
+          <div className="mt-6 flex gap-4">
+            {hasChanges && (
+              <>
+                <Button
+                  variant="emphasized"
+                  onClick={handleSave}
+                  disabled={updateSeason.isPending}
+                >
+                  {updateSeason.isPending ? 'Wird gespeichert...' : 'Speichern'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={resetFormData}
+                >
+                  Abbrechen
+                </Button>
+              </>
+            )}
+            <Button
+              variant="transparent"
+              onClick={async () => {
+                if (hasChanges) {
+                  await updateSeason.mutateAsync({ id: season!.id, data: formData })
+                  setHasChanges(false)
+                }
+                const result = await fetchInvitationPreview()
+                if (result.data) {
+                  setPreviewHtml(result.data.html)
+                  setShowPreviewModal(true)
+                }
+              }}
+              disabled={isFetchingInvitationPreview}
+            >
+              {isFetchingInvitationPreview ? 'Lade Vorschau...' : 'Vorschau'}
+            </Button>
+          </div>
+
+          <div className="mt-6">
+            <Button
+              variant="emphasized"
+              onClick={() => setShowInvitationMailSendDialog(true)}
+            >
+              An alle E-Mail-Adressen senden
+            </Button>
+          </div>
+        </>
+      )}
+
       {activeTab === 'saisonabschlussmail' && (
          <>
             <div className="grid gap-6">
@@ -864,6 +953,15 @@ export default function Season() {
         <PrizeDistributionMailSendDialog
           isOpen={showMailSendDialog}
           onClose={() => setShowMailSendDialog(false)}
+          seasonId={season.id}
+          seasonName={season.name}
+        />
+      )}
+
+      {season && (
+        <InvitationMailSendDialog
+          isOpen={showInvitationMailSendDialog}
+          onClose={() => setShowInvitationMailSendDialog(false)}
           seasonId={season.id}
           seasonName={season.name}
         />

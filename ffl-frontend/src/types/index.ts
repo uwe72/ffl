@@ -40,6 +40,8 @@ export interface Season {
   gewinnErsterPlatzProzent?: number
   gewinnLetzterPlatzEuro?: number
   mailText?: string
+  invitationMailText?: string
+  invitationMailSubject?: string
   paypalLink?: string
   bankName?: string
   iban?: string

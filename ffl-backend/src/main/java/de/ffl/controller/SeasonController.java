@@ -8,6 +8,7 @@ import de.ffl.dto.UpdatePayoutRequest;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.service.PrizeDistributionMailService;
 import de.ffl.service.PrizeDistributionService;
+import de.ffl.service.InvitationMailService;
 import de.ffl.service.SeasonReportMailService;
 import de.ffl.service.SeasonService;
 import org.springframework.http.MediaType;
@@ -26,13 +27,15 @@ public class SeasonController {
     private final SeasonService seasonService;
     private final PrizeDistributionService prizeDistributionService;
     private final PrizeDistributionMailService prizeDistributionMailService;
+    private final InvitationMailService invitationMailService;
     private final SeasonReportMailService seasonReportMailService;
 
-    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, SeasonReportMailService seasonReportMailService) {
+    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, SeasonReportMailService seasonReportMailService) {
         this.seasonRepository = seasonRepository;
         this.seasonService = seasonService;
         this.prizeDistributionService = prizeDistributionService;
         this.prizeDistributionMailService = prizeDistributionMailService;
+        this.invitationMailService = invitationMailService;
         this.seasonReportMailService = seasonReportMailService;
     }
 
@@ -80,6 +83,8 @@ public class SeasonController {
                 existing.setGewinnErsterPlatzProzent(season.getGewinnErsterPlatzProzent());
                 existing.setGewinnLetzterPlatzEuro(season.getGewinnLetzterPlatzEuro());
                 existing.setMailText(season.getMailText());
+                existing.setInvitationMailText(season.getInvitationMailText());
+                existing.setInvitationMailSubject(season.getInvitationMailSubject());
                 existing.setPaypalLink(season.getPaypalLink());
                 existing.setBankName(season.getBankName());
                 existing.setIban(season.getIban());
@@ -235,6 +240,36 @@ public class SeasonController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
         }
+    }
+
+    @GetMapping("/{id}/invitation-mail/preview")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getInvitationMailPreview(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            String html = invitationMailService.generatePreviewHtml(id);
+            return ResponseEntity.ok(new MailPreviewResponse(html));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/{id}/invitation-mail/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public SseEmitter streamInvitationMail(
+            @PathVariable Long id,
+            @RequestParam(required = false, defaultValue = "false") boolean testMode) {
+        if (!seasonRepository.existsById(id)) {
+            SseEmitter emitter = new SseEmitter();
+            try {
+                emitter.send(SseEmitter.event().name("error").data("Saison nicht gefunden"));
+                emitter.complete();
+            } catch (Exception ignored) {}
+            return emitter;
+        }
+        return invitationMailService.streamInvitationMail(id, testMode);
     }
 
     public static class MessageResponse {

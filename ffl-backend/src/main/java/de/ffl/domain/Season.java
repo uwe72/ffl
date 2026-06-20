@@ -77,6 +77,12 @@ public class Season {
     @Column(name = "mail_text", columnDefinition = "TEXT")
     private String mailText;
 
+    @Column(name = "invitation_mail_text", columnDefinition = "TEXT")
+    private String invitationMailText;
+
+    @Column(name = "invitation_mail_subject")
+    private String invitationMailSubject;
+
     @Column(name = "paypal_link")
     private String paypalLink;
 
