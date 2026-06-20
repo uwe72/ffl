@@ -5,7 +5,6 @@ import { useCurrentSeason } from '../hooks/useSeasons'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import FormationImportDialog from '../components/FormationImportDialog'
-import MatchdayMailSendDialog from '../components/MatchdayMailSendDialog'
 import Button from '../components/Button'
 import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
@@ -104,17 +103,11 @@ function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: numb
 function FilterBar({ 
   selectedRound, 
   setSelectedRound, 
-  rounds, 
-  onMailSend,
-  mailDisabled,
-  isAdmin
+  rounds
 }: { 
   selectedRound: number | null
   setSelectedRound: (r: number | null) => void
   rounds: number[]
-  onMailSend: () => void
-  mailDisabled: boolean
-  isAdmin: boolean
 }) {
   return (
     <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap">
@@ -154,18 +147,6 @@ function FilterBar({
           <i className="sap-icon sap-icon-navigation-right-arrow text-[14px]" />
         </button>
       </div>
-
-      {isAdmin && (
-        <Button
-          variant="emphasized"
-          size="compact"
-          onClick={onMailSend}
-          disabled={mailDisabled}
-        >
-          <i className="sap-icon sap-icon-email text-[14px] mr-1.5" />
-          Spieltagsmail
-        </Button>
-      )}
     </div>
   )
 }
@@ -180,7 +161,6 @@ export default function Games() {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [selectedRound, setSelectedRound] = useState<number | null>(null)
   const [importGameId, setImportGameId] = useState<number | null>(null)
-  const [mailDialogOpen, setMailDialogOpen] = useState(false)
   const queryClient = useQueryClient()
   
   const { data: importGame } = useGame(importGameId || 0)
@@ -252,9 +232,6 @@ export default function Games() {
           selectedRound={selectedRound}
           setSelectedRound={setSelectedRound}
           rounds={rounds}
-          onMailSend={() => setMailDialogOpen(true)}
-          mailDisabled={!selectedRound || !currentSeason?.id}
-          isAdmin={isAdmin}
         />
 
         {!isMobile && (
@@ -390,15 +367,6 @@ export default function Games() {
           initialValue={importGame?.formationExtern || ''}
           gameId={importGameId || 0}
           game={importGame}
-        />
-      )}
-
-      {isAdmin && currentSeason?.id && selectedRound && (
-        <MatchdayMailSendDialog
-          isOpen={mailDialogOpen}
-          onClose={() => setMailDialogOpen(false)}
-          seasonId={currentSeason.id}
-          roundNumber={selectedRound}
         />
       )}
     </div>

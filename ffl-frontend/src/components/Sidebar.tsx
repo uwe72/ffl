@@ -36,6 +36,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
 
   const isOnVerwaltung = location.pathname.startsWith('/season') ||
     location.pathname.startsWith('/users') ||
+    location.pathname.startsWith('/mailing') ||
     location.pathname.startsWith('/emails') ||
     location.pathname.startsWith('/system')
   const effectiveVerwaltungExpanded = verwaltungExpanded || isOnVerwaltung
@@ -121,6 +122,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
             subItems={[
               { to: '/season', label: 'Saison' },
               { to: '/users', label: 'Benutzer' },
+              { to: '/mailing', label: 'Mailing' },
               { to: '/emails', label: 'E-Mails' },
               { to: '/system', label: 'System' },
             ]}

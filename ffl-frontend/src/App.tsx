@@ -18,6 +18,11 @@ import GameDetail from './pages/GameDetail'
 import Users from './pages/Users'
 import UserDetail from './pages/UserDetail'
 import Emails from './pages/Emails'
+import Mailing from './pages/Mailing'
+import MailingInvitation from './pages/MailingInvitation'
+import MailingMatchday from './pages/MailingMatchday'
+import MailingPrizeDistribution from './pages/MailingPrizeDistribution'
+import MailingAdminReport from './pages/MailingAdminReport'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
@@ -97,6 +102,31 @@ function App() {
             <Route path="emails" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Emails />
+              </ProtectedRoute>
+            } />
+            <Route path="mailing" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <Mailing />
+              </ProtectedRoute>
+            } />
+            <Route path="mailing/einladung" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <MailingInvitation />
+              </ProtectedRoute>
+            } />
+            <Route path="mailing/spieltagsmail" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <MailingMatchday />
+              </ProtectedRoute>
+            } />
+            <Route path="mailing/abschlussmail" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <MailingPrizeDistribution />
+              </ProtectedRoute>
+            } />
+            <Route path="mailing/saisonabschluss" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <MailingAdminReport />
               </ProtectedRoute>
             } />
           </Route>
