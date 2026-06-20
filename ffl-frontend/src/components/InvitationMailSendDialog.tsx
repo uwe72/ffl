@@ -57,26 +57,21 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
 
   const [selectedEmailIds, setSelectedEmailIds] = useState<number[]>([])
   const [sendDialogOpen, setSendDialogOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
   const [rangeFromId, setRangeFromId] = useState('')
   const [rangeToId, setRangeToId] = useState('')
   const [testMode, setTestMode] = useState(false)
 
-  const filteredEmails = useMemo(() => {
+  const sortedEmails = useMemo(() => {
     if (!emails) return []
-    const filtered = emails.filter((e) => {
-      return searchTerm === '' ||
-        e.email.toLowerCase().includes(searchTerm.toLowerCase())
-    })
-    return [...filtered].sort((a, b) => a.id - b.id)
-  }, [emails, searchTerm])
+    return [...emails].sort((a, b) => a.id - b.id)
+  }, [emails])
 
   const allSelected =
-    filteredEmails.length > 0 && selectedEmailIds.length === filteredEmails.length
+    sortedEmails.length > 0 && selectedEmailIds.length === sortedEmails.length
 
   const toggleAll = () => {
     if (allSelected) setSelectedEmailIds([])
-    else setSelectedEmailIds(filteredEmails.map((e) => e.id))
+    else setSelectedEmailIds(sortedEmails.map((e) => e.id))
   }
 
   const toggleOne = (id: number) => {
@@ -91,7 +86,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
     if (isNaN(fromId) || isNaN(toId)) return
     const minId = Math.min(fromId, toId)
     const maxId = Math.max(fromId, toId)
-    const idsToSelect = filteredEmails
+    const idsToSelect = sortedEmails
       .filter((e) => e.id >= minId && e.id <= maxId)
       .map((e) => e.id)
     setSelectedEmailIds((prev) => [...new Set([...prev, ...idsToSelect])])
@@ -125,12 +120,6 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
         <div className="p-4 md:p-6 bg-surface border border-border mb-4">
           <div className="mb-4 flex flex-col md:flex-row gap-3 md:gap-4 md:items-center">
             <h3 className="text-base md:text-lg font-semibold text-primary md:whitespace-nowrap">Empfänger</h3>
-            <input
-              placeholder="E-Mail suchen..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field w-full md:max-w-xs px-3 py-2 focus:outline-none"
-            />
             <div className="flex gap-2 items-center">
               <input
                 type="number"
@@ -161,7 +150,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
                 variant="ghost"
                 size="sm"
                 onClick={toggleAll}
-                disabled={filteredEmails.length === 0}
+                disabled={sortedEmails.length === 0}
               >
                 {allSelected ? 'Alle abwählen' : 'Alle selektieren'}
               </Button>
@@ -170,7 +159,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
 
           {isMobile ? (
             <div className="grid gap-3 max-h-[160px] overflow-y-auto">
-              {filteredEmails.map((e) => (
+              {sortedEmails.map((e) => (
                 <EmailCard
                   key={e.id}
                   email={e}
@@ -178,7 +167,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
                   onToggle={() => toggleOne(e.id)}
                 />
               ))}
-              {filteredEmails.length === 0 && (
+              {sortedEmails.length === 0 && (
                 <div className="py-4 text-center text-muted">
                   Keine E-Mail-Adressen gefunden.
                 </div>
@@ -195,7 +184,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredEmails.map((e, idx) => (
+                  {sortedEmails.map((e, idx) => (
                     <tr
                       key={e.id}
                       className={`border-b border-border ${
@@ -214,7 +203,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
                       <td className="py-2 text-foreground">{e.email}</td>
                     </tr>
                   ))}
-                  {filteredEmails.length === 0 && (
+                  {sortedEmails.length === 0 && (
                     <tr>
                       <td colSpan={3} className="py-4 text-center text-muted">
                         Keine E-Mail-Adressen gefunden.
@@ -227,7 +216,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
           )}
 
           <div className="mt-4 text-sm text-subtle">
-            {filteredEmails.length} von {emails?.length || 0} E-Mail-Adressen
+            {sortedEmails.length} von {emails?.length || 0} E-Mail-Adressen
           </div>
         </div>
 
