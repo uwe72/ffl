@@ -107,7 +107,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
       onClick={onClose}
     >
       <div
-        className="p-4 md:p-6 bg-surface border border-border w-full max-w-5xl max-h-[72vh] overflow-y-auto"
+        className="p-4 md:p-6 bg-surface border border-border w-full max-w-5xl max-h-[72vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-4">
@@ -171,7 +171,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
           </div>
 
           {isMobile ? (
-            <div className="grid gap-3 max-h-[240px] overflow-y-auto">
+            <div className="grid gap-3 max-h-[160px] overflow-y-auto">
               {filteredEmails.map((e) => (
                 <EmailCard
                   key={e.id}
@@ -187,7 +187,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
               )}
             </div>
           ) : (
-            <div className="max-h-[400px] overflow-y-auto">
+            <div className="max-h-[240px] overflow-y-auto">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-surface">
                   <tr className="text-left text-muted border-b border-border">
