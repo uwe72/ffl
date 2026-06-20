@@ -8,8 +8,9 @@ export interface SystemConfig {
   gmailAppPassword?: string
   gmailSmtpServer?: string
   gmailSmtpPort?: number
-  openrouterApiKey?: string
-  openrouterModel?: string
+  llmApiKey?: string
+  llmModel?: string
+  llmBaseUrl?: string
   matchdayMailPrompt?: string
   webUrl?: string
 }

@@ -7,8 +7,9 @@ public class SystemConfigDto {
     private String gmailAppPassword;
     private String gmailSmtpServer;
     private Integer gmailSmtpPort;
-    private String openrouterApiKey;
-    private String openrouterModel;
+    private String llmApiKey;
+    private String llmModel;
+    private String llmBaseUrl;
     private String matchdayMailPrompt;
     private String webUrl;
 
@@ -20,8 +21,9 @@ public class SystemConfigDto {
         dto.setGmailAppPassword(config.getGmailAppPassword());
         dto.setGmailSmtpServer(config.getGmailSmtpServer());
         dto.setGmailSmtpPort(config.getGmailSmtpPort());
-        dto.setOpenrouterApiKey(config.getOpenrouterApiKey());
-        dto.setOpenrouterModel(config.getOpenrouterModel());
+        dto.setLlmApiKey(config.getLlmApiKey());
+        dto.setLlmModel(config.getLlmModel());
+        dto.setLlmBaseUrl(config.getLlmBaseUrl());
         dto.setMatchdayMailPrompt(config.getMatchdayMailPrompt());
         dto.setWebUrl(config.getWebUrl());
         return dto;
@@ -35,10 +37,12 @@ public class SystemConfigDto {
     public void setGmailSmtpServer(String gmailSmtpServer) { this.gmailSmtpServer = gmailSmtpServer; }
     public Integer getGmailSmtpPort() { return gmailSmtpPort; }
     public void setGmailSmtpPort(Integer gmailSmtpPort) { this.gmailSmtpPort = gmailSmtpPort; }
-    public String getOpenrouterApiKey() { return openrouterApiKey; }
-    public void setOpenrouterApiKey(String openrouterApiKey) { this.openrouterApiKey = openrouterApiKey; }
-    public String getOpenrouterModel() { return openrouterModel; }
-    public void setOpenrouterModel(String openrouterModel) { this.openrouterModel = openrouterModel; }
+    public String getLlmApiKey() { return llmApiKey; }
+    public void setLlmApiKey(String llmApiKey) { this.llmApiKey = llmApiKey; }
+    public String getLlmModel() { return llmModel; }
+    public void setLlmModel(String llmModel) { this.llmModel = llmModel; }
+    public String getLlmBaseUrl() { return llmBaseUrl; }
+    public void setLlmBaseUrl(String llmBaseUrl) { this.llmBaseUrl = llmBaseUrl; }
     public String getMatchdayMailPrompt() { return matchdayMailPrompt; }
     public void setMatchdayMailPrompt(String matchdayMailPrompt) { this.matchdayMailPrompt = matchdayMailPrompt; }
     public String getWebUrl() { return webUrl; }

@@ -26,8 +26,9 @@ export default function System() {
         gmailSmtpServer: config.gmailSmtpServer || 'smtp.gmail.com',
         gmailSmtpPort: config.gmailSmtpPort || 587,
         webUrl: config.webUrl || '',
-        openrouterApiKey: config.openrouterApiKey || '',
-        openrouterModel: config.openrouterModel || 'openai/gpt-4o-mini',
+        llmBaseUrl: config.llmBaseUrl || '',
+        llmApiKey: config.llmApiKey || '',
+        llmModel: config.llmModel || 'openai/gpt-4o-mini',
       })
       setTestMailTo(config.gmailSenderEmail || '')
       setHasChanges(false)
@@ -50,8 +51,9 @@ export default function System() {
         gmailSmtpServer: result.gmailSmtpServer || 'smtp.gmail.com',
         gmailSmtpPort: result.gmailSmtpPort || 587,
         webUrl: result.webUrl || '',
-        openrouterApiKey: result.openrouterApiKey || '',
-        openrouterModel: result.openrouterModel || 'openai/gpt-4o-mini',
+        llmBaseUrl: result.llmBaseUrl || '',
+        llmApiKey: result.llmApiKey || '',
+        llmModel: result.llmModel || 'openai/gpt-4o-mini',
       })
       setHasChanges(false)
       setSaveMessage('Konfiguration gespeichert')
@@ -113,27 +115,42 @@ export default function System() {
             </FormCard>
 
             <FormCard>
-              <label className="block text-sm text-muted mb-3">LLM (OpenRouter)</label>
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+              <label className="block text-sm text-muted mb-3">LLM-Konfiguration</label>
+              <div className="grid gap-4 grid-cols-1">
+                <div>
+                  <label className="block text-sm text-muted mb-1">Base-URL</label>
+                  <input
+                    type="url"
+                    value={formData.llmBaseUrl || ''}
+                    onChange={(e) => handleChange('llmBaseUrl', e.target.value)}
+                    placeholder="http://localhost:4000/chat/completions"
+                    className="input-field w-full px-3 py-2 rounded focus:outline-none font-mono"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 mt-4">
                 <div>
                   <label className="block text-sm text-muted mb-1">API-Key</label>
                   <input
                     type="text"
-                    value={formData.openrouterApiKey || ''}
-                    onChange={(e) => handleChange('openrouterApiKey', e.target.value)}
+                    value={formData.llmApiKey || ''}
+                    onChange={(e) => handleChange('llmApiKey', e.target.value)}
                     className="input-field w-full px-3 py-2 rounded focus:outline-none font-mono"
                   />
                 </div>
                 <div>
                   <label className="block text-sm text-muted mb-1">Modell</label>
                   <input
-                    value={formData.openrouterModel || ''}
-                    onChange={(e) => handleChange('openrouterModel', e.target.value)}
+                    value={formData.llmModel || ''}
+                    onChange={(e) => handleChange('llmModel', e.target.value)}
                     placeholder="openai/gpt-4o-mini"
                     className="input-field w-full px-3 py-2 rounded focus:outline-none"
                   />
                 </div>
               </div>
+              <p className="text-xs text-subtle mt-2">
+                OpenAI-kompatible Chat-Completions-URL (z.B. LiteLLM-Proxy oder OpenRouter).
+              </p>
             </FormCard>
           </div>
 

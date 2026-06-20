@@ -30,11 +30,14 @@ public class SystemConfig {
     private Integer gmailSmtpPort = 587;
 
     @Column(name = "openrouter_api_key")
-    private String openrouterApiKey;
+    private String llmApiKey;
 
     @Column(name = "openrouter_model")
     @Builder.Default
-    private String openrouterModel = "openai/gpt-4o-mini";
+    private String llmModel = "openai/gpt-4o-mini";
+
+    @Column(name = "llm_base_url")
+    private String llmBaseUrl;
 
     @Column(name = "matchday_mail_prompt", length = 4000)
     private String matchdayMailPrompt;

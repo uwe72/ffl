@@ -298,8 +298,9 @@ public class MatchdayMailTransactionService {
             String intro;
             try {
                 intro = llmService.generateMatchdayIntro(
-                    config.getOpenrouterApiKey(),
-                    config.getOpenrouterModel(),
+                    config.getLlmBaseUrl(),
+                    config.getLlmApiKey(),
+                    config.getLlmModel(),
                     config.getMatchdayMailPrompt(),
                     summary);
                 send(emitter, "LLM-Einleitung erhalten.");

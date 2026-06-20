@@ -44,11 +44,14 @@ public class SystemConfigService {
         if (updateData.getGmailSmtpPort() != null) {
             config.setGmailSmtpPort(updateData.getGmailSmtpPort());
         }
-        if (updateData.getOpenrouterApiKey() != null && !updateData.getOpenrouterApiKey().isBlank()) {
-            config.setOpenrouterApiKey(updateData.getOpenrouterApiKey());
+        if (updateData.getLlmApiKey() != null && !updateData.getLlmApiKey().isBlank()) {
+            config.setLlmApiKey(updateData.getLlmApiKey());
         }
-        if (updateData.getOpenrouterModel() != null) {
-            config.setOpenrouterModel(updateData.getOpenrouterModel());
+        if (updateData.getLlmModel() != null) {
+            config.setLlmModel(updateData.getLlmModel());
+        }
+        if (updateData.getLlmBaseUrl() != null) {
+            config.setLlmBaseUrl(updateData.getLlmBaseUrl().isBlank() ? null : updateData.getLlmBaseUrl().trim());
         }
         if (updateData.getMatchdayMailPrompt() != null) {
             config.setMatchdayMailPrompt(updateData.getMatchdayMailPrompt());
