@@ -29,15 +29,18 @@ public class InvitationMailService {
     private final SystemConfigRepository systemConfigRepository;
     private final SeasonRepository seasonRepository;
     private final EmailAddressRepository emailAddressRepository;
+    private final UnsubscribeService unsubscribeService;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public InvitationMailService(SystemConfigRepository systemConfigRepository,
                                  SeasonRepository seasonRepository,
-                                 EmailAddressRepository emailAddressRepository) {
+                                 EmailAddressRepository emailAddressRepository,
+                                 UnsubscribeService unsubscribeService) {
         this.systemConfigRepository = systemConfigRepository;
         this.seasonRepository = seasonRepository;
         this.emailAddressRepository = emailAddressRepository;
+        this.unsubscribeService = unsubscribeService;
     }
 
     public String generatePreviewHtml(Long seasonId) {
@@ -85,8 +88,9 @@ public class InvitationMailService {
                     .collect(Collectors.toMap(EmailAddress::getId, e -> e));
 
                 JavaMailSenderImpl mailSender = buildMailSender(config);
-                String htmlContent = buildHtmlContent(season);
+                String baseHtml = buildHtmlContent(season);
                 String subject = season.getInvitationMailSubject();
+                String webUrl = config.getWebUrl();
 
                 send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
                 send(emitter, "Starte Versand an " + emailIds.size() + " Empfänger...");
@@ -106,6 +110,9 @@ public class InvitationMailService {
                     String recipientEmail = emailAddress.getEmail();
 
                     try {
+                        String unsubscribeUrl = unsubscribeService.generateUnsubscribeUrl(emailId, webUrl);
+                        String htmlContent = insertUnsubscribeFooter(baseHtml, unsubscribeUrl);
+
                         MimeMessage msg = mailSender.createMimeMessage();
                         MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
                         helper.setFrom(config.getGmailSenderEmail());
@@ -178,6 +185,15 @@ public class InvitationMailService {
 
         sb.append("</div></body></html>");
         return sb.toString();
+    }
+
+    private String insertUnsubscribeFooter(String html, String unsubscribeUrl) {
+        String footer = "<div style=\"margin-top:40px;padding-top:16px;border-top:1px solid #d1d5db;text-align:center;\">"
+            + "<p style=\"color:#9ca3af;font-size:11px;margin:0;line-height:1.5;\">"
+            + "Wenn Sie keine weiteren Mails der FFL erhalten möchten, können Sie sich "
+            + "<a href=\"" + unsubscribeUrl + "\" style=\"color:#9ca3af;text-decoration:underline;\">hier austragen</a>."
+            + "</p></div>";
+        return html.replace("</div></body></html>", footer + "</div></body></html>");
     }
 
     private JavaMailSenderImpl buildMailSender(SystemConfig config) {
