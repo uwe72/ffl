@@ -28,6 +28,7 @@ public class Team {
 
     private String shortName;
     private String logoXxlUrl;
+    @Column(name = "logo_s_url")
     private String logoSUrl;
 
     @ManyToMany(mappedBy = "teams")
