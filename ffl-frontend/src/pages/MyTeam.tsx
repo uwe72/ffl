@@ -711,6 +711,36 @@ export default function MyTeam() {
     return exclude
   }, [lineupPlayers, transfers])
 
+  const replacedPlayerIds = useMemo(() => {
+    return new Set(transfers.map(t => t.oldPlayerId).filter((id): id is number => id !== null))
+  }, [transfers])
+
+  const newPlayerIds = useMemo(() => {
+    return new Set(transfers.map(t => t.newPlayerId).filter((id): id is number => id !== null))
+  }, [transfers])
+
+  const transferDiff = useMemo(() => {
+    let diff = 0
+    for (const t of transfers) {
+      if (t.oldPlayerId && t.newPlayerId) {
+        const oldPlayer = allPlayers.find(p => p.id === t.oldPlayerId)
+        const newPlayer = allPlayers.find(p => p.id === t.newPlayerId)
+        if (oldPlayer && newPlayer) {
+          diff += newPlayer.prize - oldPlayer.prize
+        }
+      }
+    }
+    return diff
+  }, [transfers, allPlayers])
+
+  const rueckrundePlayersByPosition = useMemo(() => {
+    const grouped: Record<Position, Player[]> = { GOALKEEPER: [], DEFENDER: [], MIDFIELD: [], STRIKER: [] }
+    for (const player of resultingTeamAfterTransfers) {
+      grouped[player.position].push(player)
+    }
+    return grouped
+  }, [resultingTeamAfterTransfers])
+
   const handleAddTransfer = () => {
     if (transfers.length >= 3) return
     setTransfers(prev => [...prev, { oldPlayerId: null, newPlayerId: null }])
@@ -950,11 +980,52 @@ export default function MyTeam() {
   }
 
   const hasExistingTransfers = !!(manager.playerExchangedOld1 || manager.playerExchangedOld2 || manager.playerExchangedOld3)
+  const hasActiveTransfers = isHinrunde
+    ? transfers.some(t => t.oldPlayerId && t.newPlayerId)
+    : isRueckrunde ? hasExistingTransfers : false
 
-  const renderPlayerCard = (player: Player) => {
+  const existingReplacedIds = useMemo(() => {
+    if (!isRueckrunde) return new Set<number>()
+    const ids = new Set<number>()
+    if (manager.playerExchangedOld1) ids.add(manager.playerExchangedOld1.id)
+    if (manager.playerExchangedOld2) ids.add(manager.playerExchangedOld2.id)
+    if (manager.playerExchangedOld3) ids.add(manager.playerExchangedOld3.id)
+    return ids
+  }, [isRueckrunde, manager])
+
+  const existingNewIds = useMemo(() => {
+    if (!isRueckrunde) return new Set<number>()
+    const ids = new Set<number>()
+    if (manager.playerExchangedNew1) ids.add(manager.playerExchangedNew1.id)
+    if (manager.playerExchangedNew2) ids.add(manager.playerExchangedNew2.id)
+    if (manager.playerExchangedNew3) ids.add(manager.playerExchangedNew3.id)
+    return ids
+  }, [isRueckrunde, manager])
+
+  const activeReplacedIds = isRueckrunde ? existingReplacedIds : replacedPlayerIds
+  const activeNewIds = isRueckrunde ? existingNewIds : newPlayerIds
+
+  const existingTransferDiff = useMemo(() => {
+    if (!isRueckrunde) return 0
+    let diff = 0
+    const pairs = [
+      { old: manager.playerExchangedOld1, new_: manager.playerExchangedNew1 },
+      { old: manager.playerExchangedOld2, new_: manager.playerExchangedNew2 },
+      { old: manager.playerExchangedOld3, new_: manager.playerExchangedNew3 },
+    ]
+    for (const p of pairs) {
+      if (p.old && p.new_) {
+        diff += p.new_.prize - p.old.prize
+      }
+    }
+    return diff
+  }, [isRueckrunde, manager])
+
+  const renderPlayerCard = (player: Player, highlight?: 'replaced' | 'new') => {
     const team = player.teams && player.teams.length > 0 ? player.teams[player.teams.length - 1] : null
+    const ringClass = highlight === 'replaced' ? 'ring-1 ring-danger/50' : highlight === 'new' ? 'ring-1 ring-success/50' : ''
     return (
-      <div className="bg-elevated/50 border border-border/60 rounded-lg p-2 flex items-center gap-2">
+      <div className={`bg-elevated/50 border border-border/60 rounded-lg p-2 flex items-center gap-2 ${ringClass}`}>
         <div className="shrink-0">
           {player.pictureUrl ? (
             <img src={player.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -1165,8 +1236,8 @@ export default function MyTeam() {
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-4 text-xs">
               <span className="text-muted">Budget: <span className="text-foreground font-medium">{budget.toLocaleString('de-DE')} €</span></span>
-              <span className="text-muted">Ausgegeben: <span className="text-foreground font-medium">{(isHinrunde ? transferTotalCost : totalCost).toLocaleString('de-DE')} €</span></span>
-              <span className="text-muted">Verbleibend: <span className={`font-bold ${(isHinrunde ? isTransferBudgetExceeded : isBudgetExceeded) ? 'text-danger' : 'text-success'}`}>{(isHinrunde ? transferRemaining : remaining).toLocaleString('de-DE')} €</span></span>
+              <span className="text-muted">Ausgegeben: <span className="text-foreground font-medium">{totalCost.toLocaleString('de-DE')} €</span></span>
+              <span className="text-muted">Verbleibend: <span className={`font-bold ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>{remaining.toLocaleString('de-DE')} €</span></span>
             </div>
             {isBeforeSeason && (
               <div className="flex items-center gap-2">
@@ -1214,6 +1285,7 @@ export default function MyTeam() {
                       value={selectedPlayers[slot.key]}
                       onChange={(id) => setSelectedPlayers(prev => ({ ...prev, [slot.key]: id }))}
                       disabled={!isBeforeSeason}
+                      highlightClass={selectedPlayers[slot.key] && activeReplacedIds.has(selectedPlayers[slot.key]!) ? 'ring-1 ring-danger/50' : undefined}
                     />
                   ))}
                 </div>
@@ -1248,6 +1320,42 @@ export default function MyTeam() {
         )}
       </div>
 
+      {hasActiveTransfers && (
+        <div className="p-6 bg-surface border border-border rounded-lg mt-6">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-y-2">
+            <h2 className="text-sm font-semibold text-foreground">Aufstellung (Rückrunde)</h2>
+            <div className="flex items-center gap-4 text-xs">
+              <span className="text-muted">Budget: <span className="text-foreground font-medium">{budget.toLocaleString('de-DE')} €</span></span>
+              <span className="text-muted">Ausgegeben: <span className="text-foreground font-medium">{transferTotalCost.toLocaleString('de-DE')} €</span></span>
+              <span className="text-muted">Verbleibend: <span className={`font-bold ${isTransferBudgetExceeded ? 'text-danger' : 'text-success'}`}>{transferRemaining.toLocaleString('de-DE')} €</span></span>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {(['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as Position[]).map(pos => {
+              const players = rueckrundePlayersByPosition[pos]
+              if (players.length === 0) return null
+              const groupLabel = pos === 'GOALKEEPER' ? 'Torwart' : pos === 'DEFENDER' ? 'Abwehr' : pos === 'MIDFIELD' ? 'Mittelfeld' : 'Sturm'
+              return (
+                <div key={pos} className="bg-elevated/30 rounded-lg p-3">
+                  <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                    {groupLabel}
+                  </h3>
+                  <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                    {players.map(player => (
+                      <div key={player.id}>
+                        {renderPlayerCard(player, activeNewIds.has(player.id) ? 'new' : undefined)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {isHinrunde && (
         <div className="p-6 bg-surface border border-border rounded-lg mt-6">
           <div className="flex items-center justify-between mb-4">
@@ -1256,16 +1364,23 @@ export default function MyTeam() {
               Winterwechsel
               <span className="text-[11px] text-muted font-normal">({transfers.length}/3)</span>
             </h2>
-            {transfers.length < 3 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleAddTransfer}
-              >
-                <i className="sap-icon sap-icon-add text-xs mr-1" />
-                Wechsel hinzufügen
-              </Button>
-            )}
+            <div className="flex items-center gap-3">
+              {transferDiff !== 0 && (
+                <span className={`text-xs font-semibold ${transferDiff > 0 ? 'text-danger' : 'text-success'}`}>
+                  {transferDiff > 0 ? '+' : ''}{transferDiff.toLocaleString('de-DE')} €
+                </span>
+              )}
+              {transfers.length < 3 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAddTransfer}
+                >
+                  <i className="sap-icon sap-icon-add text-xs mr-1" />
+                  Wechsel hinzufügen
+                </Button>
+              )}
+            </div>
           </div>
 
           {transfers.length === 0 && (
@@ -1416,10 +1531,17 @@ export default function MyTeam() {
 
       {isRueckrunde && hasExistingTransfers && (
         <div className="p-6 bg-surface border border-border rounded-lg mt-6">
-          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
-            <i className="sap-icon sap-icon-switch-classes text-accent" />
-            Winterwechsel
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <i className="sap-icon sap-icon-switch-classes text-accent" />
+              Winterwechsel
+            </h2>
+            {existingTransferDiff !== 0 && (
+              <span className={`text-xs font-semibold ${existingTransferDiff > 0 ? 'text-danger' : 'text-success'}`}>
+                {existingTransferDiff > 0 ? '+' : ''}{existingTransferDiff.toLocaleString('de-DE')} €
+              </span>
+            )}
+          </div>
           <div className="space-y-3">
             {[
               { old: manager.playerExchangedOld1, new_: manager.playerExchangedNew1 },

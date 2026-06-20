@@ -22,6 +22,7 @@ export default function PlayerSelect({
   value,
   onChange,
   disabled,
+  highlightClass,
 }: {
   slot: PlayerSlot
   players: Player[]
@@ -29,6 +30,7 @@ export default function PlayerSelect({
   value: number | null
   onChange: (id: number | null) => void
   disabled?: boolean
+  highlightClass?: string
 }) {
   const [search, setSearch] = useState('')
   const [priceMin, setPriceMin] = useState('')
@@ -94,7 +96,7 @@ export default function PlayerSelect({
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     return (
-      <div className="group bg-elevated/50 border border-border/60 rounded-lg p-2 flex items-center gap-2">
+      <div className={`group bg-elevated/50 border border-border/60 rounded-lg p-2 flex items-center gap-2 ${highlightClass || ''}`}>
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
             <img src={selectedPlayer.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
