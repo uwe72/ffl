@@ -123,7 +123,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
               { to: '/season', label: 'Saison' },
               { to: '/users', label: 'Benutzer' },
               { to: '/mailing', label: 'Mailing' },
-              { to: '/emails', label: 'E-Mails' },
+              { to: '/emails', label: 'E-Mailadressen' },
               { to: '/system', label: 'System' },
             ]}
             expanded={effectiveVerwaltungExpanded}
