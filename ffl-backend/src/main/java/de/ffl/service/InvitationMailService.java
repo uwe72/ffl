@@ -113,20 +113,12 @@ public class InvitationMailService {
                         helper.setSubject(subject);
                         helper.setText(htmlContent, true);
 
-                        if (!testMode) {
-                            mailSender.send(msg);
-                        } else {
-                            if (sent == 0) {
-                                mailSender.send(msg);
-                            }
-                        }
+                        mailSender.send(msg);
 
                         send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + emailAddress.getId() + "] " + recipientEmail);
                         sent++;
 
-                        if (!testMode || sent == 1) {
-                            Thread.sleep(1000);
-                        }
+                        Thread.sleep(1000);
 
                         long now = System.currentTimeMillis();
                         if (now - lastKeepAlive > 30000) {
@@ -134,7 +126,7 @@ public class InvitationMailService {
                             lastKeepAlive = now;
                         }
 
-                        if (!testMode && sent % 50 == 0 && sent < emailIds.size()) {
+                        if (sent % 50 == 0 && sent < emailIds.size()) {
                             for (int remaining = 90; remaining > 0; remaining--) {
                                 send(emitter, "⏳ " + sent + " Mails versendet, warte " + remaining + " Sekunden...");
                                 Thread.sleep(1000);
