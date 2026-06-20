@@ -741,6 +741,48 @@ export default function MyTeam() {
     return grouped
   }, [resultingTeamAfterTransfers])
 
+  const hasExistingTransfers = !!(manager?.playerExchangedOld1 || manager?.playerExchangedOld2 || manager?.playerExchangedOld3)
+  const hasActiveTransfers = isHinrunde
+    ? transfers.some(t => t.oldPlayerId && t.newPlayerId)
+    : isRueckrunde ? hasExistingTransfers : false
+
+  const existingReplacedIds = useMemo(() => {
+    if (!isRueckrunde || !manager) return new Set<number>()
+    const ids = new Set<number>()
+    if (manager.playerExchangedOld1) ids.add(manager.playerExchangedOld1.id)
+    if (manager.playerExchangedOld2) ids.add(manager.playerExchangedOld2.id)
+    if (manager.playerExchangedOld3) ids.add(manager.playerExchangedOld3.id)
+    return ids
+  }, [isRueckrunde, manager])
+
+  const existingNewIds = useMemo(() => {
+    if (!isRueckrunde || !manager) return new Set<number>()
+    const ids = new Set<number>()
+    if (manager.playerExchangedNew1) ids.add(manager.playerExchangedNew1.id)
+    if (manager.playerExchangedNew2) ids.add(manager.playerExchangedNew2.id)
+    if (manager.playerExchangedNew3) ids.add(manager.playerExchangedNew3.id)
+    return ids
+  }, [isRueckrunde, manager])
+
+  const activeReplacedIds = isRueckrunde ? existingReplacedIds : replacedPlayerIds
+  const activeNewIds = isRueckrunde ? existingNewIds : newPlayerIds
+
+  const existingTransferDiff = useMemo(() => {
+    if (!isRueckrunde || !manager) return 0
+    let diff = 0
+    const pairs = [
+      { old: manager.playerExchangedOld1, new_: manager.playerExchangedNew1 },
+      { old: manager.playerExchangedOld2, new_: manager.playerExchangedNew2 },
+      { old: manager.playerExchangedOld3, new_: manager.playerExchangedNew3 },
+    ]
+    for (const p of pairs) {
+      if (p.old && p.new_) {
+        diff += p.new_.prize - p.old.prize
+      }
+    }
+    return diff
+  }, [isRueckrunde, manager])
+
   const handleAddTransfer = () => {
     if (transfers.length >= 3) return
     setTransfers(prev => [...prev, { oldPlayerId: null, newPlayerId: null }])
@@ -978,48 +1020,6 @@ export default function MyTeam() {
       </div>
     )
   }
-
-  const hasExistingTransfers = !!(manager.playerExchangedOld1 || manager.playerExchangedOld2 || manager.playerExchangedOld3)
-  const hasActiveTransfers = isHinrunde
-    ? transfers.some(t => t.oldPlayerId && t.newPlayerId)
-    : isRueckrunde ? hasExistingTransfers : false
-
-  const existingReplacedIds = useMemo(() => {
-    if (!isRueckrunde) return new Set<number>()
-    const ids = new Set<number>()
-    if (manager.playerExchangedOld1) ids.add(manager.playerExchangedOld1.id)
-    if (manager.playerExchangedOld2) ids.add(manager.playerExchangedOld2.id)
-    if (manager.playerExchangedOld3) ids.add(manager.playerExchangedOld3.id)
-    return ids
-  }, [isRueckrunde, manager])
-
-  const existingNewIds = useMemo(() => {
-    if (!isRueckrunde) return new Set<number>()
-    const ids = new Set<number>()
-    if (manager.playerExchangedNew1) ids.add(manager.playerExchangedNew1.id)
-    if (manager.playerExchangedNew2) ids.add(manager.playerExchangedNew2.id)
-    if (manager.playerExchangedNew3) ids.add(manager.playerExchangedNew3.id)
-    return ids
-  }, [isRueckrunde, manager])
-
-  const activeReplacedIds = isRueckrunde ? existingReplacedIds : replacedPlayerIds
-  const activeNewIds = isRueckrunde ? existingNewIds : newPlayerIds
-
-  const existingTransferDiff = useMemo(() => {
-    if (!isRueckrunde) return 0
-    let diff = 0
-    const pairs = [
-      { old: manager.playerExchangedOld1, new_: manager.playerExchangedNew1 },
-      { old: manager.playerExchangedOld2, new_: manager.playerExchangedNew2 },
-      { old: manager.playerExchangedOld3, new_: manager.playerExchangedNew3 },
-    ]
-    for (const p of pairs) {
-      if (p.old && p.new_) {
-        diff += p.new_.prize - p.old.prize
-      }
-    }
-    return diff
-  }, [isRueckrunde, manager])
 
   const renderPlayerCard = (player: Player, highlight?: 'replaced' | 'new') => {
     const team = player.teams && player.teams.length > 0 ? player.teams[player.teams.length - 1] : null
