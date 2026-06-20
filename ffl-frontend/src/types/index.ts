@@ -314,6 +314,10 @@ export interface UpdateLineupRequest {
   playerFreeChoiceId: number
 }
 
+export interface WinterTransferRequest {
+  transfers: { oldPlayerId: number; newPlayerId: number }[]
+}
+
 export interface AuthResponse {
   token: string
   refreshToken: string

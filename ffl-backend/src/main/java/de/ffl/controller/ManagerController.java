@@ -9,6 +9,7 @@ import de.ffl.dto.ManagerRoundStatsDto;
 import de.ffl.dto.PositionStatsDto;
 import de.ffl.dto.RoundDetailDto;
 import de.ffl.dto.UpdateLineupRequest;
+import de.ffl.dto.WinterTransferRequest;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.PointsRepository;
 import de.ffl.repository.UserRepository;
@@ -184,6 +185,28 @@ public class ManagerController {
         }
         try {
             managerService.updateLineup(userId, request);
+            ManagerDto updated = managerService.findByUserId(userId);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/current/winter-transfers")
+    public ResponseEntity<?> updateWinterTransfers(@Valid @RequestBody WinterTransferRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return ResponseEntity.status(401).build();
+        }
+        String login = auth.getName();
+        Long userId = userRepository.findByLogin(login)
+            .map(u -> u.getId())
+            .orElse(null);
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+        try {
+            managerService.updateWinterTransfers(userId, request);
             ManagerDto updated = managerService.findByUserId(userId);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {

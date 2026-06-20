@@ -14,6 +14,7 @@ import de.ffl.dto.ManagerRoundStatsDto;
 import de.ffl.dto.PlayerDto;
 import de.ffl.dto.PositionStatsDto;
 import de.ffl.dto.UpdateLineupRequest;
+import de.ffl.dto.WinterTransferRequest;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.PlayerRankRepository;
@@ -596,6 +597,136 @@ public class ManagerService {
                 throw new IllegalArgumentException("Maximum 5 players from the same team allowed");
             }
         }
+    }
+
+    @Transactional
+    public Manager updateWinterTransfers(Long userId, WinterTransferRequest request) {
+        List<Manager> managers = managerRepository.findAllByUserId(userId);
+        Manager manager = managers.stream()
+            .max(Comparator.comparing(Manager::getId))
+            .orElse(null);
+        if (manager == null) {
+            throw new IllegalArgumentException("Manager nicht gefunden");
+        }
+
+        Season season = manager.getSeason();
+        if (season == null || season.getSeasonState() != SeasonState.RUNNING_HINRUNDE) {
+            throw new IllegalArgumentException("Winterwechsel sind nur während der Hinrunde möglich");
+        }
+
+        List<WinterTransferRequest.Transfer> transfers = request.getTransfers() != null ? request.getTransfers() : List.of();
+        if (transfers.size() > 3) {
+            throw new IllegalArgumentException("Maximal 3 Wechsel erlaubt");
+        }
+
+        Set<Long> oldPlayerIds = new HashSet<>();
+        Set<Long> newPlayerIds = new HashSet<>();
+        for (WinterTransferRequest.Transfer t : transfers) {
+            if (!oldPlayerIds.add(t.getOldPlayerId())) {
+                throw new IllegalArgumentException("Jeder Spieler darf nur einmal getauscht werden");
+            }
+            if (!newPlayerIds.add(t.getNewPlayerId())) {
+                throw new IllegalArgumentException("Jeder neue Spieler darf nur einmal gewählt werden");
+            }
+            if (t.getOldPlayerId().equals(t.getNewPlayerId())) {
+                throw new IllegalArgumentException("Alter und neuer Spieler dürfen nicht identisch sein");
+            }
+        }
+
+        List<Player> currentLineup = getCurrentLineupPlayers(manager);
+        Set<Long> currentLineupIds = currentLineup.stream()
+            .map(Player::getId)
+            .collect(Collectors.toSet());
+
+        for (WinterTransferRequest.Transfer t : transfers) {
+            if (!currentLineupIds.contains(t.getOldPlayerId())) {
+                throw new IllegalArgumentException("Spieler mit ID " + t.getOldPlayerId() + " ist nicht in deiner aktuellen Aufstellung");
+            }
+            if (currentLineupIds.contains(t.getNewPlayerId())) {
+                throw new IllegalArgumentException("Spieler mit ID " + t.getNewPlayerId() + " ist bereits in deiner Aufstellung");
+            }
+        }
+
+        List<Long> newPlayerIdsList = transfers.stream()
+            .map(WinterTransferRequest.Transfer::getNewPlayerId)
+            .toList();
+
+        List<Player> newPlayers = List.of();
+        if (!newPlayerIdsList.isEmpty()) {
+            newPlayers = playerRepository.findByIdsWithTeams(newPlayerIdsList);
+            if (newPlayers.size() != newPlayerIdsList.size()) {
+                throw new IllegalArgumentException("Nicht alle neuen Spieler gefunden");
+            }
+            for (Player p : newPlayers) {
+                if (p.getSeason() == null || !p.getSeason().getId().equals(season.getId())) {
+                    throw new IllegalArgumentException("Spieler " + p.getNameKicker() + " gehört nicht zur aktuellen Saison");
+                }
+            }
+        }
+
+        Map<Long, Player> newPlayerMap = new HashMap<>();
+        for (Player p : newPlayers) {
+            newPlayerMap.put(p.getId(), p);
+        }
+
+        Set<Player> resultingTeam = new HashSet<>(currentLineup);
+        for (WinterTransferRequest.Transfer t : transfers) {
+            resultingTeam.removeIf(p -> p.getId().equals(t.getOldPlayerId()));
+            resultingTeam.add(newPlayerMap.get(t.getNewPlayerId()));
+        }
+
+        Manager validationManager = Manager.builder()
+            .budget(manager.getBudget())
+            .players(resultingTeam)
+            .build();
+        validateTeam(validationManager);
+
+        Player oldPlayer1 = null, oldPlayer2 = null, oldPlayer3 = null;
+        Player newPlayer1 = null, newPlayer2 = null, newPlayer3 = null;
+
+        if (transfers.size() > 0) {
+            oldPlayer1 = currentLineup.stream()
+                .filter(p -> p.getId().equals(transfers.get(0).getOldPlayerId()))
+                .findFirst().orElse(null);
+            newPlayer1 = newPlayerMap.get(transfers.get(0).getNewPlayerId());
+        }
+        if (transfers.size() > 1) {
+            oldPlayer2 = currentLineup.stream()
+                .filter(p -> p.getId().equals(transfers.get(1).getOldPlayerId()))
+                .findFirst().orElse(null);
+            newPlayer2 = newPlayerMap.get(transfers.get(1).getNewPlayerId());
+        }
+        if (transfers.size() > 2) {
+            oldPlayer3 = currentLineup.stream()
+                .filter(p -> p.getId().equals(transfers.get(2).getOldPlayerId()))
+                .findFirst().orElse(null);
+            newPlayer3 = newPlayerMap.get(transfers.get(2).getNewPlayerId());
+        }
+
+        manager.setPlayerExchangedOld1(oldPlayer1);
+        manager.setPlayerExchangedOld2(oldPlayer2);
+        manager.setPlayerExchangedOld3(oldPlayer3);
+        manager.setPlayerExchangedNew1(newPlayer1);
+        manager.setPlayerExchangedNew2(newPlayer2);
+        manager.setPlayerExchangedNew3(newPlayer3);
+
+        return managerRepository.save(manager);
+    }
+
+    private List<Player> getCurrentLineupPlayers(Manager manager) {
+        List<Player> players = new ArrayList<>();
+        if (manager.getPlayerGoalkeeper() != null) players.add(manager.getPlayerGoalkeeper());
+        if (manager.getPlayerDefender1() != null) players.add(manager.getPlayerDefender1());
+        if (manager.getPlayerDefender2() != null) players.add(manager.getPlayerDefender2());
+        if (manager.getPlayerDefender3() != null) players.add(manager.getPlayerDefender3());
+        if (manager.getPlayerMidfield1() != null) players.add(manager.getPlayerMidfield1());
+        if (manager.getPlayerMidfield2() != null) players.add(manager.getPlayerMidfield2());
+        if (manager.getPlayerMidfield3() != null) players.add(manager.getPlayerMidfield3());
+        if (manager.getPlayerStriker1() != null) players.add(manager.getPlayerStriker1());
+        if (manager.getPlayerStriker2() != null) players.add(manager.getPlayerStriker2());
+        if (manager.getPlayerStriker3() != null) players.add(manager.getPlayerStriker3());
+        if (manager.getPlayerFreeChoice() != null) players.add(manager.getPlayerFreeChoice());
+        return players;
     }
 
     @Transactional(readOnly = true)
