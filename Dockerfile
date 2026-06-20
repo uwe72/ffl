@@ -18,8 +18,6 @@ RUN mvn package -DskipTests -B
 # Stage 3: Schlankes Runtime Image
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-# H2 Datenbank für Migration kopieren
-COPY ffl-backend/data/ffl.mv.db /app/data/ffl.mv.db
 COPY --from=backend-build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -8,7 +8,7 @@ Ein modernes Fantasy-Football-Manager-Spiel
 - Java 21
 - Spring Boot 3.2.4
 - Spring Data JPA
-- H2 / MySQL
+- PostgreSQL (Embedded via Zonky für Entwicklung)
 - Spring Security
 - JWT Authentication
 - OpenAPI/Swagger
@@ -55,7 +55,6 @@ cd ffl-backend
 
 Backend läuft auf http://localhost:8080
 - API: http://localhost:8080/api
-- H2 Console: http://localhost:8080/h2-console
 - Swagger UI: http://localhost:8080/swagger-ui.html
 
 ### Frontend starten

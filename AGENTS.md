@@ -5,7 +5,7 @@ This document provides guidelines for AI coding agents working in this repositor
 ## Project Overview
 
 FFL (Fantasy Football League) is a full-stack application with:
-- **Backend**: Java 21 + Spring Boot 3.2.4 + H2/MySQL
+- **Backend**: Java 21 + Spring Boot 3.2.4 + PostgreSQL
 - **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS
 
 ## Build Commands
@@ -308,7 +308,7 @@ export interface Player {
 - **No comments in code** unless explicitly requested
 - **Tests exist** in `ffl-backend/src/test/java/de/ffl/` and run automatically in the CI pipeline (GitHub Actions) on every push to `main`
 - **Port 8080** is the default backend port
-- **H2 Console** available at `/h2-console` (JDBC URL: `jdbc:h2:file:./data/ffl`)
+- **Embedded PostgreSQL** (Zonky) for local dev on port 15433, data in `~/.ffl/pg-data/`
 - **Swagger UI** available at `/swagger-ui.html`
 - **Database tables** use `ffl_` prefix
 - **JWT authentication** is required for most API endpoints (except `/api/auth/**`, `/api/public/**`, `/api/migration/**`)
