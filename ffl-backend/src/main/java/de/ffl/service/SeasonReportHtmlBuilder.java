@@ -42,6 +42,8 @@ public class SeasonReportHtmlBuilder {
         sb.append("<p style=\"color:#6b7280;font-size:13px;margin:0 0 24px 0;\">")
           .append("Vollst\u00e4ndige Datensicherung vor Saison-Reset</p>");
 
+        buildTableOfContents(sb, !payouts.isEmpty());
+
         buildSeasonDataSection(sb, season);
         buildBankSection(sb, season);
         if (!payouts.isEmpty()) {
@@ -369,8 +371,31 @@ public class SeasonReportHtmlBuilder {
         sb.append("</tr>");
     }
 
+    private void buildTableOfContents(StringBuilder sb, boolean hasPayouts) {
+        sb.append("<div style=\"background:").append(CARD_BG).append(";border:1px solid ").append(BORDER)
+          .append(";border-radius:8px;padding:16px 20px;margin-bottom:24px;\">");
+        sb.append("<h3 style=\"color:").append(TEXT_SECONDARY).append(";font-size:14px;font-weight:700;margin:0 0 10px 0;\">Inhalt</h3>");
+        sb.append("<ol style=\"margin:0;padding-left:20px;font-size:13px;line-height:2;\">");
+        tocEntry(sb, "1--saisondaten", "Saisondaten");
+        tocEntry(sb, "2--bankverbindung", "Bankverbindung");
+        if (hasPayouts) {
+            tocEntry(sb, "3--gewinnaussch-ttung", "Gewinnaussch\u00fcttung");
+        }
+        tocEntry(sb, "4--manager-rangliste--endstand-", "Manager-Rangliste (Endstand)");
+        tocEntry(sb, "5--spieler-rangliste--endstand-", "Spieler-Rangliste (Endstand)");
+        tocEntry(sb, "6--gruppen", "Gruppen");
+        tocEntry(sb, "7--manager-kader", "Manager-Kader");
+        tocEntry(sb, "8--e-mail-adressen", "E-Mail-Adressen");
+        sb.append("</ol></div>");
+    }
+
+    private void tocEntry(StringBuilder sb, String anchorId, String label) {
+        sb.append("<li><a href=\"#").append(anchorId).append("\" style=\"color:").append(GOLD).append(";text-decoration:none;\">").append(label).append("</a></li>");
+    }
+
     private void sectionHeader(StringBuilder sb, String title) {
-        sb.append("<hr style=\"border:none;border-top:2px solid ").append(GOLD).append(";margin:24px 0 16px 0;\">");
+        String anchorId = title.replaceAll("[^a-zA-Z0-9]", "-").toLowerCase();
+        sb.append("<hr id=\"").append(anchorId).append("\" style=\"border:none;border-top:2px solid ").append(GOLD).append(";margin:24px 0 16px 0;\">");
         sb.append("<h2 style=\"color:").append(TEXT_SECONDARY).append(";font-size:16px;font-weight:700;margin:0 0 12px 0;\">").append(title).append("</h2>");
     }
 
