@@ -12,7 +12,7 @@ import PlayerSelect from '../components/PlayerSelect'
 import type { PlayerSlot } from '../components/PlayerSelect'
 import type { Player, Season, Position, Manager } from '../types'
 import type { AxiosError } from 'axios'
-import { positionLabels } from './Players'
+import { positionLabels, positionColors } from './Players'
 
 const PLAYER_SLOTS: PlayerSlot[] = [
   { key: 'playerGoalkeeperId', label: 'Torwart', position: 'GOALKEEPER' },
@@ -191,11 +191,12 @@ function OldPlayerSearch({
               ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
               : selectedPlayer.nameKicker}
           </p>
-          <p className="text-[11px] text-muted mt-0.5">
-            <span className="text-accent/70 font-medium">{positionLabels[selectedPlayer.position]}</span>
-            <span className="mx-1">·</span>
-            {selectedPlayer.prize.toLocaleString('de-DE')} €
-          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className={`${positionColors[selectedPlayer.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>
+              {positionLabels[selectedPlayer.position]}
+            </span>
+            <span className="text-[11px] text-muted">{selectedPlayer.prize.toLocaleString('de-DE')} €</span>
+          </div>
         </div>
         {team?.logoSUrl ? (
           <img src={team.logoSUrl} alt={team.name} className="w-8 h-8 object-contain shrink-0" />
@@ -251,7 +252,7 @@ function OldPlayerSearch({
                         <img src={player.pictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
                       )}
                       <span className="text-foreground whitespace-nowrap">{player.nameKicker}</span>
-                      <span className="text-[10px] text-accent/70 font-medium">{positionLabels[player.position]}</span>
+                      <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>{positionLabels[player.position]}</span>
                       {team && (
                         <span className="text-subtle text-[11px] whitespace-nowrap">
                           {team.shortName || team.name}
@@ -362,11 +363,12 @@ function TransferPlayerSearch({
               ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
               : selectedPlayer.nameKicker}
           </p>
-          <p className="text-[11px] text-muted mt-0.5">
-            <span className="text-accent/70 font-medium">{positionLabels[selectedPlayer.position]}</span>
-            <span className="mx-1">·</span>
-            {selectedPlayer.prize.toLocaleString('de-DE')} €
-          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className={`${positionColors[selectedPlayer.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>
+              {positionLabels[selectedPlayer.position]}
+            </span>
+            <span className="text-[11px] text-muted">{selectedPlayer.prize.toLocaleString('de-DE')} €</span>
+          </div>
         </div>
         {team?.logoSUrl ? (
           <img src={team.logoSUrl} alt={team.name} className="w-8 h-8 object-contain shrink-0" />
@@ -438,7 +440,7 @@ function TransferPlayerSearch({
                         <img src={player.pictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
                       )}
                       <span className="text-foreground whitespace-nowrap">{player.nameKicker}</span>
-                      <span className="text-[10px] text-accent/70 font-medium">{positionLabels[player.position]}</span>
+                      <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>{positionLabels[player.position]}</span>
                       {team && (
                         <span className="text-subtle text-[11px] whitespace-nowrap">
                           {team.shortName || team.name}
@@ -966,11 +968,12 @@ export default function MyTeam() {
           <p className="text-xs font-medium text-foreground leading-tight truncate">
             {player.firstName && player.lastName ? `${player.firstName} ${player.lastName}` : player.nameKicker}
           </p>
-          <p className="text-[11px] text-muted mt-0.5">
-            <span className="text-accent/70 font-medium">{positionLabels[player.position]}</span>
-            <span className="mx-1">·</span>
-            {player.prize.toLocaleString('de-DE')} €
-          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>
+              {positionLabels[player.position]}
+            </span>
+            <span className="text-[11px] text-muted">{player.prize.toLocaleString('de-DE')} €</span>
+          </div>
         </div>
         {team?.logoSUrl ? (
           <img src={team.logoSUrl} alt={team.name} className="w-8 h-8 object-contain shrink-0" />
