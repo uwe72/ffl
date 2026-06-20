@@ -129,9 +129,34 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
               placeholder="E-Mail suchen..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field w-full md:max-w-md px-3 py-2 focus:outline-none"
+              className="input-field w-full md:max-w-xs px-3 py-2 focus:outline-none"
             />
-            <div className="flex gap-2 md:ml-auto">
+            <div className="flex gap-2 items-center">
+              <input
+                type="number"
+                placeholder="Von ID"
+                value={rangeFromId}
+                onChange={(e) => setRangeFromId(e.target.value)}
+                className="input-field w-20 px-2 py-2 focus:outline-none"
+              />
+              <span className="text-muted">-</span>
+              <input
+                type="number"
+                placeholder="Bis ID"
+                value={rangeToId}
+                onChange={(e) => setRangeToId(e.target.value)}
+                className="input-field w-20 px-2 py-2 focus:outline-none"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={selectRange}
+                disabled={!rangeFromId || !rangeToId}
+              >
+                Selektieren
+              </Button>
+            </div>
+            <div className="md:ml-auto">
               <Button
                 variant="ghost"
                 size="sm"
@@ -141,33 +166,6 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
                 {allSelected ? 'Alle abwählen' : 'Alle selektieren'}
               </Button>
             </div>
-          </div>
-
-          <div className="mb-4 flex flex-wrap gap-2 items-center">
-            <span className="text-sm text-muted">Bereich selektieren:</span>
-            <input
-              type="number"
-              placeholder="Von ID"
-              value={rangeFromId}
-              onChange={(e) => setRangeFromId(e.target.value)}
-              className="input-field w-24 px-3 py-2 focus:outline-none"
-            />
-            <span className="text-muted">-</span>
-            <input
-              type="number"
-              placeholder="Bis ID"
-              value={rangeToId}
-              onChange={(e) => setRangeToId(e.target.value)}
-              className="input-field w-24 px-3 py-2 focus:outline-none"
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={selectRange}
-              disabled={!rangeFromId || !rangeToId}
-            >
-              Selektieren
-            </Button>
           </div>
 
           {isMobile ? (
