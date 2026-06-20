@@ -1117,10 +1117,10 @@ export default function MyTeam() {
           <div className="flex items-center justify-center">
           <div className="relative group w-16 h-16 shrink-0">
             <button
-              onClick={() => isBeforeSeason && avatarInputRef.current?.click()}
-              className={`w-16 h-16 p-0 rounded-full overflow-hidden ${isBeforeSeason ? 'cursor-pointer' : 'cursor-default'}`}
-              disabled={!isBeforeSeason || uploadAvatar.isPending || deleteAvatar.isPending}
-              title={isBeforeSeason ? 'Profilbild ändern' : undefined}
+              onClick={() => avatarInputRef.current?.click()}
+              className="w-16 h-16 p-0 rounded-full overflow-hidden cursor-pointer"
+              disabled={uploadAvatar.isPending || deleteAvatar.isPending}
+              title="Profilbild ändern"
             >
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover" />
@@ -1130,12 +1130,10 @@ export default function MyTeam() {
                 </div>
               )}
             </button>
-            {isBeforeSeason && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
-                <i className="sap-icon sap-icon-camera text-white text-lg" />
-              </div>
-            )}
-            {isBeforeSeason && avatarUrl && (
+            <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
+              <i className="sap-icon sap-icon-camera text-white text-lg" />
+            </div>
+            {avatarUrl && (
               <button
                 type="button"
                 onClick={handleAvatarDelete}
