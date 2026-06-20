@@ -191,7 +191,7 @@ public class InvitationMailService {
         String footer = "<div style=\"margin-top:40px;padding-top:16px;border-top:1px solid #d1d5db;text-align:center;\">"
             + "<p style=\"color:#9ca3af;font-size:11px;margin:0;line-height:1.5;\">"
             + "Wenn Sie keine weiteren Mails der FFL erhalten möchten, können Sie sich "
-            + "<a href=\"" + unsubscribeUrl + "\" style=\"color:#9ca3af;text-decoration:underline;\">hier austragen</a>."
+            + "<a href=\"" + unsubscribeUrl + "\" target=\"_blank\" style=\"color:#9ca3af;text-decoration:underline;\">hier austragen</a>."
             + "</p></div>";
         return html.replace("</div></body></html>", footer + "</div></body></html>");
     }

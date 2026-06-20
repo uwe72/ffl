@@ -52,7 +52,7 @@ public class UnsubscribeService {
     public String generateUnsubscribeUrl(Long emailId, String webUrl) {
         String token = generateToken(emailId);
         String base = webUrl != null && !webUrl.isBlank() ? webUrl.replaceAll("/$", "") : "http://localhost:8080";
-        return base + "/api/public/unsubscribe?id=" + emailId + "&token=" + token;
+        return base + "/api/public/unsubscribe?id=" + emailId + "&amp;token=" + token;
     }
 
     public Optional<EmailAddress> findEmailById(Long emailId) {

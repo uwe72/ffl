@@ -58,7 +58,7 @@ public class UnsubscribeController {
             + "<p style=\"color:#0a0a0a;font-size:16px;line-height:1.5;margin:0 0 16px 0;\">Möchten Sie sich wirklich aus dem FFL-Mailverteiler austragen?</p>"
             + "<p style=\"color:#0a0a0a;font-size:14px;margin:0 0 24px 0;\">E-Mail: <strong>" + escapeHtml(email) + "</strong></p>"
             + "<p style=\"color:#6b7280;font-size:13px;margin:0 0 24px 0;\">Sie erhalten dann keine weiteren Mails von der FFL.</p>"
-            + "<form method=\"POST\" action=\"/api/public/unsubscribe?id=" + id + "&token=" + escapeHtml(token) + "\">"
+            + "<form method=\"POST\" action=\"/api/public/unsubscribe?id=" + id + "&amp;token=" + escapeHtml(token) + "\">"
             + "<button type=\"submit\" style=\"background:#dc2626;color:#ffffff;border:none;border-radius:8px;padding:12px 24px;font-size:15px;font-weight:600;cursor:pointer;\">Ja, austragen</button>"
             + "</form>"
             + "</div></body></html>";
