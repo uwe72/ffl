@@ -34,7 +34,7 @@ const tabItems = [
   { key: 'bankverbindung', label: 'Bankverbindung' },
   { key: 'gewinnausschuettung', label: 'Gewinnausschüttung' },
   { key: 'saisonabschlussmail', label: 'Saisonabschlussmail' },
-  { key: 'adminreport', label: 'Admin-Report' }
+  { key: 'adminreport', label: 'Admin-Report (Ende Saison)' }
 ]
 
 function formatPrizeLabel(value: number): string {
