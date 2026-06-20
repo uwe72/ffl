@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import type { Player, Position } from '../types'
+import { positionLabels, positionColors } from '../pages/Players'
 
 export interface PlayerSlot {
   key: string
@@ -118,7 +119,12 @@ export default function PlayerSelect({
               ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
               : selectedPlayer.nameKicker}
           </p>
-          <p className="text-[11px] text-muted mt-0.5">{selectedPlayer.prize.toLocaleString('de-DE')} €</p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className={`${positionColors[selectedPlayer.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>
+              {positionLabels[selectedPlayer.position]}
+            </span>
+            <span className="text-[11px] text-muted">{selectedPlayer.prize.toLocaleString('de-DE')} €</span>
+          </div>
         </div>
         {team?.logoSUrl ? (
           <img src={team.logoSUrl} alt={team.name} className="w-8 h-8 object-contain shrink-0" />
@@ -198,6 +204,7 @@ export default function PlayerSelect({
                         <img src={player.pictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
                       )}
                       <span className="text-foreground whitespace-nowrap">{player.nameKicker}</span>
+                      <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>{positionLabels[player.position]}</span>
                       {team && (
                         <span className="text-subtle text-[11px] whitespace-nowrap">
                           {team.shortName || team.name}
