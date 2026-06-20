@@ -1320,42 +1320,6 @@ export default function MyTeam() {
         )}
       </div>
 
-      {hasActiveTransfers && (
-        <div className="p-6 bg-surface border border-border rounded-lg mt-6">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-y-2">
-            <h2 className="text-sm font-semibold text-foreground">Aufstellung (Rückrunde)</h2>
-            <div className="flex items-center gap-4 text-xs">
-              <span className="text-muted">Budget: <span className="text-foreground font-medium">{budget.toLocaleString('de-DE')} €</span></span>
-              <span className="text-muted">Ausgegeben: <span className="text-foreground font-medium">{transferTotalCost.toLocaleString('de-DE')} €</span></span>
-              <span className="text-muted">Verbleibend: <span className={`font-bold ${isTransferBudgetExceeded ? 'text-danger' : 'text-success'}`}>{transferRemaining.toLocaleString('de-DE')} €</span></span>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {(['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as Position[]).map(pos => {
-              const players = rueckrundePlayersByPosition[pos]
-              if (players.length === 0) return null
-              const groupLabel = pos === 'GOALKEEPER' ? 'Torwart' : pos === 'DEFENDER' ? 'Abwehr' : pos === 'MIDFIELD' ? 'Mittelfeld' : 'Sturm'
-              return (
-                <div key={pos} className="bg-elevated/30 rounded-lg p-3">
-                  <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-                    {groupLabel}
-                  </h3>
-                  <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                    {players.map(player => (
-                      <div key={player.id}>
-                        {renderPlayerCard(player, activeNewIds.has(player.id) ? 'new' : undefined)}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
       {isHinrunde && (
         <div className="p-6 bg-surface border border-border rounded-lg mt-6">
           <div className="flex items-center justify-between mb-4">
@@ -1572,6 +1536,42 @@ export default function MyTeam() {
                   </div>
                 </div>
               ))}
+          </div>
+        </div>
+      )}
+
+      {hasActiveTransfers && (
+        <div className="p-6 bg-surface border border-border rounded-lg mt-6">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-y-2">
+            <h2 className="text-sm font-semibold text-foreground">Aufstellung (Rückrunde)</h2>
+            <div className="flex items-center gap-4 text-xs">
+              <span className="text-muted">Budget: <span className="text-foreground font-medium">{budget.toLocaleString('de-DE')} €</span></span>
+              <span className="text-muted">Ausgegeben: <span className="text-foreground font-medium">{transferTotalCost.toLocaleString('de-DE')} €</span></span>
+              <span className="text-muted">Verbleibend: <span className={`font-bold ${isTransferBudgetExceeded ? 'text-danger' : 'text-success'}`}>{transferRemaining.toLocaleString('de-DE')} €</span></span>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {(['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as Position[]).map(pos => {
+              const players = rueckrundePlayersByPosition[pos]
+              if (players.length === 0) return null
+              const groupLabel = pos === 'GOALKEEPER' ? 'Torwart' : pos === 'DEFENDER' ? 'Abwehr' : pos === 'MIDFIELD' ? 'Mittelfeld' : 'Sturm'
+              return (
+                <div key={pos} className="bg-elevated/30 rounded-lg p-3">
+                  <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                    {groupLabel}
+                  </h3>
+                  <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                    {players.map(player => (
+                      <div key={player.id}>
+                        {renderPlayerCard(player, activeNewIds.has(player.id) ? 'new' : undefined)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
