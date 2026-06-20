@@ -32,6 +32,9 @@ Thumbs.db
 # Claude
 .claude/
 
+# Embedded PostgreSQL
+ffl-backend/data/pg-data/
+
 # Data files
 *.csv
 *.json

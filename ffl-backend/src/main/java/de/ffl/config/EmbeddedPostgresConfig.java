@@ -20,7 +20,7 @@ public class EmbeddedPostgresConfig {
 
     @Bean
     public DataSource dataSource() throws IOException {
-        Path dataDir = Path.of(System.getProperty("user.home"), ".ffl", "pg-data");
+        Path dataDir = Path.of("data", "pg-data");
         Files.createDirectories(dataDir);
 
         log.info("=== Embedded PostgreSQL starten ===");

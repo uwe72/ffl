@@ -308,7 +308,7 @@ export interface Player {
 - **No comments in code** unless explicitly requested
 - **Tests exist** in `ffl-backend/src/test/java/de/ffl/` and run automatically in the CI pipeline (GitHub Actions) on every push to `main`
 - **Port 8080** is the default backend port
-- **Embedded PostgreSQL** (Zonky) for local dev on port 15433, data in `~/.ffl/pg-data/`
+- **Embedded PostgreSQL** (Zonky) for local dev on port 15433, data in `ffl-backend/data/pg-data/`
 - **Swagger UI** available at `/swagger-ui.html`
 - **Database tables** use `ffl_` prefix
 - **JWT authentication** is required for most API endpoints (except `/api/auth/**`, `/api/public/**`, `/api/migration/**`)
