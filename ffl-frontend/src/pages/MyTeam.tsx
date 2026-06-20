@@ -1040,7 +1040,7 @@ export default function MyTeam() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-4 mb-6">
         <div className="p-4 bg-surface border border-border rounded-lg">
           <h3 className="text-sm font-semibold text-foreground mb-3">Avatar</h3>
           <div className="flex items-center justify-center">
@@ -1093,7 +1093,7 @@ export default function MyTeam() {
 
         <div className="p-4 bg-surface border border-border rounded-lg">
           <h3 className="text-sm font-semibold text-foreground mb-3">Persönliche Daten</h3>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
             <div>
               <span className="text-xs text-muted">Loginname <span className="text-danger">*</span></span>
               <p className="text-sm font-medium text-foreground">{manager?.login || '-'}</p>
@@ -1157,45 +1157,32 @@ export default function MyTeam() {
             <p className="text-success text-xs mt-2">{profileSuccess}</p>
           )}
         </div>
-
-        <div className="p-4 bg-surface border border-border rounded-lg">
-          <h3 className="text-sm font-semibold text-foreground mb-3">Budget</h3>
-          <div>
-            <span className="text-xs text-muted">Saisonbudget</span>
-            <p className="text-sm font-medium text-foreground mb-2">{budget.toLocaleString('de-DE')} €</p>
-          </div>
-          <div className="grid grid-cols-2 gap-x-4">
-            <div>
-              <span className="text-xs text-muted">Ausgegeben</span>
-              <p className="text-sm font-medium text-foreground">{(isHinrunde ? transferTotalCost : totalCost).toLocaleString('de-DE')} €</p>
-            </div>
-            <div>
-              <span className="text-xs text-muted">Verbleibend</span>
-              <p className={`text-sm font-bold ${(isHinrunde ? isTransferBudgetExceeded : isBudgetExceeded) ? 'text-danger' : 'text-success'}`}>
-                {(isHinrunde ? transferRemaining : remaining).toLocaleString('de-DE')} €
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="p-6 bg-surface border border-border rounded-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-foreground">Aufstellung</h2>
-          {isBeforeSeason && (
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-muted">Freie Position</span>
-              <select
-                value={freePosition}
-                onChange={(e) => handleFreePositionChange(e.target.value as 'DEFENDER' | 'MIDFIELD' | 'STRIKER')}
-                className="input-field px-2 py-1 rounded text-xs cursor-pointer"
-              >
-                <option value="DEFENDER">Abwehr</option>
-                <option value="MIDFIELD">Mittelfeld</option>
-                <option value="STRIKER">Sturm</option>
-              </select>
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-y-2">
+          <h2 className="text-sm font-semibold text-foreground">Aufstellung (Hinrunde)</h2>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-4 text-xs">
+              <span className="text-muted">Budget: <span className="text-foreground font-medium">{budget.toLocaleString('de-DE')} €</span></span>
+              <span className="text-muted">Ausgegeben: <span className="text-foreground font-medium">{(isHinrunde ? transferTotalCost : totalCost).toLocaleString('de-DE')} €</span></span>
+              <span className="text-muted">Verbleibend: <span className={`font-bold ${(isHinrunde ? isTransferBudgetExceeded : isBudgetExceeded) ? 'text-danger' : 'text-success'}`}>{(isHinrunde ? transferRemaining : remaining).toLocaleString('de-DE')} €</span></span>
             </div>
-          )}
+            {isBeforeSeason && (
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-muted">Freie Position</span>
+                <select
+                  value={freePosition}
+                  onChange={(e) => handleFreePositionChange(e.target.value as 'DEFENDER' | 'MIDFIELD' | 'STRIKER')}
+                  className="input-field px-2 py-1 rounded text-xs cursor-pointer"
+                >
+                  <option value="DEFENDER">Abwehr</option>
+                  <option value="MIDFIELD">Mittelfeld</option>
+                  <option value="STRIKER">Sturm</option>
+                </select>
+              </div>
+            )}
+          </div>
         </div>
 
         {hasTeamViolation && (
