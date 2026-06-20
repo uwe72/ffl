@@ -5,6 +5,7 @@ interface Props {
   isOpen: boolean
   onClose: () => void
   seasonId: number
+  emailIds: number[]
   testMode?: boolean
 }
 
@@ -12,6 +13,7 @@ export default function InvitationMailProgressDialog({
   isOpen,
   onClose,
   seasonId,
+  emailIds,
   testMode,
 }: Props) {
   const [logs, setLogs] = useState<string[]>([])
@@ -28,7 +30,9 @@ export default function InvitationMailProgressDialog({
     }
 
     const token = localStorage.getItem('token')
-    const params = new URLSearchParams()
+    const params = new URLSearchParams({
+      emailIds: emailIds.join(','),
+    })
     if (token) params.set('token', token)
     if (testMode) params.set('testMode', 'true')
 

@@ -260,6 +260,7 @@ public class SeasonController {
     @PreAuthorize("hasRole('ADMIN')")
     public SseEmitter streamInvitationMail(
             @PathVariable Long id,
+            @RequestParam List<Long> emailIds,
             @RequestParam(required = false, defaultValue = "false") boolean testMode) {
         if (!seasonRepository.existsById(id)) {
             SseEmitter emitter = new SseEmitter();
@@ -269,7 +270,7 @@ public class SeasonController {
             } catch (Exception ignored) {}
             return emitter;
         }
-        return invitationMailService.streamInvitationMail(id, testMode);
+        return invitationMailService.streamInvitationMail(id, emailIds, testMode);
     }
 
     public static class MessageResponse {

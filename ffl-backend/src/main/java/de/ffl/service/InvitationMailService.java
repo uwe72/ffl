@@ -14,17 +14,17 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Service
 public class InvitationMailService {
 
     private static final Logger log = LoggerFactory.getLogger(InvitationMailService.class);
-    private static final int BATCH_SIZE = 10;
 
     private final SystemConfigRepository systemConfigRepository;
     private final SeasonRepository seasonRepository;
@@ -51,8 +51,8 @@ public class InvitationMailService {
         return buildHtmlContent(season);
     }
 
-    public SseEmitter streamInvitationMail(Long seasonId, boolean testMode) {
-        SseEmitter emitter = new SseEmitter(600_000L);
+    public SseEmitter streamInvitationMail(Long seasonId, List<Long> emailIds, boolean testMode) {
+        SseEmitter emitter = new SseEmitter(1_200_000L);
         executor.execute(() -> {
             try {
                 SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc()
@@ -81,58 +81,48 @@ public class InvitationMailService {
                 }
 
                 List<EmailAddress> allEmails = emailAddressRepository.findAll();
-                if (allEmails.isEmpty()) {
-                    emitter.send(SseEmitter.event().name("error").data("FEHLER: Keine E-Mail-Adressen in der Verwaltung vorhanden"));
-                    emitter.complete();
-                    return;
-                }
+                Map<Long, EmailAddress> emailsById = allEmails.stream()
+                    .collect(Collectors.toMap(EmailAddress::getId, e -> e));
 
                 JavaMailSenderImpl mailSender = buildMailSender(config);
                 String htmlContent = buildHtmlContent(season);
                 String subject = season.getInvitationMailSubject();
 
-                send(emitter, "Starte Versand an " + allEmails.size() + " Empfänger in " + ((allEmails.size() + BATCH_SIZE - 1) / BATCH_SIZE) + " Batches...");
+                send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
+                send(emitter, "Starte Versand an " + emailIds.size() + " Empfänger...");
 
-                List<List<EmailAddress>> batches = partition(allEmails, BATCH_SIZE);
-                int batchesSent = 0;
-                int totalSent = 0;
+                int sent = 0;
+                int failed = 0;
                 long lastKeepAlive = System.currentTimeMillis();
 
-                for (List<EmailAddress> batch : batches) {
+                for (Long emailId : emailIds) {
+                    EmailAddress emailAddress = emailsById.get(emailId);
+                    if (emailAddress == null) {
+                        send(emitter, "✗ E-Mail-ID " + emailId + " nicht gefunden");
+                        failed++;
+                        continue;
+                    }
+
+                    String recipientEmail = emailAddress.getEmail();
+
                     try {
                         MimeMessage msg = mailSender.createMimeMessage();
                         MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
                         helper.setFrom(config.getGmailSenderEmail());
-                        helper.setTo(config.getGmailSenderEmail());
+                        helper.setTo(testMode ? config.getGmailSenderEmail() : recipientEmail);
                         helper.setSubject(subject);
                         helper.setText(htmlContent, true);
-
-                        if (testMode) {
-                            helper.setBcc(config.getGmailSenderEmail());
-                        } else {
-                            String[] bccAddresses = batch.stream()
-                                .map(EmailAddress::getEmail)
-                                .toArray(String[]::new);
-                            helper.setBcc(bccAddresses);
-                        }
 
                         if (!testMode) {
                             mailSender.send(msg);
                         } else {
-                            if (batchesSent == 0) {
+                            if (sent == 0) {
                                 mailSender.send(msg);
                             }
                         }
 
-                        batchesSent++;
-                        totalSent += batch.size();
-
-                        String batchEmails = batch.stream()
-                            .map(EmailAddress::getEmail)
-                            .reduce((a, b) -> a + ", " + b)
-                            .orElse("");
-
-                        send(emitter, (testMode ? "[TEST] " : "") + "✓ Batch " + batchesSent + "/" + batches.size() + " gesendet (" + batch.size() + " Empfänger): " + batchEmails);
+                        send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + emailAddress.getId() + "] " + recipientEmail);
+                        sent++;
 
                         Thread.sleep(1000);
 
@@ -141,19 +131,30 @@ public class InvitationMailService {
                             emitter.send(SseEmitter.event().comment("keep-alive"));
                             lastKeepAlive = now;
                         }
+
+                        if (sent % 50 == 0 && sent < emailIds.size()) {
+                            for (int remaining = 90; remaining > 0; remaining--) {
+                                send(emitter, "⏳ " + sent + " Mails versendet, warte " + remaining + " Sekunden...");
+                                Thread.sleep(1000);
+                            }
+                            send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
+                            lastKeepAlive = System.currentTimeMillis();
+                        }
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        send(emitter, "✗ Versand unterbrochen");
+                        send(emitter, "✗ Versand unterbrochen: " + e.getMessage());
+                        failed++;
                         break;
                     } catch (Exception e) {
-                        send(emitter, "✗ Fehler bei Batch " + (batchesSent + 1) + ": " + e.getMessage());
-                        log.error("Fehler beim Senden der Einladungsmail (Batch {})", batchesSent + 1, e);
+                        send(emitter, "✗ [" + emailAddress.getId() + "] " + recipientEmail + ": " + e.getMessage());
+                        failed++;
+                        log.error("Fehler beim Senden der Einladungsmail an {}", recipientEmail, e);
                     }
                 }
 
                 send(emitter, "");
-                send(emitter, "Versand abgeschlossen: " + totalSent + " Empfänger in " + batchesSent + " Batches" + (testMode ? " (TEST-MODUS)" : ""));
-                emitter.send(SseEmitter.event().name("complete").data("done"));
+                send(emitter, "Fertig: " + sent + " versendet, " + failed + " fehlgeschlagen." + (testMode ? " (TEST-MODUS)" : ""));
+                emitter.send(SseEmitter.event().name("complete").data(""));
                 emitter.complete();
             } catch (Exception e) {
                 try {
@@ -209,13 +210,5 @@ public class InvitationMailService {
         } catch (Exception e) {
             log.warn("SSE send failed: {}", e.getMessage());
         }
-    }
-
-    private <T> List<List<T>> partition(List<T> list, int size) {
-        List<List<T>> partitions = new ArrayList<>();
-        for (int i = 0; i < list.size(); i += size) {
-            partitions.add(list.subList(i, Math.min(i + size, list.size())));
-        }
-        return partitions;
     }
 }
