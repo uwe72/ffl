@@ -12,6 +12,7 @@ import PlayerSelect from '../components/PlayerSelect'
 import type { PlayerSlot } from '../components/PlayerSelect'
 import type { Player, Season, Position, Manager } from '../types'
 import type { AxiosError } from 'axios'
+import { positionLabels } from './Players'
 
 const PLAYER_SLOTS: PlayerSlot[] = [
   { key: 'playerGoalkeeperId', label: 'Torwart', position: 'GOALKEEPER' },
@@ -191,7 +192,7 @@ function OldPlayerSearch({
               : selectedPlayer.nameKicker}
           </p>
           <p className="text-[11px] text-muted mt-0.5">
-            <span className="text-accent/70 font-medium">{POSITION_LABELS[selectedPlayer.position]}</span>
+            <span className="text-accent/70 font-medium">{positionLabels[selectedPlayer.position]}</span>
             <span className="mx-1">·</span>
             {selectedPlayer.prize.toLocaleString('de-DE')} €
           </p>
@@ -250,7 +251,7 @@ function OldPlayerSearch({
                         <img src={player.pictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
                       )}
                       <span className="text-foreground whitespace-nowrap">{player.nameKicker}</span>
-                      <span className="text-[10px] text-accent/70 font-medium">{POSITION_LABELS[player.position]}</span>
+                      <span className="text-[10px] text-accent/70 font-medium">{positionLabels[player.position]}</span>
                       {team && (
                         <span className="text-subtle text-[11px] whitespace-nowrap">
                           {team.shortName || team.name}
@@ -362,7 +363,7 @@ function TransferPlayerSearch({
               : selectedPlayer.nameKicker}
           </p>
           <p className="text-[11px] text-muted mt-0.5">
-            <span className="text-accent/70 font-medium">{POSITION_LABELS[selectedPlayer.position]}</span>
+            <span className="text-accent/70 font-medium">{positionLabels[selectedPlayer.position]}</span>
             <span className="mx-1">·</span>
             {selectedPlayer.prize.toLocaleString('de-DE')} €
           </p>
@@ -437,7 +438,7 @@ function TransferPlayerSearch({
                         <img src={player.pictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
                       )}
                       <span className="text-foreground whitespace-nowrap">{player.nameKicker}</span>
-                      <span className="text-[10px] text-accent/70 font-medium">{POSITION_LABELS[player.position]}</span>
+                      <span className="text-[10px] text-accent/70 font-medium">{positionLabels[player.position]}</span>
                       {team && (
                         <span className="text-subtle text-[11px] whitespace-nowrap">
                           {team.shortName || team.name}
@@ -966,7 +967,7 @@ export default function MyTeam() {
             {player.firstName && player.lastName ? `${player.firstName} ${player.lastName}` : player.nameKicker}
           </p>
           <p className="text-[11px] text-muted mt-0.5">
-            <span className="text-accent/70 font-medium">{POSITION_LABELS[player.position]}</span>
+            <span className="text-accent/70 font-medium">{positionLabels[player.position]}</span>
             <span className="mx-1">·</span>
             {player.prize.toLocaleString('de-DE')} €
           </p>
