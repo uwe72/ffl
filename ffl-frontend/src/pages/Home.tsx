@@ -9,6 +9,7 @@ import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, TableBody, TableRow, Td } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
+import { formatCurrency, formatMillions, formatPoints } from '../utils/format'
 
 import type { PlayerPoint } from '../types'
 
@@ -28,15 +29,6 @@ const positionColors: Record<string, string> = {
 
 type ManagerSortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue'
 type PlayerSortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position' | 'team'
-
-function formatPrice(price: number | undefined): string {
-  if (!price) return '- €'
-  if (price >= 1_000_000) {
-    const millions = price / 1_000_000
-    return `${millions % 1 === 0 ? millions : millions.toFixed(1)}M €`
-  }
-  return `${Math.round(price / 1_000)}K €`
-}
 
 function PlayerCardDashboard({ player }: { player: PlayerPoint }) {
   return (
@@ -81,11 +73,11 @@ function PlayerCardDashboard({ player }: { player: PlayerPoint }) {
           </div>
           <div>
             <span className="text-subtle">Pkt: </span>
-            <span className="font-medium text-foreground">{player.pointsTotal ?? '-'}</span>
+            <span className="font-medium text-foreground">{formatPoints(player.pointsTotal)}</span>
           </div>
           <div>
             <span className="text-subtle">Spieltag: </span>
-            <span className="font-medium text-foreground">{player.pointsLastRound ?? '-'}</span>
+            <span className="font-medium text-foreground">{formatPoints(player.pointsLastRound)}</span>
           </div>
           <div>
             <span className="text-subtle">+-: </span>
@@ -103,7 +95,7 @@ function PlayerCardDashboard({ player }: { player: PlayerPoint }) {
           </div>
           <div>
             <span className="text-subtle">Preis: </span>
-            <span className="font-medium text-foreground">{formatPrice(player.prize)}</span>
+            <span className="font-medium text-foreground">{formatCurrency(player.prize)}</span>
           </div>
         </div>
       </div>
@@ -360,10 +352,10 @@ export default function Home() {
                             </RouterLink>
                           </Td>
                           <Td numeric className="text-foreground font-medium">
-                            {pp.pointsTotal ?? '-'}
+                            {formatPoints(pp.pointsTotal)}
                           </Td>
                           <Td numeric className="text-muted">
-                            {pp.pointsLastRound ?? '-'}
+                            {formatPoints(pp.pointsLastRound)}
                           </Td>
                           {!isMobile && (
                             <>
@@ -377,7 +369,7 @@ export default function Home() {
                                 </RouterLink>
                               </Td>
                               <Td numeric className="text-foreground">
-                                {formatPrice(pp.prize)}
+                                {formatCurrency(pp.prize)}
                               </Td>
                             </>
                           )}
@@ -536,10 +528,10 @@ export default function Home() {
                           )}
                         </Td>
                         <Td align={isMobile ? 'center' : 'right'} numeric={!isMobile} className={`text-foreground ${isMobile ? `sticky right-[70px] w-[60px] ${stickyBg} z-10` : ''}`}>
-                          {m.pointsTotal ?? '-'}
+                          {formatPoints(m.pointsTotal)}
                         </Td>
                         <Td align={isMobile ? 'center' : 'right'} numeric={!isMobile} className={`text-muted ${isMobile ? `sticky right-0 w-[70px] ${stickyBg} z-10` : ''}`}>
-                          {m.pointsLastRound ?? '-'}
+                          {formatPoints(m.pointsLastRound)}
                         </Td>
                         {!isMobile && (
                           <>
@@ -550,7 +542,7 @@ export default function Home() {
                               {m.lastName || '-'}
                             </Td>
                             <Td numeric className="text-foreground">
-                              {m.teamValue ? (m.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
+                              {formatMillions(m.teamValue)}
                             </Td>
                           </>
                         )}
@@ -587,7 +579,7 @@ export default function Home() {
                         <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center text-sm text-subtle">👤</div>
                       )}
                       <span className="flex-1 min-w-0 truncate text-sm font-medium text-accent group-hover:text-accent-hover">{pp.playerName}</span>
-                      <span className="text-sm font-semibold text-foreground tabular-nums">{pp.pointsTotal ?? 0}</span>
+                      <span className="text-sm font-semibold text-foreground tabular-nums">{formatPoints(pp.pointsTotal ?? 0)}</span>
                     </RouterLink>
                   ))}
                 </div>
@@ -605,15 +597,15 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="text-xs text-muted">Punkte</p>
-                    <p className="text-2xl font-bold text-foreground tabular-nums">{displayManager.pointsTotal ?? 0}</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{formatPoints(displayManager.pointsTotal ?? 0)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted">Spieltag</p>
-                    <p className="text-2xl font-bold text-foreground tabular-nums">{displayManager.pointsLastRound ?? 0}</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{formatPoints(displayManager.pointsLastRound ?? 0)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted">Teamwert</p>
-                    <p className="text-2xl font-bold text-foreground tabular-nums">{displayManager.teamValue ? (displayManager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{formatMillions(displayManager.teamValue ?? 0)}</p>
                   </div>
                 </div>
               </CardContainer>
