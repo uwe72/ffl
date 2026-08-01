@@ -63,47 +63,61 @@ export default function Profile() {
 
       <PageHeader icon="sap-icon-settings" title="Mein Profil" />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <FormCard>
-          <label className="block text-sm text-muted mb-2">Login-Name</label>
-          <p className="text-foreground text-lg">{user.login}</p>
-        </FormCard>
-
-        <FormCard>
-          <div>
-            <label className="block text-sm text-muted mb-1">E-Mail</label>
+      <FormCard>
+        <div className="flex flex-wrap gap-6">
+          <div className="w-[320px] max-w-full">
+            <label className="block text-xs text-muted mb-0.5">Login-Name</label>
+            <input
+              type="text"
+              value={user.login}
+              readOnly
+              disabled
+              className="input-field w-full px-2 py-1 rounded text-sm opacity-60 cursor-not-allowed"
+            />
+          </div>
+          <div className="w-[320px] max-w-full">
+            <label className="block text-xs text-muted mb-0.5">E-Mail</label>
             <input
               type="email"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
-              className="input-field w-full px-3 py-2 rounded focus:outline-none"
+              className="input-field w-full px-2 py-1 rounded text-sm"
             />
           </div>
-        </FormCard>
-
-        <FormCard>
-          <label className="block text-sm text-muted mb-2">Vorname</label>
-          <p className="text-foreground text-lg">{user.firstName || '-'}</p>
-        </FormCard>
-
-        <FormCard>
-          <label className="block text-sm text-muted mb-2">Nachname</label>
-          <p className="text-foreground text-lg">{user.lastName || '-'}</p>
-        </FormCard>
-
-        <FormCard>
-          <label className="block text-sm text-muted mb-2">Theme Spieltagsmail</label>
-          <select
-            value={mailTheme}
-            onChange={(e) => handleMailThemeChange(e.target.value as MailTheme)}
-            className="w-full input-field rounded-lg px-4 py-2 focus:outline-none focus:border-accent"
-          >
-            {Object.entries(mailThemeLabels).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </select>
-        </FormCard>
-      </div>
+          <div className="w-[320px] max-w-full">
+            <label className="block text-xs text-muted mb-0.5">Vorname</label>
+            <input
+              type="text"
+              value={user.firstName || '-'}
+              readOnly
+              disabled
+              className="input-field w-full px-2 py-1 rounded text-sm opacity-60 cursor-not-allowed"
+            />
+          </div>
+          <div className="w-[320px] max-w-full">
+            <label className="block text-xs text-muted mb-0.5">Nachname</label>
+            <input
+              type="text"
+              value={user.lastName || '-'}
+              readOnly
+              disabled
+              className="input-field w-full px-2 py-1 rounded text-sm opacity-60 cursor-not-allowed"
+            />
+          </div>
+          <div className="w-[320px] max-w-full">
+            <label className="block text-xs text-muted mb-0.5">Theme Spieltagsmail</label>
+            <select
+              value={mailTheme}
+              onChange={(e) => handleMailThemeChange(e.target.value as MailTheme)}
+              className="input-field w-full px-2 py-1 rounded text-sm focus:outline-none focus:border-accent"
+            >
+              {Object.entries(mailThemeLabels).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </FormCard>
 
       {hasChanges && (
         <div className="mt-6 flex gap-4">

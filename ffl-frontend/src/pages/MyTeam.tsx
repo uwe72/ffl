@@ -1175,7 +1175,13 @@ export default function MyTeam() {
             <div className="flex flex-wrap gap-6">
               <div className="w-[320px] max-w-full">
                 <span className="text-xs text-muted">Loginname <span className="text-danger">*</span></span>
-                <p className="text-sm font-medium text-foreground mt-0.5 py-1">{manager?.login || '-'}</p>
+                <input
+                  type="text"
+                  value={manager?.login || '-'}
+                  readOnly
+                  disabled
+                  className="input-field w-full px-2 py-1 rounded text-sm mt-0.5 opacity-60 cursor-not-allowed"
+                />
               </div>
               <div className="w-[320px] max-w-full">
                 <span className="text-xs text-muted">E-Mail <span className="text-danger">*</span></span>
@@ -1188,29 +1194,25 @@ export default function MyTeam() {
               </div>
               <div className="w-[320px] max-w-full">
                 <span className="text-xs text-muted">Vorname <span className="text-danger">*</span></span>
-                {isBeforeSeason ? (
-                  <input
-                    type="text"
-                    value={profileFirstName}
-                    onChange={(e) => setProfileFirstName(e.target.value)}
-                    className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
-                  />
-                ) : (
-                  <p className="text-sm font-medium text-foreground mt-0.5 py-1">{profileFirstName || '-'}</p>
-                )}
+                <input
+                  type="text"
+                  value={profileFirstName}
+                  onChange={isBeforeSeason ? (e) => setProfileFirstName(e.target.value) : undefined}
+                  readOnly={!isBeforeSeason}
+                  disabled={!isBeforeSeason}
+                  className={`input-field w-full px-2 py-1 rounded text-sm mt-0.5${!isBeforeSeason ? ' opacity-60 cursor-not-allowed' : ''}`}
+                />
               </div>
               <div className="w-[320px] max-w-full">
                 <span className="text-xs text-muted">Nachname <span className="text-danger">*</span></span>
-                {isBeforeSeason ? (
-                  <input
-                    type="text"
-                    value={profileLastName}
-                    onChange={(e) => setProfileLastName(e.target.value)}
-                    className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
-                  />
-                ) : (
-                  <p className="text-sm font-medium text-foreground mt-0.5 py-1">{profileLastName || '-'}</p>
-                )}
+                <input
+                  type="text"
+                  value={profileLastName}
+                  onChange={isBeforeSeason ? (e) => setProfileLastName(e.target.value) : undefined}
+                  readOnly={!isBeforeSeason}
+                  disabled={!isBeforeSeason}
+                  className={`input-field w-full px-2 py-1 rounded text-sm mt-0.5${!isBeforeSeason ? ' opacity-60 cursor-not-allowed' : ''}`}
+                />
               </div>
             </div>
             {hasProfileChanges && (
