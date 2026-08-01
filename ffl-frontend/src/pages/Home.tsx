@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
-import { TableHead, ThSortable, TableBody } from '../components/Table'
+import { TableHead, ThSortable, TableBody, TableRow, Td } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 
 import type { PlayerPoint } from '../types'
@@ -280,8 +280,23 @@ export default function Home() {
               </div>
 
               <div className="flex-1 px-6 pb-6 overflow-x-auto">
-              <div className="rounded-lg border border-border hidden md:block">
-                <table className="w-full">
+              <div className="rounded-card border border-border hidden md:block">
+                <table className="w-full table-fixed">
+                  <colgroup>
+                    <col className="w-[56px]" />
+                    <col className="w-[56px]" />
+                    <col />
+                    <col className="w-[72px]" />
+                    <col className="w-[88px]" />
+                    {!isMobile && (
+                      <>
+                        <col className="w-[88px]" />
+                        <col className="w-[120px]" />
+                      </>
+                    )}
+                    <col className="w-[140px]" />
+                    <col className="w-[200px]" />
+                  </colgroup>
                   <TableHead>
                     <tr>
                       <ThSortable align="center" onClick={() => handlePlayerSort('positionTotal')}>
@@ -293,18 +308,18 @@ export default function Home() {
                       <ThSortable align="left" onClick={() => handlePlayerSort('nameKicker')}>
                         Name<SortIcon column="nameKicker" activeKey={playerSortKey} order={playerSortOrder} />
                       </ThSortable>
-                      <ThSortable align="center" onClick={() => handlePlayerSort('points')}>
+                      <ThSortable numeric onClick={() => handlePlayerSort('points')}>
                         Pkt<SortIcon column="points" activeKey={playerSortKey} order={playerSortOrder} />
                       </ThSortable>
-                      <ThSortable align="center" onClick={() => handlePlayerSort('pointsLastRound')}>
+                      <ThSortable numeric onClick={() => handlePlayerSort('pointsLastRound')}>
                         Spieltag<SortIcon column="pointsLastRound" activeKey={playerSortKey} order={playerSortOrder} />
                       </ThSortable>
                       {!isMobile && (
                         <>
-                          <ThSortable align="center" onClick={() => handlePlayerSort('managerCount')}>
+                          <ThSortable numeric onClick={() => handlePlayerSort('managerCount')}>
                             Manager<SortIcon column="managerCount" activeKey={playerSortKey} order={playerSortOrder} />
                           </ThSortable>
-                          <ThSortable align="right" onClick={() => handlePlayerSort('prize')}>
+                          <ThSortable numeric onClick={() => handlePlayerSort('prize')}>
                             Preis<SortIcon column="prize" activeKey={playerSortKey} order={playerSortOrder} />
                           </ThSortable>
                         </>
@@ -320,81 +335,74 @@ export default function Home() {
                   <TableBody>
                     {sortedPlayerPoints.map(pp => {
                       return (
-                        <tr 
-                          key={pp.playerId} 
-                          className={`border-b border-border hover:bg-card-hover ${
-                            showAllPlayers && (pp.pointsLastRound ?? 0) > 0 
-                              ? 'border-l-4 border-l-primary' 
-                              : ''
-                          }`}
-                        >
-                          <td className="px-3 py-2 text-center text-foreground">
+                        <TableRow key={pp.playerId}>
+                          <Td align="center" className="text-foreground">
                             {pp.positionTotal ? `${pp.positionTotal}.` : '-'}
-                          </td>
-                          <td className="px-3 py-2 text-center">
+                          </Td>
+                          <Td align="center">
                             {pp.positionChange != null && pp.positionChange !== 0 ? (
-                              <span className={`${pp.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                              <span className={`${pp.positionChange > 0 ? 'text-up' : 'text-down'}`}>
                                 {pp.positionChange > 0 ? `↑${pp.positionChange}` : `↓${Math.abs(pp.positionChange)}`}
                               </span>
                             ) : (
                               <span className="text-subtle">-</span>
                             )}
-                          </td>
-                          <td className="px-3 py-2">
+                          </Td>
+                          <Td>
                             <RouterLink
                               to={`/players/${pp.playerId}`}
-                              className="flex items-center hover:text-foreground link"
+                              className="flex items-center gap-3 min-w-0"
                             >
                               {pp.pictureUrl && (
-                                <img src={pp.pictureUrl} alt={pp.playerName} className="w-10 h-10 rounded-full object-cover mr-3" />
+                                <img src={pp.pictureUrl} alt={pp.playerName} className="w-9 h-9 rounded-full object-cover shrink-0" />
                               )}
-                              <div className="font-medium text-primary">{pp.playerName}</div>
+                              <span className="font-medium text-accent hover:text-accent-hover truncate">{pp.playerName}</span>
                             </RouterLink>
-                          </td>
-                          <td className="px-3 py-2 text-center text-foreground">
+                          </Td>
+                          <Td numeric className="text-foreground font-medium">
                             {pp.pointsTotal ?? '-'}
-                          </td>
-                          <td className="px-3 py-2 text-center text-muted">
+                          </Td>
+                          <Td numeric className="text-muted">
                             {pp.pointsLastRound ?? '-'}
-                          </td>
+                          </Td>
                           {!isMobile && (
                             <>
-                              <td className="px-3 py-2 text-center">
+                              <Td numeric>
                                 <RouterLink to={`/players/${pp.playerId}`}>
-                                  <span 
+                                  <span
                                     className={`${pp.managerCount && pp.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded cursor-pointer hover:opacity-80`}
                                   >
                                     {pp.managerCount ?? 0}
                                   </span>
                                 </RouterLink>
-                              </td>
-                              <td className="px-3 py-2 text-right text-foreground">
-                                {pp.prize ? pp.prize.toLocaleString() : '-'} €
-                              </td>
+                              </Td>
+                              <Td numeric className="text-foreground">
+                                {formatPrice(pp.prize)}
+                              </Td>
                             </>
                           )}
-                          <td className="px-3 py-2">
+                          <Td>
                             {pp.position && (
                               <span className={`${positionColors[pp.position]} text-xs font-medium px-2 py-0.5 rounded`}>
                                 {positionLabels[pp.position]}
                               </span>
                             )}
-                          </td>
-                          <td className="px-3 py-2 text-muted">
+                          </Td>
+                          <Td className="text-muted">
                             {pp.teamName && (
-                              <span className="flex items-center gap-2">
+                              <span className="flex items-center gap-2 min-w-0">
                                 {pp.teamLogoUrl && (
-                                  <img 
-                                    src={pp.teamLogoUrl} 
-                                    alt={pp.teamName} 
-                                    className="w-5 h-5 object-contain flex-shrink-0"
+                                  <img
+                                    src={pp.teamLogoUrl}
+                                    alt={pp.teamName}
+                                    className="w-5 h-5 object-contain shrink-0"
                                   />
                                 )}
-                                <span className="text-foreground">{pp.teamName}</span>
+                                <span className="text-foreground truncate">{pp.teamName}</span>
                               </span>
                             )}
-                          </td>
-                        </tr>
+                          </Td>
+                        </TableRow>
                       )
                     })}
                   </TableBody>
@@ -447,8 +455,20 @@ export default function Home() {
               )}
             </div>
             <div className="flex-1 px-6 pb-6 overflow-x-auto">
-            <div className={`rounded-lg border border-border ${!showAllManagers ? 'max-h-[264px] overflow-y-auto' : ''}`}>
-              <table className={`w-full ${isMobile ? 'min-w-[500px]' : ''}`}>
+            <div className={`rounded-card border border-border ${!showAllManagers ? 'max-h-[264px] overflow-y-auto' : ''}`}>
+              <table className={`w-full ${isMobile ? 'min-w-[500px]' : 'table-fixed'}`}>
+                {!isMobile && (
+                  <colgroup>
+                    <col className="w-[64px]" />
+                    <col className="w-[64px]" />
+                    <col className="w-[160px]" />
+                    <col className="w-[80px]" />
+                    <col className="w-[96px]" />
+                    <col />
+                    <col />
+                    <col className="w-[140px]" />
+                  </colgroup>
+                )}
                 <TableHead>
                   <tr>
                     <ThSortable align="center" className={isMobile ? 'sticky left-0 w-[50px] bg-elevated z-10' : ''} onClick={() => handleManagerSort('positionTotal')}>
@@ -460,10 +480,10 @@ export default function Home() {
                     <ThSortable align="left" className={`bg-elevated ${isMobile ? 'min-w-[120px]' : ''}`} onClick={() => handleManagerSort('shortName')}>
                       Manager<SortIcon column="shortName" activeKey={managerSortKey} order={managerSortOrder} />
                     </ThSortable>
-                    <ThSortable align="center" className={isMobile ? 'sticky right-[70px] w-[60px] bg-elevated z-10' : ''} onClick={() => handleManagerSort('pointsTotal')}>
+                    <ThSortable align={isMobile ? 'center' : 'right'} numeric={!isMobile} className={isMobile ? 'sticky right-[70px] w-[60px] bg-elevated z-10' : ''} onClick={() => handleManagerSort('pointsTotal')}>
                       Pkt<SortIcon column="pointsTotal" activeKey={managerSortKey} order={managerSortOrder} />
                     </ThSortable>
-                    <ThSortable align="center" className={isMobile ? 'sticky right-0 w-[70px] bg-elevated z-10' : ''} onClick={() => handleManagerSort('pointsLastRound')}>
+                    <ThSortable align={isMobile ? 'center' : 'right'} numeric={!isMobile} className={isMobile ? 'sticky right-0 w-[70px] bg-elevated z-10' : ''} onClick={() => handleManagerSort('pointsLastRound')}>
                       Spieltag<SortIcon column="pointsLastRound" activeKey={managerSortKey} order={managerSortOrder} />
                     </ThSortable>
                     {!isMobile && (
@@ -474,7 +494,7 @@ export default function Home() {
                         <ThSortable align="left" className="bg-elevated" onClick={() => handleManagerSort('lastName')}>
                           Nachname<SortIcon column="lastName" activeKey={managerSortKey} order={managerSortOrder} />
                         </ThSortable>
-                        <ThSortable align="right" className="bg-elevated" onClick={() => handleManagerSort('teamValue')}>
+                        <ThSortable numeric className="bg-elevated" onClick={() => handleManagerSort('teamValue')}>
                           Teamwert<SortIcon column="teamValue" activeKey={managerSortKey} order={managerSortOrder} />
                         </ThSortable>
                       </>
@@ -484,57 +504,57 @@ export default function Home() {
                 <TableBody>
                   {filteredManagers.map(m => {
                     const isCurrentManager = m.id === displayManager?.id
-                    const stickyBg = isCurrentManager ? 'bg-default' : 'bg-surface'
+                    const stickyBg = isCurrentManager ? 'bg-accent-muted' : 'bg-surface'
                     return (
-                      <tr 
-                        key={m.id} 
+                      <TableRow
+                        key={m.id}
                         ref={m.id === displayManager?.id ? currentManagerRowRef : null}
-                        className={`border-b border-border hover:bg-card-hover ${isCurrentManager ? 'border-l-4 border-l-primary bg-default' : ''}`}
+                        active={isCurrentManager}
                       >
-                        <td className={`px-3 py-2 text-center text-foreground ${isMobile ? `sticky left-0 w-[50px] ${stickyBg} z-10` : ''}`}>
+                        <Td align="center" className={`text-foreground ${isMobile ? `sticky left-0 w-[50px] ${stickyBg} z-10` : ''}`}>
                           {m.positionTotal ? `${m.positionTotal}.` : '-'}
-                        </td>
-                        <td className={`px-3 py-2 text-center ${isMobile ? `sticky left-[50px] w-[50px] ${stickyBg} z-10` : ''}`}>
+                        </Td>
+                        <Td align="center" className={isMobile ? `sticky left-[50px] w-[50px] ${stickyBg} z-10` : ''}>
                           {m.positionChange != null && m.positionChange !== 0 ? (
-                            <span className={`${m.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                            <span className={`${m.positionChange > 0 ? 'text-up' : 'text-down'}`}>
                               {m.positionChange > 0 ? `↑${m.positionChange}` : `↓${Math.abs(m.positionChange)}`}
                             </span>
                           ) : (
                             <span className="text-subtle">-</span>
                           )}
-                        </td>
-                        <td className={`px-3 py-2 ${isMobile ? 'min-w-[120px]' : ''}`}>
+                        </Td>
+                        <Td className={isMobile ? 'min-w-[120px]' : ''}>
                           {isMobile ? (
                             <span className="text-foreground">{m.shortName || '-'}</span>
                           ) : (
-                            <RouterLink 
-                              to={`/managers/${m.id}`} 
-                              className="hover:text-accent-hover link text-primary"
+                            <RouterLink
+                              to={`/managers/${m.id}`}
+                              className="text-accent hover:text-accent-hover truncate"
                             >
                               {m.shortName || '-'}
                             </RouterLink>
                           )}
-                        </td>
-                        <td className={`px-3 py-2 text-center text-foreground ${isMobile ? `sticky right-[70px] w-[60px] ${stickyBg} z-10` : ''}`}>
+                        </Td>
+                        <Td align={isMobile ? 'center' : 'right'} numeric={!isMobile} className={`text-foreground ${isMobile ? `sticky right-[70px] w-[60px] ${stickyBg} z-10` : ''}`}>
                           {m.pointsTotal ?? '-'}
-                        </td>
-                        <td className={`px-3 py-2 text-center text-muted ${isMobile ? `sticky right-0 w-[70px] ${stickyBg} z-10` : ''}`}>
+                        </Td>
+                        <Td align={isMobile ? 'center' : 'right'} numeric={!isMobile} className={`text-muted ${isMobile ? `sticky right-0 w-[70px] ${stickyBg} z-10` : ''}`}>
                           {m.pointsLastRound ?? '-'}
-                        </td>
+                        </Td>
                         {!isMobile && (
                           <>
-                            <td className="px-3 py-2 text-muted">
+                            <Td className="text-muted truncate">
                               {m.firstName || '-'}
-                            </td>
-                            <td className="px-3 py-2 text-muted">
+                            </Td>
+                            <Td className="text-muted truncate">
                               {m.lastName || '-'}
-                            </td>
-                            <td className="px-3 py-2 text-right text-foreground">
+                            </Td>
+                            <Td numeric className="text-foreground">
                               {m.teamValue ? (m.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
-                            </td>
+                            </Td>
                           </>
                         )}
-                      </tr>
+                      </TableRow>
                     )
                   })}
                 </TableBody>
