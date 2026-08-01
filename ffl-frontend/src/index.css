@@ -196,6 +196,30 @@ body {
   border-radius: var(--radius-control);
 }
 
+.pos-goalkeeper {
+  background-color: var(--color-goalkeeper-bg);
+  color: var(--color-goalkeeper);
+  border-radius: 9999px;
+}
+
+.pos-defender {
+  background-color: var(--color-defender-bg);
+  color: var(--color-defender);
+  border-radius: 9999px;
+}
+
+.pos-midfield {
+  background-color: var(--color-midfield-bg);
+  color: var(--color-midfield);
+  border-radius: 9999px;
+}
+
+.pos-striker {
+  background-color: var(--color-striker-bg);
+  color: var(--color-striker);
+  border-radius: 9999px;
+}
+
 .table-header th {
   position: sticky;
   top: 0;

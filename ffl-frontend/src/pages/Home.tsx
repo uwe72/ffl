@@ -10,22 +10,10 @@ import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, TableBody, TableRow, Td } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 import { formatCurrency, formatMillions, formatPoints } from '../utils/format'
+import { positionLabels, positionBadgeVariant } from '../utils/positions'
+import Badge from '../components/Badge'
 
 import type { PlayerPoint } from '../types'
-
-const positionLabels: Record<string, string> = {
-  GOALKEEPER: 'Torwart',
-  DEFENDER: 'Verteidiger',
-  MIDFIELD: 'Mittelfeld',
-  STRIKER: 'Stürmer'
-}
-
-const positionColors: Record<string, string> = {
-  GOALKEEPER: 'chip-success',
-  DEFENDER: 'chip-warning',
-  MIDFIELD: 'chip-accent',
-  STRIKER: 'chip-danger'
-}
 
 type ManagerSortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue'
 type PlayerSortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position' | 'team'
@@ -49,9 +37,9 @@ function PlayerCardDashboard({ player }: { player: PlayerPoint }) {
           <div className="font-semibold text-foreground truncate">{player.playerName}</div>
             {player.position && (
               <div className="mt-1">
-                <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+                <Badge variant={positionBadgeVariant[player.position]}>
                   {positionLabels[player.position]}
-                </span>
+                </Badge>
               </div>
             )}
           </div>
@@ -378,9 +366,9 @@ export default function Home() {
                           )}
                           <Td>
                             {pp.position && (
-                              <span className={`${positionColors[pp.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+                              <Badge variant={positionBadgeVariant[pp.position]}>
                                 {positionLabels[pp.position]}
-                              </span>
+                              </Badge>
                             )}
                           </Td>
                           <Td className="text-muted">

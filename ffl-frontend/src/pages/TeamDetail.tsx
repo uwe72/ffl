@@ -16,10 +16,10 @@ export const positionLabels: Record<string, string> = {
 }
 
 export const positionColors: Record<string, string> = {
-  GOALKEEPER: 'chip-success',
-  DEFENDER: 'chip-warning',
-  MIDFIELD: 'chip-accent',
-  STRIKER: 'chip-danger'
+  GOALKEEPER: 'pos-goalkeeper',
+  DEFENDER: 'pos-defender',
+  MIDFIELD: 'pos-midfield',
+  STRIKER: 'pos-striker'
 }
 
 const positionSapIcon: Record<string, string> = {
