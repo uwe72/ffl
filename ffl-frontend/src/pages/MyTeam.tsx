@@ -1056,7 +1056,7 @@ export default function MyTeam() {
   }
 
   return (
-    <div>
+    <div className="max-w-6xl">
       {isBeforeSeason && season?.seasonStartDate && (
         <div className="flex items-center gap-3 p-3 bg-accent-muted border border-accent/30 rounded-lg mb-6">
           <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0" />
@@ -1109,7 +1109,7 @@ export default function MyTeam() {
         </div>
       )}
 
-      <div className="max-w-4xl p-4 bg-card border border-border rounded-card shadow-sm mb-6">
+      <div className="p-4 bg-card border border-border rounded-card shadow-sm mb-6">
         <h3 className="text-base font-semibold text-foreground mb-3">Persönliche Daten</h3>
         <div className="flex flex-col sm:flex-row gap-6">
           <div className="relative group w-16 h-16 shrink-0">
@@ -1270,7 +1270,7 @@ export default function MyTeam() {
                     <span className="text-[10px] text-muted font-normal normal-case tracking-normal ml-1">+1 Freie Wahl</span>
                   )}
                 </h3>
-                <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {slots.map(slot => (
                     <PlayerSelect
                       key={slot.key}
@@ -1535,7 +1535,7 @@ export default function MyTeam() {
                     <span className={`w-1.5 h-1.5 rounded-full ${positionDotColor[pos]}`} />
                     {groupLabel}
                   </h3>
-                  <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {players.map(player => (
                       <div key={player.id}>
                         {renderPlayerCard(player, activeNewIds.has(player.id) ? 'new' : undefined)}
