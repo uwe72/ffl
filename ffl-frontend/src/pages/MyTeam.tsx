@@ -169,7 +169,7 @@ function OldPlayerSearch({
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     return (
-      <div className="group bg-elevated/50 border border-border/60 rounded-lg p-2 flex items-center gap-2">
+      <div className="group flex items-center gap-2 min-w-0">
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
             <img src={selectedPlayer.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -186,24 +186,19 @@ function OldPlayerSearch({
             <i className="sap-icon sap-icon-decline text-[11px] text-red-400" />
           </button>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-foreground leading-tight truncate">
-            {selectedPlayer.firstName && selectedPlayer.lastName
-              ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
-              : selectedPlayer.nameKicker}
-          </p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span className={`${positionColors[selectedPlayer.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>
-              {positionLabels[selectedPlayer.position]}
-            </span>
-            <span className="text-[11px] text-muted">{selectedPlayer.prize.toLocaleString('de-DE')} €</span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="text-sm font-medium text-[color:var(--color-text-primary)] leading-tight truncate">
+              {selectedPlayer.firstName && selectedPlayer.lastName
+                ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
+                : selectedPlayer.nameKicker}
+            </p>
+            {team?.logoSUrl && (
+              <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain shrink-0" />
+            )}
           </div>
+          <p className="text-[13px] text-muted tabular-nums mt-0.5">{selectedPlayer.prize.toLocaleString('de-DE')} €</p>
         </div>
-        {team?.logoSUrl ? (
-          <img src={team.logoSUrl} alt={team.name} className="w-8 h-8 object-contain shrink-0" />
-        ) : (
-          <div className="w-8 h-8 shrink-0" />
-        )}
       </div>
     )
   }
@@ -341,7 +336,7 @@ function TransferPlayerSearch({
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     return (
-      <div className="group bg-elevated/50 border border-border/60 rounded-lg p-2 flex items-center gap-2">
+      <div className="group flex items-center gap-2 min-w-0">
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
             <img src={selectedPlayer.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -358,24 +353,19 @@ function TransferPlayerSearch({
             <i className="sap-icon sap-icon-decline text-[11px] text-red-400" />
           </button>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-foreground leading-tight truncate">
-            {selectedPlayer.firstName && selectedPlayer.lastName
-              ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
-              : selectedPlayer.nameKicker}
-          </p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span className={`${positionColors[selectedPlayer.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>
-              {positionLabels[selectedPlayer.position]}
-            </span>
-            <span className="text-[11px] text-muted">{selectedPlayer.prize.toLocaleString('de-DE')} €</span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="text-sm font-medium text-[color:var(--color-text-primary)] leading-tight truncate">
+              {selectedPlayer.firstName && selectedPlayer.lastName
+                ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
+                : selectedPlayer.nameKicker}
+            </p>
+            {team?.logoSUrl && (
+              <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain shrink-0" />
+            )}
           </div>
+          <p className="text-[13px] text-muted tabular-nums mt-0.5">{selectedPlayer.prize.toLocaleString('de-DE')} €</p>
         </div>
-        {team?.logoSUrl ? (
-          <img src={team.logoSUrl} alt={team.name} className="w-8 h-8 object-contain shrink-0" />
-        ) : (
-          <div className="w-8 h-8 shrink-0" />
-        )}
       </div>
     )
   }
@@ -1058,6 +1048,32 @@ export default function MyTeam() {
     )
   }
 
+  const renderPlayerInline = (player: Player) => {
+    const team = player.teams && player.teams.length > 0 ? player.teams[player.teams.length - 1] : null
+    return (
+      <div className="flex items-center gap-2 min-w-0">
+        {player.pictureUrl ? (
+          <img src={player.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center shrink-0">
+            <span className="text-[9px] text-muted">{POSITION_LABELS[player.position]}</span>
+          </div>
+        )}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="text-sm font-medium text-[color:var(--color-text-primary)] leading-tight truncate">
+              {player.firstName && player.lastName ? `${player.firstName} ${player.lastName}` : player.nameKicker}
+            </p>
+            {team?.logoSUrl && (
+              <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain shrink-0" />
+            )}
+          </div>
+          <p className="text-[13px] text-muted tabular-nums mt-0.5">{player.prize.toLocaleString('de-DE')} €</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
       <PageHeader icon="sap-icon-competitor" title="Mein Team" />
@@ -1323,8 +1339,8 @@ export default function MyTeam() {
       </div>
 
       {isHinrunde && (
-        <div className="p-6 bg-surface border border-border rounded-lg mt-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-4 bg-surface border border-border rounded-lg mt-6">
+          <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <i className="sap-icon sap-icon-switch-classes text-accent" />
               Winterwechsel
@@ -1332,7 +1348,7 @@ export default function MyTeam() {
             </h2>
             <div className="flex items-center gap-3">
               {transferDiff !== 0 && (
-                <span className={`text-xs font-semibold ${transferDiff > 0 ? 'text-danger' : 'text-success'}`}>
+                <span className={`text-xs font-semibold ${transferDiff > 0 ? 'text-[#10804f]' : 'text-[#c2372c]'}`}>
                   {transferDiff > 0 ? '+' : ''}{transferDiff.toLocaleString('de-DE')} €
                 </span>
               )}
@@ -1366,41 +1382,35 @@ export default function MyTeam() {
 
           {transfers.length > 0 && (
             <div className="space-y-4">
-              {transfers.map((transfer, index) => {
-                const usedOldIds = transfers
-                  .filter((_, i) => i !== index)
-                  .map(t => t.oldPlayerId)
-                  .filter((id): id is number => id !== null)
-                const availableOldPlayers = lineupPlayers.filter(p => !usedOldIds.includes(p.id))
+              <div className="border border-border rounded-md divide-y divide-[#d8dee6]">
+                <div className="grid grid-cols-[auto_1fr_auto_1fr_auto] gap-3 items-center px-3 py-2">
+                  <span className="w-5" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted">Raus</span>
+                  <span className="w-5" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted">Rein</span>
+                  <span className="w-6" />
+                </div>
+                {transfers.map((transfer, index) => {
+                  const usedOldIds = transfers
+                    .filter((_, i) => i !== index)
+                    .map(t => t.oldPlayerId)
+                    .filter((id): id is number => id !== null)
+                  const availableOldPlayers = lineupPlayers.filter(p => !usedOldIds.includes(p.id))
 
-                const currentExcludeIds = new Set(transferExcludeIds)
-                transfers.forEach((t, i) => {
-                  if (i !== index && t.newPlayerId) {
-                    currentExcludeIds.add(t.newPlayerId)
+                  const currentExcludeIds = new Set(transferExcludeIds)
+                  transfers.forEach((t, i) => {
+                    if (i !== index && t.newPlayerId) {
+                      currentExcludeIds.add(t.newPlayerId)
+                    }
+                  })
+                  if (transfer.newPlayerId) {
+                    currentExcludeIds.delete(transfer.newPlayerId)
                   }
-                })
-                if (transfer.newPlayerId) {
-                  currentExcludeIds.delete(transfer.newPlayerId)
-                }
 
-                return (
-                  <div key={index} className="bg-elevated/30 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-xs font-semibold text-foreground">Wechsel {index + 1}</h3>
-                      <button
-                        onClick={() => handleRemoveTransfer(index)}
-                        className="text-muted hover:text-danger transition-colors p-1"
-                        title="Wechsel entfernen"
-                      >
-                        <i className="sap-icon sap-icon-delete text-sm" />
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-start">
-                      <div>
-                        <span className="text-[11px] text-danger font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                          <i className="sap-icon sap-icon-arrow-right text-[10px]" />
-                          Raus
-                        </span>
+                  return (
+                    <div key={index} className="grid grid-cols-[auto_1fr_auto_1fr_auto] gap-3 items-center px-3 py-2 min-h-[56px]">
+                      <span className="text-xs font-semibold text-muted tabular-nums w-5 text-center">{index + 1}</span>
+                      <div className="min-w-0">
                         <OldPlayerSearch
                           players={availableOldPlayers}
                           excludeIds={new Set(usedOldIds)}
@@ -1408,16 +1418,8 @@ export default function MyTeam() {
                           onChange={(id) => handleTransferOldChange(index, id)}
                         />
                       </div>
-
-                      <div className="flex items-center justify-center pt-6">
-                        <i className="sap-icon sap-icon-arrow-right text-accent text-lg" />
-                      </div>
-
-                      <div>
-                        <span className="text-[11px] text-success font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                          <i className="sap-icon sap-icon-arrow-left text-[10px]" />
-                          Rein
-                        </span>
+                      <i className="sap-icon sap-icon-arrow-right text-accent text-lg" />
+                      <div className="min-w-0">
                         {transfer.oldPlayerId ? (
                           <TransferPlayerSearch
                             players={allPlayers}
@@ -1431,10 +1433,17 @@ export default function MyTeam() {
                           </div>
                         )}
                       </div>
+                      <button
+                        onClick={() => handleRemoveTransfer(index)}
+                        className="text-muted hover:text-danger transition-colors p-1 justify-self-end"
+                        title="Wechsel entfernen"
+                      >
+                        <i className="sap-icon sap-icon-delete text-sm" />
+                      </button>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
 
               {isTransferBudgetExceeded && (
                 <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-lg">
@@ -1496,19 +1505,25 @@ export default function MyTeam() {
       )}
 
       {isRueckrunde && hasExistingTransfers && (
-        <div className="p-6 bg-surface border border-border rounded-lg mt-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-4 bg-surface border border-border rounded-lg mt-6">
+          <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <i className="sap-icon sap-icon-switch-classes text-accent" />
               Winterwechsel
             </h2>
             {existingTransferDiff !== 0 && (
-              <span className={`text-xs font-semibold ${existingTransferDiff > 0 ? 'text-danger' : 'text-success'}`}>
+              <span className={`text-xs font-semibold ${existingTransferDiff > 0 ? 'text-[#10804f]' : 'text-[#c2372c]'}`}>
                 {existingTransferDiff > 0 ? '+' : ''}{existingTransferDiff.toLocaleString('de-DE')} €
               </span>
             )}
           </div>
-          <div className="space-y-3">
+          <div className="border border-border rounded-md divide-y divide-[#d8dee6]">
+            <div className="grid grid-cols-[auto_1fr_auto_1fr] gap-3 items-center px-3 py-2">
+              <span className="w-5" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Raus</span>
+              <span className="w-5" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Rein</span>
+            </div>
             {[
               { old: manager.playerExchangedOld1, new_: manager.playerExchangedNew1 },
               { old: manager.playerExchangedOld2, new_: manager.playerExchangedNew2 },
@@ -1516,26 +1531,11 @@ export default function MyTeam() {
             ]
               .filter(t => t.old && t.new_)
               .map((t, i) => (
-                <div key={i} className="bg-elevated/30 rounded-lg p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-start">
-                    <div>
-                      <span className="text-[11px] text-danger font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                        <i className="sap-icon sap-icon-arrow-right text-[10px]" />
-                        Raus
-                      </span>
-                      {renderPlayerCard(t.old!)}
-                    </div>
-                    <div className="flex items-center justify-center pt-6">
-                      <i className="sap-icon sap-icon-arrow-right text-accent text-lg" />
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-success font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                        <i className="sap-icon sap-icon-arrow-left text-[10px]" />
-                        Rein
-                      </span>
-                      {renderPlayerCard(t.new_!)}
-                    </div>
-                  </div>
+                <div key={i} className="grid grid-cols-[auto_1fr_auto_1fr] gap-3 items-center px-3 py-2 min-h-[56px]">
+                  <span className="text-xs font-semibold text-muted tabular-nums w-5 text-center">{i + 1}</span>
+                  {renderPlayerInline(t.old!)}
+                  <i className="sap-icon sap-icon-arrow-right text-accent text-lg" />
+                  {renderPlayerInline(t.new_!)}
                 </div>
               ))}
           </div>
