@@ -50,7 +50,7 @@ export function ThSortable({ children, align, numeric = false, className = '', .
   const effectiveAlign: Align = align ?? (numeric ? 'right' : 'left')
   return (
     <th
-      className={`${headBase} text-${effectiveAlign} cursor-pointer hover:text-accent ${numeric ? 'tabular-nums' : ''} ${className}`}
+      className={`${headBase} group text-${effectiveAlign} cursor-pointer hover:text-accent ${numeric ? 'tabular-nums' : ''} ${className}`}
       {...rest}
     >
       {children}
