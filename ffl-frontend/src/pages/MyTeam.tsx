@@ -7,7 +7,6 @@ import { seasonApi } from '../api/seasons'
 import { playerApi } from '../api/players'
 import { useAvatar, useUploadAvatar, useDeleteAvatar } from '../hooks/useAvatar'
 import Button from '../components/Button'
-import PageHeader from '../components/PageHeader'
 import PlayerSelect from '../components/PlayerSelect'
 import type { PlayerSlot } from '../components/PlayerSelect'
 import type { Player, Season, Position, Manager } from '../types'
@@ -989,7 +988,6 @@ export default function MyTeam() {
           <i className="sap-icon sap-icon-nav-back text-base" />
           Zurück zur Startseite
         </RouterLink>
-        <PageHeader icon="sap-icon-competitor" title="Mein Team" />
         <div className="p-6 bg-surface border border-border rounded-lg text-center">
           <i className="sap-icon sap-icon-person-placeholder text-[40px] text-subtle mb-3" />
           <p className="text-foreground font-medium mb-2">Du hast noch kein Team registriert.</p>
@@ -1006,7 +1004,6 @@ export default function MyTeam() {
           <i className="sap-icon sap-icon-nav-back text-base" />
           Zurück zur Startseite
         </RouterLink>
-        <PageHeader icon="sap-icon-competitor" title="Mein Team" />
         <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-lg">
           <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
           <p className="text-danger text-sm">{error || 'Daten konnten nicht geladen werden.'}</p>
@@ -1075,9 +1072,7 @@ export default function MyTeam() {
   }
 
   return (
-    <div>
-      <PageHeader icon="sap-icon-competitor" title="Mein Team" />
-
+    <div className="pt-8">
       {isBeforeSeason && season?.seasonStartDate && (
         <div className="flex items-center gap-3 p-3 bg-accent-muted border border-accent/30 rounded-lg mb-6">
           <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0" />
