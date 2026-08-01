@@ -16,10 +16,10 @@ export default function CardContainer({ children, className = '', title, subtitl
         <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-border">
           <div className="min-w-0">
             {title != null && (
-              <h2 className="text-base font-medium text-foreground">{title}</h2>
+              <h2 className="text-[16px] font-medium text-foreground">{title}</h2>
             )}
             {subtitle != null && (
-              <p className="text-sm text-muted mt-0.5">{subtitle}</p>
+              <p className="text-[13px] text-muted mt-0.5">{subtitle}</p>
             )}
           </div>
           {headerRight != null && (
