@@ -1273,7 +1273,7 @@ export default function MyTeam() {
                     <span className="text-[10px] text-accent/60 font-normal normal-case tracking-normal ml-1">+1 Freie Wahl</span>
                   )}
                 </h3>
-                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
                   {slots.map(slot => (
                     <PlayerSelect
                       key={slot.key}
@@ -1560,7 +1560,7 @@ export default function MyTeam() {
                     <span className="w-1.5 h-1.5 rounded-full bg-accent" />
                     {groupLabel}
                   </h3>
-                  <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
                     {players.map(player => (
                       <div key={player.id}>
                         {renderPlayerCard(player, activeNewIds.has(player.id) ? 'new' : undefined)}
