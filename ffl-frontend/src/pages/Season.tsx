@@ -9,13 +9,12 @@ import PageHeader from '../components/PageHeader'
 import Tabs from '../components/Tabs'
 import FormCard from '../components/FormCard'
 import { TableHead, Th, TableBody } from '../components/Table'
+import { seasonStateLabel } from '../utils/season'
 import type { Season, SeasonState, PrizeDistributionLog, PrizePayout, PayoutStatus } from '../types'
 
-const seasonStateOptions: { value: SeasonState; label: string }[] = [
-  { value: 'BEFORE_SEASON', label: 'Vor Saison' },
-  { value: 'RUNNING_HINRUNDE', label: 'Hinrunde' },
-  { value: 'RUNNING_RUECKRUNDE', label: 'Rückrunde' }
-]
+const seasonStateOptions: { value: SeasonState; label: string }[] = (
+  ['BEFORE_SEASON', 'RUNNING_HINRUNDE', 'RUNNING_RUECKRUNDE'] as SeasonState[]
+).map(value => ({ value, label: seasonStateLabel(value) as string }))
 
 const COLOR_FIRST = '#90EE90'
 const COLOR_NORMAL = '#87CEFA'

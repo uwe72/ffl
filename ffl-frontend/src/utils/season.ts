@@ -1,12 +1,18 @@
-export type SeasonPhase = 'Hinrunde' | 'Rückrunde'
+import type { SeasonState } from '../types'
+
+export type SeasonPhaseLabel = 'Vor Saison' | 'Hinrunde' | 'Rückrunde'
 
 export const DEFAULT_START_ROUND_RUECKRUNDE = 18
 
-export function deriveSeasonPhase(
-  currentMatchday?: number | null,
-  startRoundRueckrunde?: number | null,
-): SeasonPhase | null {
-  if (currentMatchday == null || currentMatchday <= 0) return null
-  const threshold = startRoundRueckrunde ?? DEFAULT_START_ROUND_RUECKRUNDE
-  return currentMatchday >= threshold ? 'Rückrunde' : 'Hinrunde'
+export function seasonStateLabel(state?: SeasonState | null): SeasonPhaseLabel | null {
+  switch (state) {
+    case 'BEFORE_SEASON':
+      return 'Vor Saison'
+    case 'RUNNING_HINRUNDE':
+      return 'Hinrunde'
+    case 'RUNNING_RUECKRUNDE':
+      return 'Rückrunde'
+    default:
+      return null
+  }
 }

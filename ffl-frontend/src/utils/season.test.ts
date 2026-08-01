@@ -1,37 +1,38 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { deriveSeasonPhase, DEFAULT_START_ROUND_RUECKRUNDE } from './season.ts'
+import { seasonStateLabel, DEFAULT_START_ROUND_RUECKRUNDE } from './season.ts'
 
-test('Standardschwelle: Spieltag 1 bis 17 ist Hinrunde', () => {
-  assert.equal(deriveSeasonPhase(1), 'Hinrunde')
-  assert.equal(deriveSeasonPhase(17), 'Hinrunde')
+test('BEFORE_SEASON wird als "Vor Saison" angezeigt', () => {
+  assert.equal(seasonStateLabel('BEFORE_SEASON'), 'Vor Saison')
 })
 
-test('Standardschwelle: ab Spieltag 18 ist Rückrunde', () => {
-  assert.equal(deriveSeasonPhase(18), 'Rückrunde')
-  assert.equal(deriveSeasonPhase(34), 'Rückrunde')
+test('RUNNING_HINRUNDE wird als "Hinrunde" angezeigt', () => {
+  assert.equal(seasonStateLabel('RUNNING_HINRUNDE'), 'Hinrunde')
 })
 
-test('Der fachliche Fehler (Hinrunde bei Spieltag 34) tritt nicht mehr auf', () => {
-  assert.notEqual(deriveSeasonPhase(34), 'Hinrunde')
+test('RUNNING_RUECKRUNDE wird als "Rückrunde" angezeigt', () => {
+  assert.equal(seasonStateLabel('RUNNING_RUECKRUNDE'), 'Rückrunde')
 })
 
-test('Explizite startRoundRueckrunde übersteuert die Standardschwelle', () => {
-  assert.equal(deriveSeasonPhase(16, 16), 'Rückrunde')
-  assert.equal(deriveSeasonPhase(15, 16), 'Hinrunde')
+test('Ohne Saisonstatus gibt es kein Label', () => {
+  assert.equal(seasonStateLabel(undefined), null)
+  assert.equal(seasonStateLabel(null), null)
 })
 
-test('Ohne Spieltag gibt es keine Phase', () => {
-  assert.equal(deriveSeasonPhase(undefined), null)
-  assert.equal(deriveSeasonPhase(null), null)
-  assert.equal(deriveSeasonPhase(0), null)
+test('Die Phase haengt ausschliesslich am seasonState, nicht am Spieltag', () => {
+  const stateFromDatabase = 'RUNNING_HINRUNDE'
+  const currentMatchday = 34
+  const startRoundRueckrunde = 16
+
+  assert.ok(currentMatchday >= startRoundRueckrunde)
+  assert.equal(seasonStateLabel(stateFromDatabase), 'Hinrunde')
 })
 
-test('Standardschwelle ist 18', () => {
+test('Der fachliche Fehler (Winterwechsel-Hinweis mit dem Wort "Rueckrunde") tritt nicht mehr auf', () => {
+  assert.notEqual(seasonStateLabel('RUNNING_HINRUNDE'), 'Rückrunde')
+  assert.notEqual(seasonStateLabel('RUNNING_RUECKRUNDE'), 'Hinrunde')
+})
+
+test('Standardschwelle fuer den Start der Rueckrunde ist 18', () => {
   assert.equal(DEFAULT_START_ROUND_RUECKRUNDE, 18)
-})
-
-test('Die Schwelle wird aus der Konstante gelesen, nicht fest verdrahtet', () => {
-  assert.equal(deriveSeasonPhase(DEFAULT_START_ROUND_RUECKRUNDE), 'Rückrunde')
-  assert.equal(deriveSeasonPhase(DEFAULT_START_ROUND_RUECKRUNDE - 1), 'Hinrunde')
 })
