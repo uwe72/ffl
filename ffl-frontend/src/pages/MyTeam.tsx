@@ -1037,26 +1037,19 @@ export default function MyTeam() {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <p className="text-xs font-medium text-foreground leading-tight truncate">
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="text-sm font-medium text-[color:var(--color-text-primary)] leading-tight truncate">
               {player.firstName && player.lastName ? `${player.firstName} ${player.lastName}` : player.nameKicker}
             </p>
+            {team?.logoSUrl && (
+              <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain shrink-0" />
+            )}
             {badge && (
               <span className="text-[10px] font-semibold text-accent border border-accent rounded px-1 py-0.5 leading-none shrink-0">{badge}</span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>
-              {positionLabels[player.position]}
-            </span>
-            <span className="text-[11px] text-muted">{player.prize.toLocaleString('de-DE')} €</span>
-          </div>
+          <p className="text-[13px] text-muted tabular-nums mt-0.5">{player.prize.toLocaleString('de-DE')} €</p>
         </div>
-        {team?.logoSUrl ? (
-          <img src={team.logoSUrl} alt={team.name} className="w-8 h-8 object-contain shrink-0" />
-        ) : (
-          <div className="w-8 h-8 shrink-0" />
-        )}
       </div>
     )
   }
