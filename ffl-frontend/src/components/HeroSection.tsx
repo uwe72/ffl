@@ -29,12 +29,12 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
         <div
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(to right, rgba(10,14,20,0.82) 0%, rgba(10,14,20,0.55) 40%, rgba(10,14,20,0.15) 70%, rgba(10,14,20,0.05) 100%)',
+            background: 'linear-gradient(to right, rgba(10,14,20,0.84) 0%, rgba(10,14,20,0.58) 35%, rgba(10,14,20,0.10) 65%, rgba(10,14,20,0) 100%)',
           }}
         />
         <div
           className="absolute inset-0"
-          style={{ backgroundColor: 'rgba(10,16,24,0.15)' }}
+          style={{ backgroundColor: 'rgba(10,16,24,0.08)' }}
         />
       </div>
 
