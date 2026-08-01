@@ -1242,10 +1242,10 @@ export default function MyTeam() {
       </div>
 
       <div className="mt-2">
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-y-2">
+        <div className="flex flex-col items-start mb-4 gap-y-2">
           <h2 className="text-sm font-semibold text-foreground">Aufstellung (Hinrunde)</h2>
           <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-4 text-xs">
+            <div className="flex items-center gap-4 text-xs flex-wrap">
               <span className="text-muted">Budget: <span className="text-foreground font-medium">{budget.toLocaleString('de-DE')} €</span></span>
               <span className="text-muted">Ausgegeben: <span className="text-foreground font-medium">{totalCost.toLocaleString('de-DE')} €</span></span>
               <span className="text-muted">Verbleibend: <span className={`font-bold ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>{remaining.toLocaleString('de-DE')} €</span></span>

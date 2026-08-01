@@ -42,7 +42,7 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
         />
       </div>
 
-      <div className="relative z-10 flex h-full items-center px-[25px]">
+      <div className="relative z-10 flex h-full items-center px-[30px]">
         <button
           onClick={onMenuClick}
           className="md:hidden mr-3 p-1.5 rounded-lg text-muted hover:text-primary hover:bg-card-hover transition-colors"
