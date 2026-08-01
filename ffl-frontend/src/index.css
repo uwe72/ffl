@@ -2,81 +2,113 @@
 @import "./assets/sap-icons/sap-icons.css";
 
 @theme {
-  --color-background: #121a26;
-  --color-page: #182230;
-  --color-surface: #1c2a3a;
-  --color-card-hover: #243447;
-  --color-elevated: #263548;
+  --color-background: #12161c;
+  --color-page: #f3f5f8;
+  --color-surface: #ffffff;
+  --color-card: #ffffff;
+  --color-card-hover: #eef2f6;
+  --color-elevated: #e9edf2;
+  --color-subtle-bg: #e9edf2;
 
-  --color-foreground: #f0f0f0;
-  --color-muted: #c5c5c5;
-  --color-subtle: #8999a8;
-  --color-text-disabled: #5a6a7a;
-  --color-placeholder: #8999a8;
+  --color-foreground: #16202b;
+  --color-text-primary: #16202b;
+  --color-muted: #5b6b7c;
+  --color-subtle: #5b6b7c;
+  --color-text-disabled: #97a4b2;
+  --color-placeholder: #8494a3;
 
-  --color-border: #2a3a4e;
-  --color-border-subtle: #1e2d3e;
-  --color-border-hover: #3a4f66;
-  --color-border-active: #0a6ed1;
+  --color-border: #d8dee6;
+  --color-border-subtle: #e3e8ee;
+  --color-border-hover: #c3ccd7;
+  --color-border-active: #2563eb;
 
-  --color-accent: #0a6ed1;
-  --color-accent-hover: #085caf;
-  --color-accent-muted: rgba(10, 110, 209, 0.15);
-  --color-accent-ring: rgba(10, 110, 209, 0.4);
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-muted: rgba(37, 99, 235, 0.12);
+  --color-accent-ring: rgba(37, 99, 235, 0.35);
 
-  --color-default: #2a3a4e;
-  --color-default-foreground: #f0f0f0;
-  --color-primary: #0a6ed1;
+  --color-default: #e9edf2;
+  --color-default-foreground: #16202b;
+  --color-primary: #2563eb;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #1c2a3a;
-  --color-secondary-foreground: #f0f0f0;
-  --color-button-primary-hover: #085caf;
+  --color-secondary: #e9edf2;
+  --color-secondary-foreground: #16202b;
+  --color-button-primary-hover: #1d4ed8;
 
-  --color-success: #36b37e;
-  --color-success-foreground: #0a0e14;
-  --color-success-bg: #1a3328;
-  --color-warning: #ffab00;
-  --color-warning-foreground: #0a0e14;
-  --color-warning-bg: #332b11;
-  --color-danger: #de350b;
+  --color-up: #10804f;
+  --color-down: #c2372c;
+
+  --color-success: #10804f;
+  --color-success-foreground: #ffffff;
+  --color-success-bg: #e2f2ea;
+  --color-warning: #b7791f;
+  --color-warning-foreground: #ffffff;
+  --color-warning-bg: #fbf0dd;
+  --color-danger: #c2372c;
   --color-danger-foreground: #ffffff;
-  --color-danger-bg: #331a1a;
-  --color-info: #0a6ed1;
-  --color-info-bg: #1a2640;
+  --color-danger-bg: #fbe6e4;
+  --color-info: #2563eb;
+  --color-info-bg: #e6eefb;
 
-  --color-overlay: rgba(0, 0, 0, 0.6);
-  --color-overlay-dark: rgba(0, 0, 0, 0.8);
-  --color-overlay-full: rgba(0, 0, 0, 0.9);
-  --color-overlay-light: rgba(0, 0, 0, 0.4);
+  --color-sidebar: #12161c;
+  --color-sidebar-foreground: #e6ebf2;
+  --color-sidebar-muted: #9aa7b5;
+  --color-sidebar-hover: #1c232d;
+  --color-sidebar-border: #232c37;
+  --color-sidebar-active-bg: rgba(37, 99, 235, 0.22);
+  --color-sidebar-active: #7fa9ff;
 
-  --color-zebra: rgba(255, 255, 255, 0.03);
+  --color-goalkeeper: #0e7c86;
+  --color-goalkeeper-bg: #dcf0f2;
+  --color-defender: #2f6f3e;
+  --color-defender-bg: #e3f1e6;
+  --color-midfield: #2b5fb0;
+  --color-midfield-bg: #e4ecf8;
+  --color-striker: #a8412a;
+  --color-striker-bg: #f7e6e0;
+
+  --color-overlay: rgba(15, 20, 27, 0.55);
+  --color-overlay-dark: rgba(15, 20, 27, 0.75);
+  --color-overlay-full: rgba(15, 20, 27, 0.9);
+  --color-overlay-light: rgba(15, 20, 27, 0.35);
+
+  --color-zebra: rgba(22, 32, 43, 0.03);
+
+  --radius-card: 6px;
+  --radius-control: 4px;
+
+  --spacing-row: 40px;
 }
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: dark;
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --radius-card: 6px;
+  --radius-control: 4px;
+  --row-height: 40px;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: var(--color-background);
+  background-color: var(--color-page);
   color: var(--color-foreground);
   overflow-x: hidden;
 }
 
 .card {
-  background-color: var(--color-surface);
+  background-color: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-card);
+  box-shadow: 0 1px 2px rgba(22, 32, 43, 0.06);
 }
 
 .card:hover {
@@ -84,13 +116,28 @@ body {
   border-color: var(--color-border-hover);
 }
 
+.sidebar {
+  --color-surface: var(--color-sidebar);
+  --color-card-hover: var(--color-sidebar-hover);
+  --color-elevated: var(--color-sidebar-hover);
+  --color-border: var(--color-sidebar-border);
+  --color-border-hover: var(--color-sidebar-border);
+  --color-foreground: var(--color-sidebar-foreground);
+  --color-muted: var(--color-sidebar-muted);
+  --color-subtle: var(--color-sidebar-muted);
+  --color-primary: var(--color-sidebar-active);
+  --color-default: var(--color-sidebar-hover);
+  background-color: var(--color-sidebar);
+  color: var(--color-sidebar-foreground);
+}
+
 .hero-stat-card {
-  background-color: rgba(27, 40, 56, 0.7);
+  background-color: rgba(18, 22, 28, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(42, 58, 78, 0.5);
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(230, 235, 242, 0.15);
+  border-radius: var(--radius-card);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 .hero-fade::after {
@@ -100,14 +147,14 @@ body {
   left: 0;
   right: 0;
   height: 60px;
-  background: linear-gradient(to top, var(--color-background), transparent);
+  background: linear-gradient(to top, var(--color-page), transparent);
   pointer-events: none;
 }
 
 .button-primary {
   background-color: var(--color-primary);
   color: var(--color-primary-foreground);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-control);
 }
 
 .button-primary:hover {
@@ -118,7 +165,7 @@ body {
   background-color: transparent;
   color: var(--color-primary);
   border: 1px solid var(--color-primary);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-control);
 }
 
 .button-secondary:hover {
@@ -128,25 +175,25 @@ body {
 .chip-accent {
   background-color: var(--color-accent-muted);
   color: var(--color-accent);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-control);
 }
 
 .chip-success {
   background-color: var(--color-success-bg);
   color: var(--color-success);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-control);
 }
 
 .chip-warning {
   background-color: var(--color-warning-bg);
   color: var(--color-warning);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-control);
 }
 
 .chip-danger {
   background-color: var(--color-danger-bg);
   color: var(--color-danger);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-control);
 }
 
 .table-header th {
@@ -180,10 +227,10 @@ body {
 }
 
 .input-field {
-  background-color: var(--color-background);
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   color: var(--color-foreground);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-control);
 }
 
 .input-field::placeholder {

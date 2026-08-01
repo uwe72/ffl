@@ -242,7 +242,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
   return (
     <>
       <aside
-        className={`hidden md:flex flex-col bg-surface border-r border-border shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out`}
+        className={`sidebar hidden md:flex flex-col bg-surface border-r border-border shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out`}
         style={{ width: collapsed ? 64 : 256 }}
       >
         {sidebarContent}
@@ -251,7 +251,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-overlay" onClick={onCloseMobile} />
-          <aside className="absolute left-0 top-0 bottom-0 w-64 bg-surface border-r border-border flex flex-col shadow-2xl">
+          <aside className="sidebar absolute left-0 top-0 bottom-0 w-64 bg-surface border-r border-border flex flex-col shadow-2xl">
             {sidebarContent}
           </aside>
         </div>
