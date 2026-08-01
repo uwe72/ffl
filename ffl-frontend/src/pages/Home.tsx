@@ -4,7 +4,6 @@ import { useCurrentManager, useManagersBySeason, useManagerCurrentPlayers } from
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { usePlayersBySeason } from '../hooks/usePlayers'
 import { useAuth } from '../context/AuthContext'
-import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, TableBody, TableRow, Td } from '../components/Table'
@@ -241,8 +240,6 @@ export default function Home() {
 
   return (
     <div className="pb-6">
-      <PageHeader icon="sap-icon-bbyd-dashboard" title="Dashboard" />
-
       {displayManager && (
         <>
           {currentPlayers && currentPlayers.length > 0 && (

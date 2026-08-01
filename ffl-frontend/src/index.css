@@ -140,26 +140,6 @@ body {
   --color-subtle: #93a1b0;
 }
 
-.hero-stat-card {
-  background-color: rgba(18, 22, 28, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(230, 235, 242, 0.15);
-  border-radius: var(--radius-card);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-}
-
-.hero-fade::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: linear-gradient(to top, var(--color-page), transparent);
-  pointer-events: none;
-}
-
 .button-primary {
   background-color: var(--color-primary);
   color: var(--color-primary-foreground);
