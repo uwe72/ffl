@@ -1172,8 +1172,8 @@ export default function MyTeam() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap gap-6">
-              <div className="w-[320px] max-w-full">
+            <div className="grid grid-cols-4 gap-4">
+              <div className="min-w-0">
                 <span className="text-xs text-muted">Loginname <span className="text-danger">*</span></span>
                 <input
                   type="text"
@@ -1183,7 +1183,7 @@ export default function MyTeam() {
                   className="input-field w-full px-2 py-1 rounded text-sm mt-0.5 opacity-60 cursor-not-allowed"
                 />
               </div>
-              <div className="w-[320px] max-w-full">
+              <div className="min-w-0">
                 <span className="text-xs text-muted">E-Mail <span className="text-danger">*</span></span>
                 <input
                   type="email"
@@ -1192,7 +1192,7 @@ export default function MyTeam() {
                   className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
                 />
               </div>
-              <div className="w-[320px] max-w-full">
+              <div className="min-w-0">
                 <span className="text-xs text-muted">Vorname <span className="text-danger">*</span></span>
                 <input
                   type="text"
@@ -1203,7 +1203,7 @@ export default function MyTeam() {
                   className={`input-field w-full px-2 py-1 rounded text-sm mt-0.5${!isBeforeSeason ? ' opacity-60 cursor-not-allowed' : ''}`}
                 />
               </div>
-              <div className="w-[320px] max-w-full">
+              <div className="min-w-0">
                 <span className="text-xs text-muted">Nachname <span className="text-danger">*</span></span>
                 <input
                   type="text"
