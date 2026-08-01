@@ -14,7 +14,7 @@ import Badge from '../components/Badge'
 
 import type { PlayerPoint } from '../types'
 
-type ManagerSortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue'
+type ManagerSortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'name' | 'teamValue'
 type PlayerSortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position' | 'team'
 
 function PlayerCardDashboard({ player }: { player: PlayerPoint }) {
@@ -140,11 +140,8 @@ export default function Home() {
         case 'pointsLastRound':
           comparison = (b.pointsLastRound ?? 0) - (a.pointsLastRound ?? 0)
           break
-        case 'firstName':
-          comparison = (a.firstName || '').localeCompare(b.firstName || '')
-          break
-        case 'lastName':
-          comparison = (a.lastName || '').localeCompare(b.lastName || '')
+        case 'name':
+          comparison = `${a.firstName || ''} ${a.lastName || ''}`.trim().localeCompare(`${b.firstName || ''} ${b.lastName || ''}`.trim())
           break
         case 'teamValue':
           comparison = (a.teamValue ?? 0) - (b.teamValue ?? 0)
@@ -432,8 +429,7 @@ export default function Home() {
                     <col className="max-w-[200px]" />
                     <col className="w-[70px]" />
                     <col className="w-[90px]" />
-                    <col />
-                    <col />
+                    <col className="max-w-[220px]" />
                     <col className="w-[130px]" />
                   </colgroup>
                 )}
@@ -456,11 +452,8 @@ export default function Home() {
                     </ThSortable>
                     {!isMobile && (
                       <>
-                        <ThSortable align="left" className="bg-elevated" onClick={() => handleManagerSort('firstName')}>
-                          Vorname<SortIcon column="firstName" activeKey={managerSortKey} order={managerSortOrder} />
-                        </ThSortable>
-                        <ThSortable align="left" className="bg-elevated" onClick={() => handleManagerSort('lastName')}>
-                          Nachname<SortIcon column="lastName" activeKey={managerSortKey} order={managerSortOrder} />
+                        <ThSortable align="left" className="bg-elevated" onClick={() => handleManagerSort('name')}>
+                          Name<SortIcon column="name" activeKey={managerSortKey} order={managerSortOrder} />
                         </ThSortable>
                         <ThSortable numeric className="bg-elevated" onClick={() => handleManagerSort('teamValue')}>
                           Teamwert<SortIcon column="teamValue" activeKey={managerSortKey} order={managerSortOrder} />
@@ -511,10 +504,7 @@ export default function Home() {
                         {!isMobile && (
                           <>
                             <Td className="text-muted truncate">
-                              {m.firstName || '-'}
-                            </Td>
-                            <Td className="text-muted truncate">
-                              {m.lastName || '-'}
+                              {`${m.firstName || ''} ${m.lastName || ''}`.trim() || '-'}
                             </Td>
                             <Td numeric className="text-foreground">
                               {formatMillions(m.teamValue)}
