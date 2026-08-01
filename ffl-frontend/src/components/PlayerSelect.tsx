@@ -96,7 +96,7 @@ export default function PlayerSelect({
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     return (
-      <div className={`group bg-elevated/50 border border-border/60 rounded-lg p-2 flex items-center gap-2 ${highlightClass || ''}`}>
+      <div className={`group bg-white border border-border rounded-md p-3 flex items-center gap-2 transition-colors hover:border-[#a9b4c0] cursor-pointer ${highlightClass || ''}`}>
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
             <img src={selectedPlayer.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />

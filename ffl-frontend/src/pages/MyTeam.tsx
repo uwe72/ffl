@@ -1025,7 +1025,7 @@ export default function MyTeam() {
     const team = player.teams && player.teams.length > 0 ? player.teams[player.teams.length - 1] : null
     const ringClass = highlight === 'replaced' ? 'ring-1 ring-danger/50' : highlight === 'new' ? 'ring-1 ring-success/50' : ''
     return (
-      <div className={`bg-elevated/50 border border-border/60 rounded-lg p-2 flex items-center gap-2 ${ringClass}`}>
+      <div className={`bg-white border border-border rounded-md p-3 flex items-center gap-2 transition-colors ${ringClass}`}>
         <div className="shrink-0">
           {player.pictureUrl ? (
             <img src={player.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -1228,7 +1228,7 @@ export default function MyTeam() {
         </div>
       </div>
 
-      <div className="p-6 bg-surface border border-border rounded-lg">
+      <div className="mt-2">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-y-2">
           <h2 className="text-sm font-semibold text-foreground">Aufstellung (Hinrunde)</h2>
           <div className="flex items-center gap-4 flex-wrap">
@@ -1265,7 +1265,7 @@ export default function MyTeam() {
           {POSITION_GROUPS.map(group => {
             const slots = getVisibleSlots(group)
             return (
-              <div key={group.label} className="bg-elevated/30 rounded-lg p-3">
+              <div key={group.label} className="mb-4">
                 <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-2 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent" />
                   {group.label}
@@ -1539,7 +1539,7 @@ export default function MyTeam() {
       )}
 
       {hasActiveTransfers && (
-        <div className="p-6 bg-surface border border-border rounded-lg mt-6">
+        <div className="mt-6">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-y-2">
             <h2 className="text-sm font-semibold text-foreground">Aufstellung (Rückrunde)</h2>
             <div className="flex items-center gap-4 text-xs">
@@ -1555,7 +1555,7 @@ export default function MyTeam() {
               if (players.length === 0) return null
               const groupLabel = pos === 'GOALKEEPER' ? 'Torwart' : pos === 'DEFENDER' ? 'Abwehr' : pos === 'MIDFIELD' ? 'Mittelfeld' : 'Sturm'
               return (
-                <div key={pos} className="bg-elevated/30 rounded-lg p-3">
+                <div key={pos} className="mb-4">
                   <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-2 flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-accent" />
                     {groupLabel}
