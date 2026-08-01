@@ -30,3 +30,8 @@ test('Ohne Spieltag gibt es keine Phase', () => {
 test('Standardschwelle ist 18', () => {
   assert.equal(DEFAULT_START_ROUND_RUECKRUNDE, 18)
 })
+
+test('Die Schwelle wird aus der Konstante gelesen, nicht fest verdrahtet', () => {
+  assert.equal(deriveSeasonPhase(DEFAULT_START_ROUND_RUECKRUNDE), 'Rückrunde')
+  assert.equal(deriveSeasonPhase(DEFAULT_START_ROUND_RUECKRUNDE - 1), 'Hinrunde')
+})

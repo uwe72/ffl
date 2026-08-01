@@ -13,6 +13,7 @@ import type { PlayerSlot } from '../components/PlayerSelect'
 import type { Player, Season, Position, Manager } from '../types'
 import type { AxiosError } from 'axios'
 import { positionLabels, positionColors } from './Players'
+import { deriveSeasonPhase, DEFAULT_START_ROUND_RUECKRUNDE } from '../utils/season'
 
 const PLAYER_SLOTS: PlayerSlot[] = [
   { key: 'playerGoalkeeperId', label: 'Torwart', position: 'GOALKEEPER' },
@@ -499,6 +500,9 @@ export default function MyTeam() {
   const isBeforeSeason = season?.seasonState === 'BEFORE_SEASON'
   const isHinrunde = season?.seasonState === 'RUNNING_HINRUNDE'
   const isRueckrunde = season?.seasonState === 'RUNNING_RUECKRUNDE'
+
+  const startRoundRueckrunde = season?.startRoundRueckrunde ?? DEFAULT_START_ROUND_RUECKRUNDE
+  const seasonPhase = deriveSeasonPhase(season?.currentMatchday, season?.startRoundRueckrunde)
 
   useEffect(() => {
     const loadData = async () => {
@@ -1072,8 +1076,8 @@ export default function MyTeam() {
         <div className="flex items-center gap-3 p-3 bg-accent-muted border border-accent/30 rounded-lg mb-6">
           <i className="sap-icon sap-icon-switch-classes text-[18px] text-accent shrink-0" />
           <p className="text-sm text-foreground">
-            Die Hinrunde läuft. Du kannst bis zu <span className="font-semibold">3 Spieler</span> wechseln (Winterwechsel).
-            Die neuen Spieler sind ab der Rückrunde (Spieltag {season?.startRoundRueckrunde ?? 16}) aktiv.
+            Die {seasonPhase ?? 'Hinrunde'} läuft. Du kannst bis zu <span className="font-semibold">3 Spieler</span> wechseln (Winterwechsel).
+            Die neuen Spieler sind ab der Rückrunde (Spieltag {startRoundRueckrunde}) aktiv.
           </p>
         </div>
       )}
@@ -1082,7 +1086,7 @@ export default function MyTeam() {
         <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-lg mb-6">
           <i className="sap-icon sap-icon-locked text-[18px] text-muted shrink-0" />
           <p className="text-sm text-muted">
-            Die Rückrunde läuft. Deine Aufstellung kann nicht mehr geändert werden.
+            Die {seasonPhase ?? 'Rückrunde'} läuft. Deine Aufstellung kann nicht mehr geändert werden.
           </p>
         </div>
       )}
@@ -1091,7 +1095,7 @@ export default function MyTeam() {
         <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-lg mb-6">
           <i className="sap-icon sap-icon-locked text-[18px] text-muted shrink-0" />
           <p className="text-sm text-muted">
-            Die Rückrunde läuft. Deine Winterwechsel sind aktiv.
+            Die {seasonPhase ?? 'Rückrunde'} läuft. Deine Winterwechsel sind aktiv.
           </p>
         </div>
       )}
@@ -1229,7 +1233,7 @@ export default function MyTeam() {
 
       <div className="mt-2">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-y-2">
-          <h2 className="text-sm font-semibold text-foreground">Aufstellung (Hinrunde)</h2>
+          <h2 className="text-sm font-semibold text-foreground">Aufstellung{seasonPhase ? ` (${seasonPhase})` : ''}</h2>
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-4 text-xs">
               <span className="text-muted">Budget: <span className="text-foreground font-medium">{budget.toLocaleString('de-DE')} €</span></span>
