@@ -1333,14 +1333,14 @@ export default function MyTeam() {
       </div>
 
       {isHinrunde && (
-        <div className="p-4 bg-surface border border-border rounded-lg mt-6">
-          <div className="flex items-center justify-between mb-3">
+        <div className="mt-6">
+          <div className="flex flex-col items-start mb-4 gap-y-2">
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <i className="sap-icon sap-icon-switch-classes text-accent" />
               Winterwechsel
               <span className="text-[11px] text-muted font-normal">({transfers.length}/3)</span>
             </h2>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               {transferDiff !== 0 && (
                 <span className={`text-xs font-semibold ${transferDiff > 0 ? 'text-[#10804f]' : 'text-[#c2372c]'}`}>
                   {transferDiff > 0 ? '+' : ''}{transferDiff.toLocaleString('de-DE')} €
@@ -1376,14 +1376,7 @@ export default function MyTeam() {
 
           {transfers.length > 0 && (
             <div className="space-y-4">
-              <div className="border border-border rounded-md divide-y divide-[#d8dee6]">
-                <div className="grid grid-cols-[auto_1fr_auto_1fr_auto] gap-3 items-center px-3 py-2">
-                  <span className="w-5" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted">Raus</span>
-                  <span className="w-5" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted">Rein</span>
-                  <span className="w-6" />
-                </div>
+              <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
                 {transfers.map((transfer, index) => {
                   const usedOldIds = transfers
                     .filter((_, i) => i !== index)
@@ -1402,38 +1395,40 @@ export default function MyTeam() {
                   }
 
                   return (
-                    <div key={index} className="grid grid-cols-[auto_1fr_auto_1fr_auto] gap-3 items-center px-3 py-2 min-h-[56px]">
-                      <span className="text-xs font-semibold text-muted tabular-nums w-5 text-center">{index + 1}</span>
-                      <div className="min-w-0">
-                        <OldPlayerSearch
-                          players={availableOldPlayers}
-                          excludeIds={new Set(usedOldIds)}
-                          value={transfer.oldPlayerId}
-                          onChange={(id) => handleTransferOldChange(index, id)}
+                    <div key={index} className="bg-white border border-border rounded-md p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-muted tabular-nums">{index + 1}</span>
+                        <button
+                          onClick={() => handleRemoveTransfer(index)}
+                          className="text-muted hover:text-danger transition-colors p-1"
+                          title="Wechsel entfernen"
+                        >
+                          <i className="sap-icon sap-icon-delete text-sm" />
+                        </button>
+                      </div>
+                      <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">Raus</span>
+                      <OldPlayerSearch
+                        players={availableOldPlayers}
+                        excludeIds={new Set(usedOldIds)}
+                        value={transfer.oldPlayerId}
+                        onChange={(id) => handleTransferOldChange(index, id)}
+                      />
+                      <div className="flex justify-center py-1.5">
+                        <i className="sap-icon sap-icon-arrow-down text-accent text-lg" />
+                      </div>
+                      <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">Rein</span>
+                      {transfer.oldPlayerId ? (
+                        <TransferPlayerSearch
+                          players={allPlayers}
+                          excludeIds={currentExcludeIds}
+                          value={transfer.newPlayerId}
+                          onChange={(id) => handleTransferNewChange(index, id)}
                         />
-                      </div>
-                      <i className="sap-icon sap-icon-arrow-right text-accent text-lg" />
-                      <div className="min-w-0">
-                        {transfer.oldPlayerId ? (
-                          <TransferPlayerSearch
-                            players={allPlayers}
-                            excludeIds={currentExcludeIds}
-                            value={transfer.newPlayerId}
-                            onChange={(id) => handleTransferNewChange(index, id)}
-                          />
-                        ) : (
-                          <div className="input-field w-full px-3 py-2 rounded text-xs text-placeholder opacity-50">
-                            Wähle zuerst einen Spieler zum Tauschen
-                          </div>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handleRemoveTransfer(index)}
-                        className="text-muted hover:text-danger transition-colors p-1 justify-self-end"
-                        title="Wechsel entfernen"
-                      >
-                        <i className="sap-icon sap-icon-delete text-sm" />
-                      </button>
+                      ) : (
+                        <div className="input-field w-full px-3 py-2 rounded text-xs text-placeholder opacity-50">
+                          Wähle zuerst einen Spieler zum Tauschen
+                        </div>
+                      )}
                     </div>
                   )
                 })}
@@ -1499,8 +1494,8 @@ export default function MyTeam() {
       )}
 
       {isRueckrunde && hasExistingTransfers && (
-        <div className="p-4 bg-surface border border-border rounded-lg mt-6">
-          <div className="flex items-center justify-between mb-3">
+        <div className="mt-6">
+          <div className="flex flex-col items-start mb-4 gap-y-2">
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <i className="sap-icon sap-icon-switch-classes text-accent" />
               Winterwechsel
@@ -1511,13 +1506,7 @@ export default function MyTeam() {
               </span>
             )}
           </div>
-          <div className="border border-border rounded-md divide-y divide-[#d8dee6]">
-            <div className="grid grid-cols-[auto_1fr_auto_1fr] gap-3 items-center px-3 py-2">
-              <span className="w-5" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Raus</span>
-              <span className="w-5" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Rein</span>
-            </div>
+          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
             {[
               { old: manager.playerExchangedOld1, new_: manager.playerExchangedNew1 },
               { old: manager.playerExchangedOld2, new_: manager.playerExchangedNew2 },
@@ -1525,10 +1514,14 @@ export default function MyTeam() {
             ]
               .filter(t => t.old && t.new_)
               .map((t, i) => (
-                <div key={i} className="grid grid-cols-[auto_1fr_auto_1fr] gap-3 items-center px-3 py-2 min-h-[56px]">
-                  <span className="text-xs font-semibold text-muted tabular-nums w-5 text-center">{i + 1}</span>
+                <div key={i} className="bg-white border border-border rounded-md p-3">
+                  <span className="block text-xs font-semibold text-muted tabular-nums mb-2">{i + 1}</span>
+                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">Raus</span>
                   {renderPlayerInline(t.old!)}
-                  <i className="sap-icon sap-icon-arrow-right text-accent text-lg" />
+                  <div className="flex justify-center py-1.5">
+                    <i className="sap-icon sap-icon-arrow-down text-accent text-lg" />
+                  </div>
+                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted mb-1">Rein</span>
                   {renderPlayerInline(t.new_!)}
                 </div>
               ))}
