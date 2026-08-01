@@ -70,7 +70,7 @@ function WizardStepper({ currentStep }: { currentStep: number }) {
                     ? 'bg-accent text-primary-foreground'
                     : isActive
                       ? 'bg-accent-muted border-2 border-accent text-accent'
-                      : 'bg-[#2a2a3e] border border-[#3a3a4e] text-[#6b7280]'
+                      : 'bg-subtle-bg border border-border text-muted'
                 }`}
               >
                 {isCompleted ? (
@@ -81,7 +81,7 @@ function WizardStepper({ currentStep }: { currentStep: number }) {
               </div>
               <span
                 className={`text-[11px] mt-1.5 font-medium whitespace-nowrap ${
-                  isActive ? 'text-accent' : isCompleted ? 'text-accent/70' : 'text-[#6b7280]'
+                  isActive ? 'text-accent' : isCompleted ? 'text-accent/70' : 'text-muted'
                 }`}
               >
                 {label}
@@ -90,7 +90,7 @@ function WizardStepper({ currentStep }: { currentStep: number }) {
             {idx < STEP_LABELS.length - 1 && (
               <div
                 className={`w-16 md:w-24 h-[2px] mx-3 mt-[-18px] transition-all duration-300 ${
-                  stepNum < currentStep ? 'bg-accent' : 'bg-[#3a3a4e]'
+                  stepNum < currentStep ? 'bg-accent' : 'bg-border'
                 }`}
               />
             )}

@@ -651,7 +651,7 @@ export default function Season() {
                             }}
                             className={`px-3 py-1.5 rounded text-sm font-medium cursor-pointer ${
                               payout.payoutStatus === 'PAID'
-                                ? 'bg-success text-background'
+                                 ? 'bg-success text-success-foreground'
                                 : 'bg-default text-foreground'
                             }`}
                           >

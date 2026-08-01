@@ -50,6 +50,9 @@
   --color-info: #2563eb;
   --color-info-bg: #e6eefb;
 
+  --color-log-bg: #12161c;
+  --color-log-text: #c7d2de;
+
   --color-sidebar: #12161c;
   --color-sidebar-foreground: #e6ebf2;
   --color-sidebar-muted: #9aa7b5;
@@ -282,6 +285,11 @@ body {
   border: 1px solid var(--color-border-hover);
   border-radius: 0.5rem 0.5rem 0 0;
   background-color: var(--color-elevated);
+}
+
+.log-console {
+  background-color: var(--color-log-bg);
+  color: var(--color-log-text);
 }
 
 .ql-container.ql-snow {

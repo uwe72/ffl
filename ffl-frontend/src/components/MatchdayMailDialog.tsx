@@ -100,7 +100,7 @@ export default function MatchdayMailDialog({
 
         <div
           ref={logContainerRef}
-          className="flex-1 overflow-y-auto bg-background border border-border rounded-lg p-3 md:p-4 font-mono text-xs md:text-sm text-muted min-h-[280px] md:min-h-[390px] max-h-[400px] md:max-h-[520px]"
+          className="flex-1 overflow-y-auto log-console border border-border rounded-lg p-3 md:p-4 font-mono text-xs md:text-sm min-h-[280px] md:min-h-[390px] max-h-[400px] md:max-h-[520px]"
         >
           {logs.map((log, index) => (
             <div key={index} className="whitespace-pre-wrap">
