@@ -2,6 +2,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useCurrentManager, useManagersBySeason, useManagerCurrentPlayers } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
+import { usePlayersBySeason } from '../hooks/usePlayers'
 import { useAuth } from '../context/AuthContext'
 import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
@@ -128,6 +129,7 @@ export default function Home() {
   const displayManager = isAdmin ? uwe72Manager : currentManager
 
   const { data: currentPlayers } = useManagerCurrentPlayers(displayManager?.id ?? 0)
+  const { data: seasonPlayers } = usePlayersBySeason(season?.id ?? 0)
 
   const [showAllPlayers, setShowAllPlayers] = useState(false)
   const [showAllManagers, setShowAllManagers] = useState(false)
@@ -231,6 +233,13 @@ export default function Home() {
       return playerSortOrder === 'asc' ? comparison : -comparison
     })
   }, [filteredPlayers, playerSortKey, playerSortOrder])
+
+  const topPlayers = useMemo(() => {
+    if (!currentPlayers) return []
+    return [...currentPlayers]
+      .sort((a, b) => (b.pointsTotal ?? 0) - (a.pointsTotal ?? 0))
+      .slice(0, 5)
+  }, [currentPlayers])
 
   const handleManagerSort = (key: ManagerSortKey) => {
     if (managerSortKey === key) {
@@ -401,6 +410,8 @@ export default function Home() {
             </CardContainer>
           )}
 
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div className="lg:col-span-2">
           <CardContainer>
             <div className="flex items-center gap-2 px-6 py-3 flex-wrap border-b border-border bg-elevated/50">
               <div className="relative min-w-[140px] max-w-[220px]">
@@ -531,6 +542,80 @@ export default function Home() {
             </div>
             </div>
           </CardContainer>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              <CardContainer>
+                <div className="px-6 pt-5 pb-3 border-b border-border">
+                  <h2 className="text-base font-medium text-foreground">Topspieler nach Punkten</h2>
+                  <p className="text-xs text-muted mt-0.5">Deine punktbesten Spieler</p>
+                </div>
+                <div className="px-6 py-4 flex flex-col gap-3">
+                  {topPlayers.length === 0 && (
+                    <p className="text-sm text-muted">Keine Daten vorhanden</p>
+                  )}
+                  {topPlayers.map((pp, idx) => (
+                    <RouterLink
+                      key={pp.playerId}
+                      to={`/players/${pp.playerId}`}
+                      className="flex items-center gap-3 group"
+                    >
+                      <span className="w-5 text-sm font-semibold text-muted tabular-nums text-right">{idx + 1}</span>
+                      {pp.pictureUrl ? (
+                        <img src={pp.pictureUrl} alt={pp.playerName} className="w-8 h-8 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center text-sm text-subtle">👤</div>
+                      )}
+                      <span className="flex-1 min-w-0 truncate text-sm font-medium text-accent group-hover:text-accent-hover">{pp.playerName}</span>
+                      <span className="text-sm font-semibold text-foreground tabular-nums">{pp.pointsTotal ?? 0}</span>
+                    </RouterLink>
+                  ))}
+                </div>
+              </CardContainer>
+
+              <CardContainer>
+                <div className="px-6 pt-5 pb-3 border-b border-border">
+                  <h2 className="text-base font-medium text-foreground">Deine Platzierung</h2>
+                  <p className="text-xs text-muted mt-0.5">Kennzahlen von {displayManager.shortName}</p>
+                </div>
+                <div className="px-6 py-4 grid grid-cols-2 gap-y-4 gap-x-6">
+                  <div>
+                    <p className="text-xs text-muted">Platz</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{displayManager.positionTotal ? `${displayManager.positionTotal}.` : '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted">Punkte</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{displayManager.pointsTotal ?? 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted">Spieltag</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{displayManager.pointsLastRound ?? 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted">Teamwert</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{displayManager.teamValue ? (displayManager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.</p>
+                  </div>
+                </div>
+              </CardContainer>
+
+              <CardContainer>
+                <div className="px-6 pt-5 pb-3 border-b border-border">
+                  <h2 className="text-base font-medium text-foreground">Liga in Zahlen</h2>
+                  <p className="text-xs text-muted mt-0.5">Umfang der aktuellen Saison</p>
+                </div>
+                <div className="px-6 py-4 grid grid-cols-2 gap-x-6">
+                  <div>
+                    <p className="text-xs text-muted">Manager</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{managers?.length ?? 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted">Spieler</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{seasonPlayers?.length ?? 0}</p>
+                  </div>
+                </div>
+              </CardContainer>
+            </div>
+          </div>
         </>
       )}
     </div>
