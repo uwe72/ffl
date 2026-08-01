@@ -333,7 +333,7 @@ export default function Home() {
                               {pp.pictureUrl && (
                                 <img src={pp.pictureUrl} alt={pp.playerName} className="w-9 h-9 rounded-full object-cover shrink-0" />
                               )}
-                              <span className="font-medium text-accent hover:text-accent-hover truncate">{pp.playerName}</span>
+                              <span className="font-medium text-foreground hover:text-accent hover:underline truncate">{pp.playerName}</span>
                             </RouterLink>
                           </Td>
                           <Td numeric className="text-foreground font-medium">
@@ -489,7 +489,7 @@ export default function Home() {
                           ) : (
                             <RouterLink
                               to={`/managers/${m.id}`}
-                              className="text-accent hover:text-accent-hover truncate"
+                              className="text-foreground hover:text-accent hover:underline truncate"
                             >
                               {m.shortName || '-'}
                             </RouterLink>
@@ -561,7 +561,7 @@ export default function Home() {
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center text-sm text-subtle">👤</div>
                       )}
-                      <span className="flex-1 min-w-0 truncate text-sm font-medium text-accent group-hover:text-accent-hover">{pp.playerName}</span>
+                      <span className="flex-1 min-w-0 truncate text-sm font-medium text-foreground group-hover:text-accent group-hover:underline">{pp.playerName}</span>
                       <span className="text-sm font-semibold text-foreground tabular-nums">{formatPoints(pp.pointsTotal ?? 0)}</span>
                     </RouterLink>
                   ))}

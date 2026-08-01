@@ -61,14 +61,14 @@
   --color-sidebar-active-bg: rgba(37, 99, 235, 0.22);
   --color-sidebar-active: #7fa9ff;
 
-  --color-goalkeeper: #0e7c86;
-  --color-goalkeeper-bg: #dcf0f2;
-  --color-defender: #2f6f3e;
-  --color-defender-bg: #e3f1e6;
-  --color-midfield: #2b5fb0;
-  --color-midfield-bg: #e4ecf8;
-  --color-striker: #a8412a;
-  --color-striker-bg: #f7e6e0;
+  --color-goalkeeper: #444441;
+  --color-goalkeeper-bg: #f1efe8;
+  --color-defender: #854f0b;
+  --color-defender-bg: #faeeda;
+  --color-midfield: #0f6e56;
+  --color-midfield-bg: #e1f5ee;
+  --color-striker: #993556;
+  --color-striker-bg: #fbeaf0;
 
   --color-overlay: rgba(15, 20, 27, 0.55);
   --color-overlay-dark: rgba(15, 20, 27, 0.75);
@@ -188,25 +188,25 @@ body {
 .pos-goalkeeper {
   background-color: var(--color-goalkeeper-bg);
   color: var(--color-goalkeeper);
-  border-radius: 9999px;
+  border-radius: 3px;
 }
 
 .pos-defender {
   background-color: var(--color-defender-bg);
   color: var(--color-defender);
-  border-radius: 9999px;
+  border-radius: 3px;
 }
 
 .pos-midfield {
   background-color: var(--color-midfield-bg);
   color: var(--color-midfield);
-  border-radius: 9999px;
+  border-radius: 3px;
 }
 
 .pos-striker {
   background-color: var(--color-striker-bg);
   color: var(--color-striker);
-  border-radius: 9999px;
+  border-radius: 3px;
 }
 
 .table-header th {
