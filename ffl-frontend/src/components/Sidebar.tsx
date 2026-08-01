@@ -108,9 +108,9 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         <button
           onClick={openFeedback}
           title={collapsed ? 'Feedback' : undefined}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-muted hover:bg-card-hover hover:text-primary w-full ${collapsed ? 'justify-center' : ''}`}
+          className={`flex items-center gap-3 px-3 h-[38px] rounded-lg transition-colors text-muted hover:bg-card-hover hover:text-primary w-full ${collapsed ? 'justify-center' : ''}`}
         >
-          <i className="sap-icon sap-icon-discussion text-[20px] shrink-0" />
+          <i className="sap-icon sap-icon-discussion text-[18px] shrink-0" />
           {!collapsed && <span className="text-sm font-medium">Feedback</span>}
         </button>
         {isAuthenticated && user?.role === 'ADMIN' && (
@@ -243,7 +243,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
     <>
       <aside
         className={`sidebar hidden md:flex flex-col bg-surface border-r border-border shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out`}
-        style={{ width: collapsed ? 64 : 256 }}
+        style={{ width: collapsed ? 64 : 240 }}
       >
         {sidebarContent}
       </aside>
@@ -251,7 +251,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-overlay" onClick={onCloseMobile} />
-          <aside className="sidebar absolute left-0 top-0 bottom-0 w-64 bg-surface border-r border-border flex flex-col shadow-2xl">
+          <aside className="sidebar absolute left-0 top-0 bottom-0 w-60 bg-surface border-r border-border flex flex-col shadow-2xl">
             {sidebarContent}
           </aside>
         </div>

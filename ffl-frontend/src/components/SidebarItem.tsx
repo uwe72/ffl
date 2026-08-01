@@ -21,11 +21,11 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
         <button
           onClick={onToggle}
           title={collapsed ? label : undefined}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
-            ${isActive ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-card-hover hover:text-primary'}
+          className={`w-full flex items-center gap-3 px-3 h-[38px] rounded-lg transition-colors
+            ${isActive ? 'bg-accent text-white' : 'text-muted hover:bg-card-hover hover:text-primary'}
             ${collapsed ? 'justify-center' : ''}`}
         >
-          <i className={`sap-icon ${icon} text-[20px] shrink-0`} />
+          <i className={`sap-icon ${icon} text-[18px] shrink-0`} />
           {!collapsed && (
             <>
               <span className="text-sm font-medium">{label}</span>
@@ -60,7 +60,7 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
                   key={sub.to}
                   to={sub.to}
                   className={`block px-3 py-2 rounded-lg text-sm transition-colors
-                    ${subActive ? 'text-primary bg-primary/10' : 'text-subtle hover:text-primary hover:bg-card-hover'}`}
+                    ${subActive ? 'text-white bg-accent' : 'text-subtle hover:text-primary hover:bg-card-hover'}`}
                 >
                   {sub.label}
                 </Link>
@@ -76,11 +76,11 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
     <Link
       to={to}
       title={collapsed ? label : undefined}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
-        ${isActive ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-card-hover hover:text-primary'}
+      className={`flex items-center gap-3 px-3 h-[38px] rounded-lg transition-colors
+        ${isActive ? 'bg-accent text-white' : 'text-muted hover:bg-card-hover hover:text-primary'}
         ${collapsed ? 'justify-center' : ''}`}
     >
-      <i className={`sap-icon ${icon} text-[20px] shrink-0`} />
+      <i className={`sap-icon ${icon} text-[18px] shrink-0`} />
       {!collapsed && <span className="text-sm font-medium">{label}</span>}
     </Link>
   )
