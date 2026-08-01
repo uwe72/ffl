@@ -259,8 +259,7 @@ export default function Home() {
                 </label>
               }
             >
-              <div className="flex-1 px-6 py-6 overflow-x-auto">
-              <div className="rounded-card border border-border hidden md:block">
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full table-fixed">
                   <colgroup>
                     <col className="w-[56px]" />
@@ -389,11 +388,10 @@ export default function Home() {
                 </table>
               </div>
 
-              <div className="md:hidden grid gap-4 mt-4">
+              <div className="md:hidden grid gap-4 px-6 py-4">
                 {sortedPlayerPoints.map(pp => (
                   <PlayerCardDashboard key={pp.playerId} player={pp} />
                 ))}
-              </div>
               </div>
             </CardContainer>
           )}
@@ -439,8 +437,7 @@ export default function Home() {
               </>
             }
           >
-            <div className="flex-1 px-6 py-6 overflow-x-auto">
-            <div className={`rounded-card border border-border ${!showAllManagers ? 'max-h-[264px] overflow-y-auto' : ''}`}>
+            <div className="overflow-x-auto">
               <table className={`w-full ${isMobile ? 'min-w-[500px]' : 'table-fixed'}`}>
                 {!isMobile && (
                   <colgroup>
@@ -544,7 +541,6 @@ export default function Home() {
                   })}
                 </TableBody>
               </table>
-            </div>
             </div>
           </CardContainer>
             </div>
