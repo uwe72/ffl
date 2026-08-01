@@ -33,7 +33,7 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
     : null
 
   return (
-    <div className="hero-fade relative h-56 shrink-0 overflow-hidden">
+    <div className="hero hero-fade relative h-56 shrink-0 overflow-hidden">
       <div
         className="absolute inset-0 bg-[length:100%_auto] bg-right bg-no-repeat"
         style={{ backgroundImage: 'url(/hero-banner.png)' }}
@@ -43,6 +43,10 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
           style={{
             background: 'linear-gradient(to right, rgba(10,14,20,0.70) 0%, rgba(10,14,20,0.40) 40%, rgba(10,14,20,0.08) 70%, rgba(10,14,20,0.02) 100%)',
           }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: 'rgba(10,16,24,0.55)' }}
         />
       </div>
 
@@ -64,7 +68,7 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
             {season && (
               <div className="flex items-center gap-3 mt-1">
                 <span className="text-sm text-muted">Saison {season.name}</span>
-                <Badge>{phaseLabel}</Badge>
+                <Badge variant="solid">{phaseLabel}</Badge>
                 {season.currentMatchday && (
                   <span className="text-sm text-muted">{season.currentMatchday}. Spieltag</span>
                 )}

@@ -134,6 +134,12 @@ body {
   color: var(--color-sidebar-foreground);
 }
 
+.hero {
+  --color-foreground: #ffffff;
+  --color-muted: #93a1b0;
+  --color-subtle: #93a1b0;
+}
+
 .hero-stat-card {
   background-color: rgba(18, 22, 28, 0.6);
   backdrop-filter: blur(12px);
