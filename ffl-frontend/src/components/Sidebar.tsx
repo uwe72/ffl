@@ -69,24 +69,6 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className={`px-4 py-4 border-b border-border ${collapsed ? 'flex justify-center' : ''}`}>
-        {collapsed ? (
-          <div className="flex flex-col items-center">
-            <img src="/menubar.png" alt="FFL" className="w-[90px] h-[90px] rounded object-contain" />
-            <span className="text-[9px] text-warning mt-1">V{formattedDate}{isProd ? '' : ' (Test)'}</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <img src="/menubar.png" alt="FFL" className="w-[90px] h-[90px] rounded object-contain" />
-            <div className="flex flex-col min-w-0 gap-1">
-              <span className="text-lg font-bold text-primary tracking-wide truncate">FFL</span>
-              <span className="text-xs text-subtle tracking-widest">FANTASY FOOTBALL LEAGUE</span>
-              <span className="text-[10px] text-[#c9a66b]">V{formattedDate}{isProd ? '' : ' (Test)'}</span>
-            </div>
-          </div>
-        )}
-      </div>
-
       <nav className="flex-1 px-2 py-4 flex flex-col gap-1 overflow-y-auto">
         {!isRestricted && (
           <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
@@ -219,7 +201,10 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         )}
       </div>
 
-      <div className={`px-2 py-2 border-t border-border ${collapsed ? 'flex justify-center' : ''}`}>
+      <div className={`px-2 py-2 border-t border-border ${collapsed ? 'flex flex-col items-center gap-1' : 'flex items-center justify-between gap-2'}`}>
+        <span className={`${collapsed ? 'text-[9px]' : 'text-[10px] pl-1'} ${isProd ? 'text-sidebar-muted' : 'text-sidebar-warning'}`}>
+          V{formattedDate}{isProd ? '' : ' (Test)'}
+        </span>
         <button
           onClick={() => handleToggleCollapse(!collapsed)}
           className="p-2 rounded-lg text-subtle hover:text-muted hover:bg-card-hover transition-colors"

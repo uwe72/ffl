@@ -17,11 +17,11 @@ export default function Layout() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
+    <div className="flex flex-col h-screen overflow-hidden bg-background">
+      <HeroSection onMenuClick={() => setMobileOpen(true)} />
 
-      <div className="flex flex-col flex-1 min-w-0">
-        <HeroSection onMenuClick={() => setMobileOpen(true)} />
+      <div className="flex flex-1 min-h-0">
+        <Sidebar mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
 
         <main className="flex-1 min-w-0 overflow-y-auto bg-page pt-[30px] pb-4 md:pb-6">
           <div className="w-full max-w-[1440px] px-[30px]">
