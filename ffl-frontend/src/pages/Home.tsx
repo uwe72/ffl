@@ -271,19 +271,15 @@ export default function Home() {
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full table-fixed">
                   <colgroup>
-                    <col className="w-[56px]" />
-                    <col className="w-[56px]" />
-                    <col />
-                    <col className="w-[72px]" />
-                    <col className="w-[88px]" />
-                    {!isMobile && (
-                      <>
-                        <col className="w-[88px]" />
-                        <col className="w-[120px]" />
-                      </>
-                    )}
-                    <col className="w-[140px]" />
-                    <col className="w-[200px]" />
+                    <col className="w-[60px]" />
+                    <col className="w-[60px]" />
+                    <col className="max-w-[260px]" />
+                    <col className="w-[70px]" />
+                    <col className="w-[90px]" />
+                    <col className="w-[90px]" />
+                    <col className="w-[120px]" />
+                    <col className="w-[110px]" />
+                    <col className="w-[180px]" />
                   </colgroup>
                   <TableHead>
                     <tr>
@@ -302,16 +298,12 @@ export default function Home() {
                       <ThSortable numeric onClick={() => handlePlayerSort('pointsLastRound')}>
                         Spieltag<SortIcon column="pointsLastRound" activeKey={playerSortKey} order={playerSortOrder} />
                       </ThSortable>
-                      {!isMobile && (
-                        <>
-                          <ThSortable numeric onClick={() => handlePlayerSort('managerCount')}>
-                            Manager<SortIcon column="managerCount" activeKey={playerSortKey} order={playerSortOrder} />
-                          </ThSortable>
-                          <ThSortable numeric onClick={() => handlePlayerSort('prize')}>
-                            Preis<SortIcon column="prize" activeKey={playerSortKey} order={playerSortOrder} />
-                          </ThSortable>
-                        </>
-                      )}
+                      <ThSortable numeric onClick={() => handlePlayerSort('managerCount')}>
+                        Manager<SortIcon column="managerCount" activeKey={playerSortKey} order={playerSortOrder} />
+                      </ThSortable>
+                      <ThSortable numeric onClick={() => handlePlayerSort('prize')}>
+                        Preis<SortIcon column="prize" activeKey={playerSortKey} order={playerSortOrder} />
+                      </ThSortable>
                       <ThSortable align="left" onClick={() => handlePlayerSort('position')}>
                         Position<SortIcon column="position" activeKey={playerSortKey} order={playerSortOrder} />
                       </ThSortable>
@@ -353,22 +345,18 @@ export default function Home() {
                           <Td numeric className="text-muted">
                             {formatPoints(pp.pointsLastRound)}
                           </Td>
-                          {!isMobile && (
-                            <>
-                              <Td numeric>
-                                <RouterLink to={`/players/${pp.playerId}`}>
-                                  <span
-                                    className={`${pp.managerCount && pp.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded cursor-pointer hover:opacity-80`}
-                                  >
-                                    {pp.managerCount ?? 0}
-                                  </span>
-                                </RouterLink>
-                              </Td>
-                              <Td numeric className="text-foreground">
-                                {formatCurrency(pp.prize)}
-                              </Td>
-                            </>
-                          )}
+                          <Td numeric>
+                            <RouterLink to={`/players/${pp.playerId}`}>
+                              <span
+                                className={`${pp.managerCount && pp.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded cursor-pointer hover:opacity-80`}
+                              >
+                                {pp.managerCount ?? 0}
+                              </span>
+                            </RouterLink>
+                          </Td>
+                          <Td numeric className="text-foreground">
+                            {formatCurrency(pp.prize)}
+                          </Td>
                           <Td>
                             {pp.position && (
                               <Badge variant={positionBadgeVariant[pp.position]}>
@@ -439,14 +427,14 @@ export default function Home() {
               <table className={`w-full ${isMobile ? 'min-w-[500px]' : 'table-fixed'}`}>
                 {!isMobile && (
                   <colgroup>
-                    <col className="w-[64px]" />
-                    <col className="w-[64px]" />
-                    <col className="w-[160px]" />
-                    <col className="w-[80px]" />
-                    <col className="w-[96px]" />
+                    <col className="w-[60px]" />
+                    <col className="w-[60px]" />
+                    <col className="max-w-[200px]" />
+                    <col className="w-[70px]" />
+                    <col className="w-[90px]" />
                     <col />
                     <col />
-                    <col className="w-[140px]" />
+                    <col className="w-[130px]" />
                   </colgroup>
                 )}
                 <TableHead>
