@@ -1023,9 +1023,10 @@ export default function MyTeam() {
 
   const renderPlayerCard = (player: Player, highlight?: 'replaced' | 'new') => {
     const team = player.teams && player.teams.length > 0 ? player.teams[player.teams.length - 1] : null
-    const ringClass = highlight === 'replaced' ? 'ring-1 ring-danger/50' : highlight === 'new' ? 'ring-1 ring-success/50' : ''
+    const highlightClass = highlight ? 'border-2 border-accent' : ''
+    const badge = highlight === 'replaced' ? 'Wechsel' : highlight === 'new' ? 'Neu' : null
     return (
-      <div className={`bg-white border border-border rounded-md p-3 flex items-center gap-2 transition-colors ${ringClass}`}>
+      <div className={`bg-white border border-border rounded-md p-3 flex items-center gap-2 transition-colors ${highlightClass}`}>
         <div className="shrink-0">
           {player.pictureUrl ? (
             <img src={player.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -1036,9 +1037,14 @@ export default function MyTeam() {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-foreground leading-tight truncate">
-            {player.firstName && player.lastName ? `${player.firstName} ${player.lastName}` : player.nameKicker}
-          </p>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <p className="text-xs font-medium text-foreground leading-tight truncate">
+              {player.firstName && player.lastName ? `${player.firstName} ${player.lastName}` : player.nameKicker}
+            </p>
+            {badge && (
+              <span className="text-[10px] font-semibold text-accent border border-accent rounded px-1 py-0.5 leading-none shrink-0">{badge}</span>
+            )}
+          </div>
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>
               {positionLabels[player.position]}
@@ -1283,7 +1289,8 @@ export default function MyTeam() {
                       value={selectedPlayers[slot.key]}
                       onChange={(id) => setSelectedPlayers(prev => ({ ...prev, [slot.key]: id }))}
                       disabled={!isBeforeSeason}
-                      highlightClass={selectedPlayers[slot.key] && activeReplacedIds.has(selectedPlayers[slot.key]!) ? 'ring-1 ring-danger/50' : undefined}
+                      highlightClass={selectedPlayers[slot.key] && activeReplacedIds.has(selectedPlayers[slot.key]!) ? 'border-2 border-accent' : undefined}
+                      badge={selectedPlayers[slot.key] && activeReplacedIds.has(selectedPlayers[slot.key]!) ? 'Wechsel' : undefined}
                     />
                   ))}
                 </div>

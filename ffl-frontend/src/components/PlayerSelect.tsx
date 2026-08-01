@@ -23,6 +23,7 @@ export default function PlayerSelect({
   onChange,
   disabled,
   highlightClass,
+  badge,
 }: {
   slot: PlayerSlot
   players: Player[]
@@ -31,6 +32,7 @@ export default function PlayerSelect({
   onChange: (id: number | null) => void
   disabled?: boolean
   highlightClass?: string
+  badge?: string
 }) {
   const [search, setSearch] = useState('')
   const [priceMin, setPriceMin] = useState('')
@@ -116,11 +118,16 @@ export default function PlayerSelect({
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-foreground leading-tight truncate">
-            {selectedPlayer.firstName && selectedPlayer.lastName
-              ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
-              : selectedPlayer.nameKicker}
-          </p>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <p className="text-xs font-medium text-foreground leading-tight truncate">
+              {selectedPlayer.firstName && selectedPlayer.lastName
+                ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
+                : selectedPlayer.nameKicker}
+            </p>
+            {badge && (
+              <span className="text-[10px] font-semibold text-accent border border-accent rounded px-1 py-0.5 leading-none shrink-0">{badge}</span>
+            )}
+          </div>
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className={`${positionColors[selectedPlayer.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>
               {positionLabels[selectedPlayer.position]}
