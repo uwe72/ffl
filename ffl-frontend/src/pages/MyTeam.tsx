@@ -1072,7 +1072,7 @@ export default function MyTeam() {
   }
 
   return (
-    <div className="pt-8">
+    <div>
       {isBeforeSeason && season?.seasonStartDate && (
         <div className="flex items-center gap-3 p-3 bg-accent-muted border border-accent/30 rounded-lg mb-6">
           <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0" />
