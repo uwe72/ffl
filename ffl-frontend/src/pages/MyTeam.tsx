@@ -1233,7 +1233,7 @@ export default function MyTeam() {
 
       <div className="mt-2">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-y-2">
-          <h2 className="text-sm font-semibold text-foreground">Aufstellung{seasonPhase ? ` (${seasonPhase})` : ''}</h2>
+          <h2 className="text-sm font-semibold text-foreground">Aufstellung (Hinrunde)</h2>
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-4 text-xs">
               <span className="text-muted">Budget: <span className="text-foreground font-medium">{budget.toLocaleString('de-DE')} €</span></span>
