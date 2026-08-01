@@ -1,6 +1,7 @@
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
 import Badge from './Badge'
+import { deriveSeasonPhase } from '../utils/season'
 
 interface HeroSectionProps {
   onMenuClick: () => void
@@ -18,11 +19,9 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
   const { user } = useAuth()
 
   const phaseLabel = season
-    ? season.seasonState === 'RUNNING_HINRUNDE'
-      ? 'Hinrunde'
-      : season.seasonState === 'RUNNING_RUECKRUNDE'
-        ? 'Rückrunde'
-        : 'Vor Saison'
+    ? season.seasonState === 'BEFORE_SEASON'
+      ? 'Vor Saison'
+      : deriveSeasonPhase(season.currentMatchday, season.startRoundRueckrunde)
     : null
 
   return (

@@ -7,6 +7,7 @@
     "predev": "npx -y kill-port 5173",
     "dev": "vite",
     "build": "tsc && vite build",
+    "test:unit": "npx --yes tsx --test src/utils/season.test.ts",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
