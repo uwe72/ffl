@@ -258,20 +258,23 @@ export default function Home() {
       {displayManager && (
         <>
           {currentPlayers && currentPlayers.length > 0 && (
-            <CardContainer className="mb-8">
-              <div className="px-6 pt-6 pb-2">
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-[#a0aec0]">
+            <CardContainer
+              className="mb-8"
+              title="Deine Spieler"
+              subtitle="Punkte und Marktwerte deiner Aufstellung"
+              headerRight={
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-muted">
                   <input
                     type="checkbox"
                     checked={!showAllPlayers}
                     onChange={() => setShowAllPlayers(!showAllPlayers)}
-                    className="accent-primary"
+                    className="accent-accent"
                   />
                   Nur Punktende
                 </label>
-              </div>
-
-              <div className="flex-1 px-6 pb-6 overflow-x-auto">
+              }
+            >
+              <div className="flex-1 px-6 py-6 overflow-x-auto">
               <div className="rounded-card border border-border hidden md:block">
                 <table className="w-full table-fixed">
                   <colgroup>
@@ -412,41 +415,46 @@ export default function Home() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             <div className="lg:col-span-2">
-          <CardContainer>
-            <div className="flex items-center gap-2 px-6 py-3 flex-wrap border-b border-border bg-elevated/50">
-              <div className="relative min-w-[140px] max-w-[220px]">
-                <i className="sap-icon sap-icon-search absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-subtle" />
-                <input
-                  type="text"
-                  value={managerFilter}
-                  onChange={e => setManagerFilter(e.target.value)}
-                  placeholder="Manager suchen..."
-                  className="input-field pl-8 pr-3 py-1.5 text-xs w-full"
-                />
-              </div>
+          <CardContainer
+            title="Rangliste der Manager"
+            subtitle="Aktuelle Platzierung in der Liga"
+            headerRight={
+              <>
+                <div className="relative min-w-[140px] max-w-[220px]">
+                  <i className="sap-icon sap-icon-search absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-subtle" />
+                  <input
+                    type="text"
+                    value={managerFilter}
+                    onChange={e => setManagerFilter(e.target.value)}
+                    placeholder="Manager suchen..."
+                    className="input-field pl-8 pr-3 py-1.5 text-xs w-full"
+                  />
+                </div>
 
-              <button
-                onClick={() => setShowAllManagers(!showAllManagers)}
-                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border transition-colors ${!showAllManagers ? 'bg-primary/10 text-primary border-primary/20' : 'bg-elevated text-muted border-border'}`}
-              >
-                <i className="sap-icon sap-icon-expand-group text-[12px]" />
-                Ausschnitt
-              </button>
-
-              {(managerFilter || !showAllManagers) && (
                 <button
-                  onClick={() => {
-                    setManagerFilter('')
-                    setShowAllManagers(false)
-                  }}
-                  className="p-1 rounded text-subtle hover:text-danger transition-colors"
-                  title="Filter zurücksetzen"
+                  onClick={() => setShowAllManagers(!showAllManagers)}
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border transition-colors ${!showAllManagers ? 'bg-accent/10 text-accent border-accent/20' : 'bg-elevated text-muted border-border'}`}
                 >
-                  <i className="sap-icon sap-icon-decline text-[14px]" />
+                  <i className="sap-icon sap-icon-expand-group text-[12px]" />
+                  Ausschnitt
                 </button>
-              )}
-            </div>
-            <div className="flex-1 px-6 pb-6 overflow-x-auto">
+
+                {(managerFilter || !showAllManagers) && (
+                  <button
+                    onClick={() => {
+                      setManagerFilter('')
+                      setShowAllManagers(false)
+                    }}
+                    className="p-1 rounded text-subtle hover:text-danger transition-colors"
+                    title="Filter zurücksetzen"
+                  >
+                    <i className="sap-icon sap-icon-decline text-[14px]" />
+                  </button>
+                )}
+              </>
+            }
+          >
+            <div className="flex-1 px-6 py-6 overflow-x-auto">
             <div className={`rounded-card border border-border ${!showAllManagers ? 'max-h-[264px] overflow-y-auto' : ''}`}>
               <table className={`w-full ${isMobile ? 'min-w-[500px]' : 'table-fixed'}`}>
                 {!isMobile && (
@@ -557,11 +565,7 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-6">
-              <CardContainer>
-                <div className="px-6 pt-5 pb-3 border-b border-border">
-                  <h2 className="text-base font-medium text-foreground">Topspieler nach Punkten</h2>
-                  <p className="text-xs text-muted mt-0.5">Deine punktbesten Spieler</p>
-                </div>
+              <CardContainer title="Topspieler nach Punkten" subtitle="Deine punktbesten Spieler">
                 <div className="px-6 py-4 flex flex-col gap-3">
                   {topPlayers.length === 0 && (
                     <p className="text-sm text-muted">Keine Daten vorhanden</p>
@@ -585,11 +589,7 @@ export default function Home() {
                 </div>
               </CardContainer>
 
-              <CardContainer>
-                <div className="px-6 pt-5 pb-3 border-b border-border">
-                  <h2 className="text-base font-medium text-foreground">Deine Platzierung</h2>
-                  <p className="text-xs text-muted mt-0.5">Kennzahlen von {displayManager.shortName}</p>
-                </div>
+              <CardContainer title="Deine Platzierung" subtitle={`Kennzahlen von ${displayManager.shortName}`}>
                 <div className="px-6 py-4 grid grid-cols-2 gap-y-4 gap-x-6">
                   <div>
                     <p className="text-xs text-muted">Platz</p>
@@ -610,19 +610,15 @@ export default function Home() {
                 </div>
               </CardContainer>
 
-              <CardContainer>
-                <div className="px-6 pt-5 pb-3 border-b border-border">
-                  <h2 className="text-base font-medium text-foreground">Liga in Zahlen</h2>
-                  <p className="text-xs text-muted mt-0.5">Umfang der aktuellen Saison</p>
-                </div>
+              <CardContainer title="Liga in Zahlen" subtitle="Umfang der aktuellen Saison">
                 <div className="px-6 py-4 grid grid-cols-2 gap-x-6">
                   <div>
                     <p className="text-xs text-muted">Manager</p>
-                    <p className="text-2xl font-bold text-foreground tabular-nums">{managers?.length ?? 0}</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{formatPoints(managers?.length ?? 0)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted">Spieler</p>
-                    <p className="text-2xl font-bold text-foreground tabular-nums">{seasonPlayers?.length ?? 0}</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{formatPoints(seasonPlayers?.length ?? 0)}</p>
                   </div>
                 </div>
               </CardContainer>
