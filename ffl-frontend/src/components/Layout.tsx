@@ -23,8 +23,8 @@ export default function Layout() {
       <div className="flex flex-col flex-1 min-w-0">
         <HeroSection onMenuClick={() => setMobileOpen(true)} />
 
-        <main className="flex-1 min-w-0 overflow-y-auto bg-page pt-5 pb-4 md:pb-6">
-          <div className="w-full max-w-[1440px] px-5">
+        <main className="flex-1 min-w-0 overflow-y-auto bg-page pt-[25px] pb-4 md:pb-6">
+          <div className="w-full max-w-[1440px] px-[25px]">
             <Outlet />
           </div>
         </main>
