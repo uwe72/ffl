@@ -1125,7 +1125,7 @@ export default function MyTeam() {
         </div>
       )}
 
-      <div className="max-w-[720px] p-4 bg-surface border border-border rounded-lg mb-6">
+      <div className="max-w-4xl p-4 bg-surface border border-border rounded-lg mb-6">
         <h3 className="text-sm font-semibold text-foreground mb-3">Persönliche Daten</h3>
         <div className="flex flex-col sm:flex-row gap-6">
           <div className="relative group w-16 h-16 shrink-0">
