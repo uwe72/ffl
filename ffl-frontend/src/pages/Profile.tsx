@@ -56,7 +56,7 @@ export default function Profile() {
 
   return (
     <div>
-      <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+      <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Startseite
       </RouterLink>
@@ -72,7 +72,7 @@ export default function Profile() {
               value={user.login}
               readOnly
               disabled
-              className="input-field w-full px-2 py-1 rounded text-sm opacity-60 cursor-not-allowed"
+              className="input-field w-full px-2 py-1 rounded text-sm"
             />
           </div>
           <div className="w-[320px] max-w-full">
@@ -91,7 +91,7 @@ export default function Profile() {
               value={user.firstName || '-'}
               readOnly
               disabled
-              className="input-field w-full px-2 py-1 rounded text-sm opacity-60 cursor-not-allowed"
+              className="input-field w-full px-2 py-1 rounded text-sm"
             />
           </div>
           <div className="w-[320px] max-w-full">
@@ -101,7 +101,7 @@ export default function Profile() {
               value={user.lastName || '-'}
               readOnly
               disabled
-              className="input-field w-full px-2 py-1 rounded text-sm opacity-60 cursor-not-allowed"
+              className="input-field w-full px-2 py-1 rounded text-sm"
             />
           </div>
           <div className="w-[320px] max-w-full">

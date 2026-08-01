@@ -10,6 +10,7 @@ import PlayerSelect from '../components/PlayerSelect'
 import type { PlayerSlot } from '../components/PlayerSelect'
 import { TableHead, Th, TableBody, Td } from '../components/Table'
 import { positionLabels, positionColors } from './Players'
+import { positionTextColor, positionDotColor } from '../utils/positions'
 import type { Player, Season, Position } from '../types'
 
 interface FieldErrors {
@@ -865,11 +866,11 @@ export default function Register() {
                     const slots = getVisibleSlots(group)
                     return (
                       <div key={group.label} className="bg-elevated/30 rounded-lg p-3">
-                        <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-2 flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                        <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2 ${positionTextColor[group.position]}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${positionDotColor[group.position]}`} />
                           {group.label}
                           {group.position === freePosition && (
-                            <span className="text-[10px] text-accent/60 font-normal normal-case tracking-normal ml-1">+1 Freie Wahl</span>
+                            <span className="text-[10px] text-muted font-normal normal-case tracking-normal ml-1">+1 Freie Wahl</span>
                           )}
                         </h3>
                         <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

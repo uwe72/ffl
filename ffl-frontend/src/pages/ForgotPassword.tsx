@@ -129,7 +129,7 @@ export default function ForgotPassword() {
                     if (fieldError) validateEmail(e.target.value)
                   }}
                   onBlur={() => validateEmail(email)}
-                  className={`input-field w-full px-3 py-2 text-sm ${fieldError ? 'border-danger focus:border-danger' : ''} ${logins.length > 0 ? 'opacity-60' : ''}`}
+                  className={`input-field w-full px-3 py-2 text-sm ${fieldError ? 'border-danger focus:border-danger' : ''}`}
                 />
                 {fieldError && (
                   <p className="text-xs text-danger mt-1">{fieldError}</p>

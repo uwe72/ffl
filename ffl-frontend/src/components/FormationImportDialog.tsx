@@ -470,7 +470,7 @@ export default function FormationImportDialog({
                       type="text"
                       value={currentMissing?.playerName || ''}
                       disabled
-                      className="input-field w-full px-3 py-2 opacity-60"
+                      className="input-field w-full px-3 py-2"
                     />
                   </div>
                   <div>
@@ -495,7 +495,7 @@ export default function FormationImportDialog({
                       type="text"
                       value={currentMissing.teamName || ''}
                       disabled
-                      className="input-field w-full px-3 py-2 opacity-60"
+                      className="input-field w-full px-3 py-2"
                     />
                   ) : (
                     <select

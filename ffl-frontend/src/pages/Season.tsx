@@ -312,7 +312,7 @@ export default function Season() {
               <input
                 value={season.currentMatchday?.toString() ?? '-'}
                 readOnly
-                className="input-field w-full px-3 py-2 rounded focus:outline-none opacity-70"
+                className="input-field w-full px-3 py-2 rounded focus:outline-none"
               />
             </FormCard>
 

@@ -84,7 +84,7 @@ export default function UserDetail() {
 
   return (
     <div>
-      <RouterLink to="/users" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+      <RouterLink to="/users" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
@@ -97,7 +97,7 @@ export default function UserDetail() {
           <input
             value={user.login}
             readOnly
-            className="input-field w-full px-3 py-2 rounded focus:outline-none opacity-70"
+            className="input-field w-full px-3 py-2 rounded focus:outline-none"
           />
         </FormCard>
 

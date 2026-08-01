@@ -3,23 +3,24 @@
 
 @theme {
   --color-background: #12161c;
-  --color-page: #f3f5f8;
+  --color-page: #e9edf3;
   --color-surface: #ffffff;
   --color-card: #ffffff;
   --color-card-hover: #eef2f6;
-  --color-elevated: #e9edf2;
-  --color-subtle-bg: #e9edf2;
+  --color-elevated: #dde3ea;
+  --color-subtle-bg: #dde3ea;
 
   --color-foreground: #16202b;
   --color-text-primary: #16202b;
-  --color-muted: #5b6b7c;
-  --color-subtle: #5b6b7c;
-  --color-text-disabled: #97a4b2;
-  --color-placeholder: #8494a3;
+  --color-muted: #4b5a6b;
+  --color-subtle: #566575;
+  --color-text-disabled: #7c8a99;
+  --color-placeholder: #6f7f8f;
 
-  --color-border: #d8dee6;
-  --color-border-subtle: #e3e8ee;
-  --color-border-hover: #c3ccd7;
+  --color-border: #c1cad5;
+  --color-border-subtle: #dbe1e8;
+  --color-border-hover: #8e9cab;
+  --color-border-strong: #8b96a4;
   --color-border-active: #2563eb;
 
   --color-accent: #2563eb;
@@ -27,11 +28,11 @@
   --color-accent-muted: rgba(37, 99, 235, 0.12);
   --color-accent-ring: rgba(37, 99, 235, 0.35);
 
-  --color-default: #e9edf2;
+  --color-default: #dde3ea;
   --color-default-foreground: #16202b;
   --color-primary: #2563eb;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #e9edf2;
+  --color-secondary: #dde3ea;
   --color-secondary-foreground: #16202b;
   --color-button-primary-hover: #1d4ed8;
 
@@ -111,7 +112,7 @@ body {
   background-color: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  box-shadow: 0 1px 2px rgba(22, 32, 43, 0.06);
+  box-shadow: 0 1px 3px rgba(22, 32, 43, 0.10);
 }
 
 .card:hover {
@@ -125,6 +126,7 @@ body {
   --color-elevated: var(--color-sidebar-hover);
   --color-border: var(--color-sidebar-border);
   --color-border-hover: var(--color-sidebar-border);
+  --color-border-strong: var(--color-sidebar-border);
   --color-foreground: var(--color-sidebar-foreground);
   --color-muted: var(--color-sidebar-muted);
   --color-subtle: var(--color-sidebar-muted);
@@ -241,13 +243,21 @@ body {
 
 .input-field {
   background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   color: var(--color-foreground);
   border-radius: var(--radius-control);
 }
 
 .input-field::placeholder {
   color: var(--color-placeholder);
+}
+
+.input-field:disabled,
+.input-field[readonly] {
+  background-color: var(--color-elevated);
+  border-color: var(--color-border);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
 }
 
 .input-field:focus {

@@ -12,6 +12,7 @@ import type { PlayerSlot } from '../components/PlayerSelect'
 import type { Player, Season, Position, Manager } from '../types'
 import type { AxiosError } from 'axios'
 import { positionLabels, positionColors } from './Players'
+import { positionTextColor, positionDotColor, positionEdgeColor } from '../utils/positions'
 import { DEFAULT_START_ROUND_RUECKRUNDE } from '../utils/season'
 
 const PLAYER_SLOTS: PlayerSlot[] = [
@@ -170,7 +171,7 @@ function OldPlayerSearch({
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     return (
-      <div className="group bg-white border border-border rounded-md p-3 flex items-center gap-2 transition-colors hover:border-[#a9b4c0]">
+      <div className={`group bg-surface border border-border ${positionEdgeColor[selectedPlayer.position]} rounded-md p-3 flex items-center gap-2 transition-colors hover:border-border-hover`}>
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
             <img src={selectedPlayer.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -342,7 +343,7 @@ function TransferPlayerSearch({
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     return (
-      <div className="group bg-white border border-border rounded-md p-3 flex items-center gap-2 transition-colors hover:border-[#a9b4c0]">
+      <div className={`group bg-surface border border-border ${positionEdgeColor[selectedPlayer.position]} rounded-md p-3 flex items-center gap-2 transition-colors hover:border-border-hover`}>
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
             <img src={selectedPlayer.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -993,7 +994,7 @@ export default function MyTeam() {
   if (notFound) {
     return (
       <div>
-        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
           <i className="sap-icon sap-icon-nav-back text-base" />
           Zurück zur Startseite
         </RouterLink>
@@ -1009,7 +1010,7 @@ export default function MyTeam() {
   if (!manager) {
     return (
       <div>
-        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
           <i className="sap-icon sap-icon-nav-back text-base" />
           Zurück zur Startseite
         </RouterLink>
@@ -1026,7 +1027,7 @@ export default function MyTeam() {
     const highlightClass = highlight ? 'border-2 border-accent' : ''
     const badge = badgeLabel ?? (highlight === 'replaced' ? 'Wechsel' : highlight === 'new' ? 'Neu' : null)
     return (
-      <div className={`bg-white border border-border rounded-md p-3 flex items-center gap-2 transition-colors ${highlightClass}`}>
+      <div className={`bg-surface border border-border ${positionEdgeColor[player.position]} rounded-md p-3 flex items-center gap-2 transition-colors ${highlightClass}`}>
         <div className="shrink-0">
           {player.pictureUrl ? (
             <img src={player.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -1108,8 +1109,8 @@ export default function MyTeam() {
         </div>
       )}
 
-      <div className="max-w-4xl p-4 bg-surface border border-border rounded-lg mb-6">
-        <h3 className="text-sm font-semibold text-foreground mb-3">Persönliche Daten</h3>
+      <div className="max-w-4xl p-4 bg-card border border-border rounded-card shadow-sm mb-6">
+        <h3 className="text-base font-semibold text-foreground mb-3">Persönliche Daten</h3>
         <div className="flex flex-col sm:flex-row gap-6">
           <div className="relative group w-16 h-16 shrink-0">
             <button
@@ -1163,7 +1164,7 @@ export default function MyTeam() {
                   value={manager?.login || '-'}
                   readOnly
                   disabled
-                  className="input-field w-full px-2 py-1 rounded text-sm mt-0.5 opacity-60 cursor-not-allowed"
+                  className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
                 />
               </div>
               <div className="min-w-0">
@@ -1183,7 +1184,7 @@ export default function MyTeam() {
                   onChange={isBeforeSeason ? (e) => setProfileFirstName(e.target.value) : undefined}
                   readOnly={!isBeforeSeason}
                   disabled={!isBeforeSeason}
-                  className={`input-field w-full px-2 py-1 rounded text-sm mt-0.5${!isBeforeSeason ? ' opacity-60 cursor-not-allowed' : ''}`}
+                  className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
                 />
               </div>
               <div className="min-w-0">
@@ -1194,7 +1195,7 @@ export default function MyTeam() {
                   onChange={isBeforeSeason ? (e) => setProfileLastName(e.target.value) : undefined}
                   readOnly={!isBeforeSeason}
                   disabled={!isBeforeSeason}
-                  className={`input-field w-full px-2 py-1 rounded text-sm mt-0.5${!isBeforeSeason ? ' opacity-60 cursor-not-allowed' : ''}`}
+                  className="input-field w-full px-2 py-1 rounded text-sm mt-0.5"
                 />
               </div>
             </div>
@@ -1226,7 +1227,7 @@ export default function MyTeam() {
 
       <div className="mt-2">
         <div className="flex flex-col items-start mb-4 gap-y-2">
-          <h2 className="text-sm font-semibold text-foreground">Aufstellung (Hinrunde)</h2>
+            <h2 className="text-base font-semibold text-foreground">Aufstellung (Hinrunde)</h2>
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-4 text-xs flex-wrap">
               <span className="text-muted">Budget: <span className="text-foreground font-medium">{budget.toLocaleString('de-DE')} €</span></span>
@@ -1262,11 +1263,11 @@ export default function MyTeam() {
             const slots = getVisibleSlots(group)
             return (
               <div key={group.label} className="mb-4">
-                <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2 ${positionTextColor[group.position]}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${positionDotColor[group.position]}`} />
                   {group.label}
                   {group.position === freePosition && (
-                    <span className="text-[10px] text-accent/60 font-normal normal-case tracking-normal ml-1">+1 Freie Wahl</span>
+                    <span className="text-[10px] text-muted font-normal normal-case tracking-normal ml-1">+1 Freie Wahl</span>
                   )}
                 </h3>
                 <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
@@ -1318,14 +1319,14 @@ export default function MyTeam() {
       {isHinrunde && (
         <div className="mt-6">
           <div className="flex flex-col items-start mb-4 gap-y-2">
-            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <i className="sap-icon sap-icon-switch-classes text-accent" />
               Winterwechsel
               <span className="text-[11px] text-muted font-normal">({transfers.length}/3)</span>
             </h2>
             <div className="flex items-center gap-3 flex-wrap">
               {transferDiff !== 0 && (
-                <span className={`text-xs font-semibold ${transferDiff > 0 ? 'text-[#10804f]' : 'text-[#c2372c]'}`}>
+                <span className={`text-xs font-semibold ${transferDiff > 0 ? 'text-up' : 'text-down'}`}>
                   {transferDiff > 0 ? '+' : ''}{transferDiff.toLocaleString('de-DE')} €
                 </span>
               )}
@@ -1479,12 +1480,12 @@ export default function MyTeam() {
       {isRueckrunde && hasExistingTransfers && (
         <div className="mt-6">
           <div className="flex flex-col items-start mb-4 gap-y-2">
-            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <i className="sap-icon sap-icon-switch-classes text-accent" />
               Winterwechsel
             </h2>
             {existingTransferDiff !== 0 && (
-              <span className={`text-xs font-semibold ${existingTransferDiff > 0 ? 'text-[#10804f]' : 'text-[#c2372c]'}`}>
+                <span className={`text-xs font-semibold ${existingTransferDiff > 0 ? 'text-up' : 'text-down'}`}>
                 {existingTransferDiff > 0 ? '+' : ''}{existingTransferDiff.toLocaleString('de-DE')} €
               </span>
             )}
@@ -1515,7 +1516,7 @@ export default function MyTeam() {
       {hasActiveTransfers && (
         <div className="mt-6">
           <div className="flex flex-col items-start mb-4 gap-y-2">
-            <h2 className="text-sm font-semibold text-foreground">Aufstellung (Rückrunde)</h2>
+            <h2 className="text-base font-semibold text-foreground">Aufstellung (Rückrunde)</h2>
             <div className="flex items-center gap-4 text-xs flex-wrap">
               <span className="text-muted">Budget: <span className="text-foreground font-medium">{budget.toLocaleString('de-DE')} €</span></span>
               <span className="text-muted">Ausgegeben: <span className="text-foreground font-medium">{transferTotalCost.toLocaleString('de-DE')} €</span></span>
@@ -1530,8 +1531,8 @@ export default function MyTeam() {
               const groupLabel = pos === 'GOALKEEPER' ? 'Torwart' : pos === 'DEFENDER' ? 'Abwehr' : pos === 'MIDFIELD' ? 'Mittelfeld' : 'Sturm'
               return (
                 <div key={pos} className="mb-4">
-                  <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                  <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2 ${positionTextColor[pos]}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${positionDotColor[pos]}`} />
                     {groupLabel}
                   </h3>
                   <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>

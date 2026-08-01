@@ -267,9 +267,11 @@ export interface Player {
 ```
 
 #### Color Conventions
-- **Accent color (text-accent / #0a6ed1)**: Use for clickable links, interactive elements, and active states
-- **Accent hover (text-accent-hover / #085caf)**: Use for hover states on interactive elements
-- **Neutral text colors**: Use `text-foreground` (white) or `text-muted` (gray) for non-interactive text
+- **Never hardcode colors.** Always use the design tokens defined in the `@theme` block of `ffl-frontend/src/index.css` (Tailwind v4, CSS-first config — there is no `tailwind.config.js`). Arbitrary values like `text-[#c9a66b]` or `border-[#a9b4c0]` are not allowed.
+- **Accent color (text-accent / #2563eb)**: Use for clickable links, interactive elements, and active states
+- **Accent hover (text-accent-hover / #1d4ed8)**: Use for hover states on interactive elements
+- **Neutral text colors**: Use `text-foreground` (#16202b) for primary text, `text-muted` (#4b5a6b) for secondary, `text-subtle` (#566575) for tertiary
+- **Position colors**: Position group headers and player card edges use the position palette (`text-goalkeeper` / `-defender` / `-midfield` / `-striker` and the matching `bg-*` / `border-l-*`). Import the maps from `utils/positions.ts` (`positionTextColor`, `positionDotColor`, `positionEdgeColor`) — do not re-declare them.
 - Example: In a detail view, labels use muted, values use foreground, and links use accent
 
 ```tsx
@@ -278,6 +280,11 @@ export interface Player {
 
 <a className="text-accent hover:text-accent-hover" href="/players">Zurück</a>
 ```
+
+#### Contrast Requirements
+- All body text must reach at least **4.5:1** against its background, interactive borders at least **3:1** (WCAG AA / 1.4.11).
+- **Never use `opacity-*` to express a disabled or read-only state.** Opacity fades the border and background along with the text and destroys contrast. Inputs get their disabled styling automatically from the `.input-field:disabled, .input-field[readonly]` rule in `index.css`; just set `disabled` / `readOnly` on the element.
+- Card borders use `border-border`, form controls use the stronger `border-border-strong`, hover states use `border-border-hover`.
 
 #### Table Sorting Requirements
 - **ALL tables must be sortable by clicking column headers**
@@ -293,7 +300,7 @@ export interface Player {
 - Use exactly this pattern:
 
 ```tsx
-<RouterLink to="/parent-route" className="inline-flex items-center gap-1 text-sm text-[#c9a66b] hover:text-[#d4b77a] hover:underline mb-4">
+<RouterLink to="/parent-route" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
   <i className="sap-icon sap-icon-nav-back text-base" />
   Zurück zur Übersicht
 </RouterLink>
@@ -301,7 +308,7 @@ export interface Player {
 
 - Replace `/parent-route` with the corresponding list route (e.g., `/players`, `/teams`, `/games`, `/managers`)
 - Do NOT use different text (like "← Spiele") or different styling
-- The link uses gold accent colors (`#c9a66b` / `#d4b77a`), the SAP nav-back icon, and the text "Zurück zur Übersicht"
+- The link uses the accent color tokens (`text-accent` / `text-accent-hover`), the SAP nav-back icon, and the text "Zurück zur Übersicht". The former gold `#c9a66b` was removed because it only reached 2.29:1 contrast on the light background.
 
 ## Important Notes
 
