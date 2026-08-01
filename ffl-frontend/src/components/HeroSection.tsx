@@ -27,8 +27,8 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
   return (
     <div className="hero relative h-[120px] shrink-0 overflow-hidden">
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/hero-banner.png)' }}
+        className="absolute inset-0 bg-cover bg-no-repeat"
+        style={{ backgroundImage: 'url(/hero-banner.png)', backgroundPosition: 'center 30%' }}
       >
         <div
           className="absolute inset-0"
