@@ -1,5 +1,5 @@
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useCurrentManager, useManagersBySeason, useManagerCurrentPlayers } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { usePlayersBySeason } from '../hooks/usePlayers'
@@ -111,20 +111,14 @@ export default function Home() {
   const { data: seasonPlayers } = usePlayersBySeason(season?.id ?? 0)
 
   const [showAllPlayers, setShowAllPlayers] = useState(false)
-  const [showAllManagers, setShowAllManagers] = useState(false)
   const [managerFilter, setManagerFilter] = useState('')
+  const [managerPage, setManagerPage] = useState(1)
   const [managerSortKey, setManagerSortKey] = useState<ManagerSortKey>('positionTotal')
   const [managerSortOrder, setManagerSortOrder] = useState<'asc' | 'desc'>('asc')
   const [playerSortKey, setPlayerSortKey] = useState<PlayerSortKey>('position')
   const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
 
-  const currentManagerRowRef = useRef<HTMLTableRowElement>(null)
-
-  useEffect(() => {
-    if (!showAllManagers && currentManagerRowRef.current) {
-      currentManagerRowRef.current.scrollIntoView({ block: 'center' })
-    }
-  }, [managers, displayManager, showAllManagers])
+  const MANAGERS_PER_PAGE = 25
 
   const sortedManagers = useMemo(() => {
     if (!managers) return []
@@ -169,6 +163,21 @@ export default function Home() {
       m.lastName?.toLowerCase().includes(filter)
     )
   }, [sortedManagers, managerFilter])
+
+  const managerTotalPages = Math.max(1, Math.ceil(filteredManagers.length / MANAGERS_PER_PAGE))
+
+  useEffect(() => {
+    setManagerPage(1)
+  }, [managerFilter, managerSortKey, managerSortOrder])
+
+  useEffect(() => {
+    if (managerPage > managerTotalPages) setManagerPage(managerTotalPages)
+  }, [managerPage, managerTotalPages])
+
+  const pagedManagers = useMemo(() => {
+    const start = (managerPage - 1) * MANAGERS_PER_PAGE
+    return filteredManagers.slice(start, start + MANAGERS_PER_PAGE)
+  }, [filteredManagers, managerPage])
 
   const filteredPlayers = useMemo(() => {
     if (!currentPlayers) return []
@@ -414,20 +423,9 @@ export default function Home() {
                   />
                 </div>
 
-                <button
-                  onClick={() => setShowAllManagers(!showAllManagers)}
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border transition-colors ${!showAllManagers ? 'bg-accent/10 text-accent border-accent/20' : 'bg-elevated text-muted border-border'}`}
-                >
-                  <i className="sap-icon sap-icon-expand-group text-[12px]" />
-                  Ausschnitt
-                </button>
-
-                {(managerFilter || !showAllManagers) && (
+                {managerFilter && (
                   <button
-                    onClick={() => {
-                      setManagerFilter('')
-                      setShowAllManagers(false)
-                    }}
+                    onClick={() => setManagerFilter('')}
                     className="p-1 rounded text-subtle hover:text-danger transition-colors"
                     title="Filter zurücksetzen"
                   >
@@ -484,13 +482,12 @@ export default function Home() {
                   </tr>
                 </TableHead>
                 <TableBody>
-                  {filteredManagers.map(m => {
+                  {pagedManagers.map(m => {
                     const isCurrentManager = m.id === displayManager?.id
                     const stickyBg = isCurrentManager ? 'bg-accent-muted' : 'bg-surface'
                     return (
                       <TableRow
                         key={m.id}
-                        ref={m.id === displayManager?.id ? currentManagerRowRef : null}
                         active={isCurrentManager}
                       >
                         <Td align="center" className={`text-foreground ${isMobile ? `sticky left-0 w-[50px] ${stickyBg} z-10` : ''}`}>
@@ -541,6 +538,29 @@ export default function Home() {
                   })}
                 </TableBody>
               </table>
+            </div>
+            <div className="flex items-center justify-between gap-4 px-6 py-3 border-t border-border">
+              <span className="text-[13px] text-muted">
+                Seite {managerPage} von {managerTotalPages}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setManagerPage(p => Math.max(1, p - 1))}
+                  disabled={managerPage <= 1}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <i className="sap-icon sap-icon-navigation-left-arrow text-[14px]" />
+                  Zurück
+                </button>
+                <button
+                  onClick={() => setManagerPage(p => Math.min(managerTotalPages, p + 1))}
+                  disabled={managerPage >= managerTotalPages}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Weiter
+                  <i className="sap-icon sap-icon-navigation-right-arrow text-[14px]" />
+                </button>
+              </div>
             </div>
           </CardContainer>
             </div>
