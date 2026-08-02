@@ -583,7 +583,7 @@ export default function Home() {
                 </div>
               </CardContainer>
 
-              <CardContainer title="Deine Platzierung" subtitle={`Kennzahlen von ${displayManager.shortName}`}>
+              <CardContainer title="Deine Platzierung" subtitle={`${season?.currentMatchday ? `${season.currentMatchday}. Spieltag` : 'Kennzahlen'} von ${displayManager.shortName}`}>
                 <div className="px-6 py-4 grid grid-cols-2 gap-y-4 gap-x-6">
                   <div>
                     <p className="text-xs text-muted">Platz</p>
