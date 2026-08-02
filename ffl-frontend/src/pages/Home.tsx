@@ -249,9 +249,10 @@ export default function Home() {
     <div className="pb-6">
       {displayManager && (
         <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div className="lg:col-span-2 flex flex-col gap-6">
           {currentPlayers && currentPlayers.length > 0 && (
             <CardContainer
-              className="mb-8"
               title="Deine Spieler"
               subtitle="Punkte und Marktwerte deiner Aufstellung"
               headerRight={
@@ -390,9 +391,6 @@ export default function Home() {
               </div>
             </CardContainer>
           )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            <div className="lg:col-span-2">
           <CardContainer
             title="Rangliste der Manager"
             subtitle="Aktuelle Platzierung in der Liga"
