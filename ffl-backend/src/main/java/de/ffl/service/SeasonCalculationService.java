@@ -25,6 +25,7 @@ public class SeasonCalculationService {
     private final PlayerRankRepository playerRankRepository;
     private final ManagerRankRepository managerRankRepository;
     private final ManagerRepository managerRepository;
+    private final BestTeamService bestTeamService;
 
     public SeasonCalculationService(
             SeasonRepository seasonRepository,
@@ -34,7 +35,8 @@ public class SeasonCalculationService {
             PointsRepository pointsRepository,
             PlayerRankRepository playerRankRepository,
             ManagerRankRepository managerRankRepository,
-            ManagerRepository managerRepository) {
+            ManagerRepository managerRepository,
+            BestTeamService bestTeamService) {
         this.seasonRepository = seasonRepository;
         this.roundRepository = roundRepository;
         this.gameRepository = gameRepository;
@@ -43,6 +45,7 @@ public class SeasonCalculationService {
         this.playerRankRepository = playerRankRepository;
         this.managerRankRepository = managerRankRepository;
         this.managerRepository = managerRepository;
+        this.bestTeamService = bestTeamService;
     }
 
     @Transactional
@@ -112,6 +115,13 @@ public class SeasonCalculationService {
         Integer maxMatchday = gameRepository.findMaxRoundWithFormationOrPoints(seasonId);
         season.setCurrentMatchday(maxMatchday != null ? maxMatchday : 0);
         seasonRepository.save(season);
+
+        log(logCallback, "");
+        log(logCallback, "═══════════════════════════════════════════════════════════");
+        log(logCallback, "  BESTMÖGLICHE AUFSTELLUNG");
+        log(logCallback, "═══════════════════════════════════════════════════════════");
+        bestTeamService.calculateAndStore(seasonId, logCallback);
+        log(logCallback, "");
 
         log(logCallback, "");
         log(logCallback, "═══════════════════════════════════════════════════════════");

@@ -494,3 +494,23 @@ export interface RulePoint {
   count: number
   points: number
 }
+
+export interface BestTeamPlayer {
+  id: number
+  name: string
+  position: string
+  points: number
+  prize: number
+  teamName: string
+  teamLogoUrl?: string
+  pictureUrl?: string
+  freeChoice: boolean
+}
+
+export interface BestTeamResult {
+  players: BestTeamPlayer[]
+  totalPoints: number
+  totalCost: number
+  formation: string
+  budget: number
+}

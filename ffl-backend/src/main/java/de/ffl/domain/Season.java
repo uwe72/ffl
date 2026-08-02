@@ -98,6 +98,10 @@ public class Season {
     @Column(name = "kontoinhaber")
     private String kontoinhaber;
 
+    @Column(name = "best_team_json", columnDefinition = "TEXT")
+    @JsonIgnore
+    private String bestTeamJson;
+
     @ManyToMany
     @JoinTable(
         name = "season_2_team",

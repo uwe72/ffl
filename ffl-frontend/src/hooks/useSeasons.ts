@@ -114,3 +114,11 @@ export function useSendSeasonReport() {
       seasonApi.sendSeasonReport(seasonId).then(res => res.data),
   })
 }
+
+export function useBestTeam(seasonId: number) {
+  return useQuery({
+    queryKey: ['seasons', seasonId, 'best-team'],
+    queryFn: () => seasonApi.getBestTeam(seasonId).then(res => res.data),
+    enabled: !!seasonId,
+  })
+}

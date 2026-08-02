@@ -1,7 +1,7 @@
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useCurrentManager, useManagersBySeason, useManagerCurrentPlayers } from '../hooks/useManagers'
-import { useCurrentSeason } from '../hooks/useSeasons'
+import { useCurrentSeason, useBestTeam } from '../hooks/useSeasons'
 import { usePlayersBySeason } from '../hooks/usePlayers'
 import { useAuth } from '../context/AuthContext'
 import CardContainer from '../components/CardContainer'
@@ -110,6 +110,7 @@ export default function Home() {
 
   const { data: currentPlayers } = useManagerCurrentPlayers(displayManager?.id ?? 0)
   const { data: seasonPlayers } = usePlayersBySeason(season?.id ?? 0)
+  const { data: bestTeam } = useBestTeam(season?.id ?? 0)
 
   const [showAllPlayers, setShowAllPlayers] = useState(false)
   const [managerFilter, setManagerFilter] = useState('')
@@ -582,6 +583,35 @@ export default function Home() {
                   )}
                 </div>
               </CardContainer>
+
+              {bestTeam && bestTeam.players.length > 0 && (
+                <CardContainer
+                  title="Bestmögliche Aufstellung"
+                  subtitle={`Dream Team · Formation ${bestTeam.formation.substring(2)}`}
+                  headerRight={
+                    <div className="flex items-center gap-3 text-xs text-muted">
+                      <span className="tabular-nums font-medium text-foreground">{formatPoints(bestTeam.totalPoints)} Pkt</span>
+                      <span className="tabular-nums">{formatMillions(bestTeam.totalCost)}</span>
+                    </div>
+                  }
+                >
+                  <div className="px-6 py-4">
+                    <TopPlayerStack
+                      players={bestTeam.players.map((bp, idx) => ({
+                        rank: idx + 1,
+                        name: bp.name,
+                        points: bp.points,
+                        marketValue: bp.prize,
+                        position: `${positionLabels[bp.position] ?? bp.position}${bp.freeChoice ? ' · Free Choice' : ''}`,
+                        teamName: bp.teamName ?? '',
+                        pictureUrl: bp.pictureUrl,
+                        teamLogoUrl: bp.teamLogoUrl,
+                      }))}
+                      interval={4000}
+                    />
+                  </div>
+                </CardContainer>
+              )}
 
               <CardContainer title="Deine Platzierung" subtitle={`${season?.currentMatchday ? `${season.currentMatchday}. Spieltag` : 'Kennzahlen'} von ${displayManager.shortName}`}>
                 <div className="px-6 py-4 grid grid-cols-2 gap-y-4 gap-x-6">

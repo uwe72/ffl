@@ -2,10 +2,12 @@ package de.ffl.controller;
 
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
+import de.ffl.dto.BestTeamResult;
 import de.ffl.dto.PrizeDistributionLogDto;
 import de.ffl.dto.PrizePayoutDto;
 import de.ffl.dto.UpdatePayoutRequest;
 import de.ffl.repository.SeasonRepository;
+import de.ffl.service.BestTeamService;
 import de.ffl.service.PrizeDistributionMailService;
 import de.ffl.service.PrizeDistributionService;
 import de.ffl.service.InvitationMailService;
@@ -25,14 +27,16 @@ public class SeasonController {
 
     private final SeasonRepository seasonRepository;
     private final SeasonService seasonService;
+    private final BestTeamService bestTeamService;
     private final PrizeDistributionService prizeDistributionService;
     private final PrizeDistributionMailService prizeDistributionMailService;
     private final InvitationMailService invitationMailService;
     private final SeasonReportMailService seasonReportMailService;
 
-    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, SeasonReportMailService seasonReportMailService) {
+    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, BestTeamService bestTeamService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, SeasonReportMailService seasonReportMailService) {
         this.seasonRepository = seasonRepository;
         this.seasonService = seasonService;
+        this.bestTeamService = bestTeamService;
         this.prizeDistributionService = prizeDistributionService;
         this.prizeDistributionMailService = prizeDistributionMailService;
         this.invitationMailService = invitationMailService;
@@ -121,6 +125,15 @@ public class SeasonController {
     @PreAuthorize("hasRole('ADMIN')")
     public SseEmitter calculateSeasonStream(@PathVariable Long id) {
         return seasonService.calculateSeasonStream(id);
+    }
+
+    @GetMapping("/{id}/best-team")
+    public ResponseEntity<BestTeamResult> getBestTeam(@PathVariable Long id) {
+        BestTeamResult result = bestTeamService.getBestTeam(id);
+        if (result == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")
