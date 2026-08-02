@@ -236,16 +236,16 @@ export default function Games() {
             <table className="w-full">
               <TableHead>
                 <tr>
-                  <ThSortable onClick={() => handleSort('name')}>
+                  <ThSortable className="w-[12%]" onClick={() => handleSort('name')}>
                     Name<SortIcon column="name" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
-                  <ThSortable onClick={() => handleSort('hostName')}>
+                  <ThSortable className="w-[35%]" onClick={() => handleSort('hostName')}>
                     Heimmannschaft<SortIcon column="hostName" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
-                  <ThSortable align="center" onClick={() => handleSort('goalHost')}>
+                  <ThSortable className="w-[16%]" align="center" onClick={() => handleSort('goalHost')}>
                     Ergebnis<SortIcon column="goalHost" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
-                  <ThSortable onClick={() => handleSort('visitorName')}>
+                  <ThSortable className="w-[35%]" onClick={() => handleSort('visitorName')}>
                     Gastmannschaft<SortIcon column="visitorName" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
                 </tr>
