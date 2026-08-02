@@ -8,7 +8,7 @@ import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, TableBody, TableRow, Td } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
-import { formatCurrency, formatMillions, formatPoints } from '../utils/format'
+import { formatCurrency, formatMillions, formatMillionsShort, formatPoints } from '../utils/format'
 import { positionLabels, positionBadgeVariant } from '../utils/positions'
 import Badge from '../components/Badge'
 import TopPlayerStack from '../components/TopPlayerStack'
@@ -268,18 +268,7 @@ export default function Home() {
               }
             >
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full table-fixed">
-                  <colgroup>
-                    <col className="w-[60px]" />
-                    <col className="w-[60px]" />
-                    <col className="max-w-[260px]" />
-                    <col className="w-[70px]" />
-                    <col className="w-[90px]" />
-                    <col className="w-[90px]" />
-                    <col className="w-[120px]" />
-                    <col className="w-[110px]" />
-                    <col className="w-[180px]" />
-                  </colgroup>
+                <table className="w-full">
                   <TableHead>
                     <tr>
                       <ThSortable align="center" onClick={() => handlePlayerSort('positionTotal')}>
@@ -301,7 +290,7 @@ export default function Home() {
                         Manager<SortIcon column="managerCount" activeKey={playerSortKey} order={playerSortOrder} />
                       </ThSortable>
                       <ThSortable numeric onClick={() => handlePlayerSort('prize')}>
-                        Preis<SortIcon column="prize" activeKey={playerSortKey} order={playerSortOrder} />
+                        Preis €<SortIcon column="prize" activeKey={playerSortKey} order={playerSortOrder} />
                       </ThSortable>
                       <ThSortable align="left" onClick={() => handlePlayerSort('position')}>
                         Position<SortIcon column="position" activeKey={playerSortKey} order={playerSortOrder} />
@@ -335,7 +324,7 @@ export default function Home() {
                               {pp.pictureUrl && (
                                 <img src={pp.pictureUrl} alt={pp.playerName} className="w-9 h-9 rounded-full object-cover shrink-0" />
                               )}
-                              <span className="font-medium text-foreground hover:text-accent hover:underline truncate">{pp.playerName}</span>
+                              <span className="font-medium text-foreground hover:text-accent hover:underline whitespace-nowrap">{pp.playerName}</span>
                             </RouterLink>
                           </Td>
                           <Td numeric className="text-foreground font-medium">
@@ -354,7 +343,7 @@ export default function Home() {
                             </RouterLink>
                           </Td>
                           <Td numeric className="text-foreground">
-                            {formatCurrency(pp.prize)}
+                            {formatMillionsShort(pp.prize)}
                           </Td>
                           <Td>
                             {pp.position && (
