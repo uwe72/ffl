@@ -11,6 +11,7 @@ import useIsMobile from '../hooks/useIsMobile'
 import { formatCurrency, formatMillions, formatPoints } from '../utils/format'
 import { positionLabels, positionBadgeVariant } from '../utils/positions'
 import Badge from '../components/Badge'
+import TopPlayerStack from '../components/TopPlayerStack'
 
 import type { PlayerPoint } from '../types'
 
@@ -545,26 +546,23 @@ export default function Home() {
 
             <div className="flex flex-col gap-6">
               <CardContainer title="Topspieler nach Punkten" subtitle="Deine punktbesten Spieler">
-                <div className="px-6 py-4 flex flex-col gap-3">
-                  {topPlayers.length === 0 && (
+                <div className="px-6 py-4">
+                  {topPlayers.length === 0 ? (
                     <p className="text-sm text-muted">Keine Daten vorhanden</p>
+                  ) : (
+                    <TopPlayerStack
+                      players={topPlayers.map((pp, idx) => ({
+                        rank: idx + 1,
+                        name: pp.playerName,
+                        points: pp.pointsTotal ?? 0,
+                        marketValue: pp.prize ?? 0,
+                        position: positionLabels[pp.position ?? ''] ?? pp.position ?? '',
+                        teamName: pp.teamName ?? '',
+                        pictureUrl: pp.pictureUrl,
+                        teamLogoUrl: pp.teamLogoUrl,
+                      }))}
+                    />
                   )}
-                  {topPlayers.map((pp, idx) => (
-                    <RouterLink
-                      key={pp.playerId}
-                      to={`/players/${pp.playerId}`}
-                      className="flex items-center gap-3 group"
-                    >
-                      <span className="w-5 text-sm font-semibold text-muted tabular-nums text-right">{idx + 1}</span>
-                      {pp.pictureUrl ? (
-                        <img src={pp.pictureUrl} alt={pp.playerName} className="w-8 h-8 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center text-sm text-subtle">👤</div>
-                      )}
-                      <span className="flex-1 min-w-0 truncate text-sm font-medium text-foreground group-hover:text-accent group-hover:underline">{pp.playerName}</span>
-                      <span className="text-sm font-semibold text-foreground tabular-nums">{formatPoints(pp.pointsTotal ?? 0)}</span>
-                    </RouterLink>
-                  ))}
                 </div>
               </CardContainer>
 
