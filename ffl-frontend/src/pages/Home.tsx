@@ -223,6 +223,7 @@ export default function Home() {
   const topPlayers = useMemo(() => {
     if (!currentPlayers) return []
     return [...currentPlayers]
+      .filter(p => (p.pointsTotal ?? 0) > 0)
       .sort((a, b) => (b.pointsTotal ?? 0) - (a.pointsTotal ?? 0))
       .slice(0, 5)
   }, [currentPlayers])
@@ -535,7 +536,7 @@ export default function Home() {
               <CardContainer title="Topspieler nach Punkten" subtitle="Deine punktbesten Spieler">
                 <div className="px-6 py-4">
                   {topPlayers.length === 0 ? (
-                    <p className="text-sm text-muted">Keine Daten vorhanden</p>
+                    <p className="text-sm text-muted">Noch keine Punkte in dieser Saison</p>
                   ) : (
                     <TopPlayerStack
                       players={topPlayers.map((pp, idx) => ({
