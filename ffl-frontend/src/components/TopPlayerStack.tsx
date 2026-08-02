@@ -205,7 +205,7 @@ export default function TopPlayerStack({ players, interval = 5000 }: TopPlayerSt
                   color: '#5b6b7c',
                 }}
               >
-                <span>Platz {player.rank} in deinem Team</span>
+                <span>Platz {player.rank}</span>
                 <span>{formatCurrency(player.marketValue)}</span>
               </div>
             </div>
