@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
 import Badge from './Badge'
@@ -41,20 +40,10 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
       </div>
 
       <div className="relative z-10 flex h-full items-stretch">
-        <Link
-          to="/"
-          title="Zum Dashboard"
-          className="hidden md:flex items-center justify-center shrink-0 border-r border-muted/25 transition-[width] duration-300 ease-in-out"
+        <div
+          className="hidden md:block shrink-0 transition-[width] duration-300 ease-in-out"
           style={{ width: collapsed ? 64 : 240 }}
-        >
-          <img
-            src="/icon-192.png"
-            alt="FFL"
-            draggable={false}
-            className="rounded-xl ring-1 ring-muted/20 shadow-lg transition-all duration-300 ease-in-out"
-            style={{ width: collapsed ? 44 : 72, height: collapsed ? 44 : 72 }}
-          />
-        </Link>
+        />
 
         <div className="flex flex-1 min-w-0 items-center px-[30px]">
           <button
