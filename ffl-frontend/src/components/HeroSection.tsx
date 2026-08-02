@@ -37,23 +37,26 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
     <div className="hero relative h-[120px] shrink-0 overflow-hidden">
       <div
         className="absolute inset-0 bg-cover bg-no-repeat"
-        style={{ backgroundImage: 'url(/hero-banner.png)', backgroundPosition: 'center 30%' }}
-      >
-        <div
-          className="absolute inset-0 md:hidden"
-          style={{
-            background: 'linear-gradient(to right, rgba(10,14,20,0.84) 0%, rgba(10,14,20,0.58) 35%, rgba(10,14,20,0.10) 65%, rgba(10,14,20,0) 100%)',
-          }}
-        />
-        <div
-          className="absolute inset-0 hidden md:block"
-          style={{ background: `linear-gradient(to right, ${desktopGradient})` }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ backgroundColor: 'rgba(10,16,24,0.08)' }}
-        />
-      </div>
+        style={{
+          backgroundImage: 'url(/hero-banner.png)',
+          backgroundPosition: 'center 30%',
+          filter: 'brightness(1.2)',
+        }}
+      />
+      <div
+        className="absolute inset-0 md:hidden"
+        style={{
+          background: 'linear-gradient(to right, rgba(10,14,20,0.84) 0%, rgba(10,14,20,0.58) 35%, rgba(10,14,20,0.10) 65%, rgba(10,14,20,0) 100%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 hidden md:block"
+        style={{ background: `linear-gradient(to right, ${desktopGradient})` }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{ backgroundColor: 'rgba(10,16,24,0.08)' }}
+      />
 
       <div className="relative z-10 flex h-full items-stretch">
         <div
