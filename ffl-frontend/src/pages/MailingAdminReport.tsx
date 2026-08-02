@@ -1,7 +1,6 @@
 import { Link as RouterLink } from 'react-router-dom'
 import { useCurrentSeason, useSendSeasonReport } from '../hooks/useSeasons'
 import Button from '../components/Button'
-import PageHeader from '../components/PageHeader'
 import FormCard from '../components/FormCard'
 
 export default function MailingAdminReport() {
@@ -22,8 +21,6 @@ export default function MailingAdminReport() {
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
-
-      <PageHeader icon="sap-icon-manager-insight" title="Admin-Report" />
 
       <div className="grid gap-6">
         <FormCard>

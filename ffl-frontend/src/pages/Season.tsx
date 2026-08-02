@@ -5,7 +5,6 @@ import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePr
 import CalculationDialog from '../components/CalculationDialog'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
-import PageHeader from '../components/PageHeader'
 import Tabs from '../components/Tabs'
 import FormCard from '../components/FormCard'
 import { TableHead, Th, TableBody } from '../components/Table'
@@ -236,7 +235,7 @@ export default function Season() {
 
   return (
     <div>
-      <PageHeader icon="sap-icon-settings" title="Saison">
+      <div className="flex items-center gap-3 mb-6">
         <Badge>
           {seasonStateOptions.find(o => o.value === season.seasonState)?.label || season.seasonState}
         </Badge>
@@ -245,7 +244,7 @@ export default function Season() {
             {season.currentMatchday}. Spieltag
           </span>
         )}
-      </PageHeader>
+      </div>
 
       <Tabs
         items={tabItems}

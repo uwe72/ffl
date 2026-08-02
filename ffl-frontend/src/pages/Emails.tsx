@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useEmails, useCreateEmail, useBulkCreateEmails, useDeleteEmail } from '../hooks/useEmails'
-import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
@@ -117,9 +116,9 @@ export default function Emails() {
 
   return (
     <div>
-      <PageHeader icon="sap-icon-email" title="E-Mail-Adressen">
+      <div className="flex items-center gap-3 mb-6">
         <span className="text-sm text-muted">({emails?.length ?? 0})</span>
-      </PageHeader>
+      </div>
 
       <CardContainer>
         <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap">

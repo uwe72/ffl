@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useManagerGroups, useDeleteManagerGroup } from '../hooks/useManagerGroups'
 import Button from '../components/Button'
-import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
@@ -154,8 +153,6 @@ export default function ManagerGroups() {
 
   return (
     <div>
-      <PageHeader icon="sap-icon-group-2" title="Gruppen" />
-
       <CardContainer>
         <FilterBar
           searchTerm={searchTerm}

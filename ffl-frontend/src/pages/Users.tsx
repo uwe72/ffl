@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useUsers } from '../hooks/useUsers'
-import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
@@ -76,8 +75,6 @@ export default function Users() {
 
   return (
     <div>
-      <PageHeader icon="sap-icon-personnel-view" title="Benutzer" />
-
       <CardContainer>
         <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border">
           <div className="relative flex-1 min-w-[180px] max-w-[280px]">

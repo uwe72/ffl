@@ -1,5 +1,4 @@
 import { Link as RouterLink } from 'react-router-dom'
-import PageHeader from '../components/PageHeader'
 import FormCard from '../components/FormCard'
 
 interface MailCard {
@@ -59,8 +58,6 @@ const sections: { label: string; cards: MailCard[] }[] = [
 export default function Mailing() {
   return (
     <div>
-      <PageHeader icon="sap-icon-email" title="Mailing" />
-
       <div className="space-y-8">
         {sections.map((section) => (
           <div key={section.label}>

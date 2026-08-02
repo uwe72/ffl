@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useUser, useUpdateUser, useDeleteUser } from '../hooks/useUsers'
 import Button from '../components/Button'
-import PageHeader from '../components/PageHeader'
 import FormCard from '../components/FormCard'
 import type { User } from '../types'
 
@@ -88,8 +87,6 @@ export default function UserDetail() {
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
-
-      <PageHeader icon="sap-icon-settings" title="Benutzer bearbeiten" />
 
       <div className="grid gap-6 md:grid-cols-2">
         <FormCard>

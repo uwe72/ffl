@@ -5,7 +5,6 @@ import { useManagers } from '../hooks/useManagers'
 import { useAuth } from '../context/AuthContext'
 import { trackEvent } from '../hooks/useMatomo'
 import Button from '../components/Button'
-import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
@@ -194,8 +193,6 @@ export default function Managers() {
 
   return (
     <div>
-      <PageHeader icon="sap-icon-employee" title="Manager" />
-
       <CardContainer>
         <FilterBar
           searchTerm={searchTerm}

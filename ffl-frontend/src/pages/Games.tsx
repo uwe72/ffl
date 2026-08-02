@@ -6,7 +6,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import FormationImportDialog from '../components/FormationImportDialog'
 import Button from '../components/Button'
-import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
@@ -225,8 +224,6 @@ export default function Games() {
 
   return (
     <div>
-      <PageHeader icon="sap-icon-calendar" title="Spiele" />
-
       <CardContainer>
         <FilterBar
           selectedRound={selectedRound}

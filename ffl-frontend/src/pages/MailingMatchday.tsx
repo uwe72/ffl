@@ -4,7 +4,6 @@ import { useCurrentSeason } from '../hooks/useSeasons'
 import { useGames } from '../hooks/useGames'
 import MatchdayMailSendDialog from '../components/MatchdayMailSendDialog'
 import Button from '../components/Button'
-import PageHeader from '../components/PageHeader'
 import FormCard from '../components/FormCard'
 
 export default function MailingMatchday() {
@@ -43,8 +42,6 @@ export default function MailingMatchday() {
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
-
-      <PageHeader icon="sap-icon-email" title="Spieltagsmail" />
 
       <div className="grid gap-6">
         <FormCard>

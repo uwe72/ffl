@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useProfile, useUpdateProfile } from '../hooks/useProfile'
 import Button from '../components/Button'
-import PageHeader from '../components/PageHeader'
 import FormCard from '../components/FormCard'
 import type { MailTheme } from '../types'
 
@@ -60,8 +59,6 @@ export default function Profile() {
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Startseite
       </RouterLink>
-
-      <PageHeader icon="sap-icon-settings" title="Mein Profil" />
 
       <FormCard>
         <div className="flex flex-wrap gap-6">

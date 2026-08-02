@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { useTeam, useTeamPlayers } from '../hooks/useTeams'
-import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
@@ -253,11 +252,12 @@ export default function TeamDetail() {
         Zurück zur Übersicht
       </RouterLink>
 
-      <PageHeader icon="sap-icon-shield" title={team?.name || 'Laden...'}>
+      <div className="flex items-center gap-3 mb-6">
         {team?.logoSUrl && (
           <img src={team.logoSUrl} alt={team.name} className="w-8 h-8 object-contain" />
         )}
-      </PageHeader>
+        <h1 className="text-xl font-bold text-foreground">{team?.name || 'Laden...'}</h1>
+      </div>
 
       <CardContainer>
         <FilterBar

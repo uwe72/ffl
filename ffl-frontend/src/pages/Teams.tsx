@@ -1,6 +1,5 @@
 import { Link as RouterLink } from 'react-router-dom'
 import { useTeams } from '../hooks/useTeams'
-import PageHeader from '../components/PageHeader'
 
 export default function Teams() {
   const { data: teams, isLoading, error } = useTeams()
@@ -10,7 +9,6 @@ export default function Teams() {
 
   return (
     <div>
-      <PageHeader icon="sap-icon-shield" title="Vereine" />
       {teams && teams.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {teams.map(team => (

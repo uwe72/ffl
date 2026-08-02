@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useSystemConfig, useUpdateSystemConfig, useSendTestMail } from '../hooks/useSystemConfig'
-import PageHeader from '../components/PageHeader'
 import Tabs from '../components/Tabs'
 import FormCard from '../components/FormCard'
 import Button from '../components/Button'
@@ -86,8 +85,6 @@ export default function System() {
 
   return (
     <div>
-      <PageHeader icon="sap-icon-settings" title="System" />
-
       <Tabs
         items={[
           { key: 'general', label: 'Allgemein' },

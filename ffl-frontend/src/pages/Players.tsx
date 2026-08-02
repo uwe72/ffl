@@ -4,7 +4,6 @@ import { usePlayers } from '../hooks/usePlayers'
 import useIsMobile from '../hooks/useIsMobile'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
-import PageHeader from '../components/PageHeader'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
@@ -351,8 +350,6 @@ export default function Players() {
 
   return (
     <div>
-      <PageHeader icon="sap-icon-group" title="Spieler" />
-
       <CardContainer>
         <FilterBar
           selectedPositions={selectedPositions}

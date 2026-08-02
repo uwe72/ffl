@@ -5,7 +5,6 @@ import 'react-quill-new/dist/quill.snow.css'
 import { useCurrentSeason, useUpdateSeason, usePrizeDistributionMailPreview } from '../hooks/useSeasons'
 import PrizeDistributionMailSendDialog from '../components/PrizeDistributionMailSendDialog'
 import Button from '../components/Button'
-import PageHeader from '../components/PageHeader'
 import FormCard from '../components/FormCard'
 import type { Season } from '../types'
 
@@ -67,8 +66,6 @@ export default function MailingPrizeDistribution() {
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
-
-      <PageHeader icon="sap-icon-email-read" title="Saisonabschlussmail" />
 
       <div className="grid gap-6">
         <FormCard className="overflow-visible">
