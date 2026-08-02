@@ -24,13 +24,12 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
   const brandWidth = collapsed ? 64 : 240
   const textStart = brandWidth + 30
   const desktopGradient = [
-    'rgba(10,14,20,0.22) 0px',
-    `rgba(10,14,20,0.30) ${Math.max(0, brandWidth - 90)}px`,
+    'rgba(10,14,20,0.10) 0px',
+    `rgba(10,14,20,0.16) ${Math.max(0, brandWidth - 90)}px`,
     `rgba(10,14,20,0.86) ${textStart}px`,
     `rgba(10,14,20,0.86) ${textStart + 440}px`,
-    `rgba(10,14,20,0.34) ${textStart + 700}px`,
-    'rgba(10,14,20,0.06) 88%',
-    'rgba(10,14,20,0) 100%',
+    `rgba(10,14,20,0.28) ${textStart + 700}px`,
+    'rgba(10,14,20,0) 90%',
   ].join(', ')
 
   return (
@@ -39,8 +38,8 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
         className="absolute inset-0 bg-cover bg-no-repeat"
         style={{
           backgroundImage: 'url(/hero-banner.png)',
-          backgroundPosition: 'center 30%',
-          filter: 'brightness(1.2)',
+          backgroundPosition: 'center 10%',
+          filter: 'brightness(1.35) contrast(0.92)',
         }}
       />
       <div
@@ -55,7 +54,7 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
       />
       <div
         className="absolute inset-0"
-        style={{ backgroundColor: 'rgba(10,16,24,0.08)' }}
+        style={{ backgroundColor: 'rgba(10,16,24,0.03)' }}
       />
 
       <div className="relative z-10 flex h-full items-stretch">
