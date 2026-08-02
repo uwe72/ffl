@@ -235,12 +235,12 @@ export default function Home() {
   }, [filteredPlayers, playerSortKey, playerSortOrder])
 
   const topPlayers = useMemo(() => {
-    if (!currentPlayers) return []
-    return [...currentPlayers]
-      .filter(p => (p.pointsTotal ?? 0) > 0)
-      .sort((a, b) => (b.pointsTotal ?? 0) - (a.pointsTotal ?? 0))
+    if (!seasonPlayers) return []
+    return [...seasonPlayers]
+      .filter(p => (p.points ?? 0) > 0)
+      .sort((a, b) => (b.points ?? 0) - (a.points ?? 0))
       .slice(0, 5)
-  }, [currentPlayers])
+  }, [seasonPlayers])
 
   const handleManagerSort = (key: ManagerSortKey) => {
     if (managerSortKey === key) {
@@ -563,7 +563,7 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-6">
-              <CardContainer title="Topspieler nach Punkten" subtitle="Deine punktbesten Spieler">
+              <CardContainer title="Topspieler nach Punkten" subtitle="Die besten 5 Spieler der Saison">
                 <div className="px-6 py-4">
                   {topPlayers.length === 0 ? (
                     <p className="text-sm text-muted">Noch keine Punkte in dieser Saison</p>
@@ -571,13 +571,13 @@ export default function Home() {
                     <TopPlayerStack
                       players={topPlayers.map((pp, idx) => ({
                         rank: idx + 1,
-                        name: pp.playerName,
-                        points: pp.pointsTotal ?? 0,
+                        name: pp.nameKicker,
+                        points: pp.points ?? 0,
                         marketValue: pp.prize ?? 0,
                         position: positionLabels[pp.position ?? ''] ?? pp.position ?? '',
-                        teamName: pp.teamName ?? '',
+                        teamName: pp.teams?.[0]?.name ?? '',
                         pictureUrl: pp.pictureUrl,
-                        teamLogoUrl: pp.teamLogoUrl,
+                        teamLogoUrl: pp.teams?.[0]?.logoSUrl,
                       }))}
                     />
                   )}
