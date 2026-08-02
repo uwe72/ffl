@@ -223,7 +223,7 @@ export default function Games() {
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
-    <div>
+    <div className="max-w-5xl">
       <CardContainer>
         <FilterBar
           selectedRound={selectedRound}
