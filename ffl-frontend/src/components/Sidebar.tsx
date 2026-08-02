@@ -6,8 +6,6 @@ import { useFeedback } from '../context/FeedbackContext'
 import { useAvatar, useUploadAvatar } from '../hooks/useAvatar'
 import { useCurrentSeason } from '../hooks/useSeasons'
 
-const SIDEBAR_COLLAPSED_KEY = 'ffl-sidebar-collapsed'
-
 const env = import.meta.env.VITE_APP_ENV
 const buildDate = import.meta.env.VITE_BUILD_DATE
 const isProd = env === 'PROD'
@@ -15,15 +13,13 @@ const dateParts = buildDate.split('-')
 const formattedDate = dateParts[2] + '.' + dateParts[1] + '.' + dateParts[0].slice(-2)
 
 interface SidebarProps {
+  collapsed: boolean
+  onToggleCollapse: (next: boolean) => void
   mobileOpen: boolean
   onCloseMobile: () => void
 }
 
-export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(() => {
-    const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
-    return stored === 'true'
-  })
+export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: SidebarProps) {
   const [verwaltungExpanded, setVerwaltungExpanded] = useState(false)
   const { user, isAuthenticated, logout } = useAuth()
   const location = useLocation()
@@ -40,11 +36,6 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
     location.pathname.startsWith('/emails') ||
     location.pathname.startsWith('/system')
   const effectiveVerwaltungExpanded = verwaltungExpanded || isOnVerwaltung
-
-  const handleToggleCollapse = (next: boolean) => {
-    setCollapsed(next)
-    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next))
-  }
 
   const handleLogout = () => {
     logout()
@@ -206,7 +197,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
           V{formattedDate}{isProd ? '' : ' (Test)'}
         </span>
         <button
-          onClick={() => handleToggleCollapse(!collapsed)}
+          onClick={() => onToggleCollapse(!collapsed)}
           className="p-2 rounded-lg text-subtle hover:text-muted hover:bg-card-hover transition-colors"
           title={collapsed ? 'Sidebar öffnen' : 'Sidebar schließen'}
         >

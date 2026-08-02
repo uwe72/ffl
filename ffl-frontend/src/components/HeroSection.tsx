@@ -1,9 +1,11 @@
+import { Link } from 'react-router-dom'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
 import Badge from './Badge'
 import { seasonStateLabel } from '../utils/season'
 
 interface HeroSectionProps {
+  collapsed: boolean
   onMenuClick: () => void
 }
 
@@ -14,7 +16,7 @@ function getGreeting(): string {
   return 'Guten Abend'
 }
 
-export default function HeroSection({ onMenuClick }: HeroSectionProps) {
+export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps) {
   const { data: season } = useCurrentSeason()
   const { user } = useAuth()
 
@@ -38,27 +40,44 @@ export default function HeroSection({ onMenuClick }: HeroSectionProps) {
         />
       </div>
 
-      <div className="relative z-10 flex h-full items-center px-[30px]">
-        <button
-          onClick={onMenuClick}
-          className="md:hidden mr-3 p-1.5 rounded-lg text-muted hover:text-primary hover:bg-card-hover transition-colors"
+      <div className="relative z-10 flex h-full items-stretch">
+        <Link
+          to="/"
+          title="Zum Dashboard"
+          className="hidden md:flex items-center justify-center shrink-0 border-r border-muted/25 transition-[width] duration-300 ease-in-out"
+          style={{ width: collapsed ? 64 : 240 }}
         >
-          <i className="sap-icon sap-icon-menu text-[20px]" />
-        </button>
+          <img
+            src="/icon-192.png"
+            alt="FFL"
+            draggable={false}
+            className="rounded-xl ring-1 ring-muted/20 shadow-lg transition-all duration-300 ease-in-out"
+            style={{ width: collapsed ? 44 : 72, height: collapsed ? 44 : 72 }}
+          />
+        </Link>
 
-        <div className="flex flex-col justify-center">
-          <p className="text-xl md:text-2xl font-bold text-foreground leading-tight">
-            {getGreeting()}, {user?.login || 'Gast'}!
-          </p>
-          {season && (
-            <div className="flex items-center gap-3 mt-0.5">
-              <span className="text-sm text-muted">Saison {season.name}</span>
-              <Badge variant="solid">{phaseLabel}</Badge>
-              {season.currentMatchday && (
-                <span className="text-sm text-muted">{season.currentMatchday}. Spieltag</span>
-              )}
-            </div>
-          )}
+        <div className="flex flex-1 min-w-0 items-center px-[30px]">
+          <button
+            onClick={onMenuClick}
+            className="md:hidden mr-3 p-1.5 rounded-lg text-muted hover:text-primary hover:bg-card-hover transition-colors"
+          >
+            <i className="sap-icon sap-icon-menu text-[20px]" />
+          </button>
+
+          <div className="flex flex-col justify-center min-w-0">
+            <p className="text-xl md:text-2xl font-bold text-foreground leading-tight">
+              {getGreeting()}, {user?.login || 'Gast'}!
+            </p>
+            {season && (
+              <div className="flex items-center gap-3 mt-0.5">
+                <span className="text-sm text-muted">Saison {season.name}</span>
+                <Badge variant="solid">{phaseLabel}</Badge>
+                {season.currentMatchday && (
+                  <span className="text-sm text-muted">{season.currentMatchday}. Spieltag</span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
