@@ -1,5 +1,5 @@
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useCurrentManager, useManagersBySeason, useManagerCurrentPlayers } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { usePlayersBySeason } from '../hooks/usePlayers'
@@ -119,7 +119,8 @@ export default function Home() {
   const [playerSortKey, setPlayerSortKey] = useState<PlayerSortKey>('position')
   const [playerSortOrder, setPlayerSortOrder] = useState<'asc' | 'desc'>('asc')
 
-  const MANAGERS_PER_PAGE = 25
+  const MANAGERS_PER_PAGE = 9
+  const initialManagerPageSet = useRef(false)
 
   const sortedManagers = useMemo(() => {
     if (!managers) return []
@@ -165,7 +166,19 @@ export default function Home() {
   const managerTotalPages = Math.max(1, Math.ceil(filteredManagers.length / MANAGERS_PER_PAGE))
 
   useEffect(() => {
-    setManagerPage(1)
+    if (!initialManagerPageSet.current && displayManager && filteredManagers.length > 0) {
+      const idx = filteredManagers.findIndex(m => m.id === displayManager.id)
+      if (idx >= 0) {
+        setManagerPage(Math.floor(idx / MANAGERS_PER_PAGE) + 1)
+        initialManagerPageSet.current = true
+      }
+    }
+  }, [displayManager, filteredManagers])
+
+  useEffect(() => {
+    if (initialManagerPageSet.current) {
+      setManagerPage(1)
+    }
   }, [managerFilter, managerSortKey, managerSortOrder])
 
   useEffect(() => {
@@ -510,22 +523,38 @@ export default function Home() {
               <span className="text-[13px] text-muted">
                 Seite {managerPage} von {managerTotalPages}
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setManagerPage(1)}
+                  disabled={managerPage <= 1}
+                  className="inline-flex items-center justify-center w-8 h-8 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Erste Seite"
+                >
+                  «
+                </button>
                 <button
                   onClick={() => setManagerPage(p => Math.max(1, p - 1))}
                   disabled={managerPage <= 1}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Vorherige Seite"
                 >
                   <i className="sap-icon sap-icon-navigation-left-arrow text-[14px]" />
-                  Zurück
                 </button>
                 <button
                   onClick={() => setManagerPage(p => Math.min(managerTotalPages, p + 1))}
                   disabled={managerPage >= managerTotalPages}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Nächste Seite"
                 >
-                  Weiter
                   <i className="sap-icon sap-icon-navigation-right-arrow text-[14px]" />
+                </button>
+                <button
+                  onClick={() => setManagerPage(managerTotalPages)}
+                  disabled={managerPage >= managerTotalPages}
+                  className="inline-flex items-center justify-center w-8 h-8 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Letzte Seite"
+                >
+                  »
                 </button>
               </div>
             </div>
