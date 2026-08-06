@@ -6,7 +6,6 @@ import { useCurrentSeason } from '../hooks/useSeasons'
 import { useUsers } from '../hooks/useUsers'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/Button'
-import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import type { ManagerInGroup } from '../types'
@@ -296,36 +295,97 @@ export default function ManagerGroupDetail() {
     return login || 'Unbekannt'
   }
 
-  if (!isNewMode && isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
-  if (!isNewMode && error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
-  if (!isNewMode && !group) return <div className="text-center py-8 text-subtle">Gruppe nicht gefunden</div>
+  if (!isNewMode && isLoading) {
+    return (
+      <div className="max-w-6xl" aria-busy="true">
+        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+          <i className="sap-icon sap-icon-nav-back text-base" />
+          Zurück zur Übersicht
+        </RouterLink>
+        <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+          <div className="flex gap-6">
+            <div className="w-16 h-16 rounded-full bg-card-muted animate-pulse motion-reduce:animate-none shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="h-3 w-24 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none mb-3" />
+              <div className="grid grid-cols-3 gap-4">
+                {[0, 1, 2].map(i => (
+                  <div key={i}>
+                    <div className="h-3 w-16 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none mb-2" />
+                    <div className="h-8 w-full rounded-control bg-card-muted animate-pulse motion-reduce:animate-none" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+          <div className="h-5 w-32 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none mb-4" />
+          <div className="space-y-2">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="h-10 w-full rounded-control bg-card-muted animate-pulse motion-reduce:animate-none" />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+  if (!isNewMode && error) {
+    return (
+      <div className="max-w-6xl">
+        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+          <i className="sap-icon sap-icon-nav-back text-base" />
+          Zurück zur Übersicht
+        </RouterLink>
+        <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card">
+          <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
+          <p className="text-danger text-sm">Fehler beim Laden der Gruppe.</p>
+        </div>
+      </div>
+    )
+  }
+  if (!isNewMode && !group) {
+    return (
+      <div className="max-w-6xl">
+        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+          <i className="sap-icon sap-icon-nav-back text-base" />
+          Zurück zur Übersicht
+        </RouterLink>
+        <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card">
+          <i className="sap-icon sap-icon-information text-[18px] text-muted shrink-0" />
+          <p className="text-sm text-muted">Gruppe nicht gefunden.</p>
+        </div>
+      </div>
+    )
+  }
 
   const pageTitle = isNewMode ? 'Neue Gruppe erstellen' : (group?.name || 'Gruppe')
   const canEdit = isNewMode || group?.editable
 
   return (
-    <div>
+    <div className="max-w-6xl">
       <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
 
       {!currentSeason && isNewMode && (
-        <div className="p-4 mb-6 bg-danger-bg border border-danger">
-          <p className="text-danger">
+        <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card mb-6">
+          <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
+          <p className="text-danger text-sm">
             Keine aktuelle Saison ausgewählt. Bitte erstellen Sie zuerst eine Saison.
           </p>
         </div>
       )}
 
       {errorMessage && (
-        <div className="p-4 mb-6 bg-danger-bg border border-danger">
-          <p className="text-danger">{errorMessage}</p>
+        <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card mb-6">
+          <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
+          <p className="text-danger text-sm">{errorMessage}</p>
         </div>
       )}
 
-      <div className="p-4 bg-card border border-border rounded-card shadow-sm mb-6">
-        <h3 className="text-base font-semibold text-foreground mb-3">Stammdaten</h3>
+      <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+        <h3 className="text-xl font-semibold text-foreground mb-4">Stammdaten</h3>
         <div className="flex flex-col sm:flex-row gap-6">
           <div className="relative group w-16 h-16 shrink-0">
             <button
@@ -386,7 +446,7 @@ export default function ManagerGroupDetail() {
                   onChange={canEdit ? (e) => handleChange('name', e.target.value) : undefined}
                   readOnly={!canEdit}
                   disabled={!canEdit}
-                  className="input-field w-full px-2 py-1 rounded-badge text-sm mt-0.5"
+                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
                 />
               </div>
               <div className="min-w-0">
@@ -395,7 +455,7 @@ export default function ManagerGroupDetail() {
                   value={editEmailTo}
                   onChange={canEdit ? (e) => handleChange('emailTo', e.target.value) : undefined}
                   disabled={!canEdit}
-                  className="input-field w-full px-2 py-1 rounded-badge text-sm mt-0.5 cursor-pointer"
+                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
                 >
                   {emailToOptions.map((option) => (
                     <option key={option.value} value={option.value}>{option.label}</option>
@@ -404,12 +464,12 @@ export default function ManagerGroupDetail() {
               </div>
               <div className="min-w-0">
                 <span className="text-xs text-muted">Ersteller</span>
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex items-center gap-2 mt-1">
                   <input
                     type="text"
                     value={getCreatorDisplayName()}
                     readOnly
-                    className="input-field w-full px-2 py-1 rounded-badge text-sm"
+                    className="input-field control w-full px-2 py-1 rounded-control text-sm"
                   />
                   {isAdmin && !isNewMode && (
                     <Button
@@ -429,7 +489,7 @@ export default function ManagerGroupDetail() {
                   onChange={canEdit ? (e) => handleChange('description', e.target.value) : undefined}
                   readOnly={!canEdit}
                   disabled={!canEdit}
-                  className="input-field w-full px-2 py-1 rounded-badge text-sm mt-0.5 resize-y"
+                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 resize-y"
                 />
               </div>
             </div>
@@ -467,110 +527,108 @@ export default function ManagerGroupDetail() {
         </div>
       </div>
 
-      <CardContainer>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Manager ({filteredAndSortedManagers.length})</h2>
-            <div className="flex gap-3 items-center">
-              <input
-                type="text"
-                placeholder="Manager suchen..."
-                value={managerFilter}
-                onChange={(e) => setManagerFilter(e.target.value)}
-                className="input-field w-64 px-3 py-2 rounded-badge focus:outline-none"
-              />
-              {canEdit && (
-                <Button
-                  variant="emphasized"
-                  onClick={() => setIsAddModalOpen(true)}
-                >
-                  Manager hinzufügen
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <div className="overflow-x-auto rounded-card border border-border">
-            <table className="w-full">
-              <TableHead>
-                <tr>
-                  <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
-                    Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
-                  </ThSortable>
-                  <ThSortable onClick={() => handleSort('shortName')}>
-                    Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
-                  </ThSortable>
-                  <ThSortable onClick={() => handleSort('firstName')}>
-                    Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
-                  </ThSortable>
-                  <ThSortable onClick={() => handleSort('lastName')}>
-                    Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
-                  </ThSortable>
-                  <ThSortable align="center" onClick={() => handleSort('pointsTotal')}>
-                    Pkt<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
-                  </ThSortable>
-                  <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
-                    Letzter Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
-                  </ThSortable>
-                  {canEdit && (
-                    <Th align="right">
-                      Aktionen
-                    </Th>
-                  )}
-                </tr>
-              </TableHead>
-              <TableBody>
-                {filteredAndSortedManagers.length > 0 ? (
-                  filteredAndSortedManagers.map((manager, index) => (
-                    <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                      <td className="px-3 py-2 text-center font-medium text-foreground">
-                        {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
-                      </td>
-                      <td className="px-3 py-2">
-                        <RouterLink
-                          to={`/managers/${manager.id}`}
-                          className="text-primary hover:text-foreground link font-medium"
-                        >
-                          {manager.shortName || manager.name}
-                        </RouterLink>
-                      </td>
-                      <td className="px-3 py-2 text-muted">
-                        {manager.firstName || '-'}
-                      </td>
-                      <td className="px-3 py-2 text-muted">
-                        {manager.lastName || '-'}
-                      </td>
-                      <td className="px-3 py-2 text-center font-medium text-foreground">
-                        {manager.pointsTotal ?? '-'}
-                      </td>
-                      <td className="px-3 py-2 text-center text-muted">
-                        {manager.pointsLastRound ?? '-'}
-                      </td>
-                      {canEdit && (
-                        <td className="px-3 py-2 text-right">
-                          <Button
-                            variant="negative"
-                            size="compact"
-                            onClick={() => handleRemoveManager(manager.id)}
-                          >
-                            Entfernen
-                          </Button>
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={canEdit ? 7 : 6} className="text-center text-subtle py-8">
-                      Keine Manager in dieser Gruppe
-                    </td>
-                  </tr>
-                )}
-              </TableBody>
-            </table>
+      <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-foreground">Manager ({filteredAndSortedManagers.length})</h2>
+          <div className="flex gap-3 items-center">
+            <input
+              type="text"
+              placeholder="Manager suchen..."
+              value={managerFilter}
+              onChange={(e) => setManagerFilter(e.target.value)}
+              className="input-field control w-64 px-3 py-2 rounded-control text-sm focus:outline-none"
+            />
+            {canEdit && (
+              <Button
+                variant="emphasized"
+                onClick={() => setIsAddModalOpen(true)}
+              >
+                Manager hinzufügen
+              </Button>
+            )}
           </div>
         </div>
-      </CardContainer>
+
+        <div className="overflow-x-auto rounded-card border border-border">
+          <table className="w-full">
+            <TableHead>
+              <tr>
+                <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
+                  Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable onClick={() => handleSort('shortName')}>
+                  Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable onClick={() => handleSort('firstName')}>
+                  Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable onClick={() => handleSort('lastName')}>
+                  Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable align="center" onClick={() => handleSort('pointsTotal')}>
+                  Pkt<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
+                  Letzter Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                {canEdit && (
+                  <Th align="right">
+                    Aktionen
+                  </Th>
+                )}
+              </tr>
+            </TableHead>
+            <TableBody>
+              {filteredAndSortedManagers.length > 0 ? (
+                filteredAndSortedManagers.map((manager, index) => (
+                  <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                    <td className="px-3 py-2 text-center font-medium text-foreground">
+                      {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
+                    </td>
+                    <td className="px-3 py-2">
+                      <RouterLink
+                        to={`/managers/${manager.id}`}
+                        className="text-accent hover:text-accent-hover hover:underline font-medium"
+                      >
+                        {manager.shortName || manager.name}
+                      </RouterLink>
+                    </td>
+                    <td className="px-3 py-2 text-muted">
+                      {manager.firstName || '-'}
+                    </td>
+                    <td className="px-3 py-2 text-muted">
+                      {manager.lastName || '-'}
+                    </td>
+                    <td className="px-3 py-2 text-center font-medium text-foreground">
+                      {manager.pointsTotal ?? '-'}
+                    </td>
+                    <td className="px-3 py-2 text-center text-muted">
+                      {manager.pointsLastRound ?? '-'}
+                    </td>
+                    {canEdit && (
+                      <td className="px-3 py-2 text-right">
+                        <Button
+                          variant="negative"
+                          size="compact"
+                          onClick={() => handleRemoveManager(manager.id)}
+                        >
+                          Entfernen
+                        </Button>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={canEdit ? 7 : 6} className="text-center text-subtle py-8">
+                    Keine Manager in dieser Gruppe
+                  </td>
+                </tr>
+              )}
+            </TableBody>
+          </table>
+        </div>
+      </div>
 
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
@@ -584,7 +642,7 @@ export default function ManagerGroupDetail() {
                 placeholder="Manager suchen..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-field w-full px-3 py-2 rounded-badge focus:outline-none mb-4"
+                className="input-field control w-full px-3 py-2 rounded-control text-sm focus:outline-none mb-4"
                 autoFocus
               />
               <div className="max-h-80 overflow-y-auto rounded-card border border-border">
@@ -597,14 +655,14 @@ export default function ManagerGroupDetail() {
                         className="p-4 hover:bg-elevated cursor-pointer transition-colors flex items-center justify-between group"
                       >
                         <div>
-                          <div className="text-foreground font-medium group-hover:text-primary">
+                          <div className="text-foreground font-medium">
                             {manager.shortName || manager.name}
                           </div>
                           <div className="text-subtle text-sm">
                             {manager.firstName} {manager.lastName}
                           </div>
                         </div>
-                        <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="text-accent opacity-0 group-hover:opacity-100 transition-opacity">
                           + Hinzufügen
                         </div>
                       </div>
@@ -644,7 +702,7 @@ export default function ManagerGroupDetail() {
                 placeholder="User suchen..."
                 value={creatorSearch}
                 onChange={(e) => setCreatorSearch(e.target.value)}
-                className="input-field w-full px-3 py-2 rounded-badge focus:outline-none mb-4"
+                className="input-field control w-full px-3 py-2 rounded-control text-sm focus:outline-none mb-4"
                 autoFocus
               />
               <div className="max-h-80 overflow-y-auto rounded-card border border-border">
@@ -657,14 +715,14 @@ export default function ManagerGroupDetail() {
                         className="p-4 hover:bg-elevated cursor-pointer transition-colors flex items-center justify-between group"
                       >
                         <div>
-                          <div className="text-foreground font-medium group-hover:text-primary">
+                          <div className="text-foreground font-medium">
                             {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.login}
                           </div>
                           <div className="text-subtle text-sm">
                             {u.login}
                           </div>
                         </div>
-                        <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="text-accent opacity-0 group-hover:opacity-100 transition-opacity">
                           Auswählen
                         </div>
                       </div>
