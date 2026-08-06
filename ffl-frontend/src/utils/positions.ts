@@ -13,10 +13,10 @@ export const positionBadgeVariant: Record<string, 'goalkeeper' | 'defender' | 'm
 }
 
 export const positionTextColor: Record<string, string> = {
-  GOALKEEPER: 'text-goalkeeper',
-  DEFENDER: 'text-defender',
-  MIDFIELD: 'text-midfield',
-  STRIKER: 'text-striker',
+  GOALKEEPER: 'text-goalkeeper-text',
+  DEFENDER: 'text-defender-text',
+  MIDFIELD: 'text-midfield-text',
+  STRIKER: 'text-striker-text',
 }
 
 export const positionDotColor: Record<string, string> = {

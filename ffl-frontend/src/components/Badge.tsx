@@ -14,16 +14,16 @@ interface BadgeProps {
 }
 
 const variantClasses: Record<string, string> = {
-  accent: 'bg-primary/15 text-primary rounded-full',
-  success: 'bg-success/15 text-success rounded-full',
-  danger: 'bg-danger/15 text-danger rounded-full',
-  warning: 'bg-warning/15 text-warning rounded-full',
-  muted: 'bg-elevated text-muted rounded-full',
-  solid: 'bg-primary text-primary-foreground rounded-full',
-  goalkeeper: 'bg-goalkeeper-bg text-goalkeeper rounded-[3px]',
-  defender: 'bg-defender-bg text-defender rounded-[3px]',
-  midfield: 'bg-midfield-bg text-midfield rounded-[3px]',
-  striker: 'bg-striker-bg text-striker rounded-[3px]',
+  accent: 'bg-primary/15 text-primary rounded-badge',
+  success: 'bg-success/15 text-success rounded-badge',
+  danger: 'bg-danger/15 text-danger rounded-badge',
+  warning: 'bg-warning/15 text-warning rounded-badge',
+  muted: 'bg-elevated text-muted rounded-badge',
+  solid: 'bg-primary text-primary-foreground rounded-badge',
+  goalkeeper: 'bg-goalkeeper-bg text-goalkeeper-text rounded-badge',
+  defender: 'bg-defender-bg text-defender-text rounded-badge',
+  midfield: 'bg-midfield-bg text-midfield-text rounded-badge',
+  striker: 'bg-striker-bg text-striker-text rounded-badge',
 }
 
 export default function Badge({ children, variant = 'accent' }: BadgeProps) {
