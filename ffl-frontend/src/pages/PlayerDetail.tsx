@@ -9,7 +9,10 @@ import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
+import { getChartColors } from '../utils/chartColors'
 import type { Position } from '../types'
+
+const chartColors = getChartColors()
 
 type SortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue' | 'hinrunde' | 'rueckrunde'
 type SortOrder = 'asc' | 'desc'
@@ -102,7 +105,7 @@ export default function PlayerDetail() {
       const rules = data.rules
       
       return (
-        <div className="bg-surface border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
+        <div className="bg-surface border border-border rounded-card p-3 shadow-lg min-w-[180px]">
           <p className="text-foreground font-semibold">Spieltag {label}</p>
           {gameName && (
             <p className="text-muted text-sm">
@@ -218,7 +221,7 @@ export default function PlayerDetail() {
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 md:flex md:items-start md:gap-2">
-              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
                 <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-badge text-base text-primary" />
                 </div>
@@ -227,7 +230,7 @@ export default function PlayerDetail() {
                   <p className="text-sm font-bold text-foreground leading-tight">{player.positionTotal ? `${player.positionTotal}.` : '-'}</p>
                 </div>
               </div>
-              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
                 <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-horizontal-bar-chart text-base text-primary" />
                 </div>
@@ -236,7 +239,7 @@ export default function PlayerDetail() {
                   <p className="text-sm font-bold text-foreground leading-tight">{player.points ?? '-'}</p>
                 </div>
               </div>
-              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
                 <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-calendar text-base text-primary" />
                 </div>
@@ -245,7 +248,7 @@ export default function PlayerDetail() {
                   <p className="text-sm font-bold text-foreground leading-tight">{player.pointsLastRound ?? '-'}</p>
                 </div>
               </div>
-              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
+              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
                 <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-money-bills text-base text-primary" />
                 </div>
@@ -258,15 +261,24 @@ export default function PlayerDetail() {
           </div>
 
           {isAdmin && (
-            <div className="mt-4 p-4 bg-elevated border border-border rounded-lg">
+            <div className="mt-4 p-4 bg-elevated border border-border rounded-card">
               <h3 className="text-sm font-semibold text-foreground mb-3">Administration</h3>
               <div className="flex flex-wrap gap-4 items-end">
+                <div>
+                  <label className="text-xs text-subtle block mb-1">Kicker-ID</label>
+                  <input
+                    type="text"
+                    value={player.kickerId || ''}
+                    readOnly
+                    className="input-field w-44 px-3 py-2 rounded-control focus:outline-none"
+                  />
+                </div>
                 <div>
                   <label className="text-xs text-subtle block mb-1">Position</label>
                   <select
                     value={editData.position}
                     onChange={(e) => setEditData({ ...editData, position: e.target.value as Position })}
-                    className="input-field rounded-lg px-3 py-2 focus:outline-none focus:border-accent"
+                    className="input-field rounded-control px-3 py-2 focus:outline-none focus:border-accent"
                   >
                     <option value="GOALKEEPER">Torwart</option>
                     <option value="DEFENDER">Abwehr</option>
@@ -310,14 +322,14 @@ export default function PlayerDetail() {
         {chartData.length > 0 && (
           <div className="px-6 mb-6">
             <h2 className="text-lg font-semibold text-foreground mb-3">Punkte pro Spieltag</h2>
-            <div className="bg-surface p-4 rounded-lg border border-border">
+            <div className="bg-surface p-4 rounded-card border border-border">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a3a4e" />
-                  <XAxis dataKey="name" stroke="#c5c5c5" />
-                  <YAxis stroke="#c5c5c5" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                  <XAxis dataKey="name" stroke={chartColors.axis} />
+                  <YAxis stroke={chartColors.axis} />
                   <Tooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
-                  <Bar dataKey="punkte" fill="#0a6ed1" />
+                  <Bar dataKey="punkte" fill={chartColors.accent} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
