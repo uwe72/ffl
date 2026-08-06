@@ -24,17 +24,17 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
           aria-current={isActive ? 'page' : undefined}
           className={`relative w-full flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors
             ${isActive
-              ? 'bg-sidebar-hover text-sidebar-foreground font-semibold'
+              ? 'bg-elevated text-foreground font-semibold'
               : 'text-sidebar-muted font-medium hover:bg-sidebar-hover hover:text-sidebar-foreground'}
             ${collapsed ? 'justify-center' : ''}`}
         >
           {isActive && (
             <span
               aria-hidden="true"
-              className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-accent-light"
+              className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-accent"
             />
           )}
-          <i className={`sap-icon ${icon} text-[18px] shrink-0 ${isActive ? 'text-accent-light' : ''}`} />
+          <i className={`sap-icon ${icon} text-[18px] shrink-0 ${isActive ? 'text-accent' : ''}`} />
           {!collapsed && (
             <>
               <span className="text-sm">{label}</span>
@@ -71,7 +71,7 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
                   aria-current={subActive ? 'page' : undefined}
                   className={`block px-3 py-2 rounded-control text-sm transition-colors
                     ${subActive
-                      ? 'bg-sidebar-hover text-sidebar-foreground font-semibold'
+                      ? 'bg-elevated text-foreground font-semibold'
                       : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover'}`}
                 >
                   {sub.label}
@@ -91,17 +91,17 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
       aria-current={isActive ? 'page' : undefined}
       className={`relative flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors
         ${isActive
-          ? 'bg-sidebar-hover text-sidebar-foreground font-semibold'
+          ? 'bg-elevated text-foreground font-semibold'
           : 'text-sidebar-muted font-medium hover:bg-sidebar-hover hover:text-sidebar-foreground'}
         ${collapsed ? 'justify-center' : ''}`}
     >
       {isActive && (
         <span
           aria-hidden="true"
-          className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-accent-light"
+          className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-accent"
         />
       )}
-      <i className={`sap-icon ${icon} text-[18px] shrink-0 ${isActive ? 'text-accent-light' : ''}`} />
+      <i className={`sap-icon ${icon} text-[18px] shrink-0 ${isActive ? 'text-accent' : ''}`} />
       {!collapsed && <span className="text-sm">{label}</span>}
     </Link>
   )
