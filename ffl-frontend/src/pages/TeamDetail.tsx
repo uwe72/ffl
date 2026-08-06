@@ -294,7 +294,7 @@ export default function TeamDetail() {
                 type="text"
                 value={editData.shortName}
                 onChange={(e) => setEditData({ ...editData, shortName: e.target.value })}
-                className="input-field w-44 px-3 py-2 rounded focus:outline-none"
+                className="input-field w-[22rem] px-3 py-2 rounded focus:outline-none"
               />
             </div>
             {hasChanges && (
