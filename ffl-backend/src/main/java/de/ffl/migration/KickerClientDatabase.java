@@ -30,6 +30,9 @@ public record KickerClientDatabase(
             Integer marketValue,
             String position,
             String seasonImage,
+            String photo,
+            String photoFallback,
+            String fallbackImage,
             Boolean active
     ) {}
 

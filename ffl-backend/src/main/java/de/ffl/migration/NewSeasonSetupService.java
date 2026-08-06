@@ -292,7 +292,7 @@ public class NewSeasonSetupService {
                     .lastName(kp.lastName())
                     .position(Position.valueOf(mapPosition(kp.position())))
                     .prize(kp.marketValue() != null ? kp.marketValue() : 0)
-                    .pictureUrl(kp.seasonImage())
+                    .pictureUrl(resolvePictureUrl(kp))
                     .season(newSeason)
                     .teams(teamList)
                     .build();
@@ -360,6 +360,19 @@ public class NewSeasonSetupService {
 
     private String nullSafe(String s) {
         return s == null ? "" : s;
+    }
+
+    String resolvePictureUrl(KickerPlayer kp) {
+        return firstNonBlank(kp.seasonImage(), kp.photo(), kp.photoFallback(), kp.fallbackImage());
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 
     private String gameName(Team host, Team visitor) {

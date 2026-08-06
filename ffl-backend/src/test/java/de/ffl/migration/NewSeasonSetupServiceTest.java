@@ -1,5 +1,6 @@
 package de.ffl.migration;
 
+import de.ffl.domain.Player;
 import de.ffl.domain.Position;
 import de.ffl.domain.PrizeDistributionLog;
 import de.ffl.domain.PrizePayout;
@@ -130,8 +131,16 @@ class NewSeasonSetupServiceTest extends AbstractSeasonTestBase {
         assertThat(playerRepository.findBySeasonAndPosition(newSeason, Position.MIDFIELD)).hasSize(3);
         assertThat(playerRepository.findBySeasonAndPosition(newSeason, Position.STRIKER)).hasSize(3);
         assertThat(playerRepository.findBySeasonId(newSeason.getId()))
+                .allSatisfy(p -> assertThat(p.getPictureUrl()).isNotBlank());
+        assertThat(playerRepository.findBySeasonId(newSeason.getId()))
+                .filteredOn(p -> !"pl-test-gk-03".equals(p.getKickerId()))
                 .allSatisfy(p -> assertThat(p.getPictureUrl())
                         .isEqualTo("https://derivates.kicker.de/image/upload/test/" + p.getKickerId() + ".png"));
+        Player gkWithoutSeasonImage = playerRepository.findBySeasonId(newSeason.getId()).stream()
+                .filter(p -> "pl-test-gk-03".equals(p.getKickerId()))
+                .findFirst().orElseThrow();
+        assertThat(gkWithoutSeasonImage.getPictureUrl())
+                .isEqualTo("https://sportsfeed.kicker.de/MediaService/PlayerLogo?playerId=99903&width=290&teamId=3");
 
         Team alpha = teamRepository.findByName("Testverein Alpha").orElseThrow();
         assertThat(alpha.getShortName()).isEqualTo("Alpha");
