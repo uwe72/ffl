@@ -117,7 +117,7 @@ export default function Login() {
 
             <div>
               <label className="block text-sm text-muted mb-1.5">
-                Login <span className="text-primary">*</span>
+                Login <span className="text-muted">*</span>
               </label>
               <input
                 ref={firstInputRef}
@@ -139,7 +139,7 @@ export default function Login() {
 
             <div>
               <label className="block text-sm text-muted mb-1.5">
-                Passwort <span className="text-primary">*</span>
+                Passwort <span className="text-muted">*</span>
               </label>
               <input
                 type="password"

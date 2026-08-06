@@ -106,7 +106,7 @@ export default function UserDetail() {
         </FormCard>
 
         <FormCard>
-          <label className="block text-sm text-muted mb-1">Vorname <span className="text-danger">*</span></label>
+          <label className="block text-sm text-muted mb-1">Vorname <span className="text-muted">*</span></label>
           <input
             value={formData.firstName || ''}
             onChange={(e) => handleChange('firstName', e.target.value)}
@@ -115,7 +115,7 @@ export default function UserDetail() {
         </FormCard>
 
         <FormCard>
-          <label className="block text-sm text-muted mb-1">Nachname <span className="text-danger">*</span></label>
+          <label className="block text-sm text-muted mb-1">Nachname <span className="text-muted">*</span></label>
           <input
             value={formData.lastName || ''}
             onChange={(e) => handleChange('lastName', e.target.value)}
@@ -124,7 +124,7 @@ export default function UserDetail() {
         </FormCard>
 
         <FormCard>
-          <label className="block text-sm text-muted mb-1">E-Mail <span className="text-danger">*</span></label>
+          <label className="block text-sm text-muted mb-1">E-Mail <span className="text-muted">*</span></label>
           <input
             type="email"
             value={formData.email || ''}

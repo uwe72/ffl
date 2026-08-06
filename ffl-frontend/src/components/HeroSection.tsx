@@ -78,7 +78,7 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
             {season && (
               <div className="flex items-center gap-3 mt-0.5">
                 <span className="text-sm text-muted">Saison {season.name}</span>
-                <Badge variant="solid">{phaseLabel}</Badge>
+                <Badge variant="soft">{phaseLabel}</Badge>
                 {season.currentMatchday && (
                   <span className="text-sm text-muted">{season.currentMatchday}. Spieltag</span>
                 )}

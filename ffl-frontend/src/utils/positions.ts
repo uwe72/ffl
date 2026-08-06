@@ -26,9 +26,9 @@ export const positionDotColor: Record<string, string> = {
   STRIKER: 'bg-striker',
 }
 
-export const positionEdgeColor: Record<string, string> = {
-  GOALKEEPER: 'border-l-[3px] border-l-goalkeeper',
-  DEFENDER: 'border-l-[3px] border-l-defender',
-  MIDFIELD: 'border-l-[3px] border-l-midfield',
-  STRIKER: 'border-l-[3px] border-l-striker',
+export const positionBarColor: Record<string, string> = {
+  GOALKEEPER: 'bg-goalkeeper',
+  DEFENDER: 'bg-defender',
+  MIDFIELD: 'bg-midfield',
+  STRIKER: 'bg-striker',
 }

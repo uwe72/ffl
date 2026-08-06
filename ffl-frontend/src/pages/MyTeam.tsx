@@ -1195,7 +1195,11 @@ export default function MyTeam() {
             />
           </div>
           <div className="flex-1 min-w-0 flex items-center gap-6 text-sm">
-            <span className="font-semibold text-foreground truncate">{manager?.login || '-'}</span>
+            <span className="font-semibold text-foreground truncate">
+              {manager?.firstName && manager?.lastName
+                ? `${manager.firstName} ${manager.lastName} (${manager.login ?? '-'})`
+                : manager?.login || '-'}
+            </span>
             <span className="text-muted truncate">{profileEmail || manager?.email || '-'}</span>
           </div>
           <Button

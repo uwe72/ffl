@@ -129,7 +129,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
 
       <div>
         <label className="block text-xs text-muted mb-1">
-          Betreff <span className="text-primary">*</span>
+          Betreff <span className="text-muted">*</span>
         </label>
         <input
           required
@@ -149,7 +149,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
 
       <div>
         <label className="block text-xs text-muted mb-1">
-          Nachricht <span className="text-primary">*</span>
+          Nachricht <span className="text-muted">*</span>
         </label>
         <textarea
           required
@@ -170,7 +170,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
 
       <div>
         <label className="block text-xs text-muted mb-1">
-          Name <span className="text-primary">*</span>
+          Name <span className="text-muted">*</span>
         </label>
         <input
           required
@@ -190,7 +190,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
 
       <div>
         <label className="block text-xs text-muted mb-1">
-          E-Mail <span className="text-primary">*</span>
+          E-Mail <span className="text-muted">*</span>
         </label>
         <input
           type="email"

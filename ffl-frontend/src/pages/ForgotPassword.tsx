@@ -115,7 +115,7 @@ export default function ForgotPassword() {
 
               <div>
                 <label className="block text-sm text-muted mb-1.5">
-                  E-Mail-Adresse <span className="text-primary">*</span>
+                  E-Mail-Adresse <span className="text-muted">*</span>
                 </label>
                 <input
                   ref={inputRef}
@@ -139,7 +139,7 @@ export default function ForgotPassword() {
               {logins.length > 0 && (
                 <div>
                   <label className="block text-sm text-muted mb-1.5">
-                    Account auswählen <span className="text-primary">*</span>
+                    Account auswählen <span className="text-muted">*</span>
                   </label>
                   <select
                     value={selectedLogin}

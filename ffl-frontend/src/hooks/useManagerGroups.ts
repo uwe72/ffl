@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { managerGroupApi } from '../api/managerGroups'
 
 export const useManagerGroups = () => {
@@ -18,21 +18,12 @@ export const useManagerGroup = (id: number) => {
 }
 
 export const useGroupLogo = (groupId: number | null | undefined) => {
-  const objectUrlRef = useRef<string | null>(null)
-
   const query = useQuery({
     queryKey: ['group-logo', groupId],
     queryFn: async () => {
       if (!groupId) return null
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current)
-        objectUrlRef.current = null
-      }
       try {
-        const blob = await managerGroupApi.getLogo(groupId).then(res => res.data)
-        const url = URL.createObjectURL(blob)
-        objectUrlRef.current = url
-        return url
+        return await managerGroupApi.getLogo(groupId).then(res => res.data as Blob)
       } catch {
         return null
       }
@@ -41,16 +32,18 @@ export const useGroupLogo = (groupId: number | null | undefined) => {
     staleTime: 1000 * 60 * 5,
   })
 
-  useEffect(() => {
-    return () => {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current)
-        objectUrlRef.current = null
-      }
-    }
-  }, [])
+  const [url, setUrl] = useState<string | null>(null)
 
-  return query
+  useEffect(() => {
+    if (query.data instanceof Blob) {
+      const objectUrl = URL.createObjectURL(query.data)
+      setUrl(objectUrl)
+      return () => URL.revokeObjectURL(objectUrl)
+    }
+    setUrl(null)
+  }, [query.data])
+
+  return { ...query, data: url }
 }
 
 export const useUploadGroupLogo = (groupId: number) => {

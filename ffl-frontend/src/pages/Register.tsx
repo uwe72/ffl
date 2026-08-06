@@ -556,7 +556,7 @@ export default function Register() {
       className="min-h-screen flex items-center justify-center bg-background py-6 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/background.png')" }}
     >
-      <div className={`bg-surface/95 backdrop-blur-sm border border-border rounded-xl w-full ${step === 4 ? 'max-w-[960px]' : step === 3 ? 'max-w-[900px]' : 'max-w-[720px]'} max-h-[92vh] flex flex-col shadow-2xl overflow-hidden`}>
+      <div className={`bg-surface/95 backdrop-blur-sm border border-border rounded-card w-full ${step === 4 ? 'max-w-[960px]' : step === 3 ? 'max-w-[900px]' : 'max-w-[720px]'} max-h-[92vh] flex flex-col shadow-2xl overflow-hidden`}>
 
         <div className="relative h-28 shrink-0 overflow-hidden">
           <div
@@ -603,7 +603,7 @@ export default function Register() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <div>
                   <label className="block text-xs text-muted mb-1">
-                    Login <span className="text-primary">*</span>
+                    Login <span className="text-muted">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle">
@@ -631,7 +631,7 @@ export default function Register() {
 
                 <div>
                   <label className="block text-xs text-muted mb-1">
-                    E-Mail <span className="text-primary">*</span>
+                    E-Mail <span className="text-muted">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle">
@@ -657,7 +657,7 @@ export default function Register() {
 
                 <div>
                   <label className="block text-xs text-muted mb-1">
-                    Passwort <span className="text-primary">*</span>
+                    Passwort <span className="text-muted">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle">
@@ -684,7 +684,7 @@ export default function Register() {
 
                 <div>
                   <label className="block text-xs text-muted mb-1">
-                    Passwort wiederholen <span className="text-primary">*</span>
+                    Passwort wiederholen <span className="text-muted">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle">
@@ -711,7 +711,7 @@ export default function Register() {
 
                 <div>
                   <label className="block text-xs text-muted mb-1">
-                    Vorname <span className="text-primary">*</span>
+                    Vorname <span className="text-muted">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle">
@@ -738,7 +738,7 @@ export default function Register() {
 
                 <div>
                   <label className="block text-xs text-muted mb-1">
-                    Nachname <span className="text-primary">*</span>
+                    Nachname <span className="text-muted">*</span>
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle">

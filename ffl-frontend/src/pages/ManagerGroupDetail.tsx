@@ -341,7 +341,7 @@ export default function ManagerGroupDetail() {
                   className="w-16 h-16 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-accent-muted text-accent flex items-center justify-center">
                   <i className="sap-icon sap-icon-group-2 text-2xl" />
                 </div>
               )}
@@ -379,7 +379,7 @@ export default function ManagerGroupDetail() {
           <div className="flex-1 min-w-0">
             <div className="grid grid-cols-3 gap-4">
               <div className="min-w-0">
-                <span className="text-xs text-muted">Name <span className="text-danger">*</span></span>
+                <span className="text-xs text-muted">Name <span className="text-muted">*</span></span>
                 <input
                   type="text"
                   value={editName}
@@ -423,7 +423,7 @@ export default function ManagerGroupDetail() {
                 </div>
               </div>
               <div className="col-span-3 min-w-0">
-                <span className="text-xs text-muted">Beschreibung <span className="text-danger">*</span></span>
+                <span className="text-xs text-muted">Beschreibung <span className="text-muted">*</span></span>
                 <textarea
                   value={editDescription}
                   onChange={canEdit ? (e) => handleChange('description', e.target.value) : undefined}

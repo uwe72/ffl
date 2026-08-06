@@ -41,7 +41,7 @@ public class ManagerGroup {
     @Builder.Default
     private EmailToOption emailTo = EmailToOption.ALL_MANAGERS;
 
-    @Lob
+    @Column(columnDefinition = "bytea")
     private byte[] logo;
 
     private String logoContentType;

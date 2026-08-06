@@ -2,6 +2,7 @@ interface BadgeProps {
   children: React.ReactNode
   variant?:
     | 'accent'
+    | 'soft'
     | 'success'
     | 'danger'
     | 'warning'
@@ -15,6 +16,7 @@ interface BadgeProps {
 
 const variantClasses: Record<string, string> = {
   accent: 'bg-primary/15 text-primary rounded-badge',
+  soft: 'bg-accent-soft text-accent-hover rounded-badge',
   success: 'bg-success/15 text-success rounded-badge',
   danger: 'bg-danger/15 text-danger rounded-badge',
   warning: 'bg-warning/15 text-warning rounded-badge',

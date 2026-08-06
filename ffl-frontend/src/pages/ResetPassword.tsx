@@ -184,7 +184,7 @@ export default function ResetPassword() {
 
               <div>
                 <label className="block text-sm text-muted mb-1.5">
-                  Neues Passwort <span className="text-primary">*</span>
+                  Neues Passwort <span className="text-muted">*</span>
                 </label>
                 <input
                   ref={firstInputRef}
@@ -206,7 +206,7 @@ export default function ResetPassword() {
 
               <div>
                 <label className="block text-sm text-muted mb-1.5">
-                  Passwort bestätigen <span className="text-primary">*</span>
+                  Passwort bestätigen <span className="text-muted">*</span>
                 </label>
                 <input
                   type="password"

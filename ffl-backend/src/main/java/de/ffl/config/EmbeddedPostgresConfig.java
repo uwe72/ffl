@@ -41,8 +41,10 @@ public class EmbeddedPostgresConfig {
              var stmt = conn.createStatement()) {
             stmt.execute("ALTER TABLE IF EXISTS ffl_user DROP COLUMN IF EXISTS avatar");
             log.info("  Avatar-Spalte (oid) entfernt, wird als bytea neu angelegt");
+            stmt.execute("ALTER TABLE IF EXISTS ffl_manager_group DROP COLUMN IF EXISTS logo");
+            log.info("  Logo-Spalte (oid) entfernt, wird als bytea neu angelegt");
         } catch (Exception e) {
-            log.warn("  Avatar-Spalte Migration: {}", e.getMessage());
+            log.warn("  Spalten-Migration: {}", e.getMessage());
         }
 
         return dataSource;

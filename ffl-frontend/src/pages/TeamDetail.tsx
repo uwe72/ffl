@@ -8,6 +8,7 @@ import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 import type { Player } from '../types'
+import { positionBarColor } from '../utils/positions'
 
 export const positionLabels: Record<string, string> = {
   GOALKEEPER: 'Torwart',
@@ -116,7 +117,8 @@ function formatPrice(price: number | undefined): string {
 
 function PlayerCard({ player }: { player: Player }) {
   return (
-    <div className="card p-4 bg-surface border border-border">
+    <div className="card relative overflow-hidden p-4 pl-5 bg-surface border border-border rounded-card">
+      <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[player.position]}`} />
       <div className="flex gap-4 items-center">
         {player.pictureUrl ? (
           <img 

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { formatCurrency } from '../utils/format'
 
-function cssVar(name: string): string {
-  if (typeof window === 'undefined') return ''
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+function cssVar(name: string, fallback: string): string {
+  if (typeof window === 'undefined') return fallback
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return value || fallback
 }
 
 export interface TopPlayer {
@@ -41,13 +42,13 @@ export default function TopPlayerStack({ players, interval = 5000 }: TopPlayerSt
   const count = players.length
 
   const c = {
-    card: cssVar('--color-card') || '#ffffff',
-    border: cssVar('--color-border-neutral') || '#dcdcdc',
-    accent: cssVar('--color-accent') || '#1d4ed8',
-    muted: cssVar('--color-elevated') || '#f7f7f7',
-    text: cssVar('--color-foreground') || '#171717',
-    textMuted: cssVar('--color-muted') || '#6b6b6b',
-    dotInactive: cssVar('--color-border-input') || '#b8b8b8',
+    card: cssVar('--ffl-surface', '#ffffff'),
+    border: cssVar('--ffl-border-subtle', '#e7e5e4'),
+    accent: cssVar('--ffl-accent', '#c2410c'),
+    muted: cssVar('--ffl-surface-sunken', '#f5f5f4'),
+    text: cssVar('--ffl-text', '#1c1917'),
+    textMuted: cssVar('--ffl-text-muted', '#57534e'),
+    dotInactive: cssVar('--ffl-border-strong', '#a8a29e'),
   }
 
   useEffect(() => {

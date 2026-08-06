@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 public class PlayerDto {
     private Long id;
     private String nameKicker;
+    private String kickerId;
     private String nameKickerAlt1;
     private String nameKickerAlt2;
     private String nameKickerAlt3;
@@ -32,6 +33,7 @@ public class PlayerDto {
         PlayerDto dto = new PlayerDto();
         dto.setId(player.getId());
         dto.setNameKicker(player.getNameKicker());
+        dto.setKickerId(player.getKickerId());
         dto.setNameKickerAlt1(player.getNameKickerAlt1());
         dto.setNameKickerAlt2(player.getNameKickerAlt2());
         dto.setNameKickerAlt3(player.getNameKickerAlt3());
@@ -103,6 +105,8 @@ public class PlayerDto {
     public void setId(Long id) { this.id = id; }
     public String getNameKicker() { return nameKicker; }
     public void setNameKicker(String nameKicker) { this.nameKicker = nameKicker; }
+    public String getKickerId() { return kickerId; }
+    public void setKickerId(String kickerId) { this.kickerId = kickerId; }
     public String getNameKickerAlt1() { return nameKickerAlt1; }
     public void setNameKickerAlt1(String nameKickerAlt1) { this.nameKickerAlt1 = nameKickerAlt1; }
     public String getNameKickerAlt2() { return nameKickerAlt2; }

@@ -9,7 +9,7 @@ import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, TableBody, TableRow, Td } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 import { formatCurrency, formatMillions, formatMillionsShort, formatPoints } from '../utils/format'
-import { positionLabels, positionBadgeVariant } from '../utils/positions'
+import { positionLabels, positionBadgeVariant, positionBarColor } from '../utils/positions'
 import Badge from '../components/Badge'
 import TopPlayerStack from '../components/TopPlayerStack'
 
@@ -20,7 +20,8 @@ type PlayerSortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points
 
 function PlayerCardDashboard({ player }: { player: PlayerPoint }) {
   return (
-    <div className="card p-4 bg-surface border border-border">
+    <div className="card relative overflow-hidden p-4 pl-5 bg-surface border border-border rounded-card">
+      <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[player.position ?? 'GOALKEEPER']}`} />
       <div className="flex gap-4 items-center">
         {player.pictureUrl ? (
           <img 
