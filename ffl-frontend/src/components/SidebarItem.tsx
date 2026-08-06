@@ -28,12 +28,6 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
               : 'text-sidebar-muted font-medium hover:bg-sidebar-hover hover:text-sidebar-foreground'}
             ${collapsed ? 'justify-center' : ''}`}
         >
-          {isActive && (
-            <span
-              aria-hidden="true"
-              className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-accent"
-            />
-          )}
           <i className={`sap-icon ${icon} text-[18px] shrink-0 ${isActive ? 'text-accent' : ''}`} />
           {!collapsed && (
             <>
@@ -95,12 +89,6 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
           : 'text-sidebar-muted font-medium hover:bg-sidebar-hover hover:text-sidebar-foreground'}
         ${collapsed ? 'justify-center' : ''}`}
     >
-      {isActive && (
-        <span
-          aria-hidden="true"
-          className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-accent"
-        />
-      )}
       <i className={`sap-icon ${icon} text-[18px] shrink-0 ${isActive ? 'text-accent' : ''}`} />
       {!collapsed && <span className="text-sm">{label}</span>}
     </Link>
