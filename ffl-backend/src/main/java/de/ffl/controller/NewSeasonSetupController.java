@@ -52,13 +52,24 @@ public class NewSeasonSetupController {
             } catch (Exception e) {
                 try {
                     emitter.send(SseEmitter.event()
-                            .name("error")
-                            .data("FEHLER: " + e.getMessage()));
+                            .name("failure")
+                            .data(buildErrorMessage(e)));
                 } catch (IOException ioException) {
                 }
                 emitter.completeWithError(e);
             }
         });
         return emitter;
+    }
+
+    private String buildErrorMessage(Exception e) {
+        StringBuilder sb = new StringBuilder("FEHLER: ").append(e.getMessage());
+        Throwable cause = e.getCause();
+        while (cause != null) {
+            sb.append("\n  Ursache: ").append(cause.getClass().getSimpleName())
+              .append(": ").append(cause.getMessage());
+            cause = cause.getCause();
+        }
+        return sb.toString();
     }
 }

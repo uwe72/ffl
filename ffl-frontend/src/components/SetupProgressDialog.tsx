@@ -38,11 +38,22 @@ export default function SetupProgressDialog({ isOpen, onClose, csvUrl, seasonNam
       eventSource.close()
     })
 
-    eventSource.addEventListener('error', (event) => {
+    eventSource.addEventListener('failure', (event) => {
       if (event instanceof MessageEvent && event.data) {
         setError(event.data)
+      } else {
+        setError('Setup fehlgeschlagen')
       }
       setIsComplete(true)
+      queryClient.invalidateQueries({ queryKey: ['seasons'] })
+      eventSource.close()
+    })
+
+    eventSource.addEventListener('error', () => {
+      if (!isComplete) {
+        setError('Verbindung zum Server verloren')
+        setIsComplete(true)
+      }
       eventSource.close()
     })
 

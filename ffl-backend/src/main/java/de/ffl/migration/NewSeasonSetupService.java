@@ -14,6 +14,8 @@ import de.ffl.repository.PasswordResetTokenRepository;
 import de.ffl.repository.PlayerRankRepository;
 import de.ffl.repository.PlayerRepository;
 import de.ffl.repository.PointsRepository;
+import de.ffl.repository.PrizeDistributionLogRepository;
+import de.ffl.repository.PrizePayoutRepository;
 import de.ffl.repository.RoundRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.TeamRepository;
@@ -49,6 +51,8 @@ public class NewSeasonSetupService {
     private final ManagerRankRepository managerRankRepository;
     private final PlayerRankRepository playerRankRepository;
     private final PointsRepository pointsRepository;
+    private final PrizePayoutRepository prizePayoutRepository;
+    private final PrizeDistributionLogRepository prizeDistributionLogRepository;
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EntityManager entityManager;
@@ -64,6 +68,8 @@ public class NewSeasonSetupService {
                                   ManagerRankRepository managerRankRepository,
                                   PlayerRankRepository playerRankRepository,
                                   PointsRepository pointsRepository,
+                                  PrizePayoutRepository prizePayoutRepository,
+                                  PrizeDistributionLogRepository prizeDistributionLogRepository,
                                   UserRepository userRepository,
                                   PasswordResetTokenRepository passwordResetTokenRepository,
                                   EntityManager entityManager) {
@@ -78,6 +84,8 @@ public class NewSeasonSetupService {
         this.managerRankRepository = managerRankRepository;
         this.playerRankRepository = playerRankRepository;
         this.pointsRepository = pointsRepository;
+        this.prizePayoutRepository = prizePayoutRepository;
+        this.prizeDistributionLogRepository = prizeDistributionLogRepository;
         this.userRepository = userRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.entityManager = entityManager;
@@ -159,6 +167,12 @@ public class NewSeasonSetupService {
         entityManager.flush();
         log.accept("lösche Punkte ...");
         pointsRepository.deleteByPlayerSeasonId(oldSeasonId);
+        entityManager.flush();
+        log.accept("lösche Gewinnverteilung (Auszahlungen) ...");
+        prizePayoutRepository.deleteBySeasonId(oldSeasonId);
+        entityManager.flush();
+        log.accept("lösche Gewinnverteilungs-Log ...");
+        prizeDistributionLogRepository.deleteBySeasonId(oldSeasonId);
         entityManager.flush();
         log.accept("lösche Spiele (mit Aufstellungen) ...");
         gameRepository.deleteAll(gameRepository.findByRoundSeasonId(oldSeasonId));

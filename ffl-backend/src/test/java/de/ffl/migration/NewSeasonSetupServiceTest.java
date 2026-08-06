@@ -1,10 +1,15 @@
 package de.ffl.migration;
 
 import de.ffl.domain.Position;
+import de.ffl.domain.PrizeDistributionLog;
+import de.ffl.domain.PrizePayout;
+import de.ffl.domain.PayoutStatus;
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
 import de.ffl.domain.UserRole;
 import de.ffl.repository.PlayerRepository;
+import de.ffl.repository.PrizeDistributionLogRepository;
+import de.ffl.repository.PrizePayoutRepository;
 import de.ffl.repository.RoundRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.TeamRepository;
@@ -17,7 +22,9 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -49,9 +56,42 @@ class NewSeasonSetupServiceTest extends AbstractSeasonTestBase {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PrizePayoutRepository prizePayoutRepository;
+
+    @Autowired
+    private PrizeDistributionLogRepository prizeDistributionLogRepository;
+
     @BeforeEach
     void setUp() throws Exception {
         loadTestData();
+
+        prizePayoutRepository.save(PrizePayout.builder()
+                .manager(managerUwe72)
+                .season(season)
+                .position(1)
+                .pointsTotal(100)
+                .prizeAmount(BigDecimal.valueOf(50.0))
+                .payoutStatus(PayoutStatus.UNPAID)
+                .calculatedAt(LocalDateTime.now())
+                .build());
+        prizeDistributionLogRepository.save(PrizeDistributionLog.builder()
+                .season(season)
+                .totalParticipants(1)
+                .payingParticipants(1)
+                .totalStakes(BigDecimal.TEN)
+                .serverCosts(BigDecimal.TEN)
+                .totalBudget(BigDecimal.TEN)
+                .numWinningRanks(1)
+                .prizeFirstPlace(BigDecimal.TEN)
+                .prizeLastPlace(BigDecimal.ONE)
+                .curvatureFactor(1.0)
+                .statisticsHtml("<p>test</p>")
+                .basePrizes("[10]")
+                .calculatedAt(LocalDateTime.now())
+                .build());
+        entityManager.flush();
+        entityManager.clear();
 
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("testdata/kicker_new_season_test.csv")) {
             assertThat(is).isNotNull();
