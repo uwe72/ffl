@@ -21,14 +21,23 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
         <button
           onClick={onToggle}
           title={collapsed ? label : undefined}
-          className={`w-full flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors
-            ${isActive ? 'bg-accent text-white' : 'text-muted hover:bg-card-hover hover:text-primary'}
+          aria-current={isActive ? 'page' : undefined}
+          className={`relative w-full flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors
+            ${isActive
+              ? 'bg-sidebar-hover text-sidebar-foreground font-semibold'
+              : 'text-sidebar-muted font-medium hover:bg-sidebar-hover hover:text-sidebar-foreground'}
             ${collapsed ? 'justify-center' : ''}`}
         >
-          <i className={`sap-icon ${icon} text-[18px] shrink-0`} />
+          {isActive && (
+            <span
+              aria-hidden="true"
+              className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-accent-light"
+            />
+          )}
+          <i className={`sap-icon ${icon} text-[18px] shrink-0 ${isActive ? 'text-accent-light' : ''}`} />
           {!collapsed && (
             <>
-              <span className="text-sm font-medium">{label}</span>
+              <span className="text-sm">{label}</span>
               <svg
                 className={`ml-auto w-4 h-4 transition-transform ${expanded ? 'rotate-90' : ''}`}
                 fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -49,7 +58,7 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
                     href={sub.to}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block px-3 py-2 rounded-control text-sm transition-colors text-subtle hover:text-primary hover:bg-card-hover"
+                    className="block px-3 py-2 rounded-control text-sm transition-colors text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover"
                   >
                     {sub.label}
                   </a>
@@ -59,8 +68,11 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
                 <Link
                   key={sub.to}
                   to={sub.to}
+                  aria-current={subActive ? 'page' : undefined}
                   className={`block px-3 py-2 rounded-control text-sm transition-colors
-                    ${subActive ? 'text-white bg-accent' : 'text-subtle hover:text-primary hover:bg-card-hover'}`}
+                    ${subActive
+                      ? 'bg-sidebar-hover text-sidebar-foreground font-semibold'
+                      : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover'}`}
                 >
                   {sub.label}
                 </Link>
@@ -76,12 +88,21 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
     <Link
       to={to}
       title={collapsed ? label : undefined}
-      className={`flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors
-        ${isActive ? 'bg-accent text-white' : 'text-muted hover:bg-card-hover hover:text-primary'}
+      aria-current={isActive ? 'page' : undefined}
+      className={`relative flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors
+        ${isActive
+          ? 'bg-sidebar-hover text-sidebar-foreground font-semibold'
+          : 'text-sidebar-muted font-medium hover:bg-sidebar-hover hover:text-sidebar-foreground'}
         ${collapsed ? 'justify-center' : ''}`}
     >
-      <i className={`sap-icon ${icon} text-[18px] shrink-0`} />
-      {!collapsed && <span className="text-sm font-medium">{label}</span>}
+      {isActive && (
+        <span
+          aria-hidden="true"
+          className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-accent-light"
+        />
+      )}
+      <i className={`sap-icon ${icon} text-[18px] shrink-0 ${isActive ? 'text-accent-light' : ''}`} />
+      {!collapsed && <span className="text-sm">{label}</span>}
     </Link>
   )
 }
