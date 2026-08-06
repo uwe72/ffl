@@ -55,7 +55,7 @@ export default function MailingMatchday() {
                 }
               }}
               disabled={!selectedRound || rounds.indexOf(selectedRound) <= 0}
-              className="p-1.5 rounded bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
+              className="p-1.5 rounded-badge bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
               title="Vorheriger Spieltag"
             >
               <i className="sap-icon sap-icon-navigation-left-arrow text-[14px]" />
@@ -79,7 +79,7 @@ export default function MailingMatchday() {
                 }
               }}
               disabled={!selectedRound || rounds.indexOf(selectedRound) >= rounds.length - 1}
-              className="p-1.5 rounded bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
+              className="p-1.5 rounded-badge bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
               title="Nächster Spieltag"
             >
               <i className="sap-icon sap-icon-navigation-right-arrow text-[14px]" />

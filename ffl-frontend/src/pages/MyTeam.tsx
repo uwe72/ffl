@@ -253,7 +253,7 @@ function OldPlayerSearch({
                         <img src={player.pictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
                       )}
                       <span className="text-foreground whitespace-nowrap">{player.nameKicker}</span>
-                      <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>{positionLabels[player.position]}</span>
+                      <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded-badge`}>{positionLabels[player.position]}</span>
                       {team && (
                         <span className="text-subtle text-[11px] whitespace-nowrap">
                           {team.shortName || team.name}
@@ -441,7 +441,7 @@ function TransferPlayerSearch({
                         <img src={player.pictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
                       )}
                       <span className="text-foreground whitespace-nowrap">{player.nameKicker}</span>
-                      <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>{positionLabels[player.position]}</span>
+                      <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded-badge`}>{positionLabels[player.position]}</span>
                       {team && (
                         <span className="text-subtle text-[11px] whitespace-nowrap">
                           {team.shortName || team.name}

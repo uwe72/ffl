@@ -120,15 +120,15 @@ function PrizeDistributionChart({ prizeDistributionLog }: { prizeDistributionLog
       </ResponsiveContainer>
       <div className="flex justify-center gap-6 mt-4">
         <div className="flex items-center gap-2">
-          <span className="w-4 h-4 rounded" style={{ backgroundColor: COLOR_FIRST }} />
+          <span className="w-4 h-4 rounded-badge" style={{ backgroundColor: COLOR_FIRST }} />
           <span className="text-muted text-sm">Erster Platz</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-4 h-4 rounded" style={{ backgroundColor: COLOR_NORMAL }} />
+          <span className="w-4 h-4 rounded-badge" style={{ backgroundColor: COLOR_NORMAL }} />
           <span className="text-muted text-sm">Normal (Degression)</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-4 h-4 rounded" style={{ backgroundColor: COLOR_LAST }} />
+          <span className="w-4 h-4 rounded-badge" style={{ backgroundColor: COLOR_LAST }} />
           <span className="text-muted text-sm">Letzter Platz</span>
         </div>
       </div>

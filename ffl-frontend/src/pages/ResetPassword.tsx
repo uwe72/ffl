@@ -104,7 +104,7 @@ export default function ResetPassword() {
   if (!token) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background.png')" }}>
-        <div className="bg-surface border border-border rounded-lg w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl">
+        <div className="bg-surface border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl">
           <div className="flex items-start justify-between px-6 pt-6 pb-2">
             <div>
               <h2 className="text-xl font-bold text-foreground">FFL</h2>
@@ -113,7 +113,7 @@ export default function ResetPassword() {
           </div>
           <div className="flex-1 overflow-y-auto px-6 pb-6">
             <div className="space-y-4 mt-2">
-              <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-md">
+              <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-control">
                 <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
                 <p className="text-danger text-sm">Ungültiger Link. Bitte fordere einen neuen an.</p>
               </div>
@@ -135,14 +135,14 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background.png')" }}>
-      <div className="bg-surface border border-border rounded-lg w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl">
+      <div className="bg-surface border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl">
         <div className="flex items-start justify-between px-6 pt-6 pb-2">
           <div>
             <h2 className="text-xl font-bold text-foreground">FFL</h2>
             <p className="text-muted text-sm mt-0.5">Neues Passwort vergeben</p>
           </div>
           <button
-            className="p-1.5 rounded-md text-subtle hover:text-foreground hover:bg-elevated transition-colors -mr-1.5 mt-0.5"
+            className="p-1.5 rounded-control text-subtle hover:text-foreground hover:bg-elevated transition-colors -mr-1.5 mt-0.5"
             onClick={() => navigate('/login')}
             aria-label="Schließen"
           >
@@ -153,7 +153,7 @@ export default function ResetPassword() {
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           {success ? (
             <div className="space-y-4 mt-2">
-              <div className="flex items-center gap-3 p-3 bg-success-bg border border-success/30 rounded-md">
+              <div className="flex items-center gap-3 p-3 bg-success-bg border border-success/30 rounded-control">
                 <i className="sap-icon sap-icon-message-success text-[18px] text-success shrink-0" />
                 <p className="text-success text-sm">
                   Dein Passwort wurde erfolgreich zurückgesetzt.
@@ -176,7 +176,7 @@ export default function ResetPassword() {
               </p>
 
               {error && (
-                <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-md">
+                <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-control">
                   <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
                   <p className="text-danger text-sm">{error}</p>
                 </div>

@@ -208,7 +208,7 @@ export default function PlayerDetail() {
                 <RouterLink
                   key={team.id}
                   to={`/teams/${team.id}`}
-                  className="text-xs font-medium px-2 py-0.5 rounded bg-elevated text-foreground hover:bg-default flex items-center gap-1"
+                  className="text-xs font-medium px-2 py-0.5 rounded-badge bg-elevated text-foreground hover:bg-default flex items-center gap-1"
                 >
                   {team.logoSUrl && (
                     <img src={team.logoSUrl} alt={team.name} className="w-4 h-4 object-contain" />
@@ -216,13 +216,13 @@ export default function PlayerDetail() {
                   {team.name}
                 </RouterLink>
               ))}
-              <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+              <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
                 {positionLabels[player.position]}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 md:flex md:items-start md:gap-2">
               <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-badge bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-badge text-base text-primary" />
                 </div>
                 <div>
@@ -231,7 +231,7 @@ export default function PlayerDetail() {
                 </div>
               </div>
               <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-badge bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-horizontal-bar-chart text-base text-primary" />
                 </div>
                 <div>
@@ -240,7 +240,7 @@ export default function PlayerDetail() {
                 </div>
               </div>
               <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-badge bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-calendar text-base text-primary" />
                 </div>
                 <div>
@@ -249,7 +249,7 @@ export default function PlayerDetail() {
                 </div>
               </div>
               <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-badge bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-money-bills text-base text-primary" />
                 </div>
                 <div>
@@ -292,7 +292,7 @@ export default function PlayerDetail() {
                     type="text"
                     value={formatCurrency(editData.prize)}
                     onChange={(e) => setEditData({ ...editData, prize: parseCurrency(e.target.value) })}
-                    className="input-field w-36 px-3 py-2 rounded focus:outline-none"
+                    className="input-field w-36 px-3 py-2 rounded-badge focus:outline-none"
                     placeholder="0 €"
                   />
                 </div>
@@ -302,7 +302,7 @@ export default function PlayerDetail() {
                     type="text"
                     value={editData.pictureUrl}
                     onChange={(e) => setEditData({ ...editData, pictureUrl: e.target.value })}
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                    className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
                   />
                 </div>
                 {hasChanges && (
@@ -417,7 +417,7 @@ export default function PlayerDetail() {
                       {isAdmin && (
                         <td className="px-3 py-2">
                           <span
-                            className={`text-xs font-medium px-2 py-0.5 rounded ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}
+                            className={`text-xs font-medium px-2 py-0.5 rounded-badge ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}
                           >
                             {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState || '-'}
                           </span>
@@ -428,14 +428,14 @@ export default function PlayerDetail() {
                       </td>
                       <td className="px-3 py-2 text-center">
                         {manager.hinrunde ? (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded chip-accent">Hin</span>
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-accent">Hin</span>
                         ) : (
                           <span className="text-subtle">-</span>
                         )}
                       </td>
                       <td className="px-3 py-2 text-center">
                         {manager.rueckrunde ? (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded chip-success">Rück</span>
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-success">Rück</span>
                         ) : (
                           <span className="text-subtle">-</span>
                         )}
@@ -456,7 +456,7 @@ export default function PlayerDetail() {
                       {manager.shortName || manager.name || '-'}
                     </RouterLink>
                     {isAdmin && (
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
                         {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState || '-'}
                       </span>
                     )}
@@ -480,14 +480,14 @@ export default function PlayerDetail() {
                     </div>
                     <div>
                       {manager.hinrunde ? (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded chip-accent">Hin</span>
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-accent">Hin</span>
                       ) : (
                         <span className="text-subtle text-xs">Hin: -</span>
                       )}
                     </div>
                     <div>
                       {manager.rueckrunde ? (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded chip-success">Rück</span>
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-success">Rück</span>
                       ) : (
                         <span className="text-subtle text-xs">Rück: -</span>
                       )}

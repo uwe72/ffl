@@ -104,7 +104,7 @@ export default function System() {
                 value={formData.webUrl || ''}
                 onChange={(e) => handleChange('webUrl', e.target.value)}
                 placeholder="https://ffl.example.com"
-                className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
               />
               <p className="text-xs text-subtle mt-2">
                 Öffentliche Basis-URL der FFL-Seite (z.B. für Links in Mails). Ohne abschließenden Slash.
@@ -121,7 +121,7 @@ export default function System() {
                     value={formData.llmBaseUrl || ''}
                     onChange={(e) => handleChange('llmBaseUrl', e.target.value)}
                     placeholder="http://localhost:4000/chat/completions"
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none font-mono"
+                    className="input-field w-full px-3 py-2 rounded-badge focus:outline-none font-mono"
                   />
                 </div>
               </div>
@@ -132,7 +132,7 @@ export default function System() {
                     type="text"
                     value={formData.llmApiKey || ''}
                     onChange={(e) => handleChange('llmApiKey', e.target.value)}
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none font-mono"
+                    className="input-field w-full px-3 py-2 rounded-badge focus:outline-none font-mono"
                   />
                 </div>
                 <div>
@@ -141,7 +141,7 @@ export default function System() {
                     value={formData.llmModel || ''}
                     onChange={(e) => handleChange('llmModel', e.target.value)}
                     placeholder="openai/gpt-4o-mini"
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                    className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
                   />
                 </div>
               </div>
@@ -181,7 +181,7 @@ export default function System() {
                     value={formData.gmailSenderEmail || ''}
                     onChange={(e) => handleChange('gmailSenderEmail', e.target.value)}
                     placeholder="example@gmail.com"
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                    className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
                   />
                 </div>
                 <div>
@@ -190,7 +190,7 @@ export default function System() {
                     value={formData.gmailAppPassword || ''}
                     onChange={(e) => handleChange('gmailAppPassword', e.target.value)}
                     placeholder="16-stellig"
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                    className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
                   />
                 </div>
                 <div>
@@ -198,7 +198,7 @@ export default function System() {
                   <input
                     value={formData.gmailSmtpServer || ''}
                     onChange={(e) => handleChange('gmailSmtpServer', e.target.value)}
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                    className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
                   />
                 </div>
                 <div>
@@ -209,7 +209,7 @@ export default function System() {
                     onChange={(e) =>
                       handleChange('gmailSmtpPort', parseInt(e.target.value) || 587)
                     }
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                    className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
                   />
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function System() {
                     value={testMailTo}
                     onChange={(e) => setTestMailTo(e.target.value)}
                     placeholder="empfaenger@example.com"
-                    className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                    className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
                   />
                 </div>
                 <Button

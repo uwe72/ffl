@@ -101,7 +101,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
 
   if (success) {
     return (
-      <div className="flex items-center gap-3 p-4 bg-success-bg border border-success/30 rounded-lg mt-2">
+      <div className="flex items-center gap-3 p-4 bg-success-bg border border-success/30 rounded-card mt-2">
         <i className="sap-icon sap-icon-complete text-[20px] text-success shrink-0" />
         <div className="flex-1">
           <p className="text-sm font-medium text-success">Vielen Dank!</p>
@@ -121,7 +121,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
   return (
     <form className="space-y-4 mt-2" onSubmit={handleSubmit} noValidate>
       {error && (
-        <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-lg">
+        <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card">
           <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
           <p className="text-danger text-sm">{error}</p>
         </div>

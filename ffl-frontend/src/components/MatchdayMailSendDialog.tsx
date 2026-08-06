@@ -177,7 +177,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-foreground">Spieltagsmail</h2>
-            <span className="px-2 py-1 rounded-md bg-primary text-primary-foreground text-xs font-semibold">
+            <span className="px-2 py-1 rounded-badge bg-primary text-primary-foreground text-xs font-semibold">
               {roundNumber}. Spieltag
             </span>
           </div>

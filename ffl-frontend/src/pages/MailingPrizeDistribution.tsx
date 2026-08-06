@@ -152,7 +152,7 @@ export default function MailingPrizeDistribution() {
                 ✕
               </Button>
             </div>
-            <div className="flex-1 overflow-auto rounded-lg border border-border-hover">
+            <div className="flex-1 overflow-auto rounded-card border border-border-hover">
               <iframe
                 srcDoc={previewHtml}
                 className="w-full h-[60vh] bg-white"

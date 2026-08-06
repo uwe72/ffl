@@ -985,7 +985,7 @@ export default function Register() {
                                 {player.prize.toLocaleString('de-DE')} €
                               </Td>
                               <Td>
-                                <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+                                <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
                                   {positionLabels[player.position]}
                                 </span>
                               </Td>

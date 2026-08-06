@@ -81,7 +81,7 @@ function FilterBar({ searchTerm, setSearchTerm, onCreateNew, hasFilter, onClearF
       {hasFilter && (
         <button
           onClick={onClearFilter}
-          className="p-1 rounded text-subtle hover:text-danger transition-colors"
+          className="p-1 rounded-badge text-subtle hover:text-danger transition-colors"
           title="Filter zurücksetzen"
         >
           <i className="sap-icon sap-icon-decline text-[14px]" />

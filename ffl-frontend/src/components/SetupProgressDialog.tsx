@@ -87,7 +87,7 @@ export default function SetupProgressDialog({ isOpen, onClose, sourceUrl, season
 
         <div
           ref={logContainerRef}
-          className="flex-1 overflow-y-auto log-console border border-border rounded-lg p-4 font-mono text-sm min-h-[390px] max-h-[520px]"
+          className="flex-1 overflow-y-auto log-console border border-border rounded-card p-4 font-mono text-sm min-h-[390px] max-h-[520px]"
         >
           {logs.map((log, index) => (
             <div key={index} className="whitespace-pre-wrap">

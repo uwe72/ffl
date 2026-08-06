@@ -70,7 +70,7 @@ export default function FeedbackDialog({ isOpen, onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="feedback-dialog-title"
-        className="bg-surface border border-border rounded-lg w-full max-w-[600px] max-h-[90vh] flex flex-col shadow-2xl"
+        className="bg-surface border border-border rounded-card w-full max-w-[600px] max-h-[90vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between px-6 pt-6 pb-2">

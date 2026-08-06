@@ -351,7 +351,7 @@ export default function Home() {
                           <Td numeric>
                             <RouterLink to={`/players/${pp.playerId}`}>
                               <span
-                                className={`${pp.managerCount && pp.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded cursor-pointer hover:opacity-80`}
+                                className={`${pp.managerCount && pp.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded-badge cursor-pointer hover:opacity-80`}
                               >
                                 {pp.managerCount ?? 0}
                               </span>
@@ -414,7 +414,7 @@ export default function Home() {
                 {managerFilter && (
                   <button
                     onClick={() => setManagerFilter('')}
-                    className="p-1 rounded text-subtle hover:text-danger transition-colors"
+                    className="p-1 rounded-badge text-subtle hover:text-danger transition-colors"
                     title="Filter zurücksetzen"
                   >
                     <i className="sap-icon sap-icon-decline text-[14px]" />
@@ -528,7 +528,7 @@ export default function Home() {
                 <button
                   onClick={() => setManagerPage(1)}
                   disabled={managerPage <= 1}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-badge text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title="Erste Seite"
                 >
                   «
@@ -536,7 +536,7 @@ export default function Home() {
                 <button
                   onClick={() => setManagerPage(p => Math.max(1, p - 1))}
                   disabled={managerPage <= 1}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-badge text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title="Vorherige Seite"
                 >
                   <i className="sap-icon sap-icon-navigation-left-arrow text-[14px]" />
@@ -544,7 +544,7 @@ export default function Home() {
                 <button
                   onClick={() => setManagerPage(p => Math.min(managerTotalPages, p + 1))}
                   disabled={managerPage >= managerTotalPages}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-badge text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title="Nächste Seite"
                 >
                   <i className="sap-icon sap-icon-navigation-right-arrow text-[14px]" />
@@ -552,7 +552,7 @@ export default function Home() {
                 <button
                   onClick={() => setManagerPage(managerTotalPages)}
                   disabled={managerPage >= managerTotalPages}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-badge text-[13px] font-medium border border-border text-foreground hover:bg-card-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title="Letzte Seite"
                 >
                   »

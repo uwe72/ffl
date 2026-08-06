@@ -151,7 +151,7 @@ export default function Emails() {
           {hasActiveFilter && (
             <button
               onClick={() => setSearchTerm('')}
-              className="p-1 rounded text-subtle hover:text-danger transition-colors"
+              className="p-1 rounded-badge text-subtle hover:text-danger transition-colors"
               title="Filter zurücksetzen"
             >
               <i className="sap-icon sap-icon-decline text-[14px]" />
@@ -211,7 +211,7 @@ export default function Emails() {
               placeholder="email@beispiel.de"
               value={newEmail}
               onChange={(e) => { setNewEmail(e.target.value); setError('') }}
-              className="input-field w-full px-3 py-2 rounded focus:outline-none mb-4"
+              className="input-field w-full px-3 py-2 rounded-badge focus:outline-none mb-4"
             />
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setShowCreateDialog(false)}>
@@ -241,7 +241,7 @@ export default function Emails() {
               placeholder={"email1@beispiel.de, email2@beispiel.de\nemail3@beispiel.de"}
               value={importText}
               onChange={(e) => { setImportText(e.target.value); setError('') }}
-              className="w-full h-40 bg-elevated border border-border-hover rounded-lg p-3 text-foreground resize-none focus:outline-none focus:border-accent"
+              className="w-full h-40 bg-elevated border border-border-hover rounded-card p-3 text-foreground resize-none focus:outline-none focus:border-accent"
             />
             <div className="flex justify-end gap-2 mt-4">
               <Button variant="ghost" onClick={() => setShowImportDialog(false)}>
@@ -274,7 +274,7 @@ export default function Emails() {
               <button
                 onClick={handleDeleteConfirm}
                 disabled={deleteEmail.isPending}
-                className="bg-danger text-foreground px-4 py-2 rounded hover:bg-danger/80 transition-colors disabled:opacity-50"
+                className="bg-danger text-foreground px-4 py-2 rounded-badge hover:bg-danger/80 transition-colors disabled:opacity-50"
               >
                 {deleteEmail.isPending ? 'Wird gelöscht...' : 'Löschen'}
               </button>

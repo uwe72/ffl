@@ -132,7 +132,7 @@ function PlayerCard({ player }: { player: Player }) {
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-foreground truncate">{player.nameKicker}</div>
           <div className="mt-1">
-            <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+            <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
               {positionLabels[player.position]}
             </span>
           </div>
@@ -393,7 +393,7 @@ export default function TeamDetail() {
                       {player.prize ? player.prize.toLocaleString() : '-'} €
                     </td>
                     <td className="px-3 py-2">
-                      <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+                      <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
                         {positionLabels[player.position]}
                       </span>
                     </td>

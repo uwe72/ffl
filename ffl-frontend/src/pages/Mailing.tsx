@@ -80,7 +80,7 @@ export default function Mailing() {
                   <div className="mt-5">
                     <RouterLink
                       to={card.route}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-button-primary-hover transition-colors"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-control bg-primary text-primary-foreground hover:bg-button-primary-hover transition-colors"
                     >
                       Öffnen
                       <i className="sap-icon sap-icon-navigation-right-arrow text-xs" />

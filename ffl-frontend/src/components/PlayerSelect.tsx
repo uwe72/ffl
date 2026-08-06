@@ -168,7 +168,7 @@ export default function PlayerSelect({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Spieler suchen..."
-              className="input-field w-full px-2 py-1.5 rounded text-xs focus:outline-none"
+              className="input-field w-full px-2 py-1.5 rounded-badge text-xs focus:outline-none"
             />
             <div className="flex gap-2">
               <input
@@ -176,14 +176,14 @@ export default function PlayerSelect({
                 value={priceMin}
                 onChange={(e) => setPriceMin(e.target.value)}
                 placeholder="Min €"
-                className="input-field w-1/2 px-2 py-1 rounded text-[11px] focus:outline-none"
+                className="input-field w-1/2 px-2 py-1 rounded-badge text-[11px] focus:outline-none"
               />
               <input
                 type="number"
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
                 placeholder="Max €"
-                className="input-field w-1/2 px-2 py-1 rounded text-[11px] focus:outline-none"
+                className="input-field w-1/2 px-2 py-1 rounded-badge text-[11px] focus:outline-none"
               />
             </div>
           </div>

@@ -43,12 +43,12 @@ export default function MailingAdminReport() {
             </ul>
           </div>
           {sendSeasonReport.isSuccess && (
-            <div className="bg-success/10 border border-success rounded-lg p-4 mb-4">
+            <div className="bg-success/10 border border-success rounded-card p-4 mb-4">
               <p className="text-success text-sm font-medium">Saison-Report wurde erfolgreich versendet.</p>
             </div>
           )}
           {sendSeasonReport.isError && (
-            <div className="bg-danger/10 border border-danger rounded-lg p-4 mb-4">
+            <div className="bg-danger/10 border border-danger rounded-card p-4 mb-4">
               <p className="text-danger text-sm font-medium">
                 Fehler: {(sendSeasonReport.error as any)?.response?.data?.message || (sendSeasonReport.error as Error)?.message || 'Unbekannter Fehler'}
               </p>

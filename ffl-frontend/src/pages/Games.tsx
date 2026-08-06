@@ -60,7 +60,7 @@ function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: numb
             </div>
           </div>
           
-          <div className="flex items-center gap-2 px-4 py-2 rounded bg-elevated">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-badge bg-elevated">
             <span className="text-foreground font-bold text-lg">{game.goalHost ?? '-'}</span>
             <span className="text-subtle">:</span>
             <span className="text-foreground font-bold text-lg">{game.goalVisitor ?? '-'}</span>
@@ -118,7 +118,7 @@ function FilterBar({
             if (currentIndex > 0) setSelectedRound(rounds[currentIndex - 1])
           }}
           disabled={!selectedRound || rounds.indexOf(selectedRound) <= 0}
-          className="p-1.5 rounded bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
+          className="p-1.5 rounded-badge bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
           title="Vorheriger Spieltag"
         >
           <i className="sap-icon sap-icon-navigation-left-arrow text-[14px]" />
@@ -126,7 +126,7 @@ function FilterBar({
         <select
           value={selectedRound || ''}
           onChange={(e) => setSelectedRound(e.target.value ? Number(e.target.value) : null)}
-          className="input-field border border-border rounded px-3 py-1.5 text-sm focus:outline-none focus:border-accent"
+          className="input-field border border-border rounded-badge px-3 py-1.5 text-sm focus:outline-none focus:border-accent"
         >
           {rounds.map(round => (
             <option key={round} value={round}>
@@ -140,7 +140,7 @@ function FilterBar({
             if (currentIndex < rounds.length - 1) setSelectedRound(rounds[currentIndex + 1])
           }}
           disabled={!selectedRound || rounds.indexOf(selectedRound) >= rounds.length - 1}
-          className="p-1.5 rounded bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
+          className="p-1.5 rounded-badge bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
           title="Nächster Spieltag"
         >
           <i className="sap-icon sap-icon-navigation-right-arrow text-[14px]" />
@@ -281,7 +281,7 @@ export default function Games() {
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex items-center justify-center gap-2">
-                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded bg-elevated">
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-badge bg-elevated">
                             <span className="text-foreground font-semibold">{game.goalHost ?? '-'}</span>
                             <span className="text-subtle">:</span>
                             <span className="text-foreground font-semibold">{game.goalVisitor ?? '-'}</span>

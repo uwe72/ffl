@@ -69,7 +69,7 @@ export default function Profile() {
               value={user.login}
               readOnly
               disabled
-              className="input-field w-full px-2 py-1 rounded text-sm"
+              className="input-field w-full px-2 py-1 rounded-badge text-sm"
             />
           </div>
           <div className="w-[320px] max-w-full">
@@ -78,7 +78,7 @@ export default function Profile() {
               type="email"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
-              className="input-field w-full px-2 py-1 rounded text-sm"
+              className="input-field w-full px-2 py-1 rounded-badge text-sm"
             />
           </div>
           <div className="w-[320px] max-w-full">
@@ -88,7 +88,7 @@ export default function Profile() {
               value={user.firstName || '-'}
               readOnly
               disabled
-              className="input-field w-full px-2 py-1 rounded text-sm"
+              className="input-field w-full px-2 py-1 rounded-badge text-sm"
             />
           </div>
           <div className="w-[320px] max-w-full">
@@ -98,7 +98,7 @@ export default function Profile() {
               value={user.lastName || '-'}
               readOnly
               disabled
-              className="input-field w-full px-2 py-1 rounded text-sm"
+              className="input-field w-full px-2 py-1 rounded-badge text-sm"
             />
           </div>
           <div className="w-[320px] max-w-full">
@@ -106,7 +106,7 @@ export default function Profile() {
             <select
               value={mailTheme}
               onChange={(e) => handleMailThemeChange(e.target.value as MailTheme)}
-              className="input-field w-full px-2 py-1 rounded text-sm focus:outline-none focus:border-accent"
+              className="input-field w-full px-2 py-1 rounded-badge text-sm focus:outline-none focus:border-accent"
             >
               {Object.entries(mailThemeLabels).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>

@@ -50,14 +50,14 @@ function FilterDropdown({ config, value, onChange }: {
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="min-w-36 px-2.5 py-1.5 rounded bg-elevated border border-border text-foreground text-xs flex items-center justify-between gap-1.5 focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
+        className="min-w-36 px-2.5 py-1.5 rounded-badge bg-elevated border border-border text-foreground text-xs flex items-center justify-between gap-1.5 focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
       >
         <span className="truncate">{selectedOption?.label || config.label}</span>
         <span className="text-subtle text-[10px]">▼</span>
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
+        <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-card shadow-xl z-50 max-h-60 overflow-y-auto">
           <button
             onClick={() => { onChange(''); setIsOpen(false) }}
             className={`w-full px-2.5 py-1.5 text-left text-xs hover:bg-elevated transition-colors ${!value ? 'bg-elevated text-primary' : 'text-muted'}`}
@@ -119,7 +119,7 @@ export default function FilterBar({
         {onGo && (
           <button
             onClick={onGo}
-            className="px-4 py-1.5 rounded bg-primary text-primary-foreground text-xs font-medium hover:bg-button-primary-hover transition-colors"
+            className="px-4 py-1.5 rounded-badge bg-primary text-primary-foreground text-xs font-medium hover:bg-button-primary-hover transition-colors"
           >
             Suchen
           </button>

@@ -94,13 +94,13 @@ export default function UserDetail() {
           <input
             value={user.login}
             readOnly
-            className="input-field w-full px-3 py-2 rounded focus:outline-none"
+            className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
           />
         </FormCard>
 
         <FormCard>
           <label className="block text-sm text-muted mb-2">Rolle</label>
-          <span className={`${roleChipClass[user.role as keyof typeof roleChipClass] || 'chip-accent'} text-xs font-medium px-2 py-0.5 rounded`}>
+          <span className={`${roleChipClass[user.role as keyof typeof roleChipClass] || 'chip-accent'} text-xs font-medium px-2 py-0.5 rounded-badge`}>
             {roleLabels[user.role as keyof typeof roleLabels] || user.role}
           </span>
         </FormCard>
@@ -110,7 +110,7 @@ export default function UserDetail() {
           <input
             value={formData.firstName || ''}
             onChange={(e) => handleChange('firstName', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none"
+            className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
           />
         </FormCard>
 
@@ -119,7 +119,7 @@ export default function UserDetail() {
           <input
             value={formData.lastName || ''}
             onChange={(e) => handleChange('lastName', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none"
+            className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
           />
         </FormCard>
 
@@ -129,7 +129,7 @@ export default function UserDetail() {
             type="email"
             value={formData.email || ''}
             onChange={(e) => handleChange('email', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none"
+            className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
           />
         </FormCard>
 
@@ -139,7 +139,7 @@ export default function UserDetail() {
             type="date"
             value={formData.birthday || ''}
             onChange={(e) => handleChange('birthday', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none"
+            className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
           />
         </FormCard>
 
@@ -148,7 +148,7 @@ export default function UserDetail() {
           <input
             value={formData.street || ''}
             onChange={(e) => handleChange('street', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none"
+            className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
           />
         </FormCard>
 
@@ -157,7 +157,7 @@ export default function UserDetail() {
           <input
             value={formData.city || ''}
             onChange={(e) => handleChange('city', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded focus:outline-none"
+            className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
           />
         </FormCard>
       </div>
@@ -244,7 +244,7 @@ export default function UserDetail() {
               <button
                 onClick={handleDeleteConfirm}
                 disabled={deleteUser.isPending}
-                className="bg-danger text-foreground px-4 py-2 rounded hover:bg-danger/80 transition-colors disabled:opacity-50"
+                className="bg-danger text-foreground px-4 py-2 rounded-badge hover:bg-danger/80 transition-colors disabled:opacity-50"
               >
                 {deleteUser.isPending ? 'Wird gelöscht...' : 'Löschen'}
               </button>

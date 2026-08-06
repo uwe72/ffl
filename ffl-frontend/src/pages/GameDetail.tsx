@@ -28,7 +28,7 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
   })
 
   return (
-    <div className="bg-surface rounded-lg border border-border overflow-hidden">
+    <div className="bg-surface rounded-card border border-border overflow-hidden">
       <h3 className="px-4 py-3 text-lg font-semibold text-foreground border-b border-border bg-elevated">
         {teamName} ({playerCount} Spieler)
       </h3>
@@ -63,7 +63,7 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
                     </td>
                     <td className="px-3 py-2">
                       {player.position ? (
-                        <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+                        <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
                           {positionLabels[player.position]}
                         </span>
                       ) : '-'}
@@ -75,7 +75,7 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
                       {player.rules && player.rules.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {player.rules.map((rule, idx) => (
-                            <span key={idx} className="text-xs px-2 py-0.5 rounded bg-elevated text-muted">
+                            <span key={idx} className="text-xs px-2 py-0.5 rounded-badge bg-elevated text-muted">
                               {rule.ruleLabel} ({rule.count})
                             </span>
                           ))}
@@ -154,7 +154,7 @@ export default function GameDetail() {
         />
       )}
 
-      <div className="bg-surface rounded-lg border border-border p-6 mb-6">
+      <div className="bg-surface rounded-card border border-border p-6 mb-6">
         <div className="text-center mb-4">
           <Badge>{game.roundNumber ? `${game.roundNumber}. Spieltag` : 'Spieltag'}</Badge>
         </div>
@@ -197,7 +197,7 @@ export default function GameDetail() {
       </div>
 
       {isAdmin && (
-        <div className="bg-surface rounded-lg border border-border mb-6 overflow-hidden">
+        <div className="bg-surface rounded-card border border-border mb-6 overflow-hidden">
           <button
             onClick={() => setShowFormation(!showFormation)}
             className="w-full px-4 py-3 flex items-center justify-between text-lg font-semibold text-foreground bg-elevated hover:bg-default transition-colors"
@@ -219,7 +219,7 @@ export default function GameDetail() {
               <textarea
                 value={formation}
                 onChange={(e) => setFormation(e.target.value)}
-                className="w-full h-64 px-3 py-2 rounded border border-border bg-elevated text-muted font-mono text-sm resize-y"
+                className="w-full h-64 px-3 py-2 rounded-badge border border-border bg-elevated text-muted font-mono text-sm resize-y"
                 placeholder="Formation-String hier einfügen..."
               />
               <div className="flex justify-end mt-2">

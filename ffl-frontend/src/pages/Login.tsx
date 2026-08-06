@@ -77,14 +77,14 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background.png')" }}>
-      <div className="bg-surface border border-border rounded-lg w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl">
+      <div className="bg-surface border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl">
         <div className="flex items-start justify-between px-6 pt-6 pb-2">
           <div>
             <h2 className="text-xl font-bold text-foreground">FFL</h2>
             <p className="text-muted text-sm mt-0.5">Fantasy Football League</p>
           </div>
           <button
-            className="p-1.5 rounded-md text-subtle hover:text-foreground hover:bg-elevated transition-colors -mr-1.5 mt-0.5"
+            className="p-1.5 rounded-control text-subtle hover:text-foreground hover:bg-elevated transition-colors -mr-1.5 mt-0.5"
             onClick={() => navigate('/')}
             aria-label="Schließen"
           >
@@ -95,21 +95,21 @@ export default function Login() {
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <form className="space-y-4 mt-2" onSubmit={handleSubmit} noValidate>
             {justRegistered && (
-              <div className="flex items-center gap-3 p-3 bg-success-bg border border-success/30 rounded-md">
+              <div className="flex items-center gap-3 p-3 bg-success-bg border border-success/30 rounded-control">
                 <i className="sap-icon sap-icon-message-success text-[18px] text-success shrink-0" />
                 <p className="text-success text-sm">Registrierung erfolgreich! Du kannst dich jetzt anmelden.</p>
               </div>
             )}
 
             {passwordReset && (
-              <div className="flex items-center gap-3 p-3 bg-success-bg border border-success/30 rounded-md">
+              <div className="flex items-center gap-3 p-3 bg-success-bg border border-success/30 rounded-control">
                 <i className="sap-icon sap-icon-message-success text-[18px] text-success shrink-0" />
                 <p className="text-success text-sm">Passwort wurde zurückgesetzt. Du kannst dich jetzt mit deinem neuen Passwort anmelden.</p>
               </div>
             )}
 
             {error && (
-              <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-md">
+              <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-control">
                 <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
                 <p className="text-danger text-sm">{error}</p>
               </div>

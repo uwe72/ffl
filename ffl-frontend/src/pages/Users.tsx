@@ -90,7 +90,7 @@ export default function Users() {
           {hasActiveFilter && (
             <button
               onClick={() => setSearchTerm('')}
-              className="p-1 rounded text-subtle hover:text-danger transition-colors"
+              className="p-1 rounded-badge text-subtle hover:text-danger transition-colors"
               title="Filter zurücksetzen"
             >
               <i className="sap-icon sap-icon-decline text-[14px]" />
@@ -132,7 +132,7 @@ export default function Users() {
                     <td className="px-3 py-2 text-muted">{user.firstName || '-'}</td>
                     <td className="px-3 py-2 text-muted">{user.lastName || '-'}</td>
                     <td className="px-3 py-2">
-                      <span className={`${roleChipClass[user.role as keyof typeof roleChipClass] || 'chip-accent'} text-xs font-medium px-2 py-0.5 rounded`}>
+                      <span className={`${roleChipClass[user.role as keyof typeof roleChipClass] || 'chip-accent'} text-xs font-medium px-2 py-0.5 rounded-badge`}>
                         {roleLabels[user.role as keyof typeof roleLabels] || user.role}
                       </span>
                     </td>

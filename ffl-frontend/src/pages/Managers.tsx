@@ -86,7 +86,7 @@ function FilterBar({ searchTerm, setSearchTerm, onExport, hasFilter }: {
       {hasFilter && (
         <button
           onClick={clearFilter}
-          className="p-1 rounded text-subtle hover:text-danger transition-colors"
+          className="p-1 rounded-badge text-subtle hover:text-danger transition-colors"
           title="Filter zurücksetzen"
         >
           <i className="sap-icon sap-icon-decline text-[14px]" />
@@ -269,7 +269,7 @@ export default function Managers() {
                       {isAdmin && (
                         <td className="px-3 py-2">
                           <span
-                            className={`text-xs font-medium px-2 py-0.5 rounded ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}
+                            className={`text-xs font-medium px-2 py-0.5 rounded-badge ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}
                           >
                             {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
                           </span>

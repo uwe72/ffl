@@ -206,11 +206,11 @@ export default function FormationImportDialog({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-surface rounded-lg border border-border p-6 max-w-4xl w-full mx-4 max-h-[200vh] overflow-y-auto">
+      <div className="bg-surface rounded-card border border-border p-6 max-w-4xl w-full mx-4 max-h-[200vh] overflow-y-auto">
         <h3 className="text-lg font-semibold text-foreground mb-4">
           Formation importieren
         </h3>
-        <div className="flex items-center justify-center gap-4 mb-4 py-3 bg-elevated rounded-lg">
+        <div className="flex items-center justify-center gap-4 mb-4 py-3 bg-elevated rounded-card">
           {game?.hostLogoUrl && (
             <img src={game.hostLogoUrl} alt={game.hostName} className="h-10 w-10 object-contain" />
           )}
@@ -236,21 +236,21 @@ export default function FormationImportDialog({
             />
 
             {successMessage && (
-              <div className="bg-success-bg border border-success/30 rounded-lg p-3 mb-4 text-success flex items-center gap-2">
+              <div className="bg-success-bg border border-success/30 rounded-card p-3 mb-4 text-success flex items-center gap-2">
                 <span className="text-lg">✓</span>
                 <span>{successMessage}</span>
               </div>
             )}
 
             {error && (
-              <div className="bg-danger-bg border border-danger/30 rounded-lg p-3 mb-4 text-danger flex items-center gap-2">
+              <div className="bg-danger-bg border border-danger/30 rounded-card p-3 mb-4 text-danger flex items-center gap-2">
                 <span className="text-lg">✗</span>
                 <span>{error}</span>
               </div>
             )}
 
             {validation && (
-              <div className={`border rounded-lg p-3 mb-4 ${validation.valid ? 'bg-success-bg border-success/30' : 'bg-warning-bg border-warning/30'}`}>
+              <div className={`border rounded-card p-3 mb-4 ${validation.valid ? 'bg-success-bg border-success/30' : 'bg-warning-bg border-warning/30'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`text-lg ${validation.valid ? 'text-success' : 'text-warning'}`}>
                     {validation.valid ? '✓' : '⚠'}
@@ -316,14 +316,14 @@ export default function FormationImportDialog({
             </div>
 
             {successMessage && (
-              <div className="bg-success-bg border border-success/30 rounded-lg p-3 mb-4 text-success flex items-center gap-2">
+              <div className="bg-success-bg border border-success/30 rounded-card p-3 mb-4 text-success flex items-center gap-2">
                 <span className="text-lg">✓</span>
                 <span>{successMessage}</span>
               </div>
             )}
 
             {error && (
-              <div className="bg-danger-bg border border-danger/30 rounded-lg p-3 mb-4 text-danger flex items-center gap-2">
+              <div className="bg-danger-bg border border-danger/30 rounded-card p-3 mb-4 text-danger flex items-center gap-2">
                 <span className="text-lg">✗</span>
                 <span>{error}</span>
               </div>
@@ -380,7 +380,7 @@ export default function FormationImportDialog({
                   </div>
                 </div>
 
-                <div className="border border-border rounded-lg overflow-y-auto" style={{ maxHeight: '280px' }}>
+                <div className="border border-border rounded-card overflow-y-auto" style={{ maxHeight: '280px' }}>
                   {(() => {
                     const searchLower = searchTerm.toLowerCase()
                     const filteredPlayers = teamPlayers.filter(p => {
@@ -428,7 +428,7 @@ export default function FormationImportDialog({
                                 <td className="px-2 py-2 text-muted text-xs">{player.nameKickerAlt3 || '-'}</td>
                                 <td className="px-2 py-2">
                                   {player.position ? (
-                                    <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+                                    <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
                                       {positionLabels[player.position]}
                                     </span>
                                   ) : '-'}

@@ -494,7 +494,7 @@ export default function Players() {
                       {player.prize ? player.prize.toLocaleString() : '-'} €
                     </td>
                     <td className="px-3 py-2">
-                      <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+                      <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
                         {positionLabels[player.position]}
                       </span>
                     </td>
