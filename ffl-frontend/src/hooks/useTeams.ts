@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { teamApi } from '../api/teams'
+import type { Team } from '../types'
 
 export function useTeams() {
   return useQuery({
@@ -21,5 +22,17 @@ export function useTeamPlayers(teamId: number) {
     queryKey: ['teams', teamId, 'players'],
     queryFn: () => teamApi.getPlayers(teamId).then(res => res.data),
     enabled: !!teamId,
+  })
+}
+
+export function useUpdateTeam() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<Team> }) =>
+      teamApi.update(id, data).then(res => res.data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['teams', variables.id] })
+      queryClient.invalidateQueries({ queryKey: ['teams'] })
+    },
   })
 }

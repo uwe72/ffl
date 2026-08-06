@@ -52,4 +52,15 @@ public class TeamController {
     public Team createTeam(@RequestBody Team team) {
         return teamRepository.save(team);
     }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Team> updateTeam(@PathVariable Long id, @RequestBody Team updateData) {
+        return teamRepository.findById(id)
+            .map(team -> {
+                team.setShortName(updateData.getShortName());
+                return ResponseEntity.ok(teamRepository.save(team));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
 }

@@ -7,4 +7,5 @@ export const teamApi = {
   getById: (id: number) => api.get<Team>(`/teams/${id}`),
   getPlayers: (id: number) => api.get<Player[]>(`/teams/${id}/players`),
   create: (team: Partial<Team>) => api.post<Team>('/teams', team),
+  update: (id: number, data: Partial<Team>) => api.put<Team>(`/teams/${id}`, data),
 }

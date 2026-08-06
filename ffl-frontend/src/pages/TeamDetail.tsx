@@ -1,6 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
-import { useTeam, useTeamPlayers } from '../hooks/useTeams'
+import { useTeam, useTeamPlayers, useUpdateTeam } from '../hooks/useTeams'
+import { useAuth } from '../context/AuthContext'
+import Button from '../components/Button'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
@@ -180,7 +182,30 @@ export default function TeamDetail() {
   const isMobile = useIsMobile()
   const { data: team } = useTeam(Number(id))
   const { data: players, isLoading, error } = useTeamPlayers(Number(id))
-  
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
+  const updateTeam = useUpdateTeam()
+
+  const [editData, setEditData] = useState({ shortName: '' })
+  const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    if (team) {
+      setEditData({ shortName: team.shortName || '' })
+    }
+  }, [team])
+
+  const hasChanges = team && editData.shortName !== (team.shortName || '')
+
+  const handleSave = async () => {
+    setIsSaving(true)
+    try {
+      await updateTeam.mutateAsync({ id: Number(id), data: editData })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set())
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('position')
@@ -258,6 +283,32 @@ export default function TeamDetail() {
         )}
         <h1 className="text-xl font-bold text-foreground">{team?.name || 'Laden...'}</h1>
       </div>
+
+      {isAdmin && team && (
+        <div className="mb-6 p-4 bg-elevated border border-border rounded-lg">
+          <h3 className="text-sm font-semibold text-foreground mb-3">Administration</h3>
+          <div className="flex flex-wrap gap-4 items-end">
+            <div>
+              <label className="text-xs text-subtle block mb-1">Kurzname</label>
+              <input
+                type="text"
+                value={editData.shortName}
+                onChange={(e) => setEditData({ ...editData, shortName: e.target.value })}
+                className="input-field w-44 px-3 py-2 rounded focus:outline-none"
+              />
+            </div>
+            {hasChanges && (
+              <Button
+                variant="emphasized"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Speichern...' : 'Speichern'}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       <CardContainer>
         <FilterBar
