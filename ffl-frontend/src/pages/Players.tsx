@@ -131,6 +131,9 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
     setSelectedPositions(next)
   }
 
+  const [minFocused, setMinFocused] = useState(false)
+  const [maxFocused, setMaxFocused] = useState(false)
+
   const clearFilter = () => {
     setSelectedPositions(new Set())
     setSelectedTeamId('ALL')
@@ -182,17 +185,23 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
 
       <div className="flex items-center gap-1.5">
         <input
-          type="number"
-          value={priceMin}
-          onChange={e => setPriceMin(e.target.value)}
+          type="text"
+          inputMode="numeric"
+          value={minFocused ? priceMin : (priceMin ? `${Number(priceMin).toLocaleString('de-DE')} €` : '')}
+          onFocus={() => setMinFocused(true)}
+          onBlur={() => setMinFocused(false)}
+          onChange={e => setPriceMin(e.target.value.replace(/[^\d]/g, ''))}
           placeholder="Min €"
           className="input-field w-40 px-2 py-1.5 text-xs"
         />
         <span className="text-subtle text-xs">–</span>
         <input
-          type="number"
-          value={priceMax}
-          onChange={e => setPriceMax(e.target.value)}
+          type="text"
+          inputMode="numeric"
+          value={maxFocused ? priceMax : (priceMax ? `${Number(priceMax).toLocaleString('de-DE')} €` : '')}
+          onFocus={() => setMaxFocused(true)}
+          onBlur={() => setMaxFocused(false)}
+          onChange={e => setPriceMax(e.target.value.replace(/[^\d]/g, ''))}
           placeholder="Max €"
           className="input-field w-40 px-2 py-1.5 text-xs"
         />
