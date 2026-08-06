@@ -99,7 +99,7 @@ export default function PlayerSelect({
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     return (
-      <div className={`group bg-surface border border-border ${positionEdgeColor[selectedPlayer.position]} rounded-md p-3 flex items-center gap-2 transition-colors hover:border-border-hover cursor-pointer ${highlightClass || ''}`}>
+      <div className={`group bg-surface border border-border ${positionEdgeColor[selectedPlayer.position]} rounded-none p-3 flex items-center gap-2 transition-colors hover:border-border-hover cursor-pointer ${highlightClass || ''}`}>
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
             <img src={selectedPlayer.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -114,7 +114,7 @@ export default function PlayerSelect({
               className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
               title="Entfernen"
             >
-              <i className="sap-icon sap-icon-decline text-[11px] text-red-400" />
+              <i className="sap-icon sap-icon-decline text-[11px] text-danger-foreground" />
             </button>
           )}
         </div>
@@ -129,7 +129,7 @@ export default function PlayerSelect({
               <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain shrink-0" />
             )}
             {badge && (
-              <span className="text-[10px] font-semibold text-accent border border-accent rounded px-1 py-0.5 leading-none shrink-0">{badge}</span>
+              <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none shrink-0">{badge}</span>
             )}
           </div>
           <p className="text-[13px] text-muted tabular-nums mt-0.5">{selectedPlayer.prize.toLocaleString('de-DE')} €</p>
@@ -140,7 +140,7 @@ export default function PlayerSelect({
 
   if (disabled) {
     return (
-      <div className="input-field w-full px-3 py-2 rounded text-xs flex items-center justify-between text-placeholder opacity-50">
+      <div className="w-full px-3 py-2 rounded-none text-xs flex items-center justify-between bg-card-muted border border-dashed border-accent text-accent">
         <span>{slot.label} wählen...</span>
       </div>
     )
@@ -149,18 +149,18 @@ export default function PlayerSelect({
   return (
     <div ref={containerRef} className="relative">
       <div
-        className="input-field w-full px-3 py-2 rounded text-xs cursor-pointer flex items-center justify-between text-placeholder"
+        className="w-full px-3 py-2 rounded-none text-xs cursor-pointer flex items-center justify-between bg-card-muted border border-dashed border-accent text-accent"
         onClick={() => {
           setIsOpen(!isOpen)
           setTimeout(() => inputRef.current?.focus(), 50)
         }}
       >
         <span>{slot.label} wählen...</span>
-        <i className="sap-icon sap-icon-slim-arrow-down text-[10px] text-muted" />
+        <i className="sap-icon sap-icon-slim-arrow-down text-[10px] text-accent" />
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 min-w-[380px] w-full bg-surface border border-border rounded-lg shadow-xl max-h-[320px] flex flex-col">
+        <div className="absolute z-50 mt-1 min-w-[380px] w-full bg-surface border border-border rounded-card shadow-xl max-h-[320px] flex flex-col">
           <div className="p-2 border-b border-border space-y-1.5">
             <input
               ref={inputRef}
@@ -207,7 +207,7 @@ export default function PlayerSelect({
                         <img src={player.pictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
                       )}
                       <span className="text-foreground whitespace-nowrap">{player.nameKicker}</span>
-                      <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded`}>{positionLabels[player.position]}</span>
+                      <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded-badge`}>{positionLabels[player.position]}</span>
                       {team && (
                         <span className="text-subtle text-[11px] whitespace-nowrap">
                           {team.shortName || team.name}
