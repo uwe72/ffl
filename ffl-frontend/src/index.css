@@ -133,7 +133,8 @@
   --color-sidebar-muted: var(--ffl-text-on-dark-muted);
   --color-sidebar-hover: var(--ffl-sidebar-hover);
   --color-sidebar-border: var(--ffl-sidebar-hover);
-  --color-sidebar-active-bg: var(--ffl-accent);
+  --color-sidebar-active-bg: var(--ffl-surface-sunken);
+  --color-sidebar-active-text: var(--ffl-text);
   --color-sidebar-active: var(--ffl-text-on-accent);
   --color-sidebar-warning: #e0a53a;
 

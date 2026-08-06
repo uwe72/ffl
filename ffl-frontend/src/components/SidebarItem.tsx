@@ -24,7 +24,7 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
           aria-current={isActive ? 'page' : undefined}
           className={`relative w-full flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors
             ${isActive
-              ? 'bg-elevated text-foreground font-semibold'
+              ? 'bg-sidebar-active-bg text-sidebar-active-text font-semibold'
               : 'text-sidebar-muted font-medium hover:bg-sidebar-hover hover:text-sidebar-foreground'}
             ${collapsed ? 'justify-center' : ''}`}
         >
@@ -71,7 +71,7 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
                   aria-current={subActive ? 'page' : undefined}
                   className={`block px-3 py-2 rounded-control text-sm transition-colors
                     ${subActive
-                      ? 'bg-elevated text-foreground font-semibold'
+                      ? 'text-sidebar-foreground font-semibold'
                       : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover'}`}
                 >
                   {sub.label}
@@ -91,7 +91,7 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
       aria-current={isActive ? 'page' : undefined}
       className={`relative flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors
         ${isActive
-          ? 'bg-elevated text-foreground font-semibold'
+          ? 'bg-sidebar-active-bg text-sidebar-active-text font-semibold'
           : 'text-sidebar-muted font-medium hover:bg-sidebar-hover hover:text-sidebar-foreground'}
         ${collapsed ? 'justify-center' : ''}`}
     >
