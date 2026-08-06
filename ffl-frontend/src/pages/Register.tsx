@@ -577,7 +577,7 @@ export default function Register() {
               </div>
             </div>
             <button
-              className="absolute top-4 right-4 p-1.5 rounded-md text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+              className="absolute top-4 right-4 p-1.5 rounded-control text-white/60 hover:text-white hover:bg-white/10 transition-colors"
               onClick={() => navigate('/login')}
               aria-label="Schließen"
             >
@@ -592,7 +592,7 @@ export default function Register() {
 
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           {error && (
-            <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-lg mt-4">
+            <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card mt-4">
               <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
               <p className="text-danger text-sm">{error}</p>
             </div>
@@ -621,7 +621,7 @@ export default function Register() {
                         if (fieldErrors.login) validateField('login', e.target.value)
                       }}
                       onBlur={() => handleBlur('login', login)}
-                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-lg focus:outline-none text-sm ${fieldErrors.login ? 'border-danger focus:border-danger' : ''}`}
+                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-control focus:outline-none text-sm ${fieldErrors.login ? 'border-danger focus:border-danger' : ''}`}
                     />
                   </div>
                   {fieldErrors.login && (
@@ -647,7 +647,7 @@ export default function Register() {
                         if (fieldErrors.email) validateField('email', e.target.value)
                       }}
                       onBlur={() => handleBlur('email', email)}
-                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-lg focus:outline-none text-sm ${fieldErrors.email ? 'border-danger focus:border-danger' : ''}`}
+                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-control focus:outline-none text-sm ${fieldErrors.email ? 'border-danger focus:border-danger' : ''}`}
                     />
                   </div>
                   {fieldErrors.email && (
@@ -674,7 +674,7 @@ export default function Register() {
                         if (fieldErrors.password) validateField('password', e.target.value)
                       }}
                       onBlur={() => handleBlur('password', password)}
-                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-lg focus:outline-none text-sm ${fieldErrors.password ? 'border-danger focus:border-danger' : ''}`}
+                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-control focus:outline-none text-sm ${fieldErrors.password ? 'border-danger focus:border-danger' : ''}`}
                     />
                   </div>
                   {fieldErrors.password && (
@@ -701,7 +701,7 @@ export default function Register() {
                         if (fieldErrors.confirmPassword) validateField('confirmPassword', e.target.value)
                       }}
                       onBlur={() => handleBlur('confirmPassword', confirmPassword)}
-                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-lg focus:outline-none text-sm ${fieldErrors.confirmPassword ? 'border-danger focus:border-danger' : ''}`}
+                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-control focus:outline-none text-sm ${fieldErrors.confirmPassword ? 'border-danger focus:border-danger' : ''}`}
                     />
                   </div>
                   {fieldErrors.confirmPassword && (
@@ -728,7 +728,7 @@ export default function Register() {
                         if (fieldErrors.firstName) validateField('firstName', e.target.value)
                       }}
                       onBlur={() => handleBlur('firstName', firstName)}
-                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-lg focus:outline-none text-sm ${fieldErrors.firstName ? 'border-danger focus:border-danger' : ''}`}
+                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-control focus:outline-none text-sm ${fieldErrors.firstName ? 'border-danger focus:border-danger' : ''}`}
                     />
                   </div>
                   {fieldErrors.firstName && (
@@ -755,7 +755,7 @@ export default function Register() {
                         if (fieldErrors.lastName) validateField('lastName', e.target.value)
                       }}
                       onBlur={() => handleBlur('lastName', lastName)}
-                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-lg focus:outline-none text-sm ${fieldErrors.lastName ? 'border-danger focus:border-danger' : ''}`}
+                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-control focus:outline-none text-sm ${fieldErrors.lastName ? 'border-danger focus:border-danger' : ''}`}
                     />
                   </div>
                   {fieldErrors.lastName && (
@@ -813,33 +813,27 @@ export default function Register() {
 
           {step === 3 && (
             <div className="mt-4 space-y-4">
-              <div className="flex flex-wrap items-center gap-3 bg-elevated/60 rounded-lg px-3 py-2.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-                  <span className="text-[11px] text-muted">Budget</span>
-                  <span className="text-xs font-semibold text-foreground">{budget.toLocaleString('de-DE')} €</span>
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="grid grid-cols-3 gap-2 flex-1 min-w-[240px] max-w-md text-xs">
+                  <div className="bg-card border border-border-neutral rounded-card px-3 py-2">
+                    <p className="text-muted">Budget</p>
+                    <p className="text-foreground font-semibold tabular-nums">{budget.toLocaleString('de-DE')} €</p>
+                  </div>
+                  <div className="bg-card border border-border-neutral rounded-card px-3 py-2">
+                    <p className="text-muted">Ausgegeben</p>
+                    <p className="text-foreground font-semibold tabular-nums">{totalCost.toLocaleString('de-DE')} €</p>
+                  </div>
+                  <div className={`rounded-card px-3 py-2 border ${isBudgetExceeded ? 'bg-danger-bg border-danger' : 'bg-accent-soft border-accent'}`}>
+                    <p className={isBudgetExceeded ? 'text-danger' : 'text-accent'}>Verbleibend</p>
+                    <p className={`font-bold tabular-nums ${isBudgetExceeded ? 'text-danger' : 'text-accent'}`}>{remaining.toLocaleString('de-DE')} €</p>
+                  </div>
                 </div>
-                <div className="w-px h-4 bg-border" />
-                <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                  <span className="text-[11px] text-muted">Ausgegeben</span>
-                  <span className="text-xs font-semibold text-foreground">{totalCost.toLocaleString('de-DE')} €</span>
-                </div>
-                <div className="w-px h-4 bg-border" />
-                <div className="flex items-center gap-1.5">
-                  <span className={`w-1.5 h-1.5 rounded-full ${isBudgetExceeded ? 'bg-red-400' : 'bg-emerald-400'}`} />
-                  <span className="text-[11px] text-muted">Verbleibend</span>
-                  <span className={`text-xs font-bold ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>
-                    {remaining.toLocaleString('de-DE')} €
-                  </span>
-                </div>
-                <div className="w-px h-4 bg-border" />
                 <div className="flex items-center gap-1.5">
                   <span className="text-[11px] text-muted">Freie Position</span>
                   <select
                     value={freePosition}
                     onChange={(e) => handleFreePositionChange(e.target.value as 'DEFENDER' | 'MIDFIELD' | 'STRIKER')}
-                    className="input-field px-2 py-0.5 rounded text-[11px] cursor-pointer"
+                    className="input-field px-2 py-1 rounded-control text-[11px] cursor-pointer"
                   >
                     <option value="DEFENDER">Abwehr</option>
                     <option value="MIDFIELD">Mittelfeld</option>
@@ -849,7 +843,7 @@ export default function Register() {
               </div>
 
               {hasTeamViolation && (
-                <div className="flex items-center gap-3 p-3 bg-warning-bg border border-warning/30 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-warning-bg border border-warning/30 rounded-card">
                   <i className="sap-icon sap-icon-alert text-[18px] text-warning shrink-0" />
                   <p className="text-warning text-sm">Maximal 5 Spieler pro Verein erlaubt.</p>
                 </div>
@@ -865,9 +859,9 @@ export default function Register() {
                   {POSITION_GROUPS.map(group => {
                     const slots = getVisibleSlots(group)
                     return (
-                      <div key={group.label} className="bg-elevated/30 rounded-lg p-3">
+                      <div key={group.label} className="bg-elevated/30 rounded-card p-3">
                         <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2 ${positionTextColor[group.position]}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${positionDotColor[group.position]}`} />
+                          <span className={`w-[9px] h-[9px] rounded-full ${positionDotColor[group.position]}`} />
                           {group.label}
                           {group.position === freePosition && (
                             <span className="text-[10px] text-muted font-normal normal-case tracking-normal ml-1">+1 Freie Wahl</span>
@@ -902,7 +896,7 @@ export default function Register() {
 
           {step === 4 && (
             <div className="mt-4 space-y-4">
-              <div className="bg-elevated/40 rounded-lg p-4 border border-border/50">
+              <div className="bg-elevated/40 rounded-card p-4 border border-border/50">
                 <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-3 flex items-center gap-2">
                   <i className="sap-icon sap-icon-person-placeholder text-[14px]" />
                   Deine Daten
@@ -946,12 +940,12 @@ export default function Register() {
                 </div>
               </div>
 
-              <div className="bg-elevated/40 rounded-lg p-4 border border-border/50">
+              <div className="bg-elevated/40 rounded-card p-4 border border-border/50">
                 <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-3 flex items-center gap-2">
                   <i className="sap-icon sap-icon-group text-[14px]" />
                   Kader ({selectedIds.size}/11)
                 </h3>
-                <div className="rounded-lg border border-border overflow-hidden">
+                <div className="rounded-card border border-border overflow-hidden">
                   <table className="w-full">
                     <TableHead>
                       <tr>
@@ -1128,7 +1122,7 @@ export default function Register() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="success-dialog-title"
-            className="bg-surface border border-border rounded-lg w-full max-w-[500px] max-h-[90vh] flex flex-col shadow-2xl"
+            className="bg-surface border border-border rounded-card w-full max-w-[500px] max-h-[90vh] flex flex-col shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-end px-6 pt-4">
@@ -1167,7 +1161,7 @@ export default function Register() {
                   href={season.paypalLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-3 w-full border border-success rounded-lg px-6 py-4 mb-6 hover:bg-success/10 transition-colors"
+                  className="flex items-center justify-center gap-3 w-full border border-success rounded-card px-6 py-4 mb-6 hover:bg-success/10 transition-colors"
                 >
                   <img src="/paypal.png" alt="PayPal" className="h-8 object-contain" />
                   <span className="text-success font-medium">Jetzt mit PayPal bezahlen</span>
@@ -1183,7 +1177,7 @@ export default function Register() {
                     <div className="flex-1 h-px bg-border" />
                   </div>
 
-                  <div className="bg-hover/50 rounded-lg px-5 py-4 mb-6">
+                  <div className="bg-card-muted rounded-card px-5 py-4 mb-6">
                     <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
                       {season.kontoinhaber && (
                         <>
