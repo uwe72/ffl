@@ -6,25 +6,25 @@ function cssVar(name: string, fallback: string): string {
 
 export function getChartColors() {
   return {
-    accent: cssVar('--color-accent', '#1d4ed8'),
-    accentLight: cssVar('--color-accent-light', '#60a5fa'),
-    axis: cssVar('--color-muted', '#6b6b6b'),
-    grid: cssVar('--color-border-neutral', '#dcdcdc'),
-    success: cssVar('--color-success', '#15803d'),
-    warning: cssVar('--color-warning', '#b7791f'),
-    danger: cssVar('--color-danger', '#b91c1c'),
+    accent: cssVar('--ffl-accent', '#3f3a34'),
+    accentLight: cssVar('--ffl-accent-light', '#6b6258'),
+    axis: cssVar('--ffl-text-muted', '#57534e'),
+    grid: cssVar('--ffl-border-subtle', '#e7e5e4'),
+    success: cssVar('--ffl-success', '#15803d'),
+    warning: cssVar('--ffl-warning', '#b7791f'),
+    danger: cssVar('--ffl-danger', '#b91c1c'),
   }
 }
 
 export const CHART_SERIES_PALETTE = [
-  '#1d4ed8',
-  '#60a5fa',
-  '#172554',
-  '#0ea5e9',
-  '#2563eb',
-  '#1e40af',
-  '#38bdf8',
-  '#3b82f6',
-  '#0284c7',
-  '#93c5fd',
+  '#3f3a34',
+  '#6b6258',
+  '#0f766e',
+  '#4338ca',
+  '#be123c',
+  '#2d2a26',
+  '#57534e',
+  '#8b8278',
+  '#0891b2',
+  '#78716c',
 ]

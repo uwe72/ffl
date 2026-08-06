@@ -268,9 +268,9 @@ export interface Player {
 
 #### Color Conventions
 - **Never hardcode colors.** Always use the design tokens defined in the `@theme` block of `ffl-frontend/src/index.css` (Tailwind v4, CSS-first config — there is no `tailwind.config.js`). Arbitrary values like `text-[#c9a66b]` or `border-[#a9b4c0]` are not allowed.
-- **Accent color (text-accent / #2563eb)**: Use for clickable links, interactive elements, and active states
-- **Accent hover (text-accent-hover / #1d4ed8)**: Use for hover states on interactive elements
-- **Neutral text colors**: Use `text-foreground` (#16202b) for primary text, `text-muted` (#4b5a6b) for secondary, `text-subtle` (#566575) for tertiary
+- **Accent color (text-accent / #3f3a34)**: Warm anthracite. Use for clickable links, interactive elements, and active states
+- **Accent hover (text-accent-hover / #2d2a26)**: Use for hover states on interactive elements
+- **Neutral text colors**: Use `text-foreground` (#1c1917) for primary text, `text-muted` (#57534e) for secondary, `text-subtle` (#78716c) for tertiary
 - **Position colors**: Position group headers and player card edges use the position palette (`text-goalkeeper` / `-defender` / `-midfield` / `-striker` and the matching `bg-*` / `border-l-*`). Import the maps from `utils/positions.ts` (`positionTextColor`, `positionDotColor`, `positionEdgeColor`) — do not re-declare them.
 - Example: In a detail view, labels use muted, values use foreground, and links use accent
 

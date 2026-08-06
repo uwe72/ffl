@@ -25,12 +25,12 @@
   --ffl-border-strong: #a8a29e;
 
   /* Akzent */
-  --ffl-accent: #c2410c;
-  --ffl-accent-hover: #9a3412;
-  --ffl-accent-light: #ea580c;
-  --ffl-accent-soft: #ffedd5;
-  --ffl-accent-ring: #fed7aa;
-  --ffl-text-on-accent: #fff7ed;
+  --ffl-accent: #3f3a34;
+  --ffl-accent-hover: #2d2a26;
+  --ffl-accent-light: #6b6258;
+  --ffl-accent-soft: #ede9e3;
+  --ffl-accent-ring: #c4bdb3;
+  --ffl-text-on-accent: #fafaf9;
 
   /* Positionen */
   --ffl-pos-tw: #57534e;
