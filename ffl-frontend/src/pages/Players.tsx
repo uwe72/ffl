@@ -186,7 +186,7 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
           value={priceMin}
           onChange={e => setPriceMin(e.target.value)}
           placeholder="Min €"
-          className="input-field w-20 px-2 py-1.5 text-xs"
+          className="input-field w-40 px-2 py-1.5 text-xs"
         />
         <span className="text-subtle text-xs">–</span>
         <input
@@ -194,7 +194,7 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
           value={priceMax}
           onChange={e => setPriceMax(e.target.value)}
           placeholder="Max €"
-          className="input-field w-20 px-2 py-1.5 text-xs"
+          className="input-field w-40 px-2 py-1.5 text-xs"
         />
       </div>
 
