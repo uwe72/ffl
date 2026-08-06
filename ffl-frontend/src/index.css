@@ -2,85 +2,97 @@
 @import "./assets/sap-icons/sap-icons.css";
 
 @theme {
-  --color-background: #12161c;
-  --color-page: #e9edf3;
+  --color-background: #1a1a1a;
+  --color-page: #f2f2f2;
   --color-surface: #ffffff;
   --color-card: #ffffff;
-  --color-card-hover: #eef2f6;
-  --color-elevated: #dde3ea;
-  --color-subtle-bg: #dde3ea;
+  --color-card-hover: #f7f7f7;
+  --color-elevated: #f7f7f7;
+  --color-subtle-bg: #f7f7f7;
 
-  --color-foreground: #16202b;
-  --color-text-primary: #16202b;
-  --color-muted: #4b5a6b;
-  --color-subtle: #566575;
-  --color-text-disabled: #7c8a99;
-  --color-placeholder: #6f7f8f;
+  --color-foreground: #171717;
+  --color-text-primary: #171717;
+  --color-muted: #6b6b6b;
+  --color-subtle: #6b6b6b;
+  --color-text-disabled: #6b6b6b;
+  --color-placeholder: #6b6b6b;
 
-  --color-border: #c1cad5;
-  --color-border-subtle: #dbe1e8;
-  --color-border-hover: #8e9cab;
-  --color-border-strong: #8b96a4;
-  --color-border-active: #2563eb;
+  --color-border: #cddaf0;
+  --color-border-subtle: #dcdcdc;
+  --color-border-neutral: #dcdcdc;
+  --color-border-hover: #b8b8b8;
+  --color-border-strong: #b8b8b8;
+  --color-border-input: #b8b8b8;
+  --color-border-active: #1d4ed8;
 
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
-  --color-accent-muted: rgba(37, 99, 235, 0.12);
-  --color-accent-ring: rgba(37, 99, 235, 0.35);
+  --color-accent: #1d4ed8;
+  --color-accent-hover: #1e40af;
+  --color-accent-light: #60a5fa;
+  --color-accent-muted: #eaf1fd;
+  --color-accent-soft: #eaf1fd;
+  --color-accent-ring: #dbe6fb;
 
-  --color-default: #dde3ea;
-  --color-default-foreground: #16202b;
-  --color-primary: #2563eb;
+  --color-default: #f7f7f7;
+  --color-default-foreground: #171717;
+  --color-primary: #1d4ed8;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #dde3ea;
-  --color-secondary-foreground: #16202b;
-  --color-button-primary-hover: #1d4ed8;
+  --color-secondary: #f7f7f7;
+  --color-secondary-foreground: #171717;
+  --color-button-primary-hover: #1e40af;
 
-  --color-up: #10804f;
-  --color-down: #c2372c;
+  --color-up: #15803d;
+  --color-down: #b91c1c;
 
-  --color-success: #10804f;
+  --color-success: #15803d;
   --color-success-foreground: #ffffff;
   --color-success-bg: #e2f2ea;
   --color-warning: #b7791f;
   --color-warning-foreground: #ffffff;
   --color-warning-bg: #fbf0dd;
-  --color-danger: #c2372c;
+  --color-danger: #b91c1c;
   --color-danger-foreground: #ffffff;
   --color-danger-bg: #fbe6e4;
-  --color-info: #2563eb;
-  --color-info-bg: #e6eefb;
+  --color-info: #1d4ed8;
+  --color-info-bg: #eaf1fd;
 
-  --color-log-bg: #12161c;
+  --color-log-bg: #1a1a1a;
   --color-log-text: #c7d2de;
 
-  --color-sidebar: #12161c;
-  --color-sidebar-foreground: #e6ebf2;
-  --color-sidebar-muted: #9aa7b5;
-  --color-sidebar-hover: #1c232d;
-  --color-sidebar-border: #232c37;
-  --color-sidebar-active-bg: rgba(37, 99, 235, 0.22);
-  --color-sidebar-active: #7fa9ff;
+  --color-header: #111111;
+
+  --color-sidebar: #1a1a1a;
+  --color-sidebar-foreground: #fafafa;
+  --color-sidebar-muted: #a3a3a3;
+  --color-sidebar-hover: #2e2e2e;
+  --color-sidebar-border: #2e2e2e;
+  --color-sidebar-active-bg: #1d4ed8;
+  --color-sidebar-active: #60a5fa;
   --color-sidebar-warning: #e0a53a;
 
-  --color-goalkeeper: #444441;
-  --color-goalkeeper-bg: #f1efe8;
-  --color-defender: #854f0b;
-  --color-defender-bg: #faeeda;
-  --color-midfield: #0f6e56;
-  --color-midfield-bg: #e1f5ee;
-  --color-striker: #993556;
-  --color-striker-bg: #fbeaf0;
+  --color-goalkeeper: #172554;
+  --color-goalkeeper-bg: #eaf1fd;
+  --color-defender: #1d4ed8;
+  --color-defender-bg: #eaf1fd;
+  --color-midfield: #60a5fa;
+  --color-midfield-bg: #eaf1fd;
+  --color-striker: #bfdbfe;
+  --color-striker-bg: #eef4fe;
 
-  --color-overlay: rgba(15, 20, 27, 0.55);
-  --color-overlay-dark: rgba(15, 20, 27, 0.75);
-  --color-overlay-full: rgba(15, 20, 27, 0.9);
-  --color-overlay-light: rgba(15, 20, 27, 0.35);
+  --color-goalkeeper-text: #172554;
+  --color-defender-text: #1e3a8a;
+  --color-midfield-text: #1e40af;
+  --color-striker-text: #1e3a8a;
 
-  --color-zebra: rgba(22, 32, 43, 0.03);
+  --color-overlay: rgba(17, 17, 17, 0.55);
+  --color-overlay-dark: rgba(17, 17, 17, 0.75);
+  --color-overlay-full: rgba(17, 17, 17, 0.9);
+  --color-overlay-light: rgba(17, 17, 17, 0.35);
 
-  --radius-card: 6px;
-  --radius-control: 4px;
+  --color-zebra: rgba(23, 23, 23, 0.03);
+
+  --radius-card: 8px;
+  --radius-control: 6px;
+  --radius-badge: 4px;
 
   --spacing-row: 40px;
 }
@@ -95,8 +107,9 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --radius-card: 6px;
-  --radius-control: 4px;
+  --radius-card: 8px;
+  --radius-control: 6px;
+  --radius-badge: 4px;
   --row-height: 40px;
 }
 
@@ -167,49 +180,49 @@ body {
 .chip-accent {
   background-color: var(--color-accent-muted);
   color: var(--color-accent);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-badge);
 }
 
 .chip-success {
   background-color: var(--color-success-bg);
   color: var(--color-success);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-badge);
 }
 
 .chip-warning {
   background-color: var(--color-warning-bg);
   color: var(--color-warning);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-badge);
 }
 
 .chip-danger {
   background-color: var(--color-danger-bg);
   color: var(--color-danger);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-badge);
 }
 
 .pos-goalkeeper {
   background-color: var(--color-goalkeeper-bg);
-  color: var(--color-goalkeeper);
-  border-radius: 3px;
+  color: var(--color-goalkeeper-text);
+  border-radius: var(--radius-badge);
 }
 
 .pos-defender {
   background-color: var(--color-defender-bg);
-  color: var(--color-defender);
-  border-radius: 3px;
+  color: var(--color-defender-text);
+  border-radius: var(--radius-badge);
 }
 
 .pos-midfield {
   background-color: var(--color-midfield-bg);
-  color: var(--color-midfield);
-  border-radius: 3px;
+  color: var(--color-midfield-text);
+  border-radius: var(--radius-badge);
 }
 
 .pos-striker {
   background-color: var(--color-striker-bg);
-  color: var(--color-striker);
-  border-radius: 3px;
+  color: var(--color-striker-text);
+  border-radius: var(--radius-badge);
 }
 
 .table-header th {
@@ -255,15 +268,15 @@ body {
 
 .input-field:disabled,
 .input-field[readonly] {
-  background-color: var(--color-elevated);
-  border-color: var(--color-border);
-  color: var(--color-text-disabled);
+  background-color: var(--color-page);
+  border-color: var(--color-border-neutral);
+  color: var(--color-muted);
   cursor: not-allowed;
 }
 
 .input-field:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px var(--color-accent-ring);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
   outline: none;
 }
 
@@ -280,7 +293,7 @@ body {
 
 .ql-toolbar.ql-snow {
   border: 1px solid var(--color-border-hover);
-  border-radius: 0.5rem 0.5rem 0 0;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
   background-color: var(--color-elevated);
 }
 
@@ -292,7 +305,7 @@ body {
 .ql-container.ql-snow {
   border: 1px solid var(--color-border-hover);
   border-top: none;
-  border-radius: 0 0 0.5rem 0.5rem;
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
   background-color: var(--color-background);
   font-family: inherit;
 }
