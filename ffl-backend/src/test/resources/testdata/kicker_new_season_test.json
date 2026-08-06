@@ -1,0 +1,32 @@
+{
+  "teams": [
+    { "id": "tm-k00000001", "name": "Testverein Alpha", "shortName": "Alpha" },
+    { "id": "tm-k00000002", "name": "Testverein Beta", "shortName": "Beta" },
+    { "id": "tm-k00000003", "name": "Testverein Gamma", "shortName": "Gamma" }
+  ],
+  "players": [
+    { "id": "pl-test-gk-01", "teamId": "tm-k00000001", "firstName": "Max", "lastName": "Mustermann", "displayName": "Mustermann", "displayLongName": "Max Mustermann", "marketValue": 1000000, "position": "GOALKEEPER", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-gk-01.png", "active": true },
+    { "id": "pl-test-df-01", "teamId": "tm-k00000001", "firstName": "Daniel", "lastName": "Abwehr", "displayName": "Abwehr", "displayLongName": "Daniel Abwehr", "marketValue": 800000, "position": "DEFENDER", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-df-01.png", "active": true },
+    { "id": "pl-test-df-02", "teamId": "tm-k00000001", "firstName": "David", "lastName": "Abwehr2", "displayName": "Abwehr2", "displayLongName": "David Abwehr2", "marketValue": 500000, "position": "DEFENDER", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-df-02.png", "active": true },
+    { "id": "pl-test-mf-01", "teamId": "tm-k00000001", "firstName": "Manuel", "lastName": "Mittelfeld", "displayName": "Mittelfeld", "displayLongName": "Manuel Mittelfeld", "marketValue": 1500000, "position": "MIDFIELDER", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-mf-01.png", "active": true },
+    { "id": "pl-test-st-01", "teamId": "tm-k00000001", "firstName": "Sven", "lastName": "Sturm", "displayName": "Sturm", "displayLongName": "Sven Sturm", "marketValue": 2000000, "position": "FORWARD", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-st-01.png", "active": true },
+    { "id": "pl-test-gk-02", "teamId": "tm-k00000002", "firstName": "Tina", "lastName": "Tor", "displayName": "Tor", "displayLongName": "Tina Tor", "marketValue": 900000, "position": "GOALKEEPER", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-gk-02.png", "active": true },
+    { "id": "pl-test-df-03", "teamId": "tm-k00000002", "firstName": "Dirk", "lastName": "Abwehr3", "displayName": "Abwehr3", "displayLongName": "Dirk Abwehr3", "marketValue": 400000, "position": "DEFENDER", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-df-03.png", "active": true },
+    { "id": "pl-test-mf-02", "teamId": "tm-k00000002", "firstName": "Mia", "lastName": "Mittelfeld2", "displayName": "Mittelfeld2", "displayLongName": "Mia Mittelfeld2", "marketValue": 1200000, "position": "MIDFIELDER", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-mf-02.png", "active": true },
+    { "id": "pl-test-mf-03", "teamId": "tm-k00000002", "firstName": "Mike", "lastName": "Mittelfeld3", "displayName": "Mittelfeld3", "displayLongName": "Mike Mittelfeld3", "marketValue": 600000, "position": "MIDFIELDER", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-mf-03.png", "active": true },
+    { "id": "pl-test-st-02", "teamId": "tm-k00000002", "firstName": "Lukas", "lastName": "Sturm2", "displayName": "Sturm2", "displayLongName": "Lukas Sturm2", "marketValue": 1700000, "position": "FORWARD", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-st-02.png", "active": true },
+    { "id": "pl-test-st-03", "teamId": "tm-k00000003", "firstName": "Lena", "lastName": "Sturm3", "displayName": "Sturm3", "displayLongName": "Lena Sturm3", "marketValue": 500000, "position": "FORWARD", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-st-03.png", "active": true },
+    { "id": "pl-test-df-04", "teamId": "tm-k00000003", "firstName": "Michael", "lastName": "Abwehr4", "displayName": "Abwehr4", "displayLongName": "Michael Abwehr4", "marketValue": 300000, "position": "DEFENDER", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-df-04.png", "active": true },
+    { "id": "pl-test-gk-03", "teamId": "tm-k00000003", "firstName": "Gordon", "lastName": "Tor2", "displayName": "Tor2", "displayLongName": "Gordon Tor2", "marketValue": 700000, "position": "GOALKEEPER", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-gk-03.png", "active": true },
+    { "id": "pl-test-inactive-01", "teamId": "tm-k00000003", "firstName": "Ina", "lastName": "Inaktiv", "displayName": "Inaktiv", "displayLongName": "Ina Inaktiv", "marketValue": 100000, "position": "MIDFIELDER", "seasonImage": "https://derivates.kicker.de/image/upload/test/pl-test-inactive-01.png", "active": false }
+  ],
+  "matches": [
+    { "id": "mt-test-0001", "roundId": "rn-k000120260001", "homeTeamId": "tm-k00000001", "guestTeamId": "tm-k00000002", "date": 1787941800000 },
+    { "id": "mt-test-0002", "roundId": "rn-k000120260001", "homeTeamId": "tm-k00000003", "guestTeamId": "tm-k00000001", "date": 1787941800000 },
+    { "id": "mt-test-0003", "roundId": "rn-k000120260002", "homeTeamId": "tm-k00000002", "guestTeamId": "tm-k00000003", "date": 1788103800000 }
+  ],
+  "rounds": [
+    { "id": "rn-k000120260001", "name": "1. Spieltag" },
+    { "id": "rn-k000120260002", "name": "2. Spieltag" }
+  ]
+}

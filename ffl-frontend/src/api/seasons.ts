@@ -17,7 +17,7 @@ export interface MailPreviewResponse {
 }
 
 export interface NewSeasonSetupRequest {
-  csvUrl: string
+  sourceUrl: string
   seasonName: string
 }
 

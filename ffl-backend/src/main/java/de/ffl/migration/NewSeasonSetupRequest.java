@@ -1,7 +1,7 @@
 package de.ffl.migration;
 
 public record NewSeasonSetupRequest(
-        String csvUrl,
+        String sourceUrl,
         String seasonName
 ) {
 }

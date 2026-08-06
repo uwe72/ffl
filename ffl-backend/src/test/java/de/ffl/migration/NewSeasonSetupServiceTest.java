@@ -6,7 +6,9 @@ import de.ffl.domain.PrizePayout;
 import de.ffl.domain.PayoutStatus;
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
+import de.ffl.domain.Team;
 import de.ffl.domain.UserRole;
+import de.ffl.repository.GameRepository;
 import de.ffl.repository.PlayerRepository;
 import de.ffl.repository.PrizeDistributionLogRepository;
 import de.ffl.repository.PrizePayoutRepository;
@@ -25,7 +27,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +40,7 @@ class NewSeasonSetupServiceTest extends AbstractSeasonTestBase {
     private NewSeasonSetupService setupService;
 
     @SpyBean
-    private KickerPlayerCsvClient csvClient;
+    private KickerClientDatabaseClient databaseClient;
 
     @Autowired
     private SeasonRepository seasonRepository;
@@ -52,6 +53,9 @@ class NewSeasonSetupServiceTest extends AbstractSeasonTestBase {
 
     @Autowired
     private RoundRepository roundRepository;
+
+    @Autowired
+    private GameRepository gameRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -93,12 +97,12 @@ class NewSeasonSetupServiceTest extends AbstractSeasonTestBase {
         entityManager.flush();
         entityManager.clear();
 
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("testdata/kicker_new_season_test.csv")) {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("testdata/kicker_new_season_test.json")) {
             assertThat(is).isNotNull();
             final byte[] bytes = is.readAllBytes();
-            final String csv = new String(bytes, StandardCharsets.UTF_8);
-            final List<KickerPlayerCsvRow> rows = csvClient.parseCsv(csv);
-            doReturn(rows).when(csvClient).loadCsv(anyString());
+            final String json = new String(bytes, StandardCharsets.UTF_8);
+            final KickerClientDatabase db = databaseClient.parseDatabase(json);
+            doReturn(db).when(databaseClient).loadDatabase(anyString());
         }
     }
 
@@ -125,6 +129,16 @@ class NewSeasonSetupServiceTest extends AbstractSeasonTestBase {
         assertThat(playerRepository.findBySeasonAndPosition(newSeason, Position.DEFENDER)).hasSize(4);
         assertThat(playerRepository.findBySeasonAndPosition(newSeason, Position.MIDFIELD)).hasSize(3);
         assertThat(playerRepository.findBySeasonAndPosition(newSeason, Position.STRIKER)).hasSize(3);
+        assertThat(playerRepository.findBySeasonId(newSeason.getId()))
+                .allSatisfy(p -> assertThat(p.getPictureUrl())
+                        .isEqualTo("https://derivates.kicker.de/image/upload/test/" + p.getKickerId() + ".png"));
+
+        Team alpha = teamRepository.findByName("Testverein Alpha").orElseThrow();
+        assertThat(alpha.getShortName()).isEqualTo("Alpha");
+        assertThat(alpha.getLogoSUrl()).isEqualTo("https://sportsfeed.kicker.de/MediaService/TeamLogo?teamId=1&width=140");
+        assertThat(alpha.getLogoXxlUrl()).isEqualTo("https://sportsfeed.kicker.de/MediaService/TeamLogo?teamId=1&width=290");
+
+        assertThat(gameRepository.findByRoundSeasonId(newSeason.getId())).hasSize(3);
 
         long remainingUsers = userRepository.count();
         assertThat(remainingUsers).isLessThan(oldUserCount);
@@ -140,6 +154,7 @@ class NewSeasonSetupServiceTest extends AbstractSeasonTestBase {
 
         assertThat(preview.teamCount()).isEqualTo(3);
         assertThat(preview.playersTotal()).isEqualTo(13);
+        assertThat(preview.gamesTotal()).isEqualTo(3);
         assertThat(preview.playersPerPosition().get("GOALKEEPER")).isEqualTo(3);
         assertThat(preview.playersPerPosition().get("DEFENDER")).isEqualTo(4);
         assertThat(preview.playersPerPosition().get("MIDFIELD")).isEqualTo(3);

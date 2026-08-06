@@ -104,6 +104,7 @@ export type Position = 'GOALKEEPER' | 'DEFENDER' | 'MIDFIELD' | 'STRIKER'
 export interface Player {
   id: number
   nameKicker: string
+  kickerId?: string
   nameKickerAlt1?: string
   nameKickerAlt2?: string
   nameKickerAlt3?: string
@@ -527,6 +528,7 @@ export interface SetupPreviewTeamBreakdown {
 export interface SetupPreviewDto {
   teamCount: number
   playersTotal: number
+  gamesTotal: number
   playersPerPosition: Record<string, number>
   teamBreakdown: SetupPreviewTeamBreakdown[]
 }

@@ -6,6 +6,7 @@ import java.util.Map;
 public record SetupPreviewDto(
         int teamCount,
         int playersTotal,
+        int gamesTotal,
         Map<String, Integer> playersPerPosition,
         List<TeamBreakdown> teamBreakdown
 ) {

@@ -31,16 +31,16 @@ public class NewSeasonSetupController {
 
     @PostMapping("/preview")
     public SetupPreviewDto preview(@RequestBody NewSeasonSetupRequest request) {
-        return setupService.preview(request.csvUrl());
+        return setupService.preview(request.sourceUrl());
     }
 
     @GetMapping(value = "/stream-sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter stream(@RequestParam String csvUrl,
+    public SseEmitter stream(@RequestParam String sourceUrl,
                              @RequestParam String seasonName) {
         SseEmitter emitter = new SseEmitter(300000L);
         executor.execute(() -> {
             try {
-                setupService.setup(csvUrl, seasonName, message -> {
+                setupService.setup(sourceUrl, seasonName, message -> {
                     try {
                         emitter.send(SseEmitter.event().data(message));
                     } catch (IOException e) {

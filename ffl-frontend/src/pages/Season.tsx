@@ -27,7 +27,7 @@ const tabItems = [
   { key: 'neue-saison', label: 'Neue Saison' }
 ]
 
-const DEFAULT_CSV_URL = 'https://www.kicker-libero.de/api/sportsdata/v1/players-details/se-k00012026.csv'
+const DEFAULT_SOURCE_URL = 'https://classic.kicker-libero.de/api/gameloop/v1/state/current/se-k00012026.json'
 
 function nextSeasonName(current?: string): string {
   if (!current) return '2026/27'
@@ -151,7 +151,7 @@ export default function Season() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [commentDialogManager, setCommentDialogManager] = useState<PrizePayout | null>(null)
   const [commentDraft, setCommentDraft] = useState('')
-  const [setupCsvUrl, setSetupCsvUrl] = useState(DEFAULT_CSV_URL)
+  const [setupSourceUrl, setSetupSourceUrl] = useState(DEFAULT_SOURCE_URL)
   const [setupSeasonName, setSetupSeasonName] = useState('')
   const [setupPreview, setSetupPreview] = useState<SetupPreviewDto | null>(null)
   const [showSetupConfirm, setShowSetupConfirm] = useState(false)
@@ -711,9 +711,10 @@ export default function Season() {
           <div className="bg-surface border border-border rounded-lg p-6 mb-6">
             <h2 className="text-lg font-bold text-foreground mb-4">Neue Saison erstellen</h2>
             <p className="text-muted text-sm mb-4">
-              Die Daten werden von der kicker-libero-Schnittstelle geladen. Alle Einstellungen (Budget, Bankverbindung,
-              Mail-Vorlagen, Gewinn-Anteile) werden aus der aktuellen Saison übernommen. Die alte Saison inkl. Manager,
-              Benutzer (außer Admin), Spieler und Vereine wird vollständig gelöscht.
+              Die Daten werden von der kicker-libero-Schnittstelle geladen (Vereine inkl. Wappen, Spieler inkl. Bilder
+              und Spielplan). Alle Einstellungen (Budget, Bankverbindung, Mail-Vorlagen, Gewinn-Anteile) werden aus der
+              aktuellen Saison übernommen. Die alte Saison inkl. Manager, Benutzer (außer Admin), Spieler, Vereine und
+              Spiele wird vollständig gelöscht.
             </p>
             <div className="grid gap-6 md:grid-cols-2">
               <FormCard>
@@ -726,12 +727,12 @@ export default function Season() {
                 />
               </FormCard>
               <FormCard>
-                <label className="block text-sm text-muted mb-1">CSV-URL (kicker-libero)</label>
+                <label className="block text-sm text-muted mb-1">Quell-URL (kicker-libero State-URL)</label>
                 <input
-                  value={setupCsvUrl}
-                  onChange={(e) => setSetupCsvUrl(e.target.value)}
+                  value={setupSourceUrl}
+                  onChange={(e) => setSetupSourceUrl(e.target.value)}
                   className="input-field w-full px-3 py-2 rounded focus:outline-none"
-                  placeholder="https://www.kicker-libero.de/api/sportsdata/v1/players-details/se-k00012026.csv"
+                  placeholder="https://classic.kicker-libero.de/api/gameloop/v1/state/current/se-k00012026.json"
                 />
               </FormCard>
             </div>
@@ -742,14 +743,14 @@ export default function Season() {
                   setSetupPreview(null)
                   setErrorMessage(null)
                   try {
-                    const data = await previewSeasonSetup.mutateAsync({ csvUrl: setupCsvUrl, seasonName: setupSeasonName })
+                    const data = await previewSeasonSetup.mutateAsync({ sourceUrl: setupSourceUrl, seasonName: setupSeasonName })
                     setSetupPreview(data)
                   } catch (err: any) {
                     const message = err?.response?.data?.message || err?.message || 'Vorschau fehlgeschlagen'
                     setErrorMessage(message)
                   }
                 }}
-                disabled={previewSeasonSetup.isPending || !setupCsvUrl || !setupSeasonName}
+                disabled={previewSeasonSetup.isPending || !setupSourceUrl || !setupSeasonName}
               >
                 {previewSeasonSetup.isPending ? 'Lade Vorschau...' : 'Vorschau laden'}
               </Button>
@@ -779,6 +780,10 @@ export default function Season() {
                 <div className="flex items-center gap-2">
                   <span className="text-muted">Spieler gesamt:</span>
                   <span className="text-foreground font-medium">{setupPreview.playersTotal}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted">Spiele:</span>
+                  <span className="text-foreground font-medium">{setupPreview.gamesTotal}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-muted">Torwart:</span>
@@ -950,7 +955,7 @@ Speichern
       {showSetupDialog && (
         <SetupProgressDialog
           isOpen={showSetupDialog}
-          csvUrl={setupCsvUrl}
+          sourceUrl={setupSourceUrl}
           seasonName={setupSeasonName}
           onClose={() => {
             setShowSetupDialog(false)

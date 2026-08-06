@@ -5,11 +5,11 @@ import Button from './Button'
 interface SetupProgressDialogProps {
   isOpen: boolean
   onClose: () => void
-  csvUrl: string
+  sourceUrl: string
   seasonName: string
 }
 
-export default function SetupProgressDialog({ isOpen, onClose, csvUrl, seasonName }: SetupProgressDialogProps) {
+export default function SetupProgressDialog({ isOpen, onClose, sourceUrl, seasonName }: SetupProgressDialogProps) {
   const [logs, setLogs] = useState<string[]>([])
   const [isComplete, setIsComplete] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +25,7 @@ export default function SetupProgressDialog({ isOpen, onClose, csvUrl, seasonNam
     }
 
     const token = localStorage.getItem('token')
-    const url = `/api/seasons/setup/stream-sse?csvUrl=${encodeURIComponent(csvUrl)}&seasonName=${encodeURIComponent(seasonName)}${token ? `&token=${token}` : ''}`
+    const url = `/api/seasons/setup/stream-sse?sourceUrl=${encodeURIComponent(sourceUrl)}&seasonName=${encodeURIComponent(seasonName)}${token ? `&token=${token}` : ''}`
     const eventSource = new EventSource(url)
 
     eventSource.onmessage = (event) => {
@@ -68,7 +68,7 @@ export default function SetupProgressDialog({ isOpen, onClose, csvUrl, seasonNam
     return () => {
       eventSource.close()
     }
-  }, [isOpen, csvUrl, seasonName])
+  }, [isOpen, sourceUrl, seasonName])
 
   useEffect(() => {
     if (logContainerRef.current) {
