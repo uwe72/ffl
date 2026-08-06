@@ -10,20 +10,11 @@ import Badge from '../components/Badge'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
+import { getChartColors, CHART_SERIES_PALETTE } from '../utils/chartColors'
 import type { Player, ManagerGroup, RulePoint } from '../types'
 
-const LINE_COLORS = [
-  '#f97316',
-  '#22c55e', 
-  '#3b82f6', 
-  '#a855f7',
-  '#ec4899',
-  '#14b8a6',
-  '#eab308',
-  '#ef4444',
-  '#06b6d4',
-  '#8b5cf6'
-]
+const chartColors = getChartColors()
+const LINE_COLORS = CHART_SERIES_PALETTE
 
 const paymentStateLabels = {
   PAID: 'Bezahlt',
@@ -80,7 +71,7 @@ function PlayerRow({ player }: { player: Player }) {
       <td className="px-3 py-2 text-center">
         <RouterLink to={`/players/${player.id}`}>
           <span 
-            className={`text-xs font-medium px-2 py-0.5 rounded cursor-pointer hover:opacity-80 ${player.managerCount && player.managerCount > 0 ? 'chip-accent' : 'bg-elevated text-muted'}`}
+            className={`text-xs font-medium px-2 py-0.5 rounded-badge cursor-pointer hover:opacity-80 ${player.managerCount && player.managerCount > 0 ? 'chip-accent' : 'bg-elevated text-muted'}`}
           >
             {player.managerCount ?? 0}
           </span>
@@ -90,7 +81,7 @@ function PlayerRow({ player }: { player: Player }) {
         {player.prize.toLocaleString()} €
       </td>
       <td className="px-3 py-2">
-        <span className={`text-xs font-medium px-2 py-0.5 rounded ${positionColors[player.position]}`}>
+        <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${positionColors[player.position]}`}>
           {positionLabels[player.position]}
         </span>
       </td>
@@ -166,7 +157,7 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
   return (
     <div className="mt-6">
       <h2 className="text-lg font-semibold text-foreground mb-3">{title}</h2>
-      <div className="overflow-x-auto rounded-lg border border-border">
+      <div className="overflow-x-auto rounded-card border border-border">
         <table className="w-full">
           <TableHead>
             <tr>
@@ -252,7 +243,7 @@ function ManagerGroupTable({ group, currentManagerId }: { group: ManagerGroup; c
   return (
     <div className="mt-6">
       <h2 className="text-lg font-semibold text-foreground mb-3">{group.name}</h2>
-      <div className="overflow-x-auto rounded-lg border border-border">
+      <div className="overflow-x-auto rounded-card border border-border">
         <table className="w-full">
           <TableHead>
             <tr>
@@ -398,7 +389,7 @@ export default function ManagerDetail() {
           <div key={m.managerId} className="flex items-center gap-2">
             <span
               className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: m.isCurrentUser ? '#0a6ed1' : LINE_COLORS[index % LINE_COLORS.length] }}
+              style={{ backgroundColor: m.isCurrentUser ? chartColors.accent : LINE_COLORS[index % LINE_COLORS.length] }}
             />
             <span className="text-muted text-sm">
               {index + 1}. {m.shortName || m.managerName}
@@ -412,7 +403,7 @@ export default function ManagerDetail() {
   const GroupCustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-surface border border-border rounded-lg p-3 shadow-lg">
+        <div className="bg-surface border border-border rounded-card p-3 shadow-lg">
           <p className="text-primary font-medium mb-2">Spieltag {label}</p>
           {[...payload].sort((a, b) => b.value - a.value).map((entry, index) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
@@ -477,7 +468,7 @@ export default function ManagerDetail() {
       const data = payload[0].payload
       const playerPoints = data.playerPoints || []
       return (
-        <div className="bg-surface border border-border rounded-lg p-3 shadow-lg">
+        <div className="bg-surface border border-border rounded-card p-3 shadow-lg">
           <p className="text-foreground font-semibold mb-2">Spieltag {label}</p>
           <p className="text-primary font-medium mb-2">{data.punkte} Punkte</p>
           {playerPoints.length > 0 && (
@@ -537,7 +528,7 @@ export default function ManagerDetail() {
                   type="button"
                   onClick={handleAvatarDelete}
                   disabled={deleteAvatar.isPending || uploadAvatar.isPending}
-                  className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
+                  className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
                   title="Profilbild löschen"
                 >
                   <i className="sap-icon sap-icon-delete text-sm" />
@@ -562,13 +553,13 @@ export default function ManagerDetail() {
                 <Badge>{manager.shortName}</Badge>
               )}
               <Badge variant="muted">Manager</Badge>
-              <span className={`text-xs font-medium px-2 py-0.5 rounded ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
                 {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 md:flex md:items-start md:gap-2">
-              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
+                <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-badge text-base text-primary" />
                 </div>
                 <div>
@@ -576,8 +567,8 @@ export default function ManagerDetail() {
                   <p className="text-sm font-bold text-foreground leading-tight">{manager.positionTotal ? `${manager.positionTotal}.` : '-'}</p>
                 </div>
               </div>
-              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
+                <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-horizontal-bar-chart text-base text-primary" />
                 </div>
                 <div>
@@ -585,8 +576,8 @@ export default function ManagerDetail() {
                   <p className="text-sm font-bold text-foreground leading-tight">{manager.pointsTotal ?? '-'}</p>
                 </div>
               </div>
-              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
+                <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-calendar text-base text-primary" />
                 </div>
                 <div>
@@ -594,8 +585,8 @@ export default function ManagerDetail() {
                   <p className="text-sm font-bold text-foreground leading-tight">{manager.pointsLastRound ?? '-'} Pkt</p>
                 </div>
               </div>
-              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
+                <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-date-time text-base text-primary" />
                 </div>
                 <div>
@@ -603,8 +594,8 @@ export default function ManagerDetail() {
                   <p className="text-sm font-bold text-foreground leading-tight">{currentRoundNumber || '-'}</p>
                 </div>
               </div>
-              <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
+                <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <i className="sap-icon sap-icon-money-bills text-base text-primary" />
                 </div>
                 <div>
@@ -613,8 +604,8 @@ export default function ManagerDetail() {
                 </div>
               </div>
               {hasExchanges && (
-                <div className="p-2 bg-elevated border border-border-hover rounded-lg flex items-center gap-2">
-                  <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <i className="sap-icon sap-icon-money-bills text-base text-primary" />
                   </div>
                   <div>
@@ -665,14 +656,14 @@ export default function ManagerDetail() {
         {chartData.length > 0 && (
           <div className="mt-8">
             <h2 className="text-lg font-semibold text-foreground mb-3">Punkte pro Spieltag</h2>
-            <div className="bg-surface p-4 rounded-lg border border-border">
+            <div className="bg-surface p-4 rounded-card border border-border">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a3a4e" />
-                  <XAxis dataKey="name" stroke="#c5c5c5" />
-                  <YAxis stroke="#c5c5c5" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                  <XAxis dataKey="name" stroke={chartColors.axis} />
+                  <YAxis stroke={chartColors.axis} />
                   <RechartsTooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
-                  <Bar dataKey="punkte" fill="#0a6ed1" />
+                  <Bar dataKey="punkte" fill={chartColors.accent} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -682,19 +673,19 @@ export default function ManagerDetail() {
         {positionChartData.length > 0 && (
           <div className="mt-8">
             <h2 className="text-lg font-semibold text-foreground mb-3">Gesamtposition pro Spieltag</h2>
-            <div className="bg-surface p-4 rounded-lg border border-border">
+            <div className="bg-surface p-4 rounded-card border border-border">
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={positionChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a3a4e" />
-                  <XAxis dataKey="name" stroke="#c5c5c5" label={{ value: 'Spieltag', position: 'bottom', fill: '#c5c5c5' }} />
-                  <YAxis stroke="#c5c5c5" reversed domain={[1, 'auto']} tickCount={10} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                  <XAxis dataKey="name" stroke={chartColors.axis} label={{ value: 'Spieltag', position: 'bottom', fill: chartColors.axis }} />
+                  <YAxis stroke={chartColors.axis} reversed domain={[1, 'auto']} tickCount={10} />
                   <RechartsTooltip 
                     cursor={false}
                     wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
                     content={({ active, payload, label }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-surface border border-border rounded-lg p-3 shadow-lg">
+                          <div className="bg-surface border border-border rounded-card p-3 shadow-lg">
                             <p className="text-foreground font-semibold">Spieltag {label}</p>
                             <p className="text-primary">Position: {payload[0].value}.</p>
                           </div>
@@ -703,7 +694,7 @@ export default function ManagerDetail() {
                       return null
                     }}
                   />
-                  <Line type="monotone" dataKey="position" stroke="#0a6ed1" strokeWidth={2} dot={{ fill: '#0a6ed1', strokeWidth: 2 }} />
+                  <Line type="monotone" dataKey="position" stroke={chartColors.accent} strokeWidth={2} dot={{ fill: chartColors.accent, strokeWidth: 2 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -717,7 +708,7 @@ export default function ManagerDetail() {
               <select
                 value={selectedGroupId}
                 onChange={(e) => setSelectedGroupId(e.target.value)}
-                className="input-field rounded-lg px-4 py-2 focus:outline-none focus:border-accent"
+                className="input-field rounded-control px-4 py-2 focus:outline-none focus:border-accent"
               >
                 <option value="">Gruppe wählen</option>
                 {managerGroupsWithStats.map((group) => (
@@ -729,19 +720,19 @@ export default function ManagerDetail() {
             </div>
             
             {selectedGroup && groupLineChartData.length > 0 ? (
-              <div className="bg-surface p-4 rounded-lg border border-border">
+              <div className="bg-surface p-4 rounded-card border border-border">
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={groupLineChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#2a3a4e" />
-                    <XAxis dataKey="round" stroke="#8999a8" />
-                    <YAxis stroke="#8999a8" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                    <XAxis dataKey="round" stroke={chartColors.axis} />
+                    <YAxis stroke={chartColors.axis} />
                     <RechartsTooltip content={<GroupCustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
                     {sortedGroupManagers.map((m, index) => (
                       <Line
                         key={m.managerId}
                         type="monotone"
                         dataKey={m.shortName || m.managerName}
-                        stroke={m.isCurrentUser ? '#0a6ed1' : LINE_COLORS[index % LINE_COLORS.length]}
+                        stroke={m.isCurrentUser ? chartColors.accent : LINE_COLORS[index % LINE_COLORS.length]}
                         strokeWidth={m.isCurrentUser ? 3 : 2}
                         dot={{ r: 3 }}
                       />
@@ -824,7 +815,7 @@ function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: nu
   return (
     <div className="mt-6">
       <h2 className="text-lg font-semibold text-foreground mb-3">Punkte letzte Runde</h2>
-      <div className="overflow-x-auto rounded-lg border border-border">
+      <div className="overflow-x-auto rounded-card border border-border">
         <table className="w-full">
           <TableHead>
             <tr>
@@ -878,7 +869,7 @@ function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: nu
                   </td>
                   <td className="px-3 py-2">
                     {player && (
-        <span className={`text-xs font-medium px-2 py-0.5 rounded ${positionColors[player.position]}`}>
+        <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${positionColors[player.position]}`}>
                         {positionLabels[player.position]}
                       </span>
                     )}
