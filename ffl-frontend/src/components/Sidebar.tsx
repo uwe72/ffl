@@ -125,7 +125,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                         className="w-8 h-8 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
+                      <div className="w-8 h-8 rounded-full bg-accent-muted text-accent flex items-center justify-center text-xs font-bold">
                         {user?.login?.charAt(0).toUpperCase() || 'U'}
                       </div>
                     )}
@@ -164,7 +164,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                         className="w-7 h-7 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
+                      <div className="w-7 h-7 rounded-full bg-accent-muted text-accent flex items-center justify-center text-xs font-bold">
                         {user?.login?.charAt(0).toUpperCase() || 'U'}
                       </div>
                     )}
@@ -175,7 +175,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                     </div>
                   )}
                 </div>
-                <span className="text-sm text-primary truncate">{user?.login}</span>
+                <Link to="/my-team" className="text-sm text-primary truncate hover:text-accent hover:underline cursor-pointer">{user?.login}</Link>
               </div>
             ) : (
               <Link to="/login" className="text-sm text-primary hover:text-primary link">Anmelden</Link>
@@ -193,7 +193,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
       </div>
 
       <div className={`px-2 py-2 border-t border-border ${collapsed ? 'flex flex-col items-center gap-1' : 'flex items-center justify-between gap-2'}`}>
-        <span className={`${collapsed ? 'text-[9px]' : 'text-[10px] pl-1'} ${isProd ? 'text-sidebar-muted' : 'text-sidebar-warning'}`}>
+        <span className={`${collapsed ? 'text-[9px]' : 'text-[10px] pl-1'} text-muted`}>
           V{formattedDate}{isProd ? '' : ' (Test)'}
         </span>
         <button
