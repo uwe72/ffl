@@ -8,11 +8,12 @@ import { playerApi } from '../api/players'
 import { useAvatar, useUploadAvatar, useDeleteAvatar } from '../hooks/useAvatar'
 import Button from '../components/Button'
 import PlayerSelect from '../components/PlayerSelect'
+import StatTile from '../components/StatTile'
 import type { PlayerSlot } from '../components/PlayerSelect'
 import type { Player, Season, Position, Manager } from '../types'
 import type { AxiosError } from 'axios'
 import { positionLabels, positionColors } from './Players'
-import { positionTextColor, positionDotColor, positionEdgeColor } from '../utils/positions'
+import { positionTextColor, positionBarColor } from '../utils/positions'
 import { DEFAULT_START_ROUND_RUECKRUNDE } from '../utils/season'
 
 const PLAYER_SLOTS: PlayerSlot[] = [
@@ -44,6 +45,9 @@ const POSITION_LABELS: Record<Position, string> = {
   MIDFIELD: 'MF',
   STRIKER: 'ST',
 }
+
+const eurFormatter = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+const formatPrice = (value: number) => eurFormatter.format(value)
 
 interface TransferRow {
   oldPlayerId: number | null
@@ -171,13 +175,14 @@ function OldPlayerSearch({
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     return (
-      <div className={`group bg-surface border border-border ${positionEdgeColor[selectedPlayer.position]} rounded-none p-3 flex items-center gap-2 transition-colors hover:border-border-hover`}>
+      <div className={`group relative overflow-hidden bg-surface border border-border rounded-card p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover`}>
+        <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[selectedPlayer.position]}`} />
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
-            <img src={selectedPlayer.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+            <img src={selectedPlayer.pictureUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center">
-              <span className="text-[9px] text-muted">{POSITION_LABELS[selectedPlayer.position]}</span>
+            <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center">
+              <span className="text-[10px] text-muted">{POSITION_LABELS[selectedPlayer.position]}</span>
             </div>
           )}
           <button
@@ -189,20 +194,20 @@ function OldPlayerSearch({
           </button>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <p className="text-sm font-medium text-[color:var(--color-text-primary)] leading-tight truncate">
-              {selectedPlayer.firstName && selectedPlayer.lastName
-                ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
-                : selectedPlayer.nameKicker}
-            </p>
-            {team?.logoSUrl && (
-              <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain shrink-0" />
-            )}
-            {badge && (
-              <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none shrink-0">{badge}</span>
-            )}
-          </div>
-          <p className="text-[13px] text-muted tabular-nums mt-0.5">{selectedPlayer.prize.toLocaleString('de-DE')} €</p>
+          <p className="text-base font-semibold text-foreground leading-6 truncate">
+            {selectedPlayer.firstName && selectedPlayer.lastName
+              ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
+              : selectedPlayer.nameKicker}
+          </p>
+          <p className="text-sm font-medium text-muted tabular-nums leading-5">{formatPrice(selectedPlayer.prize)}</p>
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          {team?.logoSUrl && (
+            <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain" />
+          )}
+          {badge && (
+            <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none">{badge}</span>
+          )}
         </div>
       </div>
     )
@@ -230,7 +235,7 @@ function OldPlayerSearch({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Spieler suchen..."
-              className="input-field w-full px-2 py-1.5 rounded-control text-xs focus:outline-none"
+              className="input-field control w-full px-2 py-1.5 rounded-control text-xs focus:outline-none"
             />
           </div>
           <div className="overflow-y-auto flex-1">
@@ -343,13 +348,14 @@ function TransferPlayerSearch({
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     return (
-      <div className={`group bg-surface border border-border ${positionEdgeColor[selectedPlayer.position]} rounded-none p-3 flex items-center gap-2 transition-colors hover:border-border-hover`}>
+      <div className={`group relative overflow-hidden bg-surface border border-border rounded-card p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover`}>
+        <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[selectedPlayer.position]}`} />
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
-            <img src={selectedPlayer.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+            <img src={selectedPlayer.pictureUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center">
-              <span className="text-[9px] text-muted">{POSITION_LABELS[selectedPlayer.position]}</span>
+            <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center">
+              <span className="text-[10px] text-muted">{POSITION_LABELS[selectedPlayer.position]}</span>
             </div>
           )}
           <button
@@ -361,20 +367,20 @@ function TransferPlayerSearch({
           </button>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <p className="text-sm font-medium text-[color:var(--color-text-primary)] leading-tight truncate">
-              {selectedPlayer.firstName && selectedPlayer.lastName
-                ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
-                : selectedPlayer.nameKicker}
-            </p>
-            {team?.logoSUrl && (
-              <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain shrink-0" />
-            )}
-            {badge && (
-              <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none shrink-0">{badge}</span>
-            )}
-          </div>
-          <p className="text-[13px] text-muted tabular-nums mt-0.5">{selectedPlayer.prize.toLocaleString('de-DE')} €</p>
+          <p className="text-base font-semibold text-foreground leading-6 truncate">
+            {selectedPlayer.firstName && selectedPlayer.lastName
+              ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
+              : selectedPlayer.nameKicker}
+          </p>
+          <p className="text-sm font-medium text-muted tabular-nums leading-5">{formatPrice(selectedPlayer.prize)}</p>
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          {team?.logoSUrl && (
+            <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain" />
+          )}
+          {badge && (
+            <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none">{badge}</span>
+          )}
         </div>
       </div>
     )
@@ -402,7 +408,7 @@ function TransferPlayerSearch({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Spieler suchen..."
-              className="input-field w-full px-2 py-1.5 rounded-control text-xs focus:outline-none"
+              className="input-field control w-full px-2 py-1.5 rounded-control text-xs focus:outline-none"
             />
             <div className="flex gap-2">
               <input
@@ -410,14 +416,14 @@ function TransferPlayerSearch({
                 value={priceMin}
                 onChange={(e) => setPriceMin(e.target.value)}
                 placeholder="Min €"
-                className="input-field w-1/2 px-2 py-1 rounded-control text-[11px] focus:outline-none"
+                className="input-field control w-1/2 px-2 py-1 rounded-control text-[11px] focus:outline-none"
               />
               <input
                 type="number"
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
                 placeholder="Max €"
-                className="input-field w-1/2 px-2 py-1 rounded-control text-[11px] focus:outline-none"
+                className="input-field control w-1/2 px-2 py-1 rounded-control text-[11px] focus:outline-none"
               />
             </div>
           </div>
@@ -486,6 +492,7 @@ export default function MyTeam() {
   const [originalProfile, setOriginalProfile] = useState({ firstName: '', lastName: '', email: '' })
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileSuccess, setProfileSuccess] = useState('')
+  const [profileOpen, setProfileOpen] = useState(false)
 
   const [transfers, setTransfers] = useState<TransferRow[]>([])
   const [originalTransfers, setOriginalTransfers] = useState<TransferRow[]>([])
@@ -596,6 +603,12 @@ export default function MyTeam() {
   const budget = season?.budget ?? 0
   const remaining = budget - totalCost
   const isBudgetExceeded = remaining < 0
+  const isBudgetLow = !isBudgetExceeded && budget > 0 && remaining <= budget * 0.1
+  const remainingTone: 'default' | 'warning' | 'danger' = isBudgetExceeded
+    ? 'danger'
+    : isBudgetLow
+      ? 'warning'
+      : 'default'
 
   const avatarInitials = (profileFirstName && profileLastName)
     ? `${profileFirstName.charAt(0)}${profileLastName.charAt(0)}`.toUpperCase()
@@ -989,7 +1002,40 @@ export default function MyTeam() {
     return `${d}.${m}.${y}`
   }
 
-  if (loading) return <div className="text-center py-8 text-muted">Laden...</div>
+  if (loading) {
+    const skeletonGroups = [
+      { label: 'Torwart', count: 1 },
+      { label: 'Abwehr', count: 4 },
+      { label: 'Mittelfeld', count: 3 },
+      { label: 'Sturm', count: 3 },
+    ]
+    return (
+      <div className="max-w-6xl" aria-busy="true">
+        <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+          <div className="grid grid-cols-3 gap-4">
+            {[0, 1, 2].map(i => (
+              <div key={i}>
+                <div className="h-3 w-16 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none mb-2" />
+                <div className="h-8 w-24 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="p-4 bg-elevated border border-border rounded-card space-y-8">
+          {skeletonGroups.map(g => (
+            <div key={g.label}>
+              <div className="h-3 w-20 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none mb-2" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {Array.from({ length: g.count }).map((_, i) => (
+                  <div key={i} className="min-h-[56px] rounded-card border border-dashed border-border-strong bg-card-muted animate-pulse motion-reduce:animate-none" />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   if (notFound) {
     return (
@@ -1027,29 +1073,30 @@ export default function MyTeam() {
     const highlightClass = highlight ? 'border-2 border-accent' : ''
     const badge = badgeLabel ?? (highlight === 'replaced' ? 'Wechsel' : highlight === 'new' ? 'Neu' : null)
     return (
-      <div className={`bg-surface border border-border ${positionEdgeColor[player.position]} rounded-none p-3 flex items-center gap-2 transition-colors ${highlightClass}`}>
+      <div className={`relative overflow-hidden bg-surface border border-border rounded-card p-3 pl-4 flex items-center gap-2 transition-colors ${highlightClass}`}>
+        <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[player.position]}`} />
         <div className="shrink-0">
           {player.pictureUrl ? (
-            <img src={player.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+            <img src={player.pictureUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center">
-              <span className="text-[9px] text-muted">{POSITION_LABELS[player.position]}</span>
+            <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center">
+              <span className="text-[10px] text-muted">{POSITION_LABELS[player.position]}</span>
             </div>
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <p className="text-sm font-medium text-[color:var(--color-text-primary)] leading-tight truncate">
-              {player.firstName && player.lastName ? `${player.firstName} ${player.lastName}` : player.nameKicker}
-            </p>
-            {team?.logoSUrl && (
-              <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain shrink-0" />
-            )}
-            {badge && (
-              <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none shrink-0">{badge}</span>
-            )}
-          </div>
-          <p className="text-[13px] text-muted tabular-nums mt-0.5">{player.prize.toLocaleString('de-DE')} €</p>
+          <p className="text-base font-semibold text-foreground leading-6 truncate">
+            {player.firstName && player.lastName ? `${player.firstName} ${player.lastName}` : player.nameKicker}
+          </p>
+          <p className="text-sm font-medium text-muted tabular-nums leading-5">{formatPrice(player.prize)}</p>
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          {team?.logoSUrl && (
+            <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain" />
+          )}
+          {badge && (
+            <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none">{badge}</span>
+          )}
         </div>
       </div>
     )
@@ -1109,42 +1156,35 @@ export default function MyTeam() {
         </div>
       )}
 
-      <div className="p-4 bg-card border border-border rounded-card shadow-sm mb-6">
-        <h3 className="text-base font-semibold text-foreground mb-3">Persönliche Daten</h3>
-        <div className="flex flex-col sm:flex-row gap-6">
-          <div className="relative group w-16 h-16 shrink-0">
+      <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+        <div className="flex items-center gap-4">
+          <div className="relative group w-12 h-12 shrink-0">
             <button
               onClick={() => avatarInputRef.current?.click()}
-              className="w-16 h-16 p-0 rounded-full overflow-hidden cursor-pointer"
+              className="w-12 h-12 p-0 rounded-full overflow-hidden cursor-pointer"
               disabled={uploadAvatar.isPending || deleteAvatar.isPending}
+              aria-label="Profilbild ändern"
               title="Profilbild ändern"
             >
               {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover" />
+                <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
               ) : (
-                <div className="w-16 h-16 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xl font-bold">
+                <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center text-base font-bold">
                   {avatarInitials}
                 </div>
               )}
             </button>
-            <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
-              <i className="sap-icon sap-icon-camera text-white text-lg" />
-            </div>
             {avatarUrl && (
               <button
                 type="button"
                 onClick={handleAvatarDelete}
                 disabled={deleteAvatar.isPending || uploadAvatar.isPending}
                 className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                aria-label="Profilbild löschen"
                 title="Profilbild löschen"
               >
                 <i className="sap-icon sap-icon-delete text-xs" />
               </button>
-            )}
-            {(uploadAvatar.isPending || deleteAvatar.isPending) && (
-              <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
-                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
             )}
             <input
               ref={avatarInputRef}
@@ -1154,48 +1194,54 @@ export default function MyTeam() {
               onChange={handleAvatarChange}
             />
           </div>
+          <div className="flex-1 min-w-0 flex items-center gap-6 text-sm">
+            <span className="font-semibold text-foreground truncate">{manager?.login || '-'}</span>
+            <span className="text-muted truncate">{profileEmail || manager?.email || '-'}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setProfileOpen(o => !o)}
+            aria-expanded={profileOpen}
+            aria-controls="profile-form"
+          >
+            <i className={`sap-icon sap-icon-slim-arrow-${profileOpen ? 'up' : 'down'} text-xs mr-1`} />
+            {profileOpen ? 'Schließen' : 'Bearbeiten'}
+          </Button>
+        </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="grid grid-cols-4 gap-4">
-              <div className="min-w-0">
-                <span className="text-xs text-muted">Loginname <span className="text-danger">*</span></span>
-                <input
-                  type="text"
-                  value={manager?.login || '-'}
-                  readOnly
-                  disabled
-                  className="input-field w-full px-2 py-1 rounded-control text-sm mt-0.5"
-                />
-              </div>
+        {profileOpen && (
+          <div id="profile-form" className="mt-4 pt-4 border-t border-border">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="min-w-0">
                 <span className="text-xs text-muted">E-Mail <span className="text-danger">*</span></span>
                 <input
                   type="email"
                   value={profileEmail}
                   onChange={(e) => setProfileEmail(e.target.value)}
-                  className="input-field w-full px-2 py-1 rounded-control text-sm mt-0.5"
+                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
                 />
               </div>
               <div className="min-w-0">
-                <span className="text-xs text-muted">Vorname <span className="text-danger">*</span></span>
+                <span className="text-xs text-muted">Vorname {isBeforeSeason && <span className="text-danger">*</span>}</span>
                 <input
                   type="text"
                   value={profileFirstName}
                   onChange={isBeforeSeason ? (e) => setProfileFirstName(e.target.value) : undefined}
                   readOnly={!isBeforeSeason}
                   disabled={!isBeforeSeason}
-                  className="input-field w-full px-2 py-1 rounded-control text-sm mt-0.5"
+                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
                 />
               </div>
               <div className="min-w-0">
-                <span className="text-xs text-muted">Nachname <span className="text-danger">*</span></span>
+                <span className="text-xs text-muted">Nachname {isBeforeSeason && <span className="text-danger">*</span>}</span>
                 <input
                   type="text"
                   value={profileLastName}
                   onChange={isBeforeSeason ? (e) => setProfileLastName(e.target.value) : undefined}
                   readOnly={!isBeforeSeason}
                   disabled={!isBeforeSeason}
-                  className="input-field w-full px-2 py-1 rounded-control text-sm mt-0.5"
+                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
                 />
               </div>
             </div>
@@ -1222,107 +1268,116 @@ export default function MyTeam() {
               <p className="text-success text-xs mt-2">{profileSuccess}</p>
             )}
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="mt-2">
-        <div className="flex flex-col items-start mb-4 gap-y-2">
-            <h2 className="text-base font-semibold text-foreground">Aufstellung (Hinrunde)</h2>
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="grid grid-cols-3 gap-2 w-full max-w-md text-xs">
-              <div className="bg-card border border-border-neutral rounded-card px-3 py-2">
-                <p className="text-muted">Budget</p>
-                <p className="text-foreground font-semibold tabular-nums">{budget.toLocaleString('de-DE')} €</p>
-              </div>
-              <div className="bg-card border border-border-neutral rounded-card px-3 py-2">
-                <p className="text-muted">Ausgegeben</p>
-                <p className="text-foreground font-semibold tabular-nums">{totalCost.toLocaleString('de-DE')} €</p>
-              </div>
-              <div className={`rounded-card px-3 py-2 border ${isBudgetExceeded ? 'bg-danger-bg border-danger' : 'bg-accent-soft border-accent'}`}>
-                <p className={isBudgetExceeded ? 'text-danger' : 'text-accent'}>Verbleibend</p>
-                <p className={`font-bold tabular-nums ${isBudgetExceeded ? 'text-danger' : 'text-accent'}`}>{remaining.toLocaleString('de-DE')} €</p>
-              </div>
+      <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <h3 className="text-xl font-semibold text-foreground mb-4">Aufstellung (Hinrunde)</h3>
+        <div
+          className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+          role={isBudgetExceeded ? 'status' : undefined}
+          aria-label="Budget"
+        >
+          <StatTile
+            label="Budget"
+            value={formatPrice(budget)}
+          />
+          <StatTile
+            label="Ausgegeben"
+            value={formatPrice(totalCost)}
+          />
+          <StatTile
+            label="Verbleibend"
+            value={formatPrice(remaining)}
+            tone={remainingTone}
+            icon={(isBudgetExceeded || isBudgetLow) ? <i className="sap-icon sap-icon-alert text-base" /> : null}
+          />
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-border">
+
+          {hasTeamViolation && (
+            <div className="flex items-center gap-3 p-3 bg-warning-bg border border-warning/30 rounded-card mb-4">
+              <i className="sap-icon sap-icon-alert text-[18px] text-warning shrink-0" />
+              <p className="text-warning text-sm">Maximal 5 Spieler pro Verein erlaubt.</p>
             </div>
-            {isBeforeSeason && (
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] text-muted">Freie Position</span>
-                <select
-                  value={freePosition}
-                  onChange={(e) => handleFreePositionChange(e.target.value as 'DEFENDER' | 'MIDFIELD' | 'STRIKER')}
-                  className="input-field px-2 py-1 rounded-control text-xs cursor-pointer"
-                >
-                  <option value="DEFENDER">Abwehr</option>
-                  <option value="MIDFIELD">Mittelfeld</option>
-                  <option value="STRIKER">Sturm</option>
-                </select>
-              </div>
-            )}
-          </div>
-        </div>
+          )}
 
-        {hasTeamViolation && (
-          <div className="flex items-center gap-3 p-3 bg-warning-bg border border-warning/30 rounded-card mb-4">
-            <i className="sap-icon sap-icon-alert text-[18px] text-warning shrink-0" />
-            <p className="text-warning text-sm">Maximal 5 Spieler pro Verein erlaubt.</p>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          {POSITION_GROUPS.map(group => {
-            const slots = getVisibleSlots(group)
-            return (
-              <div key={group.label} className="mb-4">
-                <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2 ${positionTextColor[group.position]}`}>
-                  <span className={`w-[9px] h-[9px] rounded-full ${positionDotColor[group.position]}`} />
-                  {group.label}
-                  {group.position === freePosition && (
-                    <span className="text-[10px] text-muted font-normal normal-case tracking-normal ml-1">+1 Freie Wahl</span>
-                  )}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {slots.map(slot => (
-                    <PlayerSelect
-                      key={slot.key}
-                      slot={slot}
-                      players={allPlayers}
-                      selectedIds={selectedIds}
-                      value={selectedPlayers[slot.key]}
-                      onChange={(id) => setSelectedPlayers(prev => ({ ...prev, [slot.key]: id }))}
-                      disabled={!isBeforeSeason}
-                      highlightClass={selectedPlayers[slot.key] && activeReplacedIds.has(selectedPlayers[slot.key]!) ? 'border-2 border-accent' : undefined}
-                      badge={selectedPlayers[slot.key] && activeReplacedIds.has(selectedPlayers[slot.key]!) ? 'Wechsel' : undefined}
-                    />
-                  ))}
+          <div className="space-y-8">
+            {POSITION_GROUPS.map(group => {
+              const slots = getVisibleSlots(group)
+              const filled = slots.filter(s => selectedPlayers[s.key] !== null).length
+              const isFreeGroup = group.position === freePosition
+              return (
+                <div key={group.label}>
+                  <div className="mb-2 flex items-center gap-3">
+                    <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[group.position]}`}>
+                      {group.label}
+                    </h3>
+                    <span className="text-xs text-subtle tabular-nums">{filled} / {slots.length}</span>
+                    {isFreeGroup && (
+                      <span className="text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
+                        +1 Freie Wahl
+                      </span>
+                    )}
+                    {isFreeGroup && isBeforeSeason && (
+                      <select
+                        value={freePosition}
+                        onChange={(e) => handleFreePositionChange(e.target.value as 'DEFENDER' | 'MIDFIELD' | 'STRIKER')}
+                        className="input-field control px-2 py-1 rounded-control text-xs cursor-pointer"
+                        aria-label="Freie Position wählen"
+                      >
+                        <option value="DEFENDER">Abwehr</option>
+                        <option value="MIDFIELD">Mittelfeld</option>
+                        <option value="STRIKER">Sturm</option>
+                      </select>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {slots.map(slot => (
+                      <PlayerSelect
+                        key={slot.key}
+                        slot={slot}
+                        players={allPlayers}
+                        selectedIds={selectedIds}
+                        value={selectedPlayers[slot.key]}
+                        onChange={(id) => setSelectedPlayers(prev => ({ ...prev, [slot.key]: id }))}
+                        disabled={!isBeforeSeason}
+                        highlightClass={selectedPlayers[slot.key] && activeReplacedIds.has(selectedPlayers[slot.key]!) ? 'border-2 border-accent' : undefined}
+                        badge={selectedPlayers[slot.key] && activeReplacedIds.has(selectedPlayers[slot.key]!) ? 'Wechsel' : undefined}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
+
+          {Object.entries(teamCounts).filter(([, c]) => c > 5).map(([team, count]) => (
+            <div key={team} className="text-xs text-danger mt-2">
+              {team}: {count} Spieler (max. 5)
+            </div>
+          ))}
+
+          {isBeforeSeason && hasChanges && (
+            <div className="mt-6 flex gap-4 pt-4 border-t border-border">
+              <Button
+                variant="emphasized"
+                onClick={handleSave}
+                disabled={saving || isBudgetExceeded || hasTeamViolation || !allSlotsFilled}
+              >
+                {saving ? 'Wird gespeichert...' : 'Aufstellung speichern'}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleReset}
+                disabled={saving}
+              >
+                Zurücksetzen
+              </Button>
+            </div>
+          )}
         </div>
-
-        {Object.entries(teamCounts).filter(([, c]) => c > 5).map(([team, count]) => (
-          <div key={team} className="text-xs text-danger mt-2">
-            {team}: {count} Spieler (max. 5)
-          </div>
-        ))}
-
-        {isBeforeSeason && hasChanges && (
-          <div className="mt-6 flex gap-4 pt-4 border-t border-border">
-            <Button
-              variant="emphasized"
-              onClick={handleSave}
-              disabled={saving || isBudgetExceeded || hasTeamViolation || !allSlotsFilled}
-            >
-              {saving ? 'Wird gespeichert...' : 'Aufstellung speichern'}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleReset}
-              disabled={saving}
-            >
-              Zurücksetzen
-            </Button>
-          </div>
-        )}
       </div>
 
       {isHinrunde && (
@@ -1529,31 +1584,33 @@ export default function MyTeam() {
             <div className="grid grid-cols-3 gap-2 w-full max-w-md text-xs">
               <div className="bg-card border border-border-neutral rounded-card px-3 py-2">
                 <p className="text-muted">Budget</p>
-                <p className="text-foreground font-semibold tabular-nums">{budget.toLocaleString('de-DE')} €</p>
+                <p className="text-foreground font-semibold tabular-nums">{formatPrice(budget)}</p>
               </div>
               <div className="bg-card border border-border-neutral rounded-card px-3 py-2">
                 <p className="text-muted">Ausgegeben</p>
-                <p className="text-foreground font-semibold tabular-nums">{transferTotalCost.toLocaleString('de-DE')} €</p>
+                <p className="text-foreground font-semibold tabular-nums">{formatPrice(transferTotalCost)}</p>
               </div>
-              <div className={`rounded-card px-3 py-2 border ${isTransferBudgetExceeded ? 'bg-danger-bg border-danger' : 'bg-accent-soft border-accent'}`}>
+              <div className={`rounded-card px-3 py-2 border ${isTransferBudgetExceeded ? 'bg-danger-bg border-danger' : 'bg-accent-muted border-accent'}`}>
                 <p className={isTransferBudgetExceeded ? 'text-danger' : 'text-accent'}>Verbleibend</p>
-                <p className={`font-bold tabular-nums ${isTransferBudgetExceeded ? 'text-danger' : 'text-accent'}`}>{transferRemaining.toLocaleString('de-DE')} €</p>
+                <p className={`font-bold tabular-nums ${isTransferBudgetExceeded ? 'text-danger' : 'text-accent'}`}>{formatPrice(transferRemaining)}</p>
               </div>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-8">
             {(['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as Position[]).map(pos => {
               const players = rueckrundePlayersByPosition[pos]
               if (players.length === 0) return null
               const groupLabel = pos === 'GOALKEEPER' ? 'Torwart' : pos === 'DEFENDER' ? 'Abwehr' : pos === 'MIDFIELD' ? 'Mittelfeld' : 'Sturm'
               return (
-                <div key={pos} className="mb-4">
-                  <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2 ${positionTextColor[pos]}`}>
-                    <span className={`w-[9px] h-[9px] rounded-full ${positionDotColor[pos]}`} />
-                    {groupLabel}
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div key={pos}>
+                  <div className="mb-2 flex items-center gap-3">
+                    <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[pos]}`}>
+                      {groupLabel}
+                    </h3>
+                    <span className="text-xs text-subtle tabular-nums">{players.length}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {players.map(player => (
                       <div key={player.id}>
                         {renderPlayerCard(player, activeNewIds.has(player.id) ? 'new' : undefined)}

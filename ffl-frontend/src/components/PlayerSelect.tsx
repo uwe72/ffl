@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import type { Player, Position } from '../types'
 import { positionLabels, positionColors } from '../pages/Players'
-import { positionEdgeColor } from '../utils/positions'
+import { positionBarColor } from '../utils/positions'
+import EmptySlotCard from './EmptySlotCard'
 
 export interface PlayerSlot {
   key: string
@@ -98,20 +99,23 @@ export default function PlayerSelect({
 
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
+    const priceLabel = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(selectedPlayer.prize)
     return (
-      <div className={`group bg-surface border border-border ${positionEdgeColor[selectedPlayer.position]} rounded-none p-3 flex items-center gap-2 transition-colors hover:border-border-hover cursor-pointer ${highlightClass || ''}`}>
+      <div className={`group relative overflow-hidden bg-surface border border-border rounded-card p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover ${highlightClass || ''}`}>
+        <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[selectedPlayer.position]}`} />
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
-            <img src={selectedPlayer.pictureUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+            <img src={selectedPlayer.pictureUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center">
-              <span className="text-[9px] text-muted">{POSITION_LABELS[selectedPlayer.position]}</span>
+            <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center">
+              <span className="text-[10px] text-muted">{POSITION_LABELS[selectedPlayer.position]}</span>
             </div>
           )}
           {!disabled && (
             <button
               onClick={handleClear}
               className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              aria-label={`${selectedPlayer.nameKicker} entfernen`}
               title="Entfernen"
             >
               <i className="sap-icon sap-icon-decline text-[11px] text-danger-foreground" />
@@ -119,45 +123,39 @@ export default function PlayerSelect({
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <p className="text-sm font-medium text-[color:var(--color-text-primary)] leading-tight truncate">
-              {selectedPlayer.firstName && selectedPlayer.lastName
-                ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
-                : selectedPlayer.nameKicker}
-            </p>
-            {team?.logoSUrl && (
-              <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain shrink-0" />
-            )}
-            {badge && (
-              <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none shrink-0">{badge}</span>
-            )}
-          </div>
-          <p className="text-[13px] text-muted tabular-nums mt-0.5">{selectedPlayer.prize.toLocaleString('de-DE')} €</p>
+          <p className="text-base font-semibold text-foreground leading-6 truncate">
+            {selectedPlayer.firstName && selectedPlayer.lastName
+              ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
+              : selectedPlayer.nameKicker}
+          </p>
+          <p className="text-sm font-medium text-muted tabular-nums leading-5">{priceLabel}</p>
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          {team?.logoSUrl && (
+            <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain" />
+          )}
+          {badge && (
+            <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none">{badge}</span>
+          )}
         </div>
       </div>
     )
   }
 
   if (disabled) {
-    return (
-      <div className="w-full px-3 py-2 rounded-none text-xs flex items-center justify-between bg-card-muted border border-dashed border-accent text-accent">
-        <span>{slot.label} wählen...</span>
-      </div>
-    )
+    return <EmptySlotCard label={slot.label} disabled ariaLabel={`${slot.label} wählen (gesperrt)`} />
   }
 
   return (
     <div ref={containerRef} className="relative">
-      <div
-        className="w-full px-3 py-2 rounded-none text-xs cursor-pointer flex items-center justify-between bg-card-muted border border-dashed border-accent text-accent"
+      <EmptySlotCard
+        label={slot.label}
         onClick={() => {
           setIsOpen(!isOpen)
           setTimeout(() => inputRef.current?.focus(), 50)
         }}
-      >
-        <span>{slot.label} wählen...</span>
-        <i className="sap-icon sap-icon-slim-arrow-down text-[10px] text-accent" />
-      </div>
+        ariaLabel={`${slot.label} wählen`}
+      />
 
       {isOpen && (
         <div className="absolute z-50 mt-1 min-w-[380px] w-full bg-surface border border-border rounded-card shadow-xl max-h-[320px] flex flex-col">
@@ -168,7 +166,7 @@ export default function PlayerSelect({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Spieler suchen..."
-              className="input-field w-full px-2 py-1.5 rounded-badge text-xs focus:outline-none"
+              className="input-field control w-full px-2 py-1.5 rounded-badge text-xs focus:outline-none"
             />
             <div className="flex gap-2">
               <input
@@ -176,14 +174,14 @@ export default function PlayerSelect({
                 value={priceMin}
                 onChange={(e) => setPriceMin(e.target.value)}
                 placeholder="Min €"
-                className="input-field w-1/2 px-2 py-1 rounded-badge text-[11px] focus:outline-none"
+                className="input-field control w-1/2 px-2 py-1 rounded-badge text-[11px] focus:outline-none"
               />
               <input
                 type="number"
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
                 placeholder="Max €"
-                className="input-field w-1/2 px-2 py-1 rounded-badge text-[11px] focus:outline-none"
+                className="input-field control w-1/2 px-2 py-1 rounded-badge text-[11px] focus:outline-none"
               />
             </div>
           </div>
