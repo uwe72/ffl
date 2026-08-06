@@ -110,7 +110,7 @@ function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
   )
 }
 
-function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, searchTerm, setSearchTerm, teams, hasFilter }: {
+function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, searchTerm, setSearchTerm, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter }: {
   selectedPositions: Set<string>
   setSelectedPositions: (s: Set<string>) => void
   selectedTeamId: number | 'ALL'
@@ -118,6 +118,10 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
   searchTerm: string
   setSearchTerm: (s: string) => void
   teams: Team[]
+  priceMin: string
+  setPriceMin: (s: string) => void
+  priceMax: string
+  setPriceMax: (s: string) => void
   hasFilter: boolean
 }) {
   const togglePosition = (pos: string) => {
@@ -131,6 +135,8 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
     setSelectedPositions(new Set())
     setSelectedTeamId('ALL')
     setSearchTerm('')
+    setPriceMin('')
+    setPriceMax('')
   }
 
   return (
@@ -171,6 +177,26 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
         selectedTeamId={selectedTeamId}
         onSelect={setSelectedTeamId}
       />
+
+      <div className="h-5 w-px bg-border" />
+
+      <div className="flex items-center gap-1.5">
+        <input
+          type="number"
+          value={priceMin}
+          onChange={e => setPriceMin(e.target.value)}
+          placeholder="Min €"
+          className="input-field w-20 px-2 py-1.5 text-xs"
+        />
+        <span className="text-subtle text-xs">–</span>
+        <input
+          type="number"
+          value={priceMax}
+          onChange={e => setPriceMax(e.target.value)}
+          placeholder="Max €"
+          className="input-field w-20 px-2 py-1.5 text-xs"
+        />
+      </div>
 
       {hasFilter && (
         <button
@@ -275,6 +301,8 @@ export default function Players() {
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set())
   const [selectedTeamId, setSelectedTeamId] = useState<number | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
+  const [priceMin, setPriceMin] = useState('')
+  const [priceMax, setPriceMax] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('position')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
@@ -296,7 +324,7 @@ export default function Players() {
     }
   }
 
-  const hasActiveFilter = selectedPositions.size > 0 || selectedTeamId !== 'ALL' || searchTerm !== ''
+  const hasActiveFilter = selectedPositions.size > 0 || selectedTeamId !== 'ALL' || searchTerm !== '' || priceMin !== '' || priceMax !== ''
 
   const filteredPlayers = useMemo(() => {
     if (!players) return []
@@ -309,7 +337,10 @@ export default function Players() {
         player.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         player.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         player.teams.some(t => t.name.toLowerCase().includes(searchTerm.toLowerCase()))
-      return matchesPosition && matchesTeam && matchesSearch
+      const min = priceMin ? Number(priceMin) : 0
+      const max = priceMax ? Number(priceMax) : Infinity
+      const matchesPrice = player.prize >= min && player.prize <= max
+      return matchesPosition && matchesTeam && matchesSearch && matchesPrice
     })
 
     return filtered.sort((a, b) => {
@@ -343,7 +374,7 @@ export default function Players() {
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-  }, [players, selectedPositions, selectedTeamId, searchTerm, sortKey, sortOrder])
+  }, [players, selectedPositions, selectedTeamId, searchTerm, priceMin, priceMax, sortKey, sortOrder])
 
   if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
@@ -359,6 +390,10 @@ export default function Players() {
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           teams={teams}
+          priceMin={priceMin}
+          setPriceMin={setPriceMin}
+          priceMax={priceMax}
+          setPriceMax={setPriceMax}
           hasFilter={hasActiveFilter}
         />
 
