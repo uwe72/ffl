@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { formatCurrency } from '../utils/format'
 
+function cssVar(name: string): string {
+  if (typeof window === 'undefined') return ''
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
+
 export interface TopPlayer {
   rank: number
   name: string
@@ -34,6 +39,16 @@ export default function TopPlayerStack({ players, interval = 5000 }: TopPlayerSt
   const [reducedMotion, setReducedMotion] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const count = players.length
+
+  const c = {
+    card: cssVar('--color-card') || '#ffffff',
+    border: cssVar('--color-border-neutral') || '#dcdcdc',
+    accent: cssVar('--color-accent') || '#1d4ed8',
+    muted: cssVar('--color-elevated') || '#f7f7f7',
+    text: cssVar('--color-foreground') || '#171717',
+    textMuted: cssVar('--color-muted') || '#6b6b6b',
+    dotInactive: cssVar('--color-border-input') || '#b8b8b8',
+  }
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -125,10 +140,10 @@ export default function TopPlayerStack({ players, interval = 5000 }: TopPlayerSt
                 zIndex,
                 opacity,
                 transition: transitionValue,
-                background: '#ffffff',
-                border: '1px solid #d8dee6',
-                borderLeft: '3px solid #2563eb',
-                borderRadius: 6,
+                background: c.card,
+                border: `1px solid ${c.border}`,
+                borderLeft: `3px solid ${c.accent}`,
+                borderRadius: 0,
                 padding: 14,
                 boxSizing: 'border-box',
               }}
@@ -152,14 +167,14 @@ export default function TopPlayerStack({ players, interval = 5000 }: TopPlayerSt
                       width: 48,
                       height: 48,
                       borderRadius: '50%',
-                      background: '#e9edf2',
+                      background: c.muted,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
                       fontSize: 16,
                       fontWeight: 600,
-                      color: '#5b6b7c',
+                      color: c.textMuted,
                     }}
                   >
                     {getInitials(player.name)}
@@ -167,10 +182,10 @@ export default function TopPlayerStack({ players, interval = 5000 }: TopPlayerSt
                 )}
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 500, color: '#16202b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: 15, fontWeight: 500, color: c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {player.name}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2, fontSize: 12, color: '#5b6b7c' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2, fontSize: 12, color: c.textMuted }}>
                     {player.teamLogoUrl && (
                       <img
                         src={player.teamLogoUrl}
@@ -185,10 +200,10 @@ export default function TopPlayerStack({ players, interval = 5000 }: TopPlayerSt
                 </div>
 
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div style={{ fontSize: 26, fontWeight: 500, color: '#16202b', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                  <div style={{ fontSize: 26, fontWeight: 500, color: c.text, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
                     {Math.round(player.points).toLocaleString('de-DE')}
                   </div>
-                  <div style={{ fontSize: 11, color: '#5b6b7c', marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: c.textMuted, marginTop: 2 }}>
                     Punkte
                   </div>
                 </div>
@@ -196,13 +211,13 @@ export default function TopPlayerStack({ players, interval = 5000 }: TopPlayerSt
 
               <div
                 style={{
-                  borderTop: '0.5px solid #e9edf2',
+                  borderTop: `0.5px solid ${c.muted}`,
                   marginTop: 10,
                   paddingTop: 8,
                   display: 'flex',
                   justifyContent: 'space-between',
                   fontSize: 11,
-                  color: '#5b6b7c',
+                  color: c.textMuted,
                 }}
               >
                 <span>Platz {player.rank}</span>
@@ -231,7 +246,7 @@ export default function TopPlayerStack({ players, interval = 5000 }: TopPlayerSt
                 border: 'none',
                 padding: 0,
                 cursor: 'pointer',
-                background: i === activeIndex ? '#2563eb' : '#c3cbd5',
+                background: i === activeIndex ? c.accent : c.dotInactive,
                 transition: reducedMotion ? 'none' : 'background 200ms ease',
               }}
             />
