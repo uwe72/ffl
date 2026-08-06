@@ -175,7 +175,7 @@ function OldPlayerSearch({
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     return (
-      <div className={`group relative overflow-hidden bg-surface border border-border rounded-card p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover`}>
+      <div className={`group relative overflow-hidden bg-surface border border-border rounded-none p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover`}>
         <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[selectedPlayer.position]}`} />
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
@@ -203,7 +203,7 @@ function OldPlayerSearch({
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           {team?.logoSUrl && (
-            <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain" />
+            <img src={team.logoSUrl} alt={team.name} className="w-7 h-7 object-contain rounded-card" />
           )}
           {badge && (
             <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none">{badge}</span>
@@ -348,7 +348,7 @@ function TransferPlayerSearch({
   if (selectedPlayer) {
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     return (
-      <div className={`group relative overflow-hidden bg-surface border border-border rounded-card p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover`}>
+      <div className={`group relative overflow-hidden bg-surface border border-border rounded-none p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover`}>
         <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[selectedPlayer.position]}`} />
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
@@ -376,7 +376,7 @@ function TransferPlayerSearch({
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           {team?.logoSUrl && (
-            <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain" />
+            <img src={team.logoSUrl} alt={team.name} className="w-7 h-7 object-contain rounded-card" />
           )}
           {badge && (
             <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none">{badge}</span>
@@ -1027,7 +1027,7 @@ export default function MyTeam() {
               <div className="h-3 w-20 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none mb-2" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {Array.from({ length: g.count }).map((_, i) => (
-                  <div key={i} className="min-h-[56px] rounded-card border border-dashed border-border-strong bg-card-muted animate-pulse motion-reduce:animate-none" />
+                  <div key={i} className="min-h-[56px] rounded-none border border-dashed border-border-strong bg-card-muted animate-pulse motion-reduce:animate-none" />
                 ))}
               </div>
             </div>
@@ -1073,7 +1073,7 @@ export default function MyTeam() {
     const highlightClass = highlight ? 'border-2 border-accent' : ''
     const badge = badgeLabel ?? (highlight === 'replaced' ? 'Wechsel' : highlight === 'new' ? 'Neu' : null)
     return (
-      <div className={`relative overflow-hidden bg-surface border border-border rounded-card p-3 pl-4 flex items-center gap-2 transition-colors ${highlightClass}`}>
+      <div className={`relative overflow-hidden bg-surface border border-border rounded-none p-3 pl-4 flex items-center gap-2 transition-colors ${highlightClass}`}>
         <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[player.position]}`} />
         <div className="shrink-0">
           {player.pictureUrl ? (
@@ -1092,7 +1092,7 @@ export default function MyTeam() {
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           {team?.logoSUrl && (
-            <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain" />
+            <img src={team.logoSUrl} alt={team.name} className="w-7 h-7 object-contain rounded-card" />
           )}
           {badge && (
             <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none">{badge}</span>

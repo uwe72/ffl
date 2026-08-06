@@ -101,7 +101,7 @@ export default function PlayerSelect({
     const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
     const priceLabel = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(selectedPlayer.prize)
     return (
-      <div className={`group relative overflow-hidden bg-surface border border-border rounded-card p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover ${highlightClass || ''}`}>
+      <div className={`group relative overflow-hidden bg-surface border border-border rounded-none p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover ${highlightClass || ''}`}>
         <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[selectedPlayer.position]}`} />
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
@@ -132,7 +132,7 @@ export default function PlayerSelect({
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           {team?.logoSUrl && (
-            <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain" />
+            <img src={team.logoSUrl} alt={team.name} className="w-7 h-7 object-contain rounded-card" />
           )}
           {badge && (
             <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none">{badge}</span>
