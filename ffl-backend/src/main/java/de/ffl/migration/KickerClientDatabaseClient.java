@@ -5,19 +5,44 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 
 @Component
 public class KickerClientDatabaseClient {
 
-    private final HttpClient httpClient = HttpClient.newBuilder()
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .build();
+    private static final String USER_AGENT =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                    + "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+
+    private final HttpClient httpClient = buildHttpClient();
+
+    private static HttpClient buildHttpClient() {
+        SSLParameters sslParameters = new SSLParameters();
+        sslParameters.setProtocols(new String[]{"TLSv1.3"});
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
+            sslContext.init(null, null, null);
+            return HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .connectTimeout(Duration.ofSeconds(15))
+                    .sslContext(sslContext)
+                    .sslParameters(sslParameters)
+                    .build();
+        } catch (NoSuchAlgorithmException | java.security.KeyManagementException e) {
+            throw new IllegalStateException("TLSv1.3-Kontext konnte nicht initialisiert werden: " + e.getMessage(), e);
+        }
+    }
 
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -69,6 +94,8 @@ public class KickerClientDatabaseClient {
             HttpResponse<InputStream> response = httpClient.send(
                     HttpRequest.newBuilder(URI.create(url))
                             .GET()
+                            .header("User-Agent", USER_AGENT)
+                            .timeout(Duration.ofSeconds(30))
                             .build(),
                     HttpResponse.BodyHandlers.ofInputStream()
             );
