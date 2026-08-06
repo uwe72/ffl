@@ -24,10 +24,10 @@ export const positionColors: Record<string, string> = {
 }
 
 const positionChipClass: Record<string, string> = {
-  GOALKEEPER: 'chip-success',
-  DEFENDER: 'chip-warning',
-  MIDFIELD: 'chip-accent',
-  STRIKER: 'chip-danger'
+  GOALKEEPER: 'pos-goalkeeper',
+  DEFENDER: 'pos-defender',
+  MIDFIELD: 'pos-midfield',
+  STRIKER: 'pos-striker'
 }
 
 const positionSapIcon: Record<string, string> = {
@@ -38,10 +38,10 @@ const positionSapIcon: Record<string, string> = {
 }
 
 const positionChipActiveColors: Record<string, string> = {
-  GOALKEEPER: 'bg-success/15 text-success border-success/40',
-  DEFENDER: 'bg-warning/15 text-warning border-warning/40',
-  MIDFIELD: 'bg-accent/15 text-accent border-accent/40',
-  STRIKER: 'bg-danger/15 text-danger border-danger/40',
+  GOALKEEPER: 'bg-goalkeeper-bg text-goalkeeper-text border-goalkeeper',
+  DEFENDER: 'bg-defender-bg text-defender-text border-defender',
+  MIDFIELD: 'bg-midfield-bg text-midfield-text border-midfield',
+  STRIKER: 'bg-striker-bg text-striker-text border-striker',
 }
 
 const chipInactive = 'bg-elevated text-muted border-border'
@@ -73,7 +73,7 @@ function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="min-w-40 px-2 py-1.5 rounded bg-elevated border border-border text-foreground text-xs flex items-center justify-between gap-1.5 focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
+            className="min-w-40 px-2 py-1.5 rounded-control bg-elevated border border-border text-foreground text-xs flex items-center justify-between gap-1.5 focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
       >
         <span className="flex items-center gap-1.5 truncate">
           {selectedTeam?.logoSUrl && (
@@ -85,7 +85,7 @@ function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
+          <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-card shadow-xl z-50 max-h-60 overflow-y-auto">
           <button
             onClick={() => { onSelect('ALL'); setIsOpen(false) }}
             className={`w-full px-2 py-1.5 text-left text-xs hover:bg-elevated transition-colors ${selectedTeamId === 'ALL' ? 'bg-elevated text-primary' : 'text-muted'}`}
@@ -164,7 +164,7 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
             <button
               key={pos}
               onClick={() => togglePosition(pos)}
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border transition-colors ${active ? positionChipActiveColors[pos] : chipInactive}`}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${active ? positionChipActiveColors[pos] : chipInactive}`}
             >
               <i className={`sap-icon ${positionSapIcon[pos]} text-[12px]`} />
               {positionLabels[pos]}
@@ -210,7 +210,7 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
       {hasFilter && (
         <button
           onClick={clearFilter}
-          className="p-1 rounded text-subtle hover:text-danger transition-colors"
+              className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
           title="Filter zurücksetzen"
         >
           <i className="sap-icon sap-icon-decline text-[14px]" />
@@ -247,7 +247,7 @@ function PlayerCard({ player, hideManager }: { player: Player; hideManager?: boo
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-foreground truncate">{player.nameKicker}</div>
           <div className="mt-1">
-            <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5 rounded`}>
+            <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5`}>
               {positionLabels[player.position]}
             </span>
           </div>
@@ -483,7 +483,7 @@ export default function Players() {
                     <td className="px-3 py-2 text-center">
                       <RouterLink to={`/players/${player.id}`}>
                         <span
-                          className={`${player.managerCount && player.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded cursor-pointer hover:opacity-80`}
+                          className={`${player.managerCount && player.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded-badge cursor-pointer hover:opacity-80`}
                         >
                           {player.managerCount ?? 0}
                         </span>

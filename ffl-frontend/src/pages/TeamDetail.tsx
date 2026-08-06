@@ -31,10 +31,10 @@ const positionSapIcon: Record<string, string> = {
 }
 
 const positionChipActiveColors: Record<string, string> = {
-  GOALKEEPER: 'bg-success/15 text-success border-success/40',
-  DEFENDER: 'bg-warning/15 text-warning border-warning/40',
-  MIDFIELD: 'bg-accent/15 text-accent border-accent/40',
-  STRIKER: 'bg-danger/15 text-danger border-danger/40',
+  GOALKEEPER: 'bg-goalkeeper-bg text-goalkeeper-text border-goalkeeper',
+  DEFENDER: 'bg-defender-bg text-defender-text border-defender',
+  MIDFIELD: 'bg-midfield-bg text-midfield-text border-midfield',
+  STRIKER: 'bg-striker-bg text-striker-text border-striker',
 }
 
 const chipInactive = 'bg-elevated text-muted border-border'
@@ -83,7 +83,7 @@ function FilterBar({ selectedPositions, setSelectedPositions, searchTerm, setSea
             <button
               key={pos}
               onClick={() => togglePosition(pos)}
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border transition-colors ${active ? positionChipActiveColors[pos] : chipInactive}`}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${active ? positionChipActiveColors[pos] : chipInactive}`}
             >
               <i className={`sap-icon ${positionSapIcon[pos]} text-[12px]`} />
               {positionLabels[pos]}
@@ -95,7 +95,7 @@ function FilterBar({ selectedPositions, setSelectedPositions, searchTerm, setSea
       {hasFilter && (
         <button
           onClick={clearFilter}
-          className="p-1 rounded text-subtle hover:text-danger transition-colors"
+          className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
           title="Filter zurücksetzen"
         >
           <i className="sap-icon sap-icon-decline text-[14px]" />
@@ -285,7 +285,7 @@ export default function TeamDetail() {
       </div>
 
       {isAdmin && team && (
-        <div className="mb-6 p-4 bg-elevated border border-border rounded-lg">
+        <div className="mb-6 p-4 bg-elevated border border-border rounded-card">
           <h3 className="text-sm font-semibold text-foreground mb-3">Administration</h3>
           <div className="flex flex-wrap gap-4 items-end">
             <div>
@@ -294,7 +294,7 @@ export default function TeamDetail() {
                 type="text"
                 value={editData.shortName}
                 onChange={(e) => setEditData({ ...editData, shortName: e.target.value })}
-                className="input-field w-[22rem] px-3 py-2 rounded focus:outline-none"
+                className="input-field w-[22rem] px-3 py-2 rounded-control focus:outline-none"
               />
             </div>
             {hasChanges && (
@@ -383,7 +383,7 @@ export default function TeamDetail() {
                     <td className="px-3 py-2 text-center">
                       <RouterLink to={`/players/${player.id}`}>
                         <span
-                          className={`${player.managerCount && player.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded cursor-pointer hover:opacity-80`}
+                          className={`${player.managerCount && player.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded-badge cursor-pointer hover:opacity-80`}
                         >
                           {player.managerCount ?? 0}
                         </span>
