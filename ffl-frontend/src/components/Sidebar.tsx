@@ -81,7 +81,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         <button
           onClick={openFeedback}
           title={collapsed ? 'Feedback' : undefined}
-          className={`flex items-center gap-3 px-3 h-[38px] rounded-lg transition-colors text-muted hover:bg-card-hover hover:text-primary w-full ${collapsed ? 'justify-center' : ''}`}
+          className={`flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors text-muted hover:bg-card-hover hover:text-primary w-full ${collapsed ? 'justify-center' : ''}`}
         >
           <i className="sap-icon sap-icon-discussion text-[18px] shrink-0" />
           {!collapsed && <span className="text-sm font-medium">Feedback</span>}
@@ -138,7 +138,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                 </div>
                   <button
                     onClick={handleLogout}
-                    className="p-1.5 rounded-lg text-subtle hover:text-danger hover:bg-danger/10 transition-colors"
+                    className="p-1.5 rounded-control text-subtle hover:text-danger hover:bg-danger/10 transition-colors"
                     title="Abmelden"
                   >
                     <i className="sap-icon sap-icon-log text-[18px]" />
@@ -183,7 +183,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
             {isAuthenticated && (
               <button
                 onClick={handleLogout}
-                className="px-2 py-1 text-xs rounded bg-elevated text-foreground border border-border-hover hover:bg-default transition-colors shrink-0"
+                className="px-2 py-1 text-xs rounded-control bg-elevated text-foreground border border-border-hover hover:bg-default transition-colors shrink-0"
               >
                 Abmelden
               </button>
@@ -198,7 +198,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         </span>
         <button
           onClick={() => onToggleCollapse(!collapsed)}
-          className="p-2 rounded-lg text-subtle hover:text-muted hover:bg-card-hover transition-colors"
+          className="p-2 rounded-control text-subtle hover:text-muted hover:bg-card-hover transition-colors"
           title={collapsed ? 'Sidebar öffnen' : 'Sidebar schließen'}
         >
           <i className={`sap-icon sap-icon-navigation-left-arrow text-[20px] transition-transform ${collapsed ? 'rotate-180' : ''}`} />

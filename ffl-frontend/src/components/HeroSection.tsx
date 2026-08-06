@@ -33,7 +33,7 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
   ].join(', ')
 
   return (
-    <div className="hero relative h-[120px] shrink-0 overflow-hidden">
+    <div className="hero relative h-[120px] shrink-0 overflow-hidden bg-header">
       <div
         className="absolute inset-0 bg-cover bg-no-repeat"
         style={{
@@ -66,7 +66,7 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
         <div className="flex flex-1 min-w-0 items-center px-[30px]">
           <button
             onClick={onMenuClick}
-            className="md:hidden mr-3 p-1.5 rounded-lg text-muted hover:text-primary hover:bg-card-hover transition-colors"
+            className="md:hidden mr-3 p-1.5 rounded-control text-muted hover:text-primary hover:bg-card-hover transition-colors"
           >
             <i className="sap-icon sap-icon-menu text-[20px]" />
           </button>

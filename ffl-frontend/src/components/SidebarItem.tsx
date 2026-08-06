@@ -21,7 +21,7 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
         <button
           onClick={onToggle}
           title={collapsed ? label : undefined}
-          className={`w-full flex items-center gap-3 px-3 h-[38px] rounded-lg transition-colors
+          className={`w-full flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors
             ${isActive ? 'bg-accent text-white' : 'text-muted hover:bg-card-hover hover:text-primary'}
             ${collapsed ? 'justify-center' : ''}`}
         >
@@ -49,7 +49,7 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
                     href={sub.to}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block px-3 py-2 rounded-lg text-sm transition-colors text-subtle hover:text-primary hover:bg-card-hover"
+                    className="block px-3 py-2 rounded-control text-sm transition-colors text-subtle hover:text-primary hover:bg-card-hover"
                   >
                     {sub.label}
                   </a>
@@ -59,7 +59,7 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
                 <Link
                   key={sub.to}
                   to={sub.to}
-                  className={`block px-3 py-2 rounded-lg text-sm transition-colors
+                  className={`block px-3 py-2 rounded-control text-sm transition-colors
                     ${subActive ? 'text-white bg-accent' : 'text-subtle hover:text-primary hover:bg-card-hover'}`}
                 >
                   {sub.label}
@@ -76,7 +76,7 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
     <Link
       to={to}
       title={collapsed ? label : undefined}
-      className={`flex items-center gap-3 px-3 h-[38px] rounded-lg transition-colors
+      className={`flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors
         ${isActive ? 'bg-accent text-white' : 'text-muted hover:bg-card-hover hover:text-primary'}
         ${collapsed ? 'justify-center' : ''}`}
     >
