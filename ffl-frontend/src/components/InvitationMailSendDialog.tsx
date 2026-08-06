@@ -31,7 +31,7 @@ function EmailCard({
           type="checkbox"
           checked={isSelected}
           onChange={onToggle}
-          className="w-5 h-5 accent-[#0a6ed1] mt-1 flex-shrink-0"
+          className="w-5 h-5 accent-accent mt-1 flex-shrink-0"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -196,7 +196,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
                           type="checkbox"
                           checked={selectedEmailIds.includes(e.id)}
                           onChange={() => toggleOne(e.id)}
-                          className="w-4 h-4 accent-[#0a6ed1]"
+                          className="w-4 h-4 accent-accent"
                         />
                       </td>
                       <td className="py-2 text-center text-subtle font-mono text-xs">{e.id}</td>
@@ -226,7 +226,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
               type="checkbox"
               checked={testMode}
               onChange={(e) => setTestMode(e.target.checked)}
-              className="w-5 h-5 accent-[#0a6ed1]"
+              className="w-5 h-5 accent-accent"
             />
             <div>
               <span className="text-foreground font-medium">Test-Modus</span>

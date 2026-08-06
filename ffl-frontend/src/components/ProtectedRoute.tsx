@@ -12,7 +12,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Wird geladen...</div>
+        <div className="text-muted">Wird geladen...</div>
       </div>
     )
   }
