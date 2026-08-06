@@ -514,3 +514,19 @@ export interface BestTeamResult {
   formation: string
   budget: number
 }
+
+export interface SetupPreviewTeamBreakdown {
+  name: string
+  players: number
+  hasGoalkeeper: boolean
+  hasDefender: boolean
+  hasMidfield: boolean
+  hasStriker: boolean
+}
+
+export interface SetupPreviewDto {
+  teamCount: number
+  playersTotal: number
+  playersPerPosition: Record<string, number>
+  teamBreakdown: SetupPreviewTeamBreakdown[]
+}

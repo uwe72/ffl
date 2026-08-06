@@ -1,15 +1,16 @@
 import { useState, useEffect, useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
 import { trackEvent } from '../hooks/useMatomo'
-import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout } from '../hooks/useSeasons'
+import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePreviewSeasonSetup } from '../hooks/useSeasons'
 import CalculationDialog from '../components/CalculationDialog'
+import SetupProgressDialog from '../components/SetupProgressDialog'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
 import Tabs from '../components/Tabs'
 import FormCard from '../components/FormCard'
 import { TableHead, Th, TableBody } from '../components/Table'
 import { seasonStateLabel } from '../utils/season'
-import type { Season, SeasonState, PrizeDistributionLog, PrizePayout, PayoutStatus } from '../types'
+import type { Season, SeasonState, PrizeDistributionLog, PrizePayout, PayoutStatus, SetupPreviewDto } from '../types'
 
 const seasonStateOptions: { value: SeasonState; label: string }[] = (
   ['BEFORE_SEASON', 'RUNNING_HINRUNDE', 'RUNNING_RUECKRUNDE'] as SeasonState[]
@@ -22,8 +23,21 @@ const COLOR_LAST = '#FFA500'
 const tabItems = [
   { key: 'saisondaten', label: 'Saisondaten' },
   { key: 'bankverbindung', label: 'Bankverbindung' },
-  { key: 'gewinnausschuettung', label: 'Gewinnausschüttung' }
+  { key: 'gewinnausschuettung', label: 'Gewinnausschüttung' },
+  { key: 'neue-saison', label: 'Neue Saison' }
 ]
+
+const DEFAULT_CSV_URL = 'https://www.kicker-libero.de/api/sportsdata/v1/players-details/se-k00012026.csv'
+
+function nextSeasonName(current?: string): string {
+  if (!current) return '2026/27'
+  const m = current.match(/^(\d{4})\/(\d{2,4})$/)
+  if (!m) return '2026/27'
+  const startYear = parseInt(m[1]) + 1
+  const nextFull = (startYear + 1) % 100
+  const nextShort = String(nextFull).padStart(2, '0')
+  return `${startYear}/${nextShort}`
+}
 
 function formatPrizeLabel(value: number): string {
   if (value % 1 === 0) {
@@ -123,11 +137,12 @@ function PrizeDistributionChart({ prizeDistributionLog }: { prizeDistributionLog
 export default function Season() {
   const { data: season, isLoading, error } = useCurrentSeason()
   const updateSeason = useUpdateSeason()
+  const previewSeasonSetup = usePreviewSeasonSetup()
   const { data: prizeDistribution, isLoading: isLoadingPrize } = usePrizeDistribution(season?.id ?? 0)
   const { data: prizeDistributionLog } = usePrizeDistributionLog(season?.id ?? 0)
   const calculatePrize = useCalculatePrizeDistribution()
   const updatePrizePayout = useUpdatePrizePayout(season?.id ?? 0)
-  const [activeTab, setActiveTab] = useState<'saisondaten' | 'bankverbindung' | 'gewinnausschuettung'>('saisondaten')
+  const [activeTab, setActiveTab] = useState<'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'neue-saison'>('saisondaten')
   const [formData, setFormData] = useState<Partial<Season>>({})
   const [hasChanges, setHasChanges] = useState(false)
   const [showCalcDialog, setShowCalcDialog] = useState(false)
@@ -136,6 +151,11 @@ export default function Season() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [commentDialogManager, setCommentDialogManager] = useState<PrizePayout | null>(null)
   const [commentDraft, setCommentDraft] = useState('')
+  const [setupCsvUrl, setSetupCsvUrl] = useState(DEFAULT_CSV_URL)
+  const [setupSeasonName, setSetupSeasonName] = useState('')
+  const [setupPreview, setSetupPreview] = useState<SetupPreviewDto | null>(null)
+  const [showSetupConfirm, setShowSetupConfirm] = useState(false)
+  const [showSetupDialog, setShowSetupDialog] = useState(false)
 
   useEffect(() => {
     if (season) {
@@ -158,6 +178,9 @@ export default function Season() {
         kontoinhaber: season.kontoinhaber ?? ''
       })
       setHasChanges(false)
+      if (!setupSeasonName) {
+        setSetupSeasonName(nextSeasonName(season.name))
+      }
     }
   }, [season])
 
@@ -249,7 +272,7 @@ export default function Season() {
       <Tabs
         items={tabItems}
         active={activeTab}
-        onChange={(key) => setActiveTab(key as 'saisondaten' | 'bankverbindung' | 'gewinnausschuettung')}
+        onChange={(key) => setActiveTab(key as 'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'neue-saison')}
       />
 
       {activeTab === 'saisondaten' && (
@@ -680,8 +703,130 @@ export default function Season() {
                </div>
              </div>
            )}
-         </>
-       )}
+</>
+        )}
+
+      {activeTab === 'neue-saison' && (
+        <>
+          <div className="bg-surface border border-border rounded-lg p-6 mb-6">
+            <h2 className="text-lg font-bold text-foreground mb-4">Neue Saison erstellen</h2>
+            <p className="text-muted text-sm mb-4">
+              Die Daten werden von der kicker-libero-Schnittstelle geladen. Alle Einstellungen (Budget, Bankverbindung,
+              Mail-Vorlagen, Gewinn-Anteile) werden aus der aktuellen Saison übernommen. Die alte Saison inkl. Manager,
+              Benutzer (außer Admin), Spieler und Vereine wird vollständig gelöscht.
+            </p>
+            <div className="grid gap-6 md:grid-cols-2">
+              <FormCard>
+                <label className="block text-sm text-muted mb-1">Saison-Name</label>
+                <input
+                  value={setupSeasonName}
+                  onChange={(e) => setSetupSeasonName(e.target.value)}
+                  className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                  placeholder="z.B. 2026/27"
+                />
+              </FormCard>
+              <FormCard>
+                <label className="block text-sm text-muted mb-1">CSV-URL (kicker-libero)</label>
+                <input
+                  value={setupCsvUrl}
+                  onChange={(e) => setSetupCsvUrl(e.target.value)}
+                  className="input-field w-full px-3 py-2 rounded focus:outline-none"
+                  placeholder="https://www.kicker-libero.de/api/sportsdata/v1/players-details/se-k00012026.csv"
+                />
+              </FormCard>
+            </div>
+            <div className="mt-6 flex gap-4">
+              <Button
+                variant="ghost"
+                onClick={async () => {
+                  setSetupPreview(null)
+                  setErrorMessage(null)
+                  try {
+                    const data = await previewSeasonSetup.mutateAsync({ csvUrl: setupCsvUrl, seasonName: setupSeasonName })
+                    setSetupPreview(data)
+                  } catch (err: any) {
+                    const message = err?.response?.data?.message || err?.message || 'Vorschau fehlgeschlagen'
+                    setErrorMessage(message)
+                  }
+                }}
+                disabled={previewSeasonSetup.isPending || !setupCsvUrl || !setupSeasonName}
+              >
+                {previewSeasonSetup.isPending ? 'Lade Vorschau...' : 'Vorschau laden'}
+              </Button>
+              <Button
+                variant="emphasized"
+                onClick={() => setShowSetupConfirm(true)}
+                disabled={!setupPreview || !setupSeasonName}
+              >
+                Neue Saison starten
+              </Button>
+            </div>
+            {errorMessage && (
+              <div className="bg-danger-bg border border-danger p-4 mt-4">
+                <p className="text-danger text-sm">{errorMessage}</p>
+              </div>
+            )}
+          </div>
+
+          {setupPreview && (
+            <div className="bg-surface border border-border rounded-lg p-6">
+              <h3 className="text-xl font-bold text-foreground mb-4">Vorschau</h3>
+              <div className="flex items-center gap-6 mb-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted">Vereine:</span>
+                  <span className="text-foreground font-medium">{setupPreview.teamCount}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted">Spieler gesamt:</span>
+                  <span className="text-foreground font-medium">{setupPreview.playersTotal}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted">Torwart:</span>
+                  <span className="text-foreground font-medium">{setupPreview.playersPerPosition?.GOALKEEPER ?? 0}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted">Abwehr:</span>
+                  <span className="text-foreground font-medium">{setupPreview.playersPerPosition?.DEFENDER ?? 0}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted">Mittelfeld:</span>
+                  <span className="text-foreground font-medium">{setupPreview.playersPerPosition?.MIDFIELD ?? 0}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted">Sturm:</span>
+                  <span className="text-foreground font-medium">{setupPreview.playersPerPosition?.STRIKER ?? 0}</span>
+                </div>
+              </div>
+              <div className="rounded-lg border border-border overflow-x-auto">
+                <table className="w-full min-w-[600px]">
+                  <TableHead>
+                    <tr>
+                      <Th className="whitespace-nowrap">Verein</Th>
+                      <Th align="right" className="whitespace-nowrap">Spieler</Th>
+                      <Th align="center" className="whitespace-nowrap">TW</Th>
+                      <Th align="center" className="whitespace-nowrap">ABW</Th>
+                      <Th align="center" className="whitespace-nowrap">MF</Th>
+                      <Th align="center" className="whitespace-nowrap">ST</Th>
+                    </tr>
+                  </TableHead>
+                  <TableBody>
+                    {setupPreview.teamBreakdown.map((t) => (
+                      <tr key={t.name} className="border-b border-border last:border-b-0 hover:bg-card-hover">
+                        <td className="px-3 py-2 text-foreground">{t.name}</td>
+                        <td className="px-3 py-2 text-right text-foreground">{t.players}</td>
+                        <td className="px-3 py-2 text-center text-muted">{t.hasGoalkeeper ? '✓' : '-'}</td>
+                        <td className="px-3 py-2 text-center text-muted">{t.hasDefender ? '✓' : '-'}</td>
+                        <td className="px-3 py-2 text-center text-muted">{t.hasMidfield ? '✓' : '-'}</td>
+                        <td className="px-3 py-2 text-center text-muted">{t.hasStriker ? '✓' : '-'}</td>
+                      </tr>
+                    ))}
+                  </TableBody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {season && (
         <CalculationDialog
@@ -767,11 +912,51 @@ export default function Season() {
                   setCommentDialogManager(null)
                 }}
               >
-                Speichern
+Speichern
               </Button>
             </div>
           </FormCard>
         </div>
+      )}
+
+      {showSetupConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <FormCard className="max-w-lg">
+            <h3 className="text-xl font-bold text-foreground mb-4">Neue Saison erstellen</h3>
+            <p className="text-muted mb-2">
+              Es wird eine neue Saison <span className="font-semibold text-foreground">{setupSeasonName}</span> erstellt.
+            </p>
+            <p className="text-danger mb-6">
+              Die komplette aktuelle Saison wird gelöscht — inkl. aller Manager, Benutzer (außer Admin), Spieler, Vereine
+              und Spieltage. Diese Aktion kann nicht rückgängig gemacht werden. Bitte erstelle im Vorfeld ein Backup.
+            </p>
+            <div className="flex gap-4 justify-end">
+              <Button variant="ghost" onClick={() => setShowSetupConfirm(false)}>Abbrechen</Button>
+              <Button
+                variant="emphasized"
+                onClick={() => {
+                  setShowSetupConfirm(false)
+                  setShowSetupDialog(true)
+                  trackEvent('season', 'setup', 'start')
+                }}
+              >
+                Fortfahren
+              </Button>
+            </div>
+          </FormCard>
+        </div>
+      )}
+
+      {showSetupDialog && (
+        <SetupProgressDialog
+          isOpen={showSetupDialog}
+          csvUrl={setupCsvUrl}
+          seasonName={setupSeasonName}
+          onClose={() => {
+            setShowSetupDialog(false)
+            setSetupPreview(null)
+          }}
+        />
       )}
     </div>
   )

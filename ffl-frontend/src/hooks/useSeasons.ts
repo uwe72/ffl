@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { seasonApi, type UpdatePayoutRequest } from '../api/seasons'
+import { seasonApi, type UpdatePayoutRequest, type NewSeasonSetupRequest } from '../api/seasons'
 
 export function useSeasons() {
   return useQuery({
@@ -120,5 +120,12 @@ export function useBestTeam(seasonId: number) {
     queryKey: ['seasons', seasonId, 'best-team'],
     queryFn: () => seasonApi.getBestTeam(seasonId).then(res => res.data),
     enabled: !!seasonId,
+  })
+}
+
+export function usePreviewSeasonSetup() {
+  return useMutation({
+    mutationFn: (req: NewSeasonSetupRequest) =>
+      seasonApi.previewSetup(req).then(res => res.data),
   })
 }

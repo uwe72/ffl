@@ -4,6 +4,7 @@ import de.ffl.domain.Points;
 import de.ffl.domain.Player;
 import de.ffl.domain.Game;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,6 +23,10 @@ public interface PointsRepository extends JpaRepository<Points, Long> {
     List<Points> findByPlayerIdInAndGameIdIn(List<Long> playerIds, List<Long> gameIds);
     
     void deleteByGameId(Long gameId);
+
+    @Modifying
+    @Query("DELETE FROM Points p WHERE p.player.season.id = :seasonId")
+    void deleteByPlayerSeasonId(@Param("seasonId") Long seasonId);
 
     @Query("SELECT p FROM Points p LEFT JOIN FETCH p.game g LEFT JOIN FETCH g.round WHERE p.player.id = :playerId")
     List<Points> findByPlayerIdWithGameAndRound(@Param("playerId") Long playerId);

@@ -4,6 +4,7 @@ import de.ffl.domain.PlayerRank;
 import de.ffl.domain.Player;
 import de.ffl.domain.Round;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -33,4 +34,8 @@ public interface PlayerRankRepository extends JpaRepository<PlayerRank, Long> {
 
     @Query("SELECT MAX(r.number) FROM Round r JOIN PlayerRank pr ON pr.round.id = r.id WHERE pr.played = true AND r.season.id = :seasonId")
     Integer findMaxPlayedRoundBySeasonId(@Param("seasonId") Long seasonId);
+
+    @Modifying
+    @Query("DELETE FROM PlayerRank pr WHERE pr.round.season.id = :seasonId")
+    void deleteByRoundSeasonId(@Param("seasonId") Long seasonId);
 }

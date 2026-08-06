@@ -1,5 +1,5 @@
 import api from './client'
-import type { Season, PrizePayout, PrizeDistributionLog, MinP1ValidationResult, PayoutStatus, BestTeamResult } from '../types'
+import type { Season, PrizePayout, PrizeDistributionLog, MinP1ValidationResult, PayoutStatus, BestTeamResult, SetupPreviewDto } from '../types'
 
 export interface CalculationResult {
   success: boolean
@@ -14,6 +14,11 @@ export interface UpdatePayoutRequest {
 
 export interface MailPreviewResponse {
   html: string
+}
+
+export interface NewSeasonSetupRequest {
+  csvUrl: string
+  seasonName: string
 }
 
 export const seasonApi = {
@@ -34,4 +39,5 @@ export const seasonApi = {
   getInvitationMailPreview: (id: number) => api.get<MailPreviewResponse>(`/seasons/${id}/invitation-mail/preview`),
   sendSeasonReport: (id: number) => api.post<{ message: string }>(`/seasons/${id}/report-mail`),
   getBestTeam: (id: number) => api.get<BestTeamResult>(`/seasons/${id}/best-team`),
+  previewSetup: (req: NewSeasonSetupRequest) => api.post<SetupPreviewDto>('/seasons/setup/preview', req),
 }

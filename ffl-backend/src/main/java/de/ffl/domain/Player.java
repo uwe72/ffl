@@ -24,6 +24,9 @@ public class Player {
     @Column(nullable = false)
     private String nameKicker;
 
+    @Column(name = "kicker_id")
+    private String kickerId;
+
     private String nameKickerAlt1;
     private String nameKickerAlt2;
     private String nameKickerAlt3;

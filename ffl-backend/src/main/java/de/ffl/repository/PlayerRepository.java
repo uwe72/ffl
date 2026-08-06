@@ -4,6 +4,7 @@ import de.ffl.domain.Player;
 import de.ffl.domain.Position;
 import de.ffl.domain.Season;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;

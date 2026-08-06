@@ -4,6 +4,7 @@ import de.ffl.domain.ManagerRank;
 import de.ffl.domain.Manager;
 import de.ffl.domain.Round;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -30,4 +31,8 @@ public interface ManagerRankRepository extends JpaRepository<ManagerRank, Long> 
     List<ManagerRank> findByManagerIdInAndRoundNumber(@Param("managerIds") List<Long> managerIds, @Param("roundNumber") Integer roundNumber);
 
     void deleteByManagerId(Long managerId);
+
+    @Modifying
+    @Query("DELETE FROM ManagerRank mr WHERE mr.round.season.id = :seasonId")
+    void deleteByRoundSeasonId(@Param("seasonId") Long seasonId);
 }
