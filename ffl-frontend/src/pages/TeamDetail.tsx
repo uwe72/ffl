@@ -277,8 +277,8 @@ export default function TeamDetail() {
         Zurück zur Übersicht
       </RouterLink>
 
+      <div className="w-fit max-w-full">
       {team && (
-        <div className="w-fit max-w-full">
         <div className="p-4 bg-elevated border border-border rounded-card mb-6">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 shrink-0">
@@ -372,7 +372,7 @@ export default function TeamDetail() {
         </div>
       )}
 
-      <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
+      <div className="p-6 bg-surface border border-border rounded-card mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
           <div className="relative w-64">
@@ -510,6 +510,7 @@ export default function TeamDetail() {
             )}
           </div>
         )}
+      </div>
       </div>
     </div>
   )

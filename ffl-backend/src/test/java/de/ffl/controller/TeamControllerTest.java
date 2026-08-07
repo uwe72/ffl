@@ -47,7 +47,7 @@ class TeamControllerTest {
     }
 
     @Test
-    void updateTeam_updatesOnlyShortName() {
+    void updateTeam_updatesShortNameAndLogoSUrl() {
         when(teamRepository.findById(73L)).thenReturn(Optional.of(existingTeam));
         when(teamRepository.save(any(Team.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -68,8 +68,8 @@ class TeamControllerTest {
         Team persisted = saved.getValue();
         assertThat(persisted.getShortName()).isEqualTo("LEV");
         assertThat(persisted.getName()).isEqualTo("Bayer 04 Leverkusen");
+        assertThat(persisted.getLogoSUrl()).isEqualTo("neu-s");
         assertThat(persisted.getLogoXxlUrl()).isEqualTo("xxl");
-        assertThat(persisted.getLogoSUrl()).isEqualTo("s");
     }
 
     @Test

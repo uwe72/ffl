@@ -59,6 +59,7 @@ public class TeamController {
         return teamRepository.findById(id)
             .map(team -> {
                 team.setShortName(updateData.getShortName());
+                team.setLogoSUrl(updateData.getLogoSUrl());
                 return ResponseEntity.ok(teamRepository.save(team));
             })
             .orElse(ResponseEntity.notFound().build());
