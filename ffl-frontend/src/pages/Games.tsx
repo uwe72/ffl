@@ -257,7 +257,7 @@ export default function Games() {
                       <td className="px-3 py-2">
                         <RouterLink
                           to={`/games/${game.id}`}
-                          className="hover:text-accent-hover link text-primary"
+                          className="hover:text-accent-hover link text-primary font-medium"
                         >
                           {game.name || '-'}
                         </RouterLink>

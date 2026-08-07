@@ -398,7 +398,7 @@ export default function PlayerDetail() {
                         )}
                       </td>
                       <td className="px-3 py-2">
-                        <RouterLink to={`/managers/${manager.id}`} className="hover:text-accent-hover link text-primary">
+                        <RouterLink to={`/managers/${manager.id}`} className="hover:text-accent-hover link text-primary font-medium">
                           {manager.shortName || manager.name || '-'}
                         </RouterLink>
                       </td>

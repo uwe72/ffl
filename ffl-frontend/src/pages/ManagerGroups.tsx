@@ -175,7 +175,7 @@ export default function ManagerGroups() {
                         <td className="px-3 py-2">
                           <RouterLink
                             to={`/manager-groups/${group.id}`}
-                            className="hover:text-accent-hover link text-primary"
+                            className="hover:text-accent-hover link text-primary font-medium"
                           >
                             {group.name}
                           </RouterLink>
