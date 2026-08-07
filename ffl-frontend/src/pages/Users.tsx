@@ -124,7 +124,7 @@ export default function Users() {
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="border-b border-border hover:bg-card-hover">
                     <td className="px-3 py-2">
-                      <RouterLink to={`/users/${user.id}`} className="hover:text-accent-hover link text-primary font-medium">
+                      <RouterLink to={`/users/${user.id}`} className="link font-medium">
                         {user.login}
                       </RouterLink>
                     </td>

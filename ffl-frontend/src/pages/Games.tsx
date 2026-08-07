@@ -35,7 +35,7 @@ function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: numb
         <div className="flex items-center justify-between">
           <RouterLink
             to={`/games/${game.id}`}
-            className="font-semibold text-primary hover:text-accent-hover link"
+            className="font-semibold link"
           >
             {game.name || '-'}
           </RouterLink>
@@ -313,7 +313,7 @@ export default function Games() {
                         <td className="px-3 py-2 whitespace-nowrap">
                           <RouterLink
                             to={`/games/${game.id}`}
-                            className="hover:text-accent-hover link text-primary font-medium"
+                            className="link font-medium"
                           >
                             {game.name || '-'}
                           </RouterLink>

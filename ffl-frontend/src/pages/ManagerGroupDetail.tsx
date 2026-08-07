@@ -299,7 +299,7 @@ export default function ManagerGroupDetail() {
   if (!isNewMode && isLoading) {
     return (
       <div className="max-w-6xl" aria-busy="true">
-        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
           <i className="sap-icon sap-icon-nav-back text-base" />
           Zurück zur Übersicht
         </RouterLink>
@@ -333,7 +333,7 @@ export default function ManagerGroupDetail() {
   if (!isNewMode && error) {
     return (
       <div className="max-w-6xl">
-        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
           <i className="sap-icon sap-icon-nav-back text-base" />
           Zurück zur Übersicht
         </RouterLink>
@@ -347,7 +347,7 @@ export default function ManagerGroupDetail() {
   if (!isNewMode && !group) {
     return (
       <div className="max-w-6xl">
-        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
           <i className="sap-icon sap-icon-nav-back text-base" />
           Zurück zur Übersicht
         </RouterLink>
@@ -364,7 +364,7 @@ export default function ManagerGroupDetail() {
 
   return (
     <div className="max-w-6xl">
-      <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+      <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
@@ -622,7 +622,7 @@ export default function ManagerGroupDetail() {
                     <td className="px-3 py-2">
                       <RouterLink
                         to={`/managers/${manager.id}`}
-                        className="text-accent hover:text-accent-hover hover:underline font-medium"
+                        className="link font-medium"
                       >
                         {manager.shortName || manager.name}
                       </RouterLink>

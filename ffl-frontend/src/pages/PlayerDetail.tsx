@@ -185,7 +185,7 @@ export default function PlayerDetail() {
 
   return (
     <div>
-      <RouterLink to="/players" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+      <RouterLink to="/players" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
@@ -398,7 +398,7 @@ export default function PlayerDetail() {
                         )}
                       </td>
                       <td className="px-3 py-2">
-                        <RouterLink to={`/managers/${manager.id}`} className="hover:text-accent-hover link text-primary font-medium">
+                        <RouterLink to={`/managers/${manager.id}`} className="link font-medium">
                           {manager.shortName || manager.name || '-'}
                         </RouterLink>
                       </td>
@@ -452,7 +452,7 @@ export default function PlayerDetail() {
               {sortedManagers.map((manager) => (
                 <div key={manager.id} className="card p-4 bg-surface border border-border">
                   <div className="flex items-center gap-3 mb-3">
-                    <RouterLink to={`/managers/${manager.id}`} className="hover:text-accent-hover link text-primary font-semibold">
+                    <RouterLink to={`/managers/${manager.id}`} className="link font-semibold">
                       {manager.shortName || manager.name || '-'}
                     </RouterLink>
                     {isAdmin && (

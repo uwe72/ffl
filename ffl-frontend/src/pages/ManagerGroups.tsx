@@ -16,7 +16,7 @@ function ManagerGroupCard({ group, onDelete }: { group: any; onDelete: (id: numb
         <div className="flex-1 min-w-0">
           <RouterLink
             to={`/manager-groups/${group.id}`}
-            className="font-semibold text-primary hover:text-accent-hover link truncate block"
+            className="font-semibold link truncate block"
           >
             {group.name}
           </RouterLink>
@@ -175,7 +175,7 @@ export default function ManagerGroups() {
                         <td className="px-3 py-2">
                           <RouterLink
                             to={`/manager-groups/${group.id}`}
-                            className="hover:text-accent-hover link text-primary font-medium"
+                            className="link font-medium"
                           >
                             {group.name}
                           </RouterLink>

@@ -272,7 +272,7 @@ export default function TeamDetail() {
 
   return (
     <div>
-      <RouterLink to="/teams" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+      <RouterLink to="/teams" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
@@ -442,11 +442,11 @@ export default function TeamDetail() {
                           )}
                         </td>
                         <td className="px-3 py-2">
-                          <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-foreground link">
+                          <RouterLink to={`/players/${player.id}`} className="flex items-center link">
                             {player.pictureUrl && (
                               <img src={player.pictureUrl} alt={fullName(player)} className="w-10 h-10 rounded-full object-cover mr-3" />
                             )}
-                            <div className="font-medium text-primary">{fullName(player)}</div>
+                            <div className="font-medium text-link">{fullName(player)}</div>
                           </RouterLink>
                         </td>
                         <td className="px-3 py-2 text-center text-foreground">

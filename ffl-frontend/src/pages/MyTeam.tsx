@@ -1040,7 +1040,7 @@ export default function MyTeam() {
   if (notFound) {
     return (
       <div>
-        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
           <i className="sap-icon sap-icon-nav-back text-base" />
           Zurück zur Startseite
         </RouterLink>
@@ -1056,7 +1056,7 @@ export default function MyTeam() {
   if (!manager) {
     return (
       <div>
-        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
           <i className="sap-icon sap-icon-nav-back text-base" />
           Zurück zur Startseite
         </RouterLink>

@@ -32,6 +32,10 @@
   --ffl-accent-ring: #c4bdb3;
   --ffl-text-on-accent: #fafaf9;
 
+  /* Links */
+  --ffl-link: #1d4ed8;
+  --ffl-link-hover: #1e40af;
+
   /* Positionen */
   --ffl-pos-tw: #57534e;
   --ffl-pos-abw: #0f766e;
@@ -98,6 +102,9 @@
   --color-accent-muted: var(--ffl-accent-soft);
   --color-accent-soft: var(--ffl-accent-soft);
   --color-accent-ring: var(--ffl-accent-ring);
+
+  --color-link: var(--ffl-link);
+  --color-link-hover: var(--ffl-link-hover);
 
   --color-default: var(--ffl-surface-sunken);
   --color-default-foreground: var(--ffl-text);
@@ -337,13 +344,13 @@ body {
 }
 
 .link {
-  color: var(--color-accent);
+  color: var(--color-link);
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
 .link:hover {
-  color: var(--color-accent-hover);
+  color: var(--color-link-hover);
   text-decoration: underline;
 }
 

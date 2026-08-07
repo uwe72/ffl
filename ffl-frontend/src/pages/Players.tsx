@@ -1,12 +1,11 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { usePlayers } from '../hooks/usePlayers'
 import useIsMobile from '../hooks/useIsMobile'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
-import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
-import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
+import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import type { Team, Player } from '../types'
 import { positionBarColor } from '../utils/positions'
 
@@ -35,7 +34,7 @@ const positionSapIcon: Record<string, string> = {
   GOALKEEPER: 'sap-icon-shield',
   DEFENDER: 'sap-icon-shield',
   MIDFIELD: 'sap-icon-circle-task',
-  STRIKER: 'sap-icon-target',
+  STRIKER: 'sap-icon-goal',
 }
 
 const positionChipActiveColors: Record<string, string> = {
@@ -49,75 +48,11 @@ const chipInactive = 'bg-elevated text-muted border-border'
 
 type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position'
 
-interface TeamDropdownProps {
-  teams: Team[]
-  selectedTeamId: number | 'ALL'
-  onSelect: (id: number | 'ALL') => void
-}
-
-function TeamDropdown({ teams, selectedTeamId, onSelect }: TeamDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const selectedTeam = teams.find(t => t.id === selectedTeamId)
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  return (
-    <div ref={dropdownRef} className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-            className="min-w-40 px-2 py-1.5 rounded-control bg-elevated border border-border text-foreground text-xs flex items-center justify-between gap-1.5 focus:outline-none focus:border-accent hover:border-border-hover transition-colors"
-      >
-        <span className="flex items-center gap-1.5 truncate">
-          {selectedTeam?.logoSUrl && (
-            <img src={selectedTeam.logoSUrl} alt="" className="w-4 h-4 object-contain flex-shrink-0" />
-          )}
-          <span className="truncate">{selectedTeam?.name || 'Alle Vereine'}</span>
-        </span>
-        <span className="text-subtle text-[10px]">▼</span>
-      </button>
-
-      {isOpen && (
-          <div className="absolute top-full left-0 mt-1 w-full bg-surface border border-border rounded-card shadow-xl z-50 max-h-60 overflow-y-auto">
-          <button
-            onClick={() => { onSelect('ALL'); setIsOpen(false) }}
-            className={`w-full px-2 py-1.5 text-left text-xs hover:bg-elevated transition-colors ${selectedTeamId === 'ALL' ? 'bg-elevated text-primary' : 'text-muted'}`}
-          >
-            Alle Vereine
-          </button>
-          {teams.map(team => (
-            <button
-              key={team.id}
-              onClick={() => { onSelect(team.id); setIsOpen(false) }}
-              className={`w-full px-2 py-1.5 text-left text-xs flex items-center gap-1.5 hover:bg-elevated transition-colors ${selectedTeamId === team.id ? 'bg-elevated text-primary' : 'text-foreground'}`}
-            >
-              {team.logoSUrl && (
-                <img src={team.logoSUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
-              )}
-              <span className="truncate">{team.name}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, searchTerm, setSearchTerm, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter }: {
+function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter }: {
   selectedPositions: Set<string>
   setSelectedPositions: (s: Set<string>) => void
   selectedTeamId: number | 'ALL'
   setSelectedTeamId: (id: number | 'ALL') => void
-  searchTerm: string
-  setSearchTerm: (s: string) => void
   teams: Team[]
   priceMin: string
   setPriceMin: (s: string) => void
@@ -138,26 +73,12 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
   const clearFilter = () => {
     setSelectedPositions(new Set())
     setSelectedTeamId('ALL')
-    setSearchTerm('')
     setPriceMin('')
     setPriceMax('')
   }
 
   return (
-    <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap">
-      <div className="relative flex-1 min-w-[180px] max-w-[280px]">
-        <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          placeholder="Spieler suchen..."
-          className="input-field pl-8 pr-3 py-1.5 text-xs w-full"
-        />
-      </div>
-
-      <div className="h-5 w-px bg-border" />
-
+    <div className="flex items-center gap-3 flex-wrap mb-4">
       <div className="flex items-center gap-1.5 flex-wrap">
         {(['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const).map(pos => {
           const active = selectedPositions.has(pos)
@@ -176,11 +97,16 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
 
       <div className="h-5 w-px bg-border" />
 
-      <TeamDropdown
-        teams={teams}
-        selectedTeamId={selectedTeamId}
-        onSelect={setSelectedTeamId}
-      />
+      <select
+        value={selectedTeamId}
+        onChange={e => setSelectedTeamId(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
+        className="input-field control px-2 py-1.5 rounded-control text-xs cursor-pointer min-w-40"
+      >
+        <option value="ALL">Alle Vereine</option>
+        {teams.map(team => (
+          <option key={team.id} value={team.id}>{team.name}</option>
+        ))}
+      </select>
 
       <div className="h-5 w-px bg-border" />
 
@@ -193,7 +119,7 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
           onBlur={() => setMinFocused(false)}
           onChange={e => setPriceMin(e.target.value.replace(/[^\d]/g, ''))}
           placeholder="Min €"
-          className="input-field w-40 px-2 py-1.5 text-xs"
+          className="input-field control w-40 px-2 py-1.5 text-xs"
         />
         <span className="text-subtle text-xs">–</span>
         <input
@@ -204,14 +130,14 @@ function FilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, se
           onBlur={() => setMaxFocused(false)}
           onChange={e => setPriceMax(e.target.value.replace(/[^\d]/g, ''))}
           placeholder="Max €"
-          className="input-field w-40 px-2 py-1.5 text-xs"
+          className="input-field control w-40 px-2 py-1.5 text-xs"
         />
       </div>
 
       {hasFilter && (
         <button
           onClick={clearFilter}
-              className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
+          className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
           title="Filter zurücksetzen"
         >
           <i className="sap-icon sap-icon-decline text-[14px]" />
@@ -230,15 +156,22 @@ function formatPrice(price: number | undefined): string {
   return `${Math.round(price / 1_000)}K €`
 }
 
-function PlayerCard({ player, hideManager }: { player: Player; hideManager?: boolean }) {
+function fullName(player: Player): string {
+  const first = player.firstName?.trim()
+  const last = player.lastName?.trim()
+  if (first && last) return `${first} ${last}`
+  return player.nameKicker
+}
+
+function PlayerCard({ player, hideManager, hideStats }: { player: Player; hideManager?: boolean; hideStats?: boolean }) {
   return (
-    <div className="card relative overflow-hidden p-4 pl-5 bg-surface border border-border rounded-card">
+    <div className="relative overflow-hidden p-4 pl-5 bg-surface border border-border rounded-card">
       <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[player.position]}`} />
       <div className="flex gap-4 items-center">
         {player.pictureUrl ? (
           <img 
             src={player.pictureUrl} 
-            alt={player.nameKicker}
+            alt={fullName(player)}
             className="w-14 h-14 rounded-full object-cover flex-shrink-0"
           />
         ) : (
@@ -247,7 +180,7 @@ function PlayerCard({ player, hideManager }: { player: Player; hideManager?: boo
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-foreground truncate">{player.nameKicker}</div>
+          <div className="font-semibold text-foreground truncate">{fullName(player)}</div>
           <div className="mt-1">
             <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5`}>
               {positionLabels[player.position]}
@@ -263,6 +196,7 @@ function PlayerCard({ player, hideManager }: { player: Player; hideManager?: boo
         )}
       </div>
 
+      {!hideStats && (
       <div className="grid grid-cols-3 gap-2 mt-4 text-sm">
         <div>
           <span className="text-subtle">Pos: </span>
@@ -299,6 +233,7 @@ function PlayerCard({ player, hideManager }: { player: Player; hideManager?: boo
           <span className="font-medium text-foreground">{formatPrice(player.prize)}</span>
         </div>
       </div>
+      )}
     </div>
   )
 }
@@ -308,7 +243,8 @@ export default function Players() {
   const { user } = useAuth()
   const { data: currentSeason } = useCurrentSeason()
   const isAdmin = user?.role === 'ADMIN'
-  const isBeforeSeasonNonAdmin = currentSeason?.seasonState === 'BEFORE_SEASON' && !isAdmin
+  const isBeforeSeason = currentSeason?.seasonState === 'BEFORE_SEASON'
+  const isBeforeSeasonNonAdmin = isBeforeSeason && !isAdmin
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set())
   const [selectedTeamId, setSelectedTeamId] = useState<number | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
@@ -392,14 +328,26 @@ export default function Players() {
 
   return (
     <div>
-      <CardContainer>
+      <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
+          <div className="relative w-64">
+            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Spieler suchen..."
+              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
+            />
+          </div>
+        </div>
+
         <FilterBar
           selectedPositions={selectedPositions}
           setSelectedPositions={setSelectedPositions}
           selectedTeamId={selectedTeamId}
           setSelectedTeamId={setSelectedTeamId}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
           teams={teams}
           priceMin={priceMin}
           setPriceMin={setPriceMin}
@@ -409,146 +357,167 @@ export default function Players() {
         />
 
         {!isMobile && (
-        <TableContent count={filteredPlayers.length} total={players?.length || 0} countLabel="Spielern">
-          <table className="w-full">
-            <TableHead>
-              <tr>
-                <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
-                  Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="center" onClick={() => handleSort('positionChange')}>
-                  +-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="left" onClick={() => handleSort('nameKicker')}>
-                  Name<SortIcon column="nameKicker" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="center" onClick={() => handleSort('points')}>
-                  Pkt<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
-                  Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                {!isBeforeSeasonNonAdmin && (
-                <ThSortable align="center" onClick={() => handleSort('managerCount')}>
-                  Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                )}
-                <ThSortable align="right" onClick={() => handleSort('prize')}>
-                  Preis<SortIcon column="prize" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="left" onClick={() => handleSort('position')}>
-                  Position<SortIcon column="position" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <Th align="left">Team</Th>
-              </tr>
-            </TableHead>
-            <TableBody>
-              {filteredPlayers && filteredPlayers.length > 0 ? (
-                filteredPlayers.map((player) => (
-                  <tr key={player.id} className="border-b border-border hover:bg-card-hover">
-                    <td className="px-3 py-2 text-center text-foreground">
-                      {player.positionTotal ? `${player.positionTotal}.` : '-'}
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      {player.positionChange != null && player.positionChange !== 0 ? (
-                        <span className={`${player.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
-                          {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
-                        </span>
-                      ) : (
-                        <span className="text-subtle">-</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2">
-                      {isBeforeSeasonNonAdmin ? (
-                        <div className="flex items-center">
-                          {player.pictureUrl && (
-                            <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
-                          )}
-                          <div className="font-medium text-foreground">{player.nameKicker}</div>
-                        </div>
-                      ) : (
-                        <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-foreground link">
-                          {player.pictureUrl && (
-                            <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
-                          )}
-                          <div className="font-medium text-primary">{player.nameKicker}</div>
-                        </RouterLink>
-                      )}
-                    </td>
-                    <td className="px-3 py-2 text-center text-foreground">
-                      {player.points ?? '-'}
-                    </td>
-                    <td className="px-3 py-2 text-center text-muted">
-                      {player.pointsLastRound ?? '-'}
-                    </td>
-                    {!isBeforeSeasonNonAdmin && (
-                    <td className="px-3 py-2 text-center">
-                      <RouterLink to={`/players/${player.id}`}>
-                        <span
-                          className={`${player.managerCount && player.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded-badge cursor-pointer hover:opacity-80`}
-                        >
-                          {player.managerCount ?? 0}
-                        </span>
-                      </RouterLink>
-                    </td>
+          <>
+            <div className="overflow-x-auto rounded-card border border-border w-fit max-w-full">
+              <table>
+                <TableHead>
+                  <tr>
+                    {!isBeforeSeason && (
+                    <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
+                      Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
                     )}
-                    <td className="px-3 py-2 text-right text-foreground">
-                      {player.prize ? player.prize.toLocaleString() : '-'} €
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
-                        {positionLabels[player.position]}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-muted">
-                      {player.teams.length > 0 ? (
-                        <span className="flex items-center gap-2">
-                          {player.teams[0].logoSUrl && (
-                            <img
-                              src={player.teams[0].logoSUrl}
-                              alt={player.teams[0].name}
-                              className="w-5 h-5 object-contain flex-shrink-0"
-                            />
-                          )}
-                          <span className="text-foreground">{player.teams[0].name}</span>
-                        </span>
-                      ) : '-'}
-                    </td>
+                    {!isBeforeSeason && (
+                    <ThSortable align="center" onClick={() => handleSort('positionChange')}>
+                      +-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    )}
+                    <ThSortable align="left" onClick={() => handleSort('nameKicker')}>
+                      Name<SortIcon column="nameKicker" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    {!isBeforeSeason && (
+                    <ThSortable align="center" onClick={() => handleSort('points')}>
+                      Pkt<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    )}
+                    {!isBeforeSeason && (
+                    <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
+                      Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    )}
+                    {!isBeforeSeasonNonAdmin && (
+                    <ThSortable align="center" onClick={() => handleSort('managerCount')}>
+                      Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    )}
+                    <ThSortable align="right" onClick={() => handleSort('prize')}>
+                      Preis<SortIcon column="prize" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleSort('position')}>
+                      Position<SortIcon column="position" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <Th align="left">Verein</Th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={isBeforeSeasonNonAdmin ? 8 : 9} className="text-center text-subtle py-8">
-                    Keine Spieler gefunden
-                  </td>
-                </tr>
-              )}
-            </TableBody>
-          </table>
-        </TableContent>
-        )}
-
-        {isMobile && (
-        <div className="flex-1 px-6 pb-6 overflow-x-auto">
-          <div className="grid gap-4 mt-4">
-            {filteredPlayers && filteredPlayers.length > 0 ? (
-              filteredPlayers.map((player) => (
-                <PlayerCard key={player.id} player={player} hideManager={isBeforeSeasonNonAdmin} />
-              ))
-            ) : (
-              <div className="text-center text-subtle py-8">
-                Keine Spieler gefunden
-              </div>
-            )}
-          </div>
-          {filteredPlayers && (
+                </TableHead>
+                <TableBody>
+                  {filteredPlayers && filteredPlayers.length > 0 ? (
+                    filteredPlayers.map((player, index) => (
+                      <tr key={player.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                        {!isBeforeSeason && (
+                        <td className="px-3 py-2 text-center text-foreground">
+                          {player.positionTotal ? `${player.positionTotal}.` : '-'}
+                        </td>
+                        )}
+                        {!isBeforeSeason && (
+                        <td className="px-3 py-2 text-center">
+                          {player.positionChange != null && player.positionChange !== 0 ? (
+                            <span className={`${player.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                              {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
+                            </span>
+                          ) : (
+                            <span className="text-subtle">-</span>
+                          )}
+                        </td>
+                        )}
+                        <td className="px-3 py-2">
+                          {isBeforeSeasonNonAdmin ? (
+                            <div className="flex items-center">
+                              {player.pictureUrl && (
+                                <img src={player.pictureUrl} alt={fullName(player)} className="w-10 h-10 rounded-full object-cover mr-3" />
+                              )}
+                              <div className="font-medium text-foreground">{fullName(player)}</div>
+                            </div>
+                          ) : (
+                            <RouterLink to={`/players/${player.id}`} className="flex items-center link">
+                              {player.pictureUrl && (
+                                <img src={player.pictureUrl} alt={fullName(player)} className="w-10 h-10 rounded-full object-cover mr-3" />
+                              )}
+                              <div className="font-medium text-link">{fullName(player)}</div>
+                            </RouterLink>
+                          )}
+                        </td>
+                        {!isBeforeSeason && (
+                        <td className="px-3 py-2 text-center text-foreground">
+                          {player.points ?? '-'}
+                        </td>
+                        )}
+                        {!isBeforeSeason && (
+                        <td className="px-3 py-2 text-center text-muted">
+                          {player.pointsLastRound ?? '-'}
+                        </td>
+                        )}
+                        {!isBeforeSeasonNonAdmin && (
+                        <td className="px-3 py-2 text-center">
+                          <RouterLink to={`/players/${player.id}`}>
+                            <span
+                              className={`${player.managerCount && player.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded-badge cursor-pointer hover:opacity-80`}
+                            >
+                              {player.managerCount ?? 0}
+                            </span>
+                          </RouterLink>
+                        </td>
+                        )}
+                        <td className="px-3 py-2 text-right text-foreground">
+                          {player.prize ? player.prize.toLocaleString() : '-'} €
+                        </td>
+                        <td className="px-3 py-2">
+                          <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
+                            {positionLabels[player.position]}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-muted">
+                          {player.teams.length > 0 ? (
+                            <span className="flex items-center gap-2">
+                              {player.teams[0].logoSUrl && (
+                                <img
+                                  src={player.teams[0].logoSUrl}
+                                  alt={player.teams[0].name}
+                                  className="w-5 h-5 object-contain flex-shrink-0"
+                                />
+                              )}
+                              <span className="text-foreground">{player.teams[0].name}</span>
+                            </span>
+                          ) : '-'}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={9 - (isBeforeSeason ? 4 : 0) - (isBeforeSeasonNonAdmin ? 1 : 0)} className="text-center text-subtle py-8">
+                        Keine Spieler gefunden
+                      </td>
+                    </tr>
+                  )}
+                </TableBody>
+              </table>
+            </div>
             <div className="mt-4 text-sm text-subtle">
               {filteredPlayers.length} von {players?.length || 0} Spielern
             </div>
-          )}
-        </div>
+          </>
         )}
-      </CardContainer>
+
+        {isMobile && (
+          <div>
+            <div className="grid gap-4">
+              {filteredPlayers && filteredPlayers.length > 0 ? (
+                filteredPlayers.map((player) => (
+                  <PlayerCard key={player.id} player={player} hideManager={isBeforeSeasonNonAdmin} hideStats={isBeforeSeason} />
+                ))
+              ) : (
+                <div className="text-center text-subtle py-8">
+                  Keine Spieler gefunden
+                </div>
+              )}
+            </div>
+            {filteredPlayers && (
+              <div className="mt-4 text-sm text-subtle">
+                {filteredPlayers.length} von {players?.length || 0} Spielern
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

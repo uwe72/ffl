@@ -268,17 +268,18 @@ export interface Player {
 
 #### Color Conventions
 - **Never hardcode colors.** Always use the design tokens defined in the `@theme` block of `ffl-frontend/src/index.css` (Tailwind v4, CSS-first config — there is no `tailwind.config.js`). Arbitrary values like `text-[#c9a66b]` or `border-[#a9b4c0]` are not allowed.
-- **Accent color (text-accent / #3f3a34)**: Warm anthracite. Use for clickable links, interactive elements, and active states
+- **Accent color (text-accent / #3f3a34)**: Warm anthracite. Use for active states and the "Zurück zur Übersicht" navigation links (with `font-semibold`)
 - **Accent hover (text-accent-hover / #2d2a26)**: Use for hover states on interactive elements
+- **Link color (text-link / #1d4ed8)**: Blue. Use for content links (table rows, cards, inline links). Apply the `.link` class (which sets `color: var(--color-link)` + underline on hover). Do NOT combine `.link` with `text-primary` — `text-primary` overrides the link color. Avatar-based links use `text-link` on the inner name element.
 - **Neutral text colors**: Use `text-foreground` (#1c1917) for primary text, `text-muted` (#57534e) for secondary, `text-subtle` (#78716c) for tertiary
 - **Position colors**: Position group headers and player card edges use the position palette (`text-goalkeeper` / `-defender` / `-midfield` / `-striker` and the matching `bg-*` / `border-l-*`). Import the maps from `utils/positions.ts` (`positionTextColor`, `positionDotColor`, `positionEdgeColor`) — do not re-declare them.
-- Example: In a detail view, labels use muted, values use foreground, and links use accent
+- Example: In a detail view, labels use muted, values use foreground, and links use the `.link` class (blue)
 
 ```tsx
 <p className="text-sm text-muted">Position</p>
 <p className="text-xl font-bold text-foreground">Torwart</p>
 
-<a className="text-accent hover:text-accent-hover" href="/players">Zurück</a>
+<a className="link" href="/players">Spieler</a>
 ```
 
 #### Contrast Requirements
@@ -300,7 +301,7 @@ export interface Player {
 - Use exactly this pattern:
 
 ```tsx
-<RouterLink to="/parent-route" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+<RouterLink to="/parent-route" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
   <i className="sap-icon sap-icon-nav-back text-base" />
   Zurück zur Übersicht
 </RouterLink>

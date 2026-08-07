@@ -159,7 +159,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => navigate('/forgot-password')}
-                className="text-xs text-accent hover:text-accent-hover hover:underline mt-1.5 inline-block"
+                className="text-xs link mt-1.5 inline-block"
               >
                 Passwort vergessen?
               </button>

@@ -83,7 +83,7 @@ export default function UserDetail() {
 
   return (
     <div>
-      <RouterLink to="/users" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+      <RouterLink to="/users" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
@@ -200,7 +200,7 @@ export default function UserDetail() {
                     <td className="px-4 py-2">
                       <RouterLink
                         to={`/managers/${manager.id}`}
-                        className="text-primary hover:text-foreground link"
+                        className="link"
                       >
                         {manager.name}
                       </RouterLink>

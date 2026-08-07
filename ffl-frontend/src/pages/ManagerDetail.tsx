@@ -48,12 +48,12 @@ function PlayerRow({ player }: { player: Player }) {
         )}
       </td>
       <td className="px-3 py-2">
-        <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-foreground link">
+        <RouterLink to={`/players/${player.id}`} className="flex items-center link">
           {player.pictureUrl && (
             <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
           )}
           <div>
-            <div className="font-medium text-primary">{player.nameKicker}</div>
+            <div className="font-medium text-link">{player.nameKicker}</div>
             {player.firstName && player.lastName && (
               <div className="text-sm text-subtle">
                 {player.firstName} {player.lastName}
@@ -487,7 +487,7 @@ export default function ManagerDetail() {
 
   return (
     <div>
-      <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+      <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
@@ -848,12 +848,12 @@ function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: nu
                   <td className="px-3 py-2">
                     <RouterLink
                       to={`/players/${pp.playerId}`}
-                      className="flex items-center hover:text-foreground link"
+                      className="flex items-center link"
                     >
                       {pp.player?.pictureUrl && (
                         <img src={pp.player.pictureUrl} alt={pp.playerName} className="w-10 h-10 rounded-full object-cover mr-3" />
                       )}
-                      <div className="font-medium text-primary">{pp.playerName}</div>
+                      <div className="font-medium text-link">{pp.playerName}</div>
                     </RouterLink>
                   </td>
                   <td className="px-3 py-2">

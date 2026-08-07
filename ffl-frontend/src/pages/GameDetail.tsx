@@ -54,7 +54,7 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
                           <img src={player.pictureUrl} alt={player.playerName} className="w-10 h-10 rounded-full object-cover mr-3" />
                         )}
                         <div>
-                          <Link to={`/players/${player.playerId}`} className="font-medium hover:text-accent-hover link">
+                          <Link to={`/players/${player.playerId}`} className="font-medium link">
                             {player.playerName}
                           </Link>
                           <div className="text-xs text-subtle">{altNames.length > 0 ? altNames.join(' | ') : '[Kein alternativer Name]'}</div>
@@ -135,7 +135,7 @@ export default function GameDetail() {
 
   return (
     <div>
-      <RouterLink to="/games" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+      <RouterLink to="/games" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>

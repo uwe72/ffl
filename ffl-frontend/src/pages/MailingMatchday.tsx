@@ -19,14 +19,15 @@ export default function MailingMatchday() {
   }, [games])
 
   useEffect(() => {
-    if (selectedRound === null) {
-      if (season?.currentMatchday) {
-        setSelectedRound(season.currentMatchday)
-      } else if (rounds.length > 0) {
-        setSelectedRound(Math.max(...rounds))
-      }
+    if (selectedRound !== null || rounds.length === 0) return
+    if (season?.seasonState === 'BEFORE_SEASON') {
+      setSelectedRound(Math.min(...rounds))
+    } else if (season?.currentMatchday) {
+      setSelectedRound(season.currentMatchday)
+    } else {
+      setSelectedRound(Math.max(...rounds))
     }
-  }, [rounds, selectedRound, season?.currentMatchday])
+  }, [rounds, selectedRound, season?.seasonState, season?.currentMatchday])
 
   if (isLoadingSeason || isLoadingGames) {
     return <div className="text-muted">Laden...</div>
@@ -38,7 +39,7 @@ export default function MailingMatchday() {
 
   return (
     <div>
-      <RouterLink to="/mailing" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+      <RouterLink to="/mailing" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>

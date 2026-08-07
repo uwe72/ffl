@@ -21,7 +21,7 @@ function ManagerCard({ manager }: { manager: any }) {
     <div className="card p-4 bg-surface border border-border">
       <div className="flex gap-4 items-center">
         <div className="flex-1 min-w-0">
-          <RouterLink to={`/managers/${manager.id}`} className="font-semibold text-primary hover:text-accent-hover link truncate block">
+          <RouterLink to={`/managers/${manager.id}`} className="font-semibold link truncate block">
             {manager.shortName || '-'}
           </RouterLink>
           <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
@@ -234,7 +234,7 @@ export default function Managers() {
                           )}
                         </td>
                         <td className="px-3 py-2">
-                          <RouterLink to={`/managers/${manager.id}`} className="hover:text-accent-hover link text-primary font-medium">
+                          <RouterLink to={`/managers/${manager.id}`} className="link font-medium">
                             {manager.shortName || '-'}
                           </RouterLink>
                         </td>
