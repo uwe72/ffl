@@ -3,9 +3,8 @@ import { useParams, Link as RouterLink } from 'react-router-dom'
 import { useTeam, useTeamPlayers, useUpdateTeam } from '../hooks/useTeams'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/Button'
-import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
-import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
+import { TableHead, ThSortable, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 import type { Player } from '../types'
 import { positionBarColor } from '../utils/positions'
@@ -28,7 +27,7 @@ const positionSapIcon: Record<string, string> = {
   GOALKEEPER: 'sap-icon-shield',
   DEFENDER: 'sap-icon-shield',
   MIDFIELD: 'sap-icon-circle-task',
-  STRIKER: 'sap-icon-target',
+  STRIKER: 'sap-icon-goal',
 }
 
 const positionChipActiveColors: Record<string, string> = {
@@ -43,11 +42,9 @@ const chipInactive = 'bg-elevated text-muted border-border'
 type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position'
 type SortOrder = 'asc' | 'desc'
 
-function FilterBar({ selectedPositions, setSelectedPositions, searchTerm, setSearchTerm, hasFilter }: {
+function FilterBar({ selectedPositions, setSelectedPositions, hasFilter }: {
   selectedPositions: Set<string>
   setSelectedPositions: (s: Set<string>) => void
-  searchTerm: string
-  setSearchTerm: (s: string) => void
   hasFilter: boolean
 }) {
   const togglePosition = (pos: string) => {
@@ -59,24 +56,10 @@ function FilterBar({ selectedPositions, setSelectedPositions, searchTerm, setSea
 
   const clearFilter = () => {
     setSelectedPositions(new Set())
-    setSearchTerm('')
   }
 
   return (
-    <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap">
-      <div className="relative flex-1 min-w-[180px] max-w-[280px]">
-        <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          placeholder="Spieler suchen..."
-          className="input-field pl-8 pr-3 py-1.5 text-xs w-full"
-        />
-      </div>
-
-      <div className="h-5 w-px bg-border" />
-
+    <div className="flex items-center gap-3 flex-wrap mb-4">
       <div className="flex items-center gap-1.5 flex-wrap">
         {(['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const).map(pos => {
           const active = selectedPositions.has(pos)
@@ -115,6 +98,13 @@ function formatPrice(price: number | undefined): string {
   return `${Math.round(price / 1_000)}K €`
 }
 
+function fullName(player: Player): string {
+  const first = player.firstName?.trim()
+  const last = player.lastName?.trim()
+  if (first && last) return `${first} ${last}`
+  return player.nameKicker
+}
+
 function PlayerCard({ player }: { player: Player }) {
   return (
     <div className="card relative overflow-hidden p-4 pl-5 bg-surface border border-border rounded-card">
@@ -123,7 +113,7 @@ function PlayerCard({ player }: { player: Player }) {
         {player.pictureUrl ? (
           <img 
             src={player.pictureUrl} 
-            alt={player.nameKicker}
+            alt={fullName(player)}
             className="w-14 h-14 rounded-full object-cover flex-shrink-0"
           />
         ) : (
@@ -132,7 +122,7 @@ function PlayerCard({ player }: { player: Player }) {
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-foreground truncate">{player.nameKicker}</div>
+          <div className="font-semibold text-foreground truncate">{fullName(player)}</div>
           <div className="mt-1">
             <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
               {positionLabels[player.position]}
@@ -190,6 +180,7 @@ export default function TeamDetail() {
 
   const [editData, setEditData] = useState({ shortName: '' })
   const [isSaving, setIsSaving] = useState(false)
+  const [stammdatenOpen, setStammdatenOpen] = useState(false)
 
   useEffect(() => {
     if (team) {
@@ -203,8 +194,15 @@ export default function TeamDetail() {
     setIsSaving(true)
     try {
       await updateTeam.mutateAsync({ id: Number(id), data: editData })
+      setStammdatenOpen(false)
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleReset = () => {
+    if (team) {
+      setEditData({ shortName: team.shortName || '' })
     }
   }
 
@@ -279,162 +277,230 @@ export default function TeamDetail() {
         Zurück zur Übersicht
       </RouterLink>
 
-      <div className="flex items-center gap-3 mb-6">
-        {team?.logoSUrl && (
-          <img src={team.logoSUrl} alt={team.name} className="w-8 h-8 object-contain" />
-        )}
-        <h1 className="text-xl font-bold text-foreground">{team?.name || 'Laden...'}</h1>
-      </div>
-
-      {isAdmin && team && (
-        <div className="mb-6 p-4 bg-elevated border border-border rounded-card">
-          <h3 className="text-sm font-semibold text-foreground mb-3">Administration</h3>
-          <div className="flex flex-wrap gap-4 items-end">
-            <div>
-              <label className="text-xs text-subtle block mb-1">Kurzname</label>
-              <input
-                type="text"
-                value={editData.shortName}
-                onChange={(e) => setEditData({ ...editData, shortName: e.target.value })}
-                className="input-field w-[22rem] px-3 py-2 rounded-control focus:outline-none"
-              />
+      {team && (
+        <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 shrink-0">
+              {team.logoSUrl ? (
+                <img src={team.logoSUrl} alt={team.name} className="w-12 h-12 rounded-full object-cover" />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center">
+                  <i className="sap-icon sap-icon-shield text-xl" />
+                </div>
+              )}
             </div>
-            {hasChanges && (
+
+            <div className="flex-1 min-w-0">
+              {!stammdatenOpen && (
+                <div>
+                  <h2 className="text-3xl font-bold text-foreground truncate">{team.name}</h2>
+                  <p className="text-xs uppercase tracking-wide text-subtle mt-2">
+                    Kurzname: {team.shortName || '-'}
+                  </p>
+                </div>
+              )}
+
+              {stammdatenOpen && (
+                <div id="stammdaten-form">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted">Name</span>
+                      <input
+                        type="text"
+                        value={team.name}
+                        readOnly
+                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted">Kurzname</span>
+                      <input
+                        type="text"
+                        value={editData.shortName}
+                        onChange={(e) => setEditData({ ...editData, shortName: e.target.value })}
+                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                      />
+                    </div>
+                  </div>
+                  {hasChanges && (
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        variant="emphasized"
+                        size="sm"
+                        onClick={handleSave}
+                        disabled={isSaving}
+                      >
+                        {isSaving ? 'Wird gespeichert...' : 'Speichern'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleReset}
+                      >
+                        Abbrechen
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {isAdmin && (
               <Button
-                variant="emphasized"
-                onClick={handleSave}
-                disabled={isSaving}
+                variant="ghost"
+                size="sm"
+                onClick={() => setStammdatenOpen(o => !o)}
+                aria-expanded={stammdatenOpen}
+                aria-controls="stammdaten-form"
+                className="shrink-0 self-start"
               >
-                {isSaving ? 'Speichern...' : 'Speichern'}
+                <i className={`sap-icon sap-icon-slim-arrow-${stammdatenOpen ? 'up' : 'down'} text-xs mr-1`} />
+                {stammdatenOpen ? 'Schließen' : 'Bearbeiten'}
               </Button>
             )}
           </div>
         </div>
       )}
 
-      <CardContainer>
+      <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
+          <div className="relative w-64">
+            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Spieler suchen..."
+              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
+            />
+          </div>
+        </div>
+
         <FilterBar
           selectedPositions={selectedPositions}
           setSelectedPositions={setSelectedPositions}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
           hasFilter={hasActiveFilter}
         />
 
         {!isMobile && (
-        <TableContent count={filteredPlayers.length} total={players?.length || 0} countLabel="Spielern">
-          <table className="w-full">
-            <TableHead>
-              <tr>
-                <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
-                  Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="center" onClick={() => handleSort('positionChange')}>
-                  +-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="left" onClick={() => handleSort('nameKicker')}>
-                  Name<SortIcon column="nameKicker" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="center" onClick={() => handleSort('points')}>
-                  Pkt<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
-                  Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="center" onClick={() => handleSort('managerCount')}>
-                  Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="right" onClick={() => handleSort('prize')}>
-                  Preis<SortIcon column="prize" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-                <ThSortable align="left" onClick={() => handleSort('position')}>
-                  Position<SortIcon column="position" activeKey={sortKey} order={sortOrder} />
-                </ThSortable>
-              </tr>
-            </TableHead>
-            <TableBody>
-              {filteredPlayers && filteredPlayers.length > 0 ? (
-                filteredPlayers.map((player) => (
-                  <tr key={player.id} className="border-b border-border hover:bg-card-hover">
-                    <td className="px-3 py-2 text-center text-foreground">
-                      {player.positionTotal ? `${player.positionTotal}.` : '-'}
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      {player.positionChange != null && player.positionChange !== 0 ? (
-                        <span className={`${player.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
-                          {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
-                        </span>
-                      ) : (
-                        <span className="text-subtle">-</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2">
-                      <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-foreground link">
-                        {player.pictureUrl && (
-                          <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
-                        )}
-                        <div className="font-medium text-primary">{player.nameKicker}</div>
-                      </RouterLink>
-                    </td>
-                    <td className="px-3 py-2 text-center text-foreground">
-                      {player.points ?? '-'}
-                    </td>
-                    <td className="px-3 py-2 text-center text-muted">
-                      {player.pointsLastRound ?? '-'}
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <RouterLink to={`/players/${player.id}`}>
-                        <span
-                          className={`${player.managerCount && player.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded-badge cursor-pointer hover:opacity-80`}
-                        >
-                          {player.managerCount ?? 0}
-                        </span>
-                      </RouterLink>
-                    </td>
-                    <td className="px-3 py-2 text-right text-foreground">
-                      {player.prize ? player.prize.toLocaleString() : '-'} €
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
-                        {positionLabels[player.position]}
-                      </span>
-                    </td>
+          <>
+            <div className="overflow-x-auto rounded-card border border-border w-fit max-w-full">
+              <table>
+                <TableHead>
+                  <tr>
+                    <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
+                      Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('positionChange')}>
+                      +-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleSort('nameKicker')}>
+                      Name<SortIcon column="nameKicker" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('points')}>
+                      Pkt<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
+                      Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('managerCount')}>
+                      Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="right" onClick={() => handleSort('prize')}>
+                      Preis<SortIcon column="prize" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleSort('position')}>
+                      Position<SortIcon column="position" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={8} className="text-center text-subtle py-8">
-                    Keine Spieler gefunden
-                  </td>
-                </tr>
-              )}
-            </TableBody>
-          </table>
-        </TableContent>
-        )}
-
-        {isMobile && (
-        <div className="flex-1 px-6 pb-6 overflow-x-auto">
-          <div className="grid gap-4 mt-4">
-            {filteredPlayers && filteredPlayers.length > 0 ? (
-              filteredPlayers.map((player) => (
-                <PlayerCard key={player.id} player={player} />
-              ))
-            ) : (
-              <div className="text-center text-subtle py-8">
-                Keine Spieler gefunden
-              </div>
-            )}
-          </div>
-
-          {filteredPlayers && (
+                </TableHead>
+                <TableBody>
+                  {filteredPlayers && filteredPlayers.length > 0 ? (
+                    filteredPlayers.map((player, index) => (
+                      <tr key={player.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                        <td className="px-3 py-2 text-center text-foreground">
+                          {player.positionTotal ? `${player.positionTotal}.` : '-'}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {player.positionChange != null && player.positionChange !== 0 ? (
+                            <span className={`${player.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                              {player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`}
+                            </span>
+                          ) : (
+                            <span className="text-subtle">-</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          <RouterLink to={`/players/${player.id}`} className="flex items-center hover:text-foreground link">
+                            {player.pictureUrl && (
+                              <img src={player.pictureUrl} alt={fullName(player)} className="w-10 h-10 rounded-full object-cover mr-3" />
+                            )}
+                            <div className="font-medium text-primary">{fullName(player)}</div>
+                          </RouterLink>
+                        </td>
+                        <td className="px-3 py-2 text-center text-foreground">
+                          {player.points ?? '-'}
+                        </td>
+                        <td className="px-3 py-2 text-center text-muted">
+                          {player.pointsLastRound ?? '-'}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <RouterLink to={`/players/${player.id}`}>
+                            <span
+                              className={`${player.managerCount && player.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded-badge cursor-pointer hover:opacity-80`}
+                            >
+                              {player.managerCount ?? 0}
+                            </span>
+                          </RouterLink>
+                        </td>
+                        <td className="px-3 py-2 text-right text-foreground">
+                          {player.prize ? player.prize.toLocaleString() : '-'} €
+                        </td>
+                        <td className="px-3 py-2">
+                          <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
+                            {positionLabels[player.position]}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className="text-center text-subtle py-8">
+                        Keine Spieler gefunden
+                      </td>
+                    </tr>
+                  )}
+                </TableBody>
+              </table>
+            </div>
             <div className="mt-4 text-sm text-subtle">
               {filteredPlayers.length} von {players?.length || 0} Spielern
             </div>
-          )}
-        </div>
+          </>
         )}
-      </CardContainer>
+
+        {isMobile && (
+          <div>
+            <div className="grid gap-4">
+              {filteredPlayers && filteredPlayers.length > 0 ? (
+                filteredPlayers.map((player) => (
+                  <PlayerCard key={player.id} player={player} />
+                ))
+              ) : (
+                <div className="text-center text-subtle py-8">
+                  Keine Spieler gefunden
+                </div>
+              )}
+            </div>
+            {filteredPlayers && (
+              <div className="mt-4 text-sm text-subtle">
+                {filteredPlayers.length} von {players?.length || 0} Spielern
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
