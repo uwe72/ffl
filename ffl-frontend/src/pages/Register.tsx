@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { trackEvent } from '../hooks/useMatomo'
 import { seasonApi } from '../api/seasons'
@@ -928,46 +928,33 @@ export default function Register() {
 
           {step === 4 && (
             <div className="mt-4 space-y-4">
-              <div className="bg-elevated/40 rounded-card p-4 border border-border/50">
-                <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <i className="sap-icon sap-icon-person-placeholder text-[14px]" />
-                  Deine Daten
-                </h3>
-                <div className="flex items-center gap-5">
-                  <div className="w-16 h-16 rounded-full border-2 border-border overflow-hidden flex items-center justify-center shrink-0 bg-elevated">
+              <div className="p-4 bg-elevated border border-border rounded-card">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full border-2 border-border overflow-hidden flex items-center justify-center shrink-0 bg-elevated">
                     {avatarPreview ? (
                       <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-xl font-bold text-muted select-none">
-                        {initials || <i className="sap-icon sap-icon-person-placeholder text-[28px] text-subtle" />}
+                      <span className="text-base font-bold text-muted select-none">
+                        {initials || <i className="sap-icon sap-icon-person-placeholder text-[22px] text-subtle" />}
                       </span>
                     )}
                   </div>
-                  <div className="grid grid-cols-3 gap-x-6 gap-y-2 text-sm flex-1">
-                    <div>
-                      <p className="text-[11px] text-muted">Login</p>
-                      <p className="text-foreground font-medium">{login}</p>
-                    </div>
-                    <div>
-                      <p className="text-[11px] text-muted">Vorname</p>
-                      <p className="text-foreground font-medium">{firstName}</p>
-                    </div>
-                    <div>
-                      <p className="text-[11px] text-muted">Nachname</p>
-                      <p className="text-foreground font-medium">{lastName}</p>
-                    </div>
-                    <div>
-                      <p className="text-[11px] text-muted">E-Mail</p>
-                      <p className="text-foreground font-medium truncate">{email}</p>
-                    </div>
-                    <div>
-                      <p className="text-[11px] text-muted">Ausgegebenes Budget</p>
-                      <p className="text-foreground font-medium">{totalCost.toLocaleString('de-DE')} €</p>
-                    </div>
-                    <div>
-                      <p className="text-[11px] text-muted">Restbudget</p>
-                      <p className={`font-bold ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>{remaining.toLocaleString('de-DE')} €</p>
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-3xl font-bold text-foreground truncate">
+                      {firstName && lastName ? `${firstName} ${lastName} (${login})` : (login || '-')}
+                    </h2>
+                    <p className="text-xs uppercase tracking-wide text-subtle mt-2 truncate">{email || '-'}</p>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-border" />
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Ausgegebenes Budget</span>
+                    <p className="text-foreground font-medium mt-1">{totalCost.toLocaleString('de-DE')} €</p>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Restbudget</span>
+                    <p className={`font-medium mt-1 ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>{remaining.toLocaleString('de-DE')} €</p>
                   </div>
                 </div>
               </div>
@@ -977,7 +964,7 @@ export default function Register() {
                   <i className="sap-icon sap-icon-group text-[14px]" />
                   Kader ({selectedIds.size}/11)
                 </h3>
-                <div className="rounded-card border border-border overflow-hidden">
+                <div className="overflow-x-auto rounded-card border border-border">
                   <table className="w-full">
                     <TableHead>
                       <tr>
@@ -997,21 +984,21 @@ export default function Register() {
                           })
                           .filter((p): p is Player => p !== null)
                           .sort((a, b) => (posOrder[a.position] ?? 999) - (posOrder[b.position] ?? 999))
-                        return squadPlayers.length > 0 ? squadPlayers.map(player => {
+                        return squadPlayers.length > 0 ? squadPlayers.map((player, index) => {
                           const team = player.teams?.length > 0 ? player.teams[player.teams.length - 1] : null
                           return (
-                            <tr key={player.id} className="border-b border-border last:border-b-0">
+                            <tr key={player.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                               <Td>
-                                <div className="flex items-center">
+                                <RouterLink to={`/players/${player.id}`} className="flex items-center link">
                                   {player.pictureUrl ? (
-                                    <img src={player.pictureUrl} alt={player.nameKicker} className="w-8 h-8 rounded-full object-cover mr-3" />
+                                    <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
                                   ) : (
-                                    <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center mr-3">
+                                    <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center mr-3">
                                       <span className="text-[10px] text-muted">{POSITION_LABELS[player.position]}</span>
                                     </div>
                                   )}
-                                  <span className="font-medium text-foreground">{player.nameKicker}</span>
-                                </div>
+                                  <span className="font-medium text-link">{player.nameKicker}</span>
+                                </RouterLink>
                               </Td>
                               <Td align="right" className="text-foreground">
                                 {player.prize.toLocaleString('de-DE')} €
@@ -1035,7 +1022,7 @@ export default function Register() {
                           )
                         }) : (
                           <tr>
-                            <td colSpan={4} className="text-center text-subtle py-6">
+                            <td colSpan={4} className="text-center text-subtle py-8">
                               Keine Spieler ausgewählt
                             </td>
                           </tr>
