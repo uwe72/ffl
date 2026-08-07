@@ -126,6 +126,31 @@ public class PlayerService {
         return result;
     }
 
+    private Map<Long, Integer> buildPlayerPositionLastRoundMap(List<Long> playerIds) {
+        if (playerIds.isEmpty()) {
+            return Map.of();
+        }
+        List<PlayerRank> allRanks = playerRankRepository.findByPlayerIdInWithRound(playerIds);
+        Map<Long, Season> playerToSeason = new HashMap<>();
+        List<Player> players = playerRepository.findAllById(playerIds);
+        for (Player p : players) {
+            if (p.getSeason() != null) {
+                playerToSeason.put(p.getId(), p.getSeason());
+            }
+        }
+        Map<Long, Integer> result = new HashMap<>();
+        for (PlayerRank rank : allRanks) {
+            Long playerId = rank.getPlayer().getId();
+            Season season = playerToSeason.get(playerId);
+            if (season != null && season.getCurrentMatchday() != null && rank.getRound() != null) {
+                if (rank.getRound().getNumber() == season.getCurrentMatchday()) {
+                    result.put(playerId, rank.getPositionRound());
+                }
+            }
+        }
+        return result;
+    }
+
     private Map<Long, Integer> buildPlayerPositionChangeMap(List<Long> playerIds) {
         if (playerIds.isEmpty()) {
             return Map.of();
@@ -192,6 +217,7 @@ public class PlayerService {
         Map<Long, Integer> managerCountMap = buildManagerCountMap(playerIds);
         Map<Long, Integer> positionMap = buildPlayerPositionMap(playerIds);
         Map<Long, Integer> pointsLastRoundMap = buildPlayerPointsLastRoundMap(playerIds);
+        Map<Long, Integer> positionLastRoundMap = buildPlayerPositionLastRoundMap(playerIds);
         Map<Long, Integer> positionChangeMap = buildPlayerPositionChangeMap(playerIds);
         return players.stream()
             .map(p -> {
@@ -201,6 +227,7 @@ public class PlayerService {
                 dto.setPoints(pointsMap.getOrDefault(p.getId(), 0));
                 dto.setPositionTotal(positionMap.getOrDefault(p.getId(), null));
                 dto.setPointsLastRound(pointsLastRoundMap.getOrDefault(p.getId(), 0));
+                dto.setPositionLastRound(positionLastRoundMap.get(p.getId()));
                 dto.setPositionChange(positionChangeMap.get(p.getId()));
                 return dto;
             })
@@ -260,6 +287,7 @@ public class PlayerService {
         dto.setPoints(getPlayerPoints(id));
         dto.setPositionTotal(getPlayerPositionTotal(id));
         dto.setPointsLastRound(getPlayerPointsLastRound(id));
+        dto.setPositionLastRound(getPlayerPositionLastRound(id));
         
         if (player.getSeason() != null) {
             PlayerDto.SeasonInfo seasonInfo = new PlayerDto.SeasonInfo();
@@ -476,6 +504,14 @@ public class PlayerService {
         return ranks.stream()
             .max(Comparator.comparing(r -> r.getRound().getId()))
             .map(PlayerRank::getPointsRound)
+            .orElse(null);
+    }
+
+    private Integer getPlayerPositionLastRound(Long playerId) {
+        List<PlayerRank> ranks = playerRankRepository.findByPlayerId(playerId);
+        return ranks.stream()
+            .max(Comparator.comparing(r -> r.getRound().getId()))
+            .map(PlayerRank::getPositionRound)
             .orElse(null);
     }
 

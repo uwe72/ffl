@@ -119,18 +119,16 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
   }
 
   return (
-    <form className="space-y-4 mt-2" onSubmit={handleSubmit} noValidate>
+    <form className="grid grid-cols-2 gap-4 mt-2" onSubmit={handleSubmit} noValidate>
       {error && (
-        <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card">
+        <div className="col-span-2 flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card">
           <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
           <p className="text-danger text-sm">{error}</p>
         </div>
       )}
 
-      <div>
-        <label className="block text-xs text-muted mb-1">
-          Betreff <span className="text-muted">*</span>
-        </label>
+      <div className="min-w-0">
+        <span className="text-xs text-muted">Betreff <span className="text-muted">*</span></span>
         <input
           required
           placeholder="Worum geht's?"
@@ -140,38 +138,15 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
             if (fieldErrors.subject) validateField('subject', e.target.value)
           }}
           onBlur={() => handleBlur('subject', subject)}
-          className={`input-field w-full px-3 py-2 text-sm focus:outline-none ${fieldErrors.subject ? 'border-danger focus:border-danger' : ''}`}
+          className={`input-field control w-full px-2 py-1 rounded-control text-sm mt-1 focus:outline-none ${fieldErrors.subject ? 'border-danger focus:border-danger' : ''}`}
         />
         {fieldErrors.subject && (
           <p className="text-xs text-danger mt-1">{fieldErrors.subject}</p>
         )}
       </div>
 
-      <div>
-        <label className="block text-xs text-muted mb-1">
-          Nachricht <span className="text-muted">*</span>
-        </label>
-        <textarea
-          required
-          rows={5}
-          placeholder="Deine Nachricht …"
-          value={message}
-          onChange={(e) => {
-            setMessage(e.target.value)
-            if (fieldErrors.message) validateField('message', e.target.value)
-          }}
-          onBlur={() => handleBlur('message', message)}
-          className={`input-field w-full px-3 py-2 text-sm focus:outline-none ${fieldErrors.message ? 'border-danger focus:border-danger' : ''}`}
-        />
-        {fieldErrors.message && (
-          <p className="text-xs text-danger mt-1">{fieldErrors.message}</p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-xs text-muted mb-1">
-          Name <span className="text-muted">*</span>
-        </label>
+      <div className="min-w-0">
+        <span className="text-xs text-muted">Name <span className="text-muted">*</span></span>
         <input
           required
           placeholder="Dein Name"
@@ -181,17 +156,15 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
             if (fieldErrors.name) validateField('name', e.target.value)
           }}
           onBlur={() => handleBlur('name', name)}
-          className={`input-field w-full px-3 py-2 text-sm focus:outline-none ${fieldErrors.name ? 'border-danger focus:border-danger' : ''}`}
+          className={`input-field control w-full px-2 py-1 rounded-control text-sm mt-1 focus:outline-none ${fieldErrors.name ? 'border-danger focus:border-danger' : ''}`}
         />
         {fieldErrors.name && (
           <p className="text-xs text-danger mt-1">{fieldErrors.name}</p>
         )}
       </div>
 
-      <div>
-        <label className="block text-xs text-muted mb-1">
-          E-Mail <span className="text-muted">*</span>
-        </label>
+      <div className="col-span-2 min-w-0">
+        <span className="text-xs text-muted">E-Mail <span className="text-muted">*</span></span>
         <input
           type="email"
           required
@@ -202,27 +175,48 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
             if (fieldErrors.email) validateField('email', e.target.value)
           }}
           onBlur={() => handleBlur('email', email)}
-          className={`input-field w-full px-3 py-2 text-sm focus:outline-none ${fieldErrors.email ? 'border-danger focus:border-danger' : ''}`}
+          className={`input-field control w-full px-2 py-1 rounded-control text-sm mt-1 focus:outline-none ${fieldErrors.email ? 'border-danger focus:border-danger' : ''}`}
         />
         {fieldErrors.email && (
           <p className="text-xs text-danger mt-1">{fieldErrors.email}</p>
         )}
       </div>
 
-      <div className="border-t border-border pt-4 flex gap-3 justify-end">
-        <Button
-          variant="transparent"
-          onClick={handleCancel}
-          disabled={isLoading}
-        >
-          Abbrechen
-        </Button>
+      <div className="col-span-2 min-w-0">
+        <span className="text-xs text-muted">Nachricht <span className="text-muted">*</span></span>
+        <textarea
+          required
+          rows={5}
+          placeholder="Deine Nachricht …"
+          value={message}
+          onChange={(e) => {
+            setMessage(e.target.value)
+            if (fieldErrors.message) validateField('message', e.target.value)
+          }}
+          onBlur={() => handleBlur('message', message)}
+          className={`input-field control w-full px-2 py-1 rounded-control text-sm mt-1 resize-y focus:outline-none ${fieldErrors.message ? 'border-danger focus:border-danger' : ''}`}
+        />
+        {fieldErrors.message && (
+          <p className="text-xs text-danger mt-1">{fieldErrors.message}</p>
+        )}
+      </div>
+
+      <div className="col-span-2 mt-3 flex gap-2">
         <Button
           variant="emphasized"
+          size="sm"
           type="submit"
           disabled={isLoading}
         >
           {isLoading ? 'Wird versendet …' : 'Senden'}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleCancel}
+          disabled={isLoading}
+        >
+          Abbrechen
         </Button>
       </div>
     </form>

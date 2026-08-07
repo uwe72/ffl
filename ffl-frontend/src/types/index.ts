@@ -120,6 +120,7 @@ export interface Player {
   points?: number
   positionTotal?: number
   pointsLastRound?: number
+  positionLastRound?: number
   positionChange?: number
 }
 

@@ -307,28 +307,29 @@ export default function PlayerDetail() {
 
           <div className="flex-1 min-w-0">
             {!stammdatenOpen && (
-              <div>
-                <h2 className="text-3xl font-bold text-foreground truncate">
-                  {player.firstName || player.lastName
-                    ? `${player.firstName} ${player.lastName}`.trim()
-                    : player.nameKicker}
-                </h2>
-                <p className="text-xs uppercase tracking-wide text-subtle mt-2">
-                  {positionLabels[player.position]}
-                  {player.prize ? ` · ${formatPrice(player.prize)}` : ''}
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="min-w-0">
+                  <h2 className="text-3xl font-bold text-foreground truncate">
+                    {player.firstName || player.lastName
+                      ? `${player.firstName} ${player.lastName}`.trim()
+                      : player.nameKicker}
+                  </h2>
+                  <p className="text-xs uppercase tracking-wide text-subtle mt-2">
+                    {positionLabels[player.position]}
+                    {player.prize ? ` · ${formatPrice(player.prize)}` : ''}
+                    {player.teams.length > 0 && ` · ${player.teams.map(t => t.name).join(', ')}`}
+                  </p>
+                </div>
                 {player.teams.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-border flex flex-wrap gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     {player.teams.map((team) => (
-                      <RouterLink
-                        key={team.id}
-                        to={`/teams/${team.id}`}
-                        className="text-xs font-medium px-2 py-0.5 rounded-badge bg-card border border-border text-foreground hover:bg-default flex items-center gap-1"
-                      >
-                        {team.logoSUrl && (
-                          <img src={team.logoSUrl} alt={team.name} className="w-4 h-4 object-contain" />
-                        )}
-                        {team.name}
+                      <RouterLink key={team.id} to={`/teams/${team.id}`}>
+                        <img
+                          src={team.logoXxlUrl || team.logoSUrl}
+                          alt={team.name}
+                          className="w-12 h-12 object-contain"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                        />
                       </RouterLink>
                     ))}
                   </div>
@@ -485,31 +486,27 @@ export default function PlayerDetail() {
             </Button>
           )}
         </div>
-      </div>
 
-      <div className="p-6 bg-surface border border-border rounded-card mb-6">
-        <h3 className="text-xl font-semibold text-foreground mb-4">Spielerstatistik</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-          <StatTile
-            label="Position (Saison)"
-            value={player.positionTotal ? `${player.positionTotal}.` : undefined}
-            state={player.positionTotal ? 'default' : 'empty'}
-          />
-          <StatTile
-            label="Punkte (Saison)"
-            value={player.points != null ? String(player.points) : undefined}
-            state={player.points != null ? 'default' : 'empty'}
-          />
-          <StatTile
-            label="Punkte (Spieltag)"
-            value={player.pointsLastRound != null ? String(player.pointsLastRound) : undefined}
-            state={player.pointsLastRound != null ? 'default' : 'empty'}
-          />
-          <StatTile
-            label="Marktwert"
-            value={player.prize ? formatPrice(player.prize) : undefined}
-            state={player.prize ? 'default' : 'empty'}
-          />
+        <div className="mt-4 pt-4 border-t border-border">
+          <h3 className="text-xl font-semibold text-foreground mb-4">Spielerstatistik</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            <StatTile
+              label="Pos. (Saison)"
+              value={player.positionTotal ? `${player.positionTotal}.` : '—'}
+            />
+            <StatTile
+              label="Pos. (Spieltag)"
+              value={player.positionLastRound ? `${player.positionLastRound}.` : '—'}
+            />
+            <StatTile
+              label="Pkt. (Saison)"
+              value={player.points != null ? String(player.points) : '—'}
+            />
+            <StatTile
+              label="Pkt. (Spieltag)"
+              value={player.pointsLastRound != null ? String(player.pointsLastRound) : '—'}
+            />
+          </div>
         </div>
       </div>
 

@@ -26,6 +26,7 @@ public class PlayerDto {
     private Integer points;
     private Integer positionTotal;
     private Integer pointsLastRound;
+    private Integer positionLastRound;
     private Integer positionChange;
     private SeasonInfo season;
 
@@ -135,6 +136,8 @@ public class PlayerDto {
     public void setPositionTotal(Integer positionTotal) { this.positionTotal = positionTotal; }
     public Integer getPointsLastRound() { return pointsLastRound; }
     public void setPointsLastRound(Integer pointsLastRound) { this.pointsLastRound = pointsLastRound; }
+    public Integer getPositionLastRound() { return positionLastRound; }
+    public void setPositionLastRound(Integer positionLastRound) { this.positionLastRound = positionLastRound; }
     public Integer getPositionChange() { return positionChange; }
     public void setPositionChange(Integer positionChange) { this.positionChange = positionChange; }
     public SeasonInfo getSeason() { return season; }
