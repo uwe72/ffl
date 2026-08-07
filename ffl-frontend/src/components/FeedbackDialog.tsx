@@ -1,5 +1,4 @@
 import { useEffect, useRef, useCallback } from 'react'
-import Button from './Button'
 import FeedbackForm from './FeedbackForm'
 
 interface Props {
@@ -73,23 +72,12 @@ export default function FeedbackDialog({ isOpen, onClose }: Props) {
         className="bg-surface border border-border rounded-card w-full max-w-[600px] max-h-[90vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between px-6 pt-6 pb-2">
-          <div>
-            <h2 id="feedback-dialog-title" className="text-xl font-bold text-foreground">Feedback</h2>
-            <p className="text-muted text-sm mt-1">Hinweise, Fragen oder Fehler?</p>
-          </div>
-          <Button
-            variant="transparent"
-            size="sm"
-            onClick={onClose}
-            aria-label="Schließen"
-            className="p-1.5 -mr-1.5 mt-0.5"
-          >
-            <i className="sap-icon sap-icon-decline text-[20px]" />
-          </Button>
+        <div className="bg-elevated px-6 py-4 border-b border-border">
+          <h2 id="feedback-dialog-title" className="text-xl font-bold text-foreground">Feedback</h2>
+          <p className="text-muted text-sm mt-1">Hinweise, Fragen oder Fehler?</p>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           <FeedbackForm
             onSuccess={onClose}
             onCancel={onClose}
