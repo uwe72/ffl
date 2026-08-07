@@ -387,10 +387,10 @@ export default function ManagerGroupDetail() {
 
       <div className="p-4 bg-elevated border border-border rounded-card mb-6">
         <div className="flex items-start gap-4">
-          <div className="relative group w-16 h-16 shrink-0">
+          <div className="relative group w-12 h-12 shrink-0">
             <button
               onClick={handleLogoClick}
-              className={`w-16 h-16 p-0 rounded-full overflow-hidden ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
+              className={`w-12 h-12 p-0 rounded-full overflow-hidden ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
               disabled={!canEdit || isNewMode || uploadGroupLogo.isPending || deleteGroupLogo.isPending}
               title={canEdit && !isNewMode ? 'Logo ändern' : undefined}
             >
@@ -398,17 +398,17 @@ export default function ManagerGroupDetail() {
                 <img
                   src={groupLogoUrl}
                   alt={pageTitle}
-                  className="w-16 h-16 rounded-full object-cover"
+                  className="w-12 h-12 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-full bg-accent-muted text-accent flex items-center justify-center">
-                  <i className="sap-icon sap-icon-group-2 text-2xl" />
+                <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center">
+                  <i className="sap-icon sap-icon-group-2 text-xl" />
                 </div>
               )}
             </button>
             {canEdit && !isNewMode && (
               <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
-                <i className="sap-icon sap-icon-camera text-white text-lg" />
+                <i className="sap-icon sap-icon-camera text-white text-sm" />
               </div>
             )}
             {canEdit && !isNewMode && groupLogoUrl && (
@@ -416,15 +416,15 @@ export default function ManagerGroupDetail() {
                 type="button"
                 onClick={handleLogoDelete}
                 disabled={deleteGroupLogo.isPending || uploadGroupLogo.isPending}
-                className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
+                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
                 title="Logo löschen"
               >
-                <i className="sap-icon sap-icon-delete text-xs" />
+                <i className="sap-icon sap-icon-delete text-[10px]" />
               </button>
             )}
             {(uploadGroupLogo.isPending || deleteGroupLogo.isPending) && (
               <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
-                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
             )}
             <input
@@ -439,23 +439,19 @@ export default function ManagerGroupDetail() {
           <div className="flex-1 min-w-0">
             {!stammdatenOpen && !isNewMode && (
               <div>
-                <p className="font-semibold text-foreground truncate">{group?.name || '-'}</p>
-                <div className="grid grid-cols-3 gap-4 mt-2">
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted">Email an</p>
-                    <p className="text-sm text-foreground mt-0.5">
-                      {emailToOptions.find(o => o.value === group?.emailTo)?.label || '-'}
-                    </p>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted">Ersteller</p>
-                    <p className="text-sm text-foreground mt-0.5">{getCreatorDisplayName()}</p>
-                  </div>
-                  <div className="col-span-3 min-w-0">
-                    <p className="text-xs text-muted">Beschreibung</p>
-                    <p className="text-sm text-foreground mt-0.5 whitespace-pre-wrap">{group?.description || '-'}</p>
-                  </div>
-                </div>
+                <h2 className="text-3xl font-bold text-foreground truncate">{group?.name || '-'}</h2>
+                <p className="text-xs uppercase tracking-wide text-subtle mt-2">
+                  Erstellt von {getCreatorDisplayName()}
+                  {group?.managers && group.managers.length > 0 && (
+                    <>{' · '}{group.managers.length} Manager</>
+                  )}
+                </p>
+                {group?.description && (
+                  <>
+                    <div className="mt-3 pt-3 border-t border-border" />
+                    <p className="text-base italic text-muted whitespace-pre-wrap">{group.description}</p>
+                  </>
+                )}
               </div>
             )}
 
@@ -558,7 +554,7 @@ export default function ManagerGroupDetail() {
               onClick={() => setStammdatenOpen(o => !o)}
               aria-expanded={stammdatenOpen}
               aria-controls="stammdaten-form"
-              className="shrink-0"
+              className="shrink-0 self-start"
             >
               <i className={`sap-icon sap-icon-slim-arrow-${stammdatenOpen ? 'up' : 'down'} text-xs mr-1`} />
               {stammdatenOpen ? 'Schließen' : 'Bearbeiten'}
