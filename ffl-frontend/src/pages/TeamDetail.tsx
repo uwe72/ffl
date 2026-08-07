@@ -178,17 +178,17 @@ export default function TeamDetail() {
   const isAdmin = user?.role === 'ADMIN'
   const updateTeam = useUpdateTeam()
 
-  const [editData, setEditData] = useState({ shortName: '' })
+  const [editData, setEditData] = useState({ shortName: '', logoSUrl: '' })
   const [isSaving, setIsSaving] = useState(false)
   const [stammdatenOpen, setStammdatenOpen] = useState(false)
 
   useEffect(() => {
     if (team) {
-      setEditData({ shortName: team.shortName || '' })
+      setEditData({ shortName: team.shortName || '', logoSUrl: team.logoSUrl || '' })
     }
   }, [team])
 
-  const hasChanges = team && editData.shortName !== (team.shortName || '')
+  const hasChanges = team && (editData.shortName !== (team.shortName || '') || editData.logoSUrl !== (team.logoSUrl || ''))
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -202,7 +202,7 @@ export default function TeamDetail() {
 
   const handleReset = () => {
     if (team) {
-      setEditData({ shortName: team.shortName || '' })
+      setEditData({ shortName: team.shortName || '', logoSUrl: team.logoSUrl || '' })
     }
   }
 
@@ -278,6 +278,7 @@ export default function TeamDetail() {
       </RouterLink>
 
       {team && (
+        <div className="w-fit max-w-full">
         <div className="p-4 bg-elevated border border-border rounded-card mb-6">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 shrink-0">
@@ -295,14 +296,14 @@ export default function TeamDetail() {
                 <div>
                   <h2 className="text-3xl font-bold text-foreground truncate">{team.name}</h2>
                   <p className="text-xs uppercase tracking-wide text-subtle mt-2">
-                    Kurzname: {team.shortName || '-'}
+                    {team.shortName || '-'}
                   </p>
                 </div>
               )}
 
               {stammdatenOpen && (
                 <div id="stammdaten-form">
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="min-w-0">
                       <span className="text-xs text-muted">Name</span>
                       <input
@@ -321,6 +322,15 @@ export default function TeamDetail() {
                         className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
                       />
                     </div>
+                  </div>
+                  <div className="mt-4 min-w-0">
+                    <span className="text-xs text-muted">Logo URL</span>
+                    <input
+                      type="text"
+                      value={editData.logoSUrl}
+                      onChange={(e) => setEditData({ ...editData, logoSUrl: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
                   </div>
                   {hasChanges && (
                     <div className="mt-3 flex gap-2">
@@ -347,7 +357,7 @@ export default function TeamDetail() {
 
             {isAdmin && (
               <Button
-                variant="ghost"
+                variant={stammdatenOpen ? 'ghost' : 'emphasized'}
                 size="sm"
                 onClick={() => setStammdatenOpen(o => !o)}
                 aria-expanded={stammdatenOpen}

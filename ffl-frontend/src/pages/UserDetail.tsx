@@ -241,13 +241,13 @@ export default function UserDetail() {
               >
                 Abbrechen
               </Button>
-              <button
+              <Button
+                variant="negative"
                 onClick={handleDeleteConfirm}
                 disabled={deleteUser.isPending}
-                className="bg-danger text-foreground px-4 py-2 rounded-badge hover:bg-danger/80 transition-colors disabled:opacity-50"
               >
                 {deleteUser.isPending ? 'Wird gelöscht...' : 'Löschen'}
-              </button>
+              </Button>
             </div>
           </FormCard>
         </div>

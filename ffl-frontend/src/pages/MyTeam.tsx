@@ -1205,7 +1205,7 @@ export default function MyTeam() {
             </p>
           </div>
           <Button
-            variant="ghost"
+            variant={profileOpen ? 'ghost' : 'emphasized'}
             size="sm"
             onClick={() => setProfileOpen(o => !o)}
             aria-expanded={profileOpen}
@@ -1403,7 +1403,7 @@ export default function MyTeam() {
               )}
               {transfers.length < 3 && (
                 <Button
-                  variant="ghost"
+                  variant="emphasized"
                   size="sm"
                   onClick={handleAddTransfer}
                 >
@@ -1419,7 +1419,7 @@ export default function MyTeam() {
               <i className="sap-icon sap-icon-switch-classes text-[32px] text-subtle mb-2" />
               <p className="text-sm text-muted mb-3">Noch keine Winterwechsel eingetragen.</p>
               <Button
-                variant="ghost"
+                variant="emphasized"
                 size="sm"
                 onClick={handleAddTransfer}
               >

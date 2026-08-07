@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import Button from './Button'
 
 export interface FilterConfig {
   key: string
@@ -117,12 +118,13 @@ export default function FilterBar({
         ))}
 
         {onGo && (
-          <button
+          <Button
+            variant="emphasized"
+            size="compact"
             onClick={onGo}
-            className="px-4 py-1.5 rounded-badge bg-primary text-primary-foreground text-xs font-medium hover:bg-button-primary-hover transition-colors"
           >
             Suchen
-          </button>
+          </Button>
         )}
 
         {hasFilters && onReset && (

@@ -271,13 +271,13 @@ export default function Emails() {
               <Button variant="ghost" onClick={() => { setShowDeleteDialog(false); setDeleteTarget(null) }}>
                 Abbrechen
               </Button>
-              <button
+              <Button
+                variant="negative"
                 onClick={handleDeleteConfirm}
                 disabled={deleteEmail.isPending}
-                className="bg-danger text-foreground px-4 py-2 rounded-badge hover:bg-danger/80 transition-colors disabled:opacity-50"
               >
                 {deleteEmail.isPending ? 'Wird gelöscht...' : 'Löschen'}
-              </button>
+              </Button>
             </div>
           </FormCard>
         </div>

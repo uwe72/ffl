@@ -547,7 +547,7 @@ export default function ManagerGroupDetail() {
 
           {canEdit && !isNewMode && (
             <Button
-              variant="ghost"
+              variant={stammdatenOpen ? 'ghost' : 'emphasized'}
               size="sm"
               onClick={() => setStammdatenOpen(o => !o)}
               aria-expanded={stammdatenOpen}
