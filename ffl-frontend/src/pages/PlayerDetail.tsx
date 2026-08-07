@@ -47,7 +47,17 @@ export default function PlayerDetail() {
   const isMobile = useIsMobile()
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
-  const [editData, setEditData] = useState({ prize: 0, pictureUrl: '', position: '' as Position })
+  const [editData, setEditData] = useState({
+    nameKicker: '',
+    nameKickerAlt1: '',
+    nameKickerAlt2: '',
+    nameKickerAlt3: '',
+    firstName: '',
+    lastName: '',
+    prize: 0,
+    pictureUrl: '',
+    position: '' as Position
+  })
   const [isSaving, setIsSaving] = useState(false)
   const updatePlayer = useUpdatePlayer()
   const [stammdatenOpen, setStammdatenOpen] = useState(false)
@@ -55,7 +65,17 @@ export default function PlayerDetail() {
 
   useEffect(() => {
     if (player) {
-      setEditData({ prize: player.prize, pictureUrl: player.pictureUrl || '', position: player.position })
+      setEditData({
+        nameKicker: player.nameKicker,
+        nameKickerAlt1: player.nameKickerAlt1 || '',
+        nameKickerAlt2: player.nameKickerAlt2 || '',
+        nameKickerAlt3: player.nameKickerAlt3 || '',
+        firstName: player.firstName || '',
+        lastName: player.lastName || '',
+        prize: player.prize,
+        pictureUrl: player.pictureUrl || '',
+        position: player.position
+      })
     }
   }, [player])
 
@@ -79,6 +99,12 @@ export default function PlayerDetail() {
   }
 
   const hasChanges = player && (
+    editData.nameKicker !== player.nameKicker ||
+    editData.nameKickerAlt1 !== (player.nameKickerAlt1 || '') ||
+    editData.nameKickerAlt2 !== (player.nameKickerAlt2 || '') ||
+    editData.nameKickerAlt3 !== (player.nameKickerAlt3 || '') ||
+    editData.firstName !== (player.firstName || '') ||
+    editData.lastName !== (player.lastName || '') ||
     editData.prize !== player.prize ||
     editData.pictureUrl !== (player.pictureUrl || '') ||
     editData.position !== player.position
@@ -282,11 +308,14 @@ export default function PlayerDetail() {
           <div className="flex-1 min-w-0">
             {!stammdatenOpen && (
               <div>
-                <h2 className="text-3xl font-bold text-foreground truncate">{player.nameKicker}</h2>
+                <h2 className="text-3xl font-bold text-foreground truncate">
+                  {player.firstName || player.lastName
+                    ? `${player.firstName} ${player.lastName}`.trim()
+                    : player.nameKicker}
+                </h2>
                 <p className="text-xs uppercase tracking-wide text-subtle mt-2">
-                  {player.firstName && player.lastName ? `${player.firstName} ${player.lastName}` : ''}
-                  {player.firstName && player.lastName && ' · '}
                   {positionLabels[player.position]}
+                  {player.prize ? ` · ${formatPrice(player.prize)}` : ''}
                 </p>
                 {player.teams.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-border flex flex-wrap gap-2">
@@ -310,6 +339,33 @@ export default function PlayerDetail() {
             {stammdatenOpen && (
               <div id="stammdaten-form">
                 <div className="grid grid-cols-3 gap-4">
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Vorname</span>
+                    <input
+                      type="text"
+                      value={editData.firstName}
+                      onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Nachname</span>
+                    <input
+                      type="text"
+                      value={editData.lastName}
+                      onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Kicker-Name</span>
+                    <input
+                      type="text"
+                      value={editData.nameKicker}
+                      onChange={(e) => setEditData({ ...editData, nameKicker: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
+                  </div>
                   <div className="min-w-0">
                     <span className="text-xs text-muted">Kicker-ID</span>
                     <input
@@ -342,6 +398,33 @@ export default function PlayerDetail() {
                       placeholder="0 €"
                     />
                   </div>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Alternativname 1</span>
+                    <input
+                      type="text"
+                      value={editData.nameKickerAlt1}
+                      onChange={(e) => setEditData({ ...editData, nameKickerAlt1: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Alternativname 2</span>
+                    <input
+                      type="text"
+                      value={editData.nameKickerAlt2}
+                      onChange={(e) => setEditData({ ...editData, nameKickerAlt2: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Alternativname 3</span>
+                    <input
+                      type="text"
+                      value={editData.nameKickerAlt3}
+                      onChange={(e) => setEditData({ ...editData, nameKickerAlt3: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
+                  </div>
                   <div className="col-span-3 min-w-0">
                     <span className="text-xs text-muted">Bild-URL</span>
                     <input
@@ -366,7 +449,17 @@ export default function PlayerDetail() {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        setEditData({ prize: player.prize, pictureUrl: player.pictureUrl || '', position: player.position })
+                        setEditData({
+                          nameKicker: player.nameKicker,
+                          nameKickerAlt1: player.nameKickerAlt1 || '',
+                          nameKickerAlt2: player.nameKickerAlt2 || '',
+                          nameKickerAlt3: player.nameKickerAlt3 || '',
+                          firstName: player.firstName || '',
+                          lastName: player.lastName || '',
+                          prize: player.prize,
+                          pictureUrl: player.pictureUrl || '',
+                          position: player.position
+                        })
                         setStammdatenOpen(false)
                       }}
                     >

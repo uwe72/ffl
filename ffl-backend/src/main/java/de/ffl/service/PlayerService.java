@@ -519,6 +519,24 @@ public class PlayerService {
             return null;
         }
         
+        if (updateData.getNameKicker() != null) {
+            player.setNameKicker(updateData.getNameKicker());
+        }
+        if (updateData.getFirstName() != null) {
+            player.setFirstName(updateData.getFirstName().isEmpty() ? null : updateData.getFirstName());
+        }
+        if (updateData.getLastName() != null) {
+            player.setLastName(updateData.getLastName().isEmpty() ? null : updateData.getLastName());
+        }
+        if (updateData.getNameKickerAlt1() != null) {
+            player.setNameKickerAlt1(updateData.getNameKickerAlt1().isEmpty() ? null : updateData.getNameKickerAlt1());
+        }
+        if (updateData.getNameKickerAlt2() != null) {
+            player.setNameKickerAlt2(updateData.getNameKickerAlt2().isEmpty() ? null : updateData.getNameKickerAlt2());
+        }
+        if (updateData.getNameKickerAlt3() != null) {
+            player.setNameKickerAlt3(updateData.getNameKickerAlt3().isEmpty() ? null : updateData.getNameKickerAlt3());
+        }
         if (updateData.getPrize() != null) {
             player.setPrize(updateData.getPrize());
         }
