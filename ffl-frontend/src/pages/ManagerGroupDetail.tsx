@@ -442,9 +442,7 @@ export default function ManagerGroupDetail() {
                 <h2 className="text-3xl font-bold text-foreground truncate">{group?.name || '-'}</h2>
                 <p className="text-xs uppercase tracking-wide text-subtle mt-2">
                   Erstellt von {getCreatorDisplayName()}
-                  {group?.managers && group.managers.length > 0 && (
-                    <>{' · '}{group.managers.length} Manager</>
-                  )}
+                  {' · '}{group?.emailTo === 'CREATOR_ONLY' ? 'E-Mail nur an Ersteller' : 'E-Mail an alle Manager'}
                 </p>
                 {group?.description && (
                   <>
@@ -470,7 +468,7 @@ export default function ManagerGroupDetail() {
                     />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-xs text-muted">Email an</span>
+                    <span className="text-xs text-muted">Email an <span className="text-muted">*</span></span>
                     <select
                       value={editEmailTo}
                       onChange={canEdit ? (e) => handleChange('emailTo', e.target.value) : undefined}
