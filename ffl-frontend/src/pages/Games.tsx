@@ -6,9 +6,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import FormationImportDialog from '../components/FormationImportDialog'
 import Button from '../components/Button'
-import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
-import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
+import { TableHead, ThSortable, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 
 type SortKey = 'roundNumber' | 'name' | 'hostName' | 'visitorName' | 'goalHost' | 'goalVisitor'
@@ -42,12 +41,12 @@ function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: numb
           </RouterLink>
           <span className="text-sm text-muted">Spieltag {game.roundNumber || '-'}</span>
         </div>
-        
+
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-1">
             {game.hostLogoUrl && (
-              <img 
-                src={game.hostLogoUrl} 
+              <img
+                src={game.hostLogoUrl}
                 alt={game.hostName}
                 className="h-10 w-10 object-contain flex-shrink-0"
               />
@@ -59,13 +58,13 @@ function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: numb
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 px-4 py-2 rounded-badge bg-elevated">
             <span className="text-foreground font-bold text-lg">{game.goalHost ?? '-'}</span>
             <span className="text-subtle">:</span>
             <span className="text-foreground font-bold text-lg">{game.goalVisitor ?? '-'}</span>
           </div>
-          
+
           <div className="flex items-center gap-3 flex-1 justify-end">
             <div className="min-w-0 text-right">
               <div className="font-medium truncate">{game.visitorName || '-'}</div>
@@ -74,15 +73,15 @@ function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: numb
               )}
             </div>
             {game.visitorLogoUrl && (
-              <img 
-                src={game.visitorLogoUrl} 
+              <img
+                src={game.visitorLogoUrl}
                 alt={game.visitorName}
                 className="h-10 w-10 object-contain flex-shrink-0"
               />
             )}
           </div>
         </div>
-        
+
         {isAdmin && game.goalHost == null && game.goalVisitor == null && (
           <div className="flex justify-end">
             <Button
@@ -99,26 +98,30 @@ function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: numb
   )
 }
 
-function FilterBar({ 
-  selectedRound, 
-  setSelectedRound, 
-  rounds
-}: { 
+function FilterBar({
+  selectedRound,
+  setSelectedRound,
+  rounds,
+  hasFilter,
+  onReset
+}: {
   selectedRound: number | null
   setSelectedRound: (r: number | null) => void
   rounds: number[]
+  hasFilter: boolean
+  onReset: () => void
 }) {
   return (
-    <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap">
+    <div className="flex items-center gap-3 flex-wrap mb-4">
       <div className="flex items-center gap-2">
-        <label className="text-muted text-sm">Spieltag:</label>
+        <span className="text-muted text-xs">Spieltag:</span>
         <button
           onClick={() => {
             const currentIndex = rounds.indexOf(selectedRound!)
             if (currentIndex > 0) setSelectedRound(rounds[currentIndex - 1])
           }}
           disabled={!selectedRound || rounds.indexOf(selectedRound) <= 0}
-          className="p-1.5 rounded-badge bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
+          className="p-1.5 rounded-control bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
           title="Vorheriger Spieltag"
         >
           <i className="sap-icon sap-icon-navigation-left-arrow text-[14px]" />
@@ -126,7 +129,7 @@ function FilterBar({
         <select
           value={selectedRound || ''}
           onChange={(e) => setSelectedRound(e.target.value ? Number(e.target.value) : null)}
-          className="input-field border border-border rounded-badge px-3 py-1.5 text-sm focus:outline-none focus:border-accent"
+          className="input-field control px-2 py-1.5 rounded-control text-xs cursor-pointer min-w-40"
         >
           {rounds.map(round => (
             <option key={round} value={round}>
@@ -140,12 +143,22 @@ function FilterBar({
             if (currentIndex < rounds.length - 1) setSelectedRound(rounds[currentIndex + 1])
           }}
           disabled={!selectedRound || rounds.indexOf(selectedRound) >= rounds.length - 1}
-          className="p-1.5 rounded-badge bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
+          className="p-1.5 rounded-control bg-surface border border-border text-foreground hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border transition-colors"
           title="Nächster Spieltag"
         >
           <i className="sap-icon sap-icon-navigation-right-arrow text-[14px]" />
         </button>
       </div>
+
+      {hasFilter && (
+        <button
+          onClick={onReset}
+          className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
+          title="Filter zurücksetzen"
+        >
+          <i className="sap-icon sap-icon-decline text-[14px]" />
+        </button>
+      )}
     </div>
   )
 }
@@ -159,9 +172,10 @@ export default function Games() {
   const [sortKey, setSortKey] = useState<SortKey>('roundNumber')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [selectedRound, setSelectedRound] = useState<number | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
   const [importGameId, setImportGameId] = useState<number | null>(null)
   const queryClient = useQueryClient()
-  
+
   const { data: importGame } = useGame(importGameId || 0)
 
   const rounds = useMemo(() => {
@@ -170,13 +184,22 @@ export default function Games() {
     return uniqueRounds.sort((a, b) => (a || 0) - (b || 0))
   }, [games])
 
-  useEffect(() => {
-    if (currentSeason?.currentMatchday && selectedRound === null) {
-      setSelectedRound(currentSeason.currentMatchday)
-    } else if (rounds.length > 0 && selectedRound === null && !currentSeason?.currentMatchday) {
-      setSelectedRound(Math.max(...rounds))
+  const defaultRound = useMemo(() => {
+    if (rounds.length === 0) return null
+    if (currentSeason?.seasonState === 'BEFORE_SEASON') {
+      return Math.min(...rounds)
     }
-  }, [rounds, selectedRound, currentSeason?.currentMatchday])
+    if (currentSeason?.currentMatchday) {
+      return currentSeason.currentMatchday
+    }
+    return Math.max(...rounds)
+  }, [rounds, currentSeason?.seasonState, currentSeason?.currentMatchday])
+
+  useEffect(() => {
+    if (selectedRound === null && defaultRound !== null) {
+      setSelectedRound(defaultRound)
+    }
+  }, [selectedRound, defaultRound])
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -187,10 +210,26 @@ export default function Games() {
     }
   }
 
+  const resetFilter = () => {
+    setSearchTerm('')
+    setSelectedRound(null)
+  }
+
+  const hasActiveFilter = searchTerm !== '' || (selectedRound !== null && selectedRound !== defaultRound)
+
   const filteredGames = useMemo(() => {
     if (!games) return []
-    return games.filter(g => selectedRound === null || g.roundNumber === selectedRound)
-  }, [games, selectedRound])
+    const term = searchTerm.toLowerCase()
+    return games.filter(g => {
+      const matchesRound = selectedRound === null || g.roundNumber === selectedRound
+      const matchesSearch =
+        term === '' ||
+        (g.name?.toLowerCase().includes(term) ?? false) ||
+        (g.hostName?.toLowerCase().includes(term) ?? false) ||
+        (g.visitorName?.toLowerCase().includes(term) ?? false)
+      return matchesRound && matchesSearch
+    })
+  }, [games, selectedRound, searchTerm])
 
   const sortedGames = useMemo(() => {
     return [...filteredGames].sort((a, b) => {
@@ -223,114 +262,135 @@ export default function Games() {
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
-    <div className="max-w-5xl">
-      <CardContainer>
+    <div>
+      <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <h2 className="text-xl font-semibold text-foreground">Spiele ({filteredGames.length})</h2>
+          <div className="relative w-64">
+            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Spiele suchen..."
+              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
+            />
+          </div>
+        </div>
+
         <FilterBar
           selectedRound={selectedRound}
           setSelectedRound={setSelectedRound}
           rounds={rounds}
+          hasFilter={hasActiveFilter}
+          onReset={resetFilter}
         />
 
         {!isMobile && (
-          <TableContent count={sortedGames.length} total={games?.length || 0} countLabel="Spielen">
-            <table className="w-full">
-              <TableHead>
-                <tr>
-                  <ThSortable className="w-[12%]" onClick={() => handleSort('name')}>
-                    Name<SortIcon column="name" activeKey={sortKey} order={sortOrder} />
-                  </ThSortable>
-                  <ThSortable className="w-[35%]" onClick={() => handleSort('hostName')}>
-                    Heimmannschaft<SortIcon column="hostName" activeKey={sortKey} order={sortOrder} />
-                  </ThSortable>
-                  <ThSortable className="w-[16%]" align="center" onClick={() => handleSort('goalHost')}>
-                    Ergebnis<SortIcon column="goalHost" activeKey={sortKey} order={sortOrder} />
-                  </ThSortable>
-                  <ThSortable className="w-[35%]" onClick={() => handleSort('visitorName')}>
-                    Gastmannschaft<SortIcon column="visitorName" activeKey={sortKey} order={sortOrder} />
-                  </ThSortable>
-                </tr>
-              </TableHead>
-              <TableBody>
-                {sortedGames.length > 0 ? (
-                  sortedGames.map((game, index) => (
-                    <tr key={game.id} className={`border-b border-border hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                      <td className="px-3 py-2">
-                        <RouterLink
-                          to={`/games/${game.id}`}
-                          className="hover:text-accent-hover link text-primary font-medium"
-                        >
-                          {game.name || '-'}
-                        </RouterLink>
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-3">
-                          {game.hostLogoUrl && (
-                            <img 
-                              src={game.hostLogoUrl} 
-                              alt={game.hostName}
-                              className="h-8 w-8 object-contain flex-shrink-0"
-                            />
-                          )}
-                          <div>
-                            <div className="font-medium">{game.hostName || '-'}</div>
-                            {game.hostShortName && (
-                              <div className="text-sm text-subtle">{game.hostShortName}</div>
+          <>
+            <div className="overflow-x-auto rounded-card border border-border w-fit max-w-full">
+              <table>
+                <TableHead>
+                  <tr>
+                    <ThSortable onClick={() => handleSort('name')}>
+                      Name<SortIcon column="name" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable onClick={() => handleSort('hostName')}>
+                      Heimmannschaft<SortIcon column="hostName" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('goalHost')}>
+                      Ergebnis<SortIcon column="goalHost" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable onClick={() => handleSort('visitorName')}>
+                      Gastmannschaft<SortIcon column="visitorName" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                  </tr>
+                </TableHead>
+                <TableBody>
+                  {sortedGames.length > 0 ? (
+                    sortedGames.map((game, index) => (
+                      <tr key={game.id} className={`border-b border-border hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <RouterLink
+                            to={`/games/${game.id}`}
+                            className="hover:text-accent-hover link text-primary font-medium"
+                          >
+                            {game.name || '-'}
+                          </RouterLink>
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-3">
+                            {game.hostLogoUrl && (
+                              <img
+                                src={game.hostLogoUrl}
+                                alt={game.hostName}
+                                className="h-8 w-8 object-contain flex-shrink-0"
+                              />
+                            )}
+                            <div>
+                              <div className="font-medium">{game.hostName || '-'}</div>
+                              {game.hostShortName && (
+                                <div className="text-sm text-subtle">{game.hostShortName}</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-badge bg-elevated">
+                              <span className="text-foreground font-semibold">{game.goalHost ?? '-'}</span>
+                              <span className="text-subtle">:</span>
+                              <span className="text-foreground font-semibold">{game.goalVisitor ?? '-'}</span>
+                            </span>
+                            {isAdmin && game.goalHost == null && game.goalVisitor == null && (
+                              <Button
+                                variant="emphasized"
+                                size="sm"
+                                onClick={() => setImportGameId(game.id)}
+                              >
+                                Import
+                              </Button>
                             )}
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex items-center justify-center gap-2">
-                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-badge bg-elevated">
-                            <span className="text-foreground font-semibold">{game.goalHost ?? '-'}</span>
-                            <span className="text-subtle">:</span>
-                            <span className="text-foreground font-semibold">{game.goalVisitor ?? '-'}</span>
-                          </span>
-                          {isAdmin && game.goalHost == null && game.goalVisitor == null && (
-                            <Button
-                              variant="emphasized"
-                              size="sm"
-                              onClick={() => setImportGameId(game.id)}
-                            >
-                              Import
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-3">
-                          {game.visitorLogoUrl && (
-                            <img 
-                              src={game.visitorLogoUrl} 
-                              alt={game.visitorName}
-                              className="h-8 w-8 object-contain flex-shrink-0"
-                            />
-                          )}
-                          <div>
-                            <div className="font-medium">{game.visitorName || '-'}</div>
-                            {game.visitorShortName && (
-                              <div className="text-sm text-subtle">{game.visitorShortName}</div>
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-3">
+                            {game.visitorLogoUrl && (
+                              <img
+                                src={game.visitorLogoUrl}
+                                alt={game.visitorName}
+                                className="h-8 w-8 object-contain flex-shrink-0"
+                              />
                             )}
+                            <div>
+                              <div className="font-medium">{game.visitorName || '-'}</div>
+                              {game.visitorShortName && (
+                                <div className="text-sm text-subtle">{game.visitorShortName}</div>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="text-center text-subtle py-8">
+                        Keine Spiele gefunden
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="text-center text-subtle py-8">
-                      Keine Spiele gefunden
-                    </td>
-                  </tr>
-                )}
-              </TableBody>
-            </table>
-          </TableContent>
+                  )}
+                </TableBody>
+              </table>
+            </div>
+            <div className="mt-4 text-sm text-subtle">
+              {filteredGames.length} von {games?.length || 0} Spielen
+            </div>
+          </>
         )}
 
         {isMobile && (
-          <div className="flex-1 px-6 pb-6 overflow-x-auto">
-            <div className="grid gap-4 mt-4">
+          <div>
+            <div className="grid gap-4">
               {sortedGames.length > 0 ? (
                 sortedGames.map((game) => (
                   <GameCard key={game.id} game={game} onImport={setImportGameId} isAdmin={isAdmin} />
@@ -341,7 +401,6 @@ export default function Games() {
                 </div>
               )}
             </div>
-
             {sortedGames.length > 0 && (
               <div className="mt-4 text-sm text-subtle">
                 {sortedGames.length} von {games?.length || 0} Spielen
@@ -349,7 +408,7 @@ export default function Games() {
             )}
           </div>
         )}
-      </CardContainer>
+      </div>
 
       {isAdmin && (
         <FormationImportDialog
