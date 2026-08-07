@@ -6,11 +6,12 @@ import { seasonApi } from '../api/seasons'
 import { playerApi } from '../api/players'
 import { authApi } from '../api/auth'
 import Button from '../components/Button'
+import StatTile from '../components/StatTile'
 import PlayerSelect from '../components/PlayerSelect'
 import type { PlayerSlot } from '../components/PlayerSelect'
 import { TableHead, Th, TableBody, Td } from '../components/Table'
 import { positionLabels, positionColors } from './Players'
-import { positionTextColor, positionDotColor } from '../utils/positions'
+import { positionTextColor } from '../utils/positions'
 import type { Player, Season, Position } from '../types'
 
 interface FieldErrors {
@@ -21,6 +22,9 @@ interface FieldErrors {
   firstName?: string
   lastName?: string
 }
+
+const eurFormatter = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+const formatPrice = (value: number) => eurFormatter.format(value)
 
 const PLAYER_SLOTS: PlayerSlot[] = [
   { key: 'playerGoalkeeperId', label: 'Torwart', position: 'GOALKEEPER' },
@@ -187,6 +191,12 @@ export default function Register() {
   const budget = season?.budget ?? 0
   const remaining = budget - totalCost
   const isBudgetExceeded = remaining < 0
+  const isBudgetLow = !isBudgetExceeded && budget > 0 && remaining <= budget * 0.1
+  const remainingTone: 'default' | 'warning' | 'danger' = isBudgetExceeded
+    ? 'danger'
+    : isBudgetLow
+      ? 'warning'
+      : 'default'
 
   const teamCounts = useMemo(() => {
     const counts: Record<string, number> = {}
@@ -558,7 +568,7 @@ export default function Register() {
       className="min-h-screen flex items-center justify-center bg-background py-6 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/background.png')" }}
     >
-      <div className={`bg-surface/95 backdrop-blur-sm border border-border rounded-card w-full ${step === 4 ? 'max-w-[960px]' : step === 3 ? 'max-w-[900px]' : 'max-w-[720px]'} max-h-[92vh] flex flex-col shadow-2xl overflow-hidden`}>
+      <div className={`bg-surface/95 backdrop-blur-sm border border-border rounded-card w-full ${step === 4 ? 'max-w-[1250px]' : step === 3 ? 'max-w-[1170px]' : 'max-w-[940px]'} max-h-[92vh] flex flex-col shadow-2xl overflow-hidden`}>
 
         <div className="relative h-28 shrink-0 overflow-hidden">
           <div
@@ -824,33 +834,25 @@ export default function Register() {
 
           {step === 3 && (
             <div className="mt-4 space-y-4">
-              <div className="flex flex-wrap items-end gap-3">
-                <div className="grid grid-cols-3 gap-2 flex-1 min-w-[240px] max-w-md text-xs">
-                  <div className="bg-card border border-border-neutral rounded-card px-3 py-2">
-                    <p className="text-muted">Budget</p>
-                    <p className="text-foreground font-semibold tabular-nums">{budget.toLocaleString('de-DE')} €</p>
-                  </div>
-                  <div className="bg-card border border-border-neutral rounded-card px-3 py-2">
-                    <p className="text-muted">Ausgegeben</p>
-                    <p className="text-foreground font-semibold tabular-nums">{totalCost.toLocaleString('de-DE')} €</p>
-                  </div>
-                  <div className={`rounded-card px-3 py-2 border ${isBudgetExceeded ? 'bg-danger-bg border-danger' : 'bg-accent-soft border-accent'}`}>
-                    <p className={isBudgetExceeded ? 'text-danger' : 'text-accent'}>Verbleibend</p>
-                    <p className={`font-bold tabular-nums ${isBudgetExceeded ? 'text-danger' : 'text-accent'}`}>{remaining.toLocaleString('de-DE')} €</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] text-muted">Freie Position</span>
-                  <select
-                    value={freePosition}
-                    onChange={(e) => handleFreePositionChange(e.target.value as 'DEFENDER' | 'MIDFIELD' | 'STRIKER')}
-                    className="input-field px-2 py-1 rounded-control text-[11px] cursor-pointer"
-                  >
-                    <option value="DEFENDER">Abwehr</option>
-                    <option value="MIDFIELD">Mittelfeld</option>
-                    <option value="STRIKER">Sturm</option>
-                  </select>
-                </div>
+              <div
+                className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+                role={isBudgetExceeded ? 'status' : undefined}
+                aria-label="Budget"
+              >
+                <StatTile
+                  label="Budget"
+                  value={formatPrice(budget)}
+                />
+                <StatTile
+                  label="Ausgegeben"
+                  value={formatPrice(totalCost)}
+                />
+                <StatTile
+                  label="Verbleibend"
+                  value={formatPrice(remaining)}
+                  tone={remainingTone}
+                  icon={(isBudgetExceeded || isBudgetLow) ? <i className="sap-icon sap-icon-alert text-base" /> : null}
+                />
               </div>
 
               {hasTeamViolation && (
@@ -866,19 +868,37 @@ export default function Register() {
                   <span className="text-muted text-sm">Spieler werden geladen...</span>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-8">
                   {POSITION_GROUPS.map(group => {
                     const slots = getVisibleSlots(group)
+                    const filled = slots.filter(s => selectedPlayers[s.key] !== null).length
+                    const isFreeGroup = group.position === freePosition
                     return (
-                      <div key={group.label} className="bg-elevated/30 rounded-card p-3">
-                        <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2 ${positionTextColor[group.position]}`}>
-                          <span className={`w-[9px] h-[9px] rounded-full ${positionDotColor[group.position]}`} />
-                          {group.label}
-                          {group.position === freePosition && (
-                            <span className="text-[10px] text-muted font-normal normal-case tracking-normal ml-1">+1 Freie Wahl</span>
+                      <div key={group.label}>
+                        <div className="mb-2 flex items-center gap-3">
+                          <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[group.position]}`}>
+                            {group.label}
+                          </h3>
+                          <span className="text-xs text-subtle tabular-nums">{filled} / {slots.length}</span>
+                          {isFreeGroup && (
+                            <span className="text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
+                              +1 Freie Wahl
+                            </span>
                           )}
-                        </h3>
-                        <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                          {isFreeGroup && (
+                            <select
+                              value={freePosition}
+                              onChange={(e) => handleFreePositionChange(e.target.value as 'DEFENDER' | 'MIDFIELD' | 'STRIKER')}
+                              className="input-field control px-2 py-1 rounded-control text-xs cursor-pointer"
+                              aria-label="Freie Position wählen"
+                            >
+                              <option value="DEFENDER">Abwehr</option>
+                              <option value="MIDFIELD">Mittelfeld</option>
+                              <option value="STRIKER">Sturm</option>
+                            </select>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                           {slots.map(slot => (
                             <PlayerSelect
                               key={slot.key}
@@ -887,6 +907,7 @@ export default function Register() {
                               selectedIds={selectedIds}
                               value={selectedPlayers[slot.key]}
                               onChange={(id) => setSelectedPlayers(prev => ({ ...prev, [slot.key]: id }))}
+                              modal
                             />
                           ))}
                         </div>
@@ -897,7 +918,7 @@ export default function Register() {
               )}
 
               {Object.entries(teamCounts).filter(([, c]) => c > 5).map(([team, count]) => (
-                <div key={team} className="text-xs text-danger">
+                <div key={team} className="text-xs text-danger mt-2">
                   {team}: {count} Spieler (max. 5)
                 </div>
               ))}
