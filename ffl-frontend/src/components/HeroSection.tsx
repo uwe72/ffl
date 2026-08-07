@@ -26,9 +26,9 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
   const desktopGradient = [
     'rgba(10,14,20,0.10) 0px',
     `rgba(10,14,20,0.16) ${Math.max(0, brandWidth - 90)}px`,
-    `rgba(10,14,20,0.86) ${textStart}px`,
-    `rgba(10,14,20,0.86) ${textStart + 440}px`,
-    `rgba(10,14,20,0.28) ${textStart + 700}px`,
+    `rgba(10,14,20,0.774) ${textStart}px`,
+    `rgba(10,14,20,0.774) ${textStart + 440}px`,
+    `rgba(10,14,20,0.252) ${textStart + 700}px`,
     'rgba(10,14,20,0) 90%',
   ].join(', ')
 
@@ -39,13 +39,13 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
         style={{
           backgroundImage: 'url(/hero-banner.png)',
           backgroundPosition: 'center 10%',
-          filter: 'brightness(1.35) contrast(0.92)',
+          filter: 'brightness(1.485) contrast(0.92)',
         }}
       />
       <div
         className="absolute inset-0 md:hidden"
         style={{
-          background: 'linear-gradient(to right, rgba(10,14,20,0.84) 0%, rgba(10,14,20,0.58) 35%, rgba(10,14,20,0.10) 65%, rgba(10,14,20,0) 100%)',
+          background: 'linear-gradient(to right, rgba(10,14,20,0.756) 0%, rgba(10,14,20,0.522) 35%, rgba(10,14,20,0.10) 65%, rgba(10,14,20,0) 100%)',
         }}
       />
       <div
@@ -54,7 +54,7 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
       />
       <div
         className="absolute inset-0"
-        style={{ backgroundColor: 'rgba(10,16,24,0.03)' }}
+        style={{ backgroundColor: 'rgba(10,16,24,0.027)' }}
       />
 
       <div className="relative z-10 flex h-full items-stretch">
