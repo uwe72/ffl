@@ -1157,7 +1157,7 @@ export default function MyTeam() {
       )}
 
       <div className="p-4 bg-elevated border border-border rounded-card mb-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-4">
           <div className="relative group w-12 h-12 shrink-0">
             <button
               onClick={() => avatarInputRef.current?.click()}
@@ -1194,13 +1194,15 @@ export default function MyTeam() {
               onChange={handleAvatarChange}
             />
           </div>
-          <div className="flex-1 min-w-0 flex items-center gap-6 text-sm">
-            <span className="font-semibold text-foreground truncate">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-3xl font-bold text-foreground truncate">
               {manager?.firstName && manager?.lastName
                 ? `${manager.firstName} ${manager.lastName} (${manager.login ?? '-'})`
                 : manager?.login || '-'}
-            </span>
-            <span className="text-muted truncate">{profileEmail || manager?.email || '-'}</span>
+            </h2>
+            <p className="text-xs uppercase tracking-wide text-subtle mt-2 truncate">
+              {profileEmail || manager?.email || '-'}
+            </p>
           </div>
           <Button
             variant="ghost"
@@ -1208,6 +1210,7 @@ export default function MyTeam() {
             onClick={() => setProfileOpen(o => !o)}
             aria-expanded={profileOpen}
             aria-controls="profile-form"
+            className="shrink-0 self-start"
           >
             <i className={`sap-icon sap-icon-slim-arrow-${profileOpen ? 'up' : 'down'} text-xs mr-1`} />
             {profileOpen ? 'Schließen' : 'Bearbeiten'}
