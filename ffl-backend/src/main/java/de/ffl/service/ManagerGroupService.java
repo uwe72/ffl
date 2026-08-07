@@ -55,7 +55,11 @@ public class ManagerGroupService {
 
         List<ManagerGroup> groups;
         if (currentUser.getRole().name().equals("ADMIN")) {
-            groups = managerGroupRepository.findBySeasonIdFiltered(getCurrentSeasonId());
+            Long seasonId = getCurrentSeasonId();
+            if (seasonId == null) {
+                return Collections.emptyList();
+            }
+            groups = managerGroupRepository.findBySeasonIdFiltered(seasonId);
         } else {
             groups = managerGroupRepository.findByCreatedById(currentUser.getId());
         }
@@ -391,7 +395,10 @@ public class ManagerGroupService {
     }
 
     private Long getCurrentSeasonId() {
-        return 1L;
+        return seasonRepository.findAll().stream()
+            .findFirst()
+            .map(Season::getId)
+            .orElse(null);
     }
 
     private ManagerGroupListDto toListDto(ManagerGroup group) {
