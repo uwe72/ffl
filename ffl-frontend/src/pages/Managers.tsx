@@ -52,33 +52,6 @@ function ManagerCard({ manager }: { manager: any }) {
   )
 }
 
-function FilterBar({ onExport, hasFilter, onClear }: {
-  onExport: () => void
-  hasFilter: boolean
-  onClear: () => void
-}) {
-  return (
-    <div className="flex items-center gap-3 flex-wrap mb-4">
-      <Button
-        onClick={onExport}
-        size="compact"
-      >
-        Excel Export
-      </Button>
-
-      {hasFilter && (
-        <button
-          onClick={onClear}
-          className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
-          title="Filter zurücksetzen"
-        >
-          <i className="sap-icon sap-icon-decline text-[14px]" />
-        </button>
-      )}
-    </div>
-  )
-}
-
 export default function Managers() {
   const isMobile = useIsMobile()
   const [searchTerm, setSearchTerm] = useState('')
@@ -179,23 +152,37 @@ export default function Managers() {
       <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-foreground">Manager ({filteredManagers.length})</h2>
-          <div className="relative w-64">
-            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Manager suchen..."
-              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
-            />
+          <div className="flex items-center gap-3">
+            <div className="relative w-64">
+              <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Manager suchen..."
+                className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
+              />
+            </div>
+            <Button
+              onClick={exportToExcel}
+              size="compact"
+            >
+              Excel Export
+            </Button>
           </div>
         </div>
 
-        <FilterBar
-          onExport={exportToExcel}
-          hasFilter={hasActiveFilter}
-          onClear={() => setSearchTerm('')}
-        />
+        {hasActiveFilter && (
+          <div className="flex items-center gap-3 flex-wrap mb-4">
+            <button
+              onClick={() => setSearchTerm('')}
+              className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
+              title="Filter zurücksetzen"
+            >
+              <i className="sap-icon sap-icon-decline text-[14px]" />
+            </button>
+          </div>
+        )}
 
         {!isMobile && (
           <>
