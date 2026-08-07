@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
-import { useNavigate, Link as RouterLink } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { trackEvent } from '../hooks/useMatomo'
 import { seasonApi } from '../api/seasons'
@@ -989,7 +989,7 @@ export default function Register() {
                           return (
                             <tr key={player.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                               <Td>
-                                <RouterLink to={`/players/${player.id}`} className="flex items-center link">
+                                <div className="flex items-center">
                                   {player.pictureUrl ? (
                                     <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
                                   ) : (
@@ -997,8 +997,8 @@ export default function Register() {
                                       <span className="text-[10px] text-muted">{POSITION_LABELS[player.position]}</span>
                                     </div>
                                   )}
-                                  <span className="font-medium text-link">{player.nameKicker}</span>
-                                </RouterLink>
+                                  <span className="font-medium text-foreground">{player.nameKicker}</span>
+                                </div>
                               </Td>
                               <Td align="right" className="text-foreground">
                                 {player.prize.toLocaleString('de-DE')} €
