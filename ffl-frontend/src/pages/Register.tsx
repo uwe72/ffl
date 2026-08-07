@@ -108,6 +108,8 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -576,13 +578,6 @@ export default function Register() {
                 <p className="text-xs text-white/60 tracking-widest uppercase mt-0.5">Fantasy Football League</p>
               </div>
             </div>
-            <button
-              className="absolute top-4 right-4 p-1.5 rounded-control text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-              onClick={() => navigate('/login')}
-              aria-label="Schließen"
-            >
-              <i className="sap-icon sap-icon-decline text-[18px]" />
-            </button>
           </div>
         </div>
 
@@ -664,7 +659,7 @@ export default function Register() {
                       <i className="sap-icon sap-icon-locked text-[14px]" />
                     </span>
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       required
                       autoComplete="new-password"
                       placeholder="Passwort"
@@ -674,8 +669,16 @@ export default function Register() {
                         if (fieldErrors.password) validateField('password', e.target.value)
                       }}
                       onBlur={() => handleBlur('password', password)}
-                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-control focus:outline-none text-sm ${fieldErrors.password ? 'border-danger focus:border-danger' : ''}`}
+                      className={`input-field w-full pl-9 pr-10 py-2.5 rounded-control focus:outline-none text-sm ${fieldErrors.password ? 'border-danger focus:border-danger' : ''}`}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(s => !s)}
+                      aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-subtle hover:text-foreground transition-colors"
+                    >
+                      <i className={`sap-icon ${showPassword ? 'sap-icon-hide' : 'sap-icon-show'} text-[14px]`} />
+                    </button>
                   </div>
                   {fieldErrors.password && (
                     <p className="text-xs text-danger mt-1">{fieldErrors.password}</p>
@@ -691,7 +694,7 @@ export default function Register() {
                       <i className="sap-icon sap-icon-locked text-[14px]" />
                     </span>
                     <input
-                      type="password"
+                      type={showConfirmPassword ? 'text' : 'password'}
                       required
                       autoComplete="new-password"
                       placeholder="Passwort"
@@ -701,8 +704,16 @@ export default function Register() {
                         if (fieldErrors.confirmPassword) validateField('confirmPassword', e.target.value)
                       }}
                       onBlur={() => handleBlur('confirmPassword', confirmPassword)}
-                      className={`input-field w-full pl-9 pr-3 py-2.5 rounded-control focus:outline-none text-sm ${fieldErrors.confirmPassword ? 'border-danger focus:border-danger' : ''}`}
+                      className={`input-field w-full pl-9 pr-10 py-2.5 rounded-control focus:outline-none text-sm ${fieldErrors.confirmPassword ? 'border-danger focus:border-danger' : ''}`}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(s => !s)}
+                      aria-label={showConfirmPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-subtle hover:text-foreground transition-colors"
+                    >
+                      <i className={`sap-icon ${showConfirmPassword ? 'sap-icon-hide' : 'sap-icon-show'} text-[14px]`} />
+                    </button>
                   </div>
                   {fieldErrors.confirmPassword && (
                     <p className="text-xs text-danger mt-1">{fieldErrors.confirmPassword}</p>
