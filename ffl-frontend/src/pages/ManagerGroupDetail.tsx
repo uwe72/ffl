@@ -50,6 +50,7 @@ export default function ManagerGroupDetail() {
   const [hasChanges, setHasChanges] = useState(false)
   const [selectedManagerIds, setSelectedManagerIds] = useState<number[]>([])
   const [errorMessage, setErrorMessage] = useState('')
+  const [stammdatenOpen, setStammdatenOpen] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadGroupLogo = useUploadGroupLogo(isNewMode ? 0 : groupId)
@@ -385,8 +386,7 @@ export default function ManagerGroupDetail() {
       )}
 
       <div className="p-4 bg-elevated border border-border rounded-card mb-6">
-        <h3 className="text-xl font-semibold text-foreground mb-4">Stammdaten</h3>
-        <div className="flex flex-col sm:flex-row gap-6">
+        <div className="flex items-start gap-4">
           <div className="relative group w-16 h-16 shrink-0">
             <button
               onClick={handleLogoClick}
@@ -437,93 +437,133 @@ export default function ManagerGroupDetail() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="min-w-0">
-                <span className="text-xs text-muted">Name <span className="text-muted">*</span></span>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={canEdit ? (e) => handleChange('name', e.target.value) : undefined}
-                  readOnly={!canEdit}
-                  disabled={!canEdit}
-                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
-                />
-              </div>
-              <div className="min-w-0">
-                <span className="text-xs text-muted">Email an</span>
-                <select
-                  value={editEmailTo}
-                  onChange={canEdit ? (e) => handleChange('emailTo', e.target.value) : undefined}
-                  disabled={!canEdit}
-                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
-                >
-                  {emailToOptions.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="min-w-0">
-                <span className="text-xs text-muted">Ersteller</span>
-                <div className="flex items-center gap-2 mt-1">
-                  <input
-                    type="text"
-                    value={getCreatorDisplayName()}
-                    readOnly
-                    className="input-field control w-full px-2 py-1 rounded-control text-sm"
-                  />
-                  {isAdmin && !isNewMode && (
-                    <Button
-                      variant="transparent"
-                      size="compact"
-                      onClick={() => setIsCreatorModalOpen(true)}
-                    >
-                      Ändern
-                    </Button>
-                  )}
+            {!stammdatenOpen && !isNewMode && (
+              <div>
+                <p className="font-semibold text-foreground truncate">{group?.name || '-'}</p>
+                <div className="grid grid-cols-3 gap-4 mt-2">
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted">Email an</p>
+                    <p className="text-sm text-foreground mt-0.5">
+                      {emailToOptions.find(o => o.value === group?.emailTo)?.label || '-'}
+                    </p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted">Ersteller</p>
+                    <p className="text-sm text-foreground mt-0.5">{getCreatorDisplayName()}</p>
+                  </div>
+                  <div className="col-span-3 min-w-0">
+                    <p className="text-xs text-muted">Beschreibung</p>
+                    <p className="text-sm text-foreground mt-0.5 whitespace-pre-wrap">{group?.description || '-'}</p>
+                  </div>
                 </div>
               </div>
-              <div className="col-span-3 min-w-0">
-                <span className="text-xs text-muted">Beschreibung <span className="text-muted">*</span></span>
-                <textarea
-                  value={editDescription}
-                  onChange={canEdit ? (e) => handleChange('description', e.target.value) : undefined}
-                  readOnly={!canEdit}
-                  disabled={!canEdit}
-                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 resize-y"
-                />
-              </div>
-            </div>
-            {canEdit && hasChanges && (
-              <div className="mt-3 flex gap-2">
-                {isNewMode ? (
-                  <Button
-                    variant="emphasized"
-                    size="sm"
-                    onClick={handleCreate}
-                    disabled={!editName.trim() || !editDescription.trim() || !currentSeason || createMutation.isPending}
-                  >
-                    {createMutation.isPending ? 'Wird erstellt...' : 'Erstellen'}
-                  </Button>
-                ) : (
-                  <Button
-                    variant="emphasized"
-                    size="sm"
-                    onClick={handleSaveChanges}
-                    disabled={updateMutation.isPending || !editDescription.trim()}
-                  >
-                    {updateMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
-                  </Button>
+            )}
+
+            {(stammdatenOpen || isNewMode) && (
+              <div id="stammdaten-form" className={isNewMode ? '' : 'mt-0 pt-0'}>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Name <span className="text-muted">*</span></span>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={canEdit ? (e) => handleChange('name', e.target.value) : undefined}
+                      readOnly={!canEdit}
+                      disabled={!canEdit}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Email an</span>
+                    <select
+                      value={editEmailTo}
+                      onChange={canEdit ? (e) => handleChange('emailTo', e.target.value) : undefined}
+                      disabled={!canEdit}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
+                    >
+                      {emailToOptions.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Ersteller</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <input
+                        type="text"
+                        value={getCreatorDisplayName()}
+                        readOnly
+                        className="input-field control w-full px-2 py-1 rounded-control text-sm"
+                      />
+                      {isAdmin && !isNewMode && (
+                        <Button
+                          variant="transparent"
+                          size="compact"
+                          onClick={() => setIsCreatorModalOpen(true)}
+                        >
+                          Ändern
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="col-span-3 min-w-0">
+                    <span className="text-xs text-muted">Beschreibung <span className="text-muted">*</span></span>
+                    <textarea
+                      value={editDescription}
+                      onChange={canEdit ? (e) => handleChange('description', e.target.value) : undefined}
+                      readOnly={!canEdit}
+                      disabled={!canEdit}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 resize-y"
+                    />
+                  </div>
+                </div>
+                {canEdit && hasChanges && (
+                  <div className="mt-3 flex gap-2">
+                    {isNewMode ? (
+                      <Button
+                        variant="emphasized"
+                        size="sm"
+                        onClick={handleCreate}
+                        disabled={!editName.trim() || !editDescription.trim() || !currentSeason || createMutation.isPending}
+                      >
+                        {createMutation.isPending ? 'Wird erstellt...' : 'Erstellen'}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="emphasized"
+                        size="sm"
+                        onClick={handleSaveChanges}
+                        disabled={updateMutation.isPending || !editDescription.trim()}
+                      >
+                        {updateMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={isNewMode ? () => navigate('/manager-groups') : handleReset}
+                    >
+                      Abbrechen
+                    </Button>
+                  </div>
                 )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={isNewMode ? () => navigate('/manager-groups') : handleReset}
-                >
-                  Abbrechen
-                </Button>
               </div>
             )}
           </div>
+
+          {canEdit && !isNewMode && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setStammdatenOpen(o => !o)}
+              aria-expanded={stammdatenOpen}
+              aria-controls="stammdaten-form"
+              className="shrink-0"
+            >
+              <i className={`sap-icon sap-icon-slim-arrow-${stammdatenOpen ? 'up' : 'down'} text-xs mr-1`} />
+              {stammdatenOpen ? 'Schließen' : 'Bearbeiten'}
+            </Button>
+          )}
         </div>
       </div>
 
