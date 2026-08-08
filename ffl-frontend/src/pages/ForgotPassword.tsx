@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from '../api/auth'
+import { useCurrentSeason } from '../hooks/useSeasons'
 import Button from '../components/Button'
 
 export default function ForgotPassword() {
@@ -12,6 +13,7 @@ export default function ForgotPassword() {
   const [logins, setLogins] = useState<string[]>([])
   const [selectedLogin, setSelectedLogin] = useState('')
   const navigate = useNavigate()
+  const { data: season } = useCurrentSeason()
   const inputRef = useRef<HTMLInputElement>(null)
 
   const validateEmail = (value: string) => {
@@ -59,20 +61,20 @@ export default function ForgotPassword() {
   }, [])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background.png')" }}>
-      <div className="bg-surface border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl">
-        <div className="flex items-start justify-between px-6 pt-6 pb-2">
-          <div>
-            <h2 className="text-xl font-bold text-foreground">FFL</h2>
-            <p className="text-muted text-sm mt-0.5">Passwort vergessen</p>
-          </div>
-          <button
-            className="p-1.5 rounded-control text-subtle hover:text-foreground hover:bg-elevated transition-colors -mr-1.5 mt-0.5"
-            onClick={() => navigate('/login')}
-            aria-label="Schließen"
-          >
-            <i className="sap-icon sap-icon-decline text-[20px]" />
-          </button>
+    <div className="relative min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <img
+        src="/background2627.png"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+
+      <div className="relative bg-surface/70 backdrop-blur-md border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl ffl-login-enter">
+        <div className="flex flex-col items-center text-center gap-1 px-6 pt-8 pb-2">
+          <h2 className="text-2xl font-bold text-foreground leading-tight">Passwort vergessen</h2>
+          <p className="text-muted text-sm">
+            Fantasy Football League{season?.name ? ` – ${season.name}` : ''}
+          </p>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 pb-6">
@@ -106,6 +108,15 @@ export default function ForgotPassword() {
                 }
               </p>
 
+              {season?.seasonState === 'BEFORE_SEASON' && (
+                <div className="flex items-start gap-3 p-4 bg-warning-bg border-2 border-warning rounded-control">
+                  <i className="sap-icon sap-icon-alert text-[24px] text-warning shrink-0 mt-0.5" />
+                  <p className="text-warning text-sm font-bold leading-snug">
+                    Achtung: Zur neuen Saison muss jeder Teilnehmer einen neuen Account erstellen.
+                  </p>
+                </div>
+              )}
+
               {error && (
                 <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-control">
                   <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
@@ -114,23 +125,26 @@ export default function ForgotPassword() {
               )}
 
               <div>
-                <label className="block text-sm text-muted mb-1.5">
+                <label className="block text-[13px] text-muted mb-2">
                   E-Mail-Adresse <span className="text-muted">*</span>
                 </label>
-                <input
-                  ref={inputRef}
-                  type="email"
-                  required
-                  placeholder="name@beispiel.de"
-                  value={email}
-                  disabled={logins.length > 0}
-                  onChange={(e) => {
-                    setEmail(e.target.value)
-                    if (fieldError) validateEmail(e.target.value)
-                  }}
-                  onBlur={() => validateEmail(email)}
-                  className={`input-field w-full px-3 py-2 text-sm ${fieldError ? 'border-danger focus:border-danger' : ''}`}
-                />
+                <div className="relative">
+                  <i className="sap-icon sap-icon-email absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-subtle pointer-events-none" />
+                  <input
+                    ref={inputRef}
+                    type="email"
+                    required
+                    placeholder="name@beispiel.de"
+                    value={email}
+                    disabled={logins.length > 0}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      if (fieldError) validateEmail(e.target.value)
+                    }}
+                    onBlur={() => validateEmail(email)}
+                    className={`input-field w-full pl-10 pr-3 py-2.5 text-[15px] ${fieldError ? 'border-danger focus:border-danger' : ''}`}
+                  />
+                </div>
                 {fieldError && (
                   <p className="text-xs text-danger mt-1">{fieldError}</p>
                 )}
@@ -138,7 +152,7 @@ export default function ForgotPassword() {
 
               {logins.length > 0 && (
                 <div>
-                  <label className="block text-sm text-muted mb-1.5">
+                  <label className="block text-[13px] text-muted mb-2">
                     Account auswählen <span className="text-muted">*</span>
                   </label>
                   <select
@@ -147,7 +161,7 @@ export default function ForgotPassword() {
                       setSelectedLogin(e.target.value)
                       setError('')
                     }}
-                    className="input-field w-full px-3 py-2 text-sm"
+                    className="input-field w-full px-3 py-2.5 text-[15px]"
                   >
                     <option value="">Bitte wählen...</option>
                     {logins.map((login) => (
@@ -157,35 +171,37 @@ export default function ForgotPassword() {
                 </div>
               )}
 
-              <div className="border-t border-border pt-4 flex gap-3 justify-between items-center">
-                {logins.length > 0 ? (
+              <div className="border-t border-border pt-4 flex gap-3 justify-end items-center">
+                <div className="flex gap-3">
+                  {logins.length > 0 ? (
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      onClick={() => {
+                        setLogins([])
+                        setSelectedLogin('')
+                        setError('')
+                      }}
+                    >
+                      Zurück
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      onClick={() => navigate('/login')}
+                    >
+                      Zurück
+                    </Button>
+                  )}
                   <Button
-                    variant="ghost"
-                    type="button"
-                    onClick={() => {
-                      setLogins([])
-                      setSelectedLogin('')
-                      setError('')
-                    }}
+                    variant="emphasized"
+                    type="submit"
+                    disabled={isLoading}
                   >
-                    Zurück
+                    Link senden
                   </Button>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    type="button"
-                    onClick={() => navigate('/login')}
-                  >
-                    Zurück
-                  </Button>
-                )}
-                <Button
-                  variant="emphasized"
-                  type="submit"
-                  disabled={isLoading}
-                >
-                  Link senden
-                </Button>
+                </div>
               </div>
             </form>
           )}
