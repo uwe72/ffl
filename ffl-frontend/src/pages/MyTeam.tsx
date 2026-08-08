@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useBlocker } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { managerApi } from '../api/managers'
 import { authApi } from '../api/auth'
@@ -652,6 +652,20 @@ export default function MyTeam() {
     return `${d}.${m}.${y}`
   }
 
+  const hasUnsavedChanges = hasChanges || hasTransferChanges
+
+  const blocker = useBlocker(hasUnsavedChanges)
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [hasUnsavedChanges])
+
   if (loading) {
     const skeletonGroups = [
       { label: 'Torwart', count: 1 },
@@ -803,6 +817,15 @@ export default function MyTeam() {
         <div className="flex items-center gap-3 p-3 bg-success-bg border border-success/30 rounded-card mb-4">
           <i className="sap-icon sap-icon-accept text-[18px] text-success shrink-0" />
           <p className="text-success text-sm">{success}</p>
+        </div>
+      )}
+
+      {hasUnsavedChanges && (
+        <div className="flex items-center gap-3 p-3 bg-warning-bg border border-warning/30 rounded-card mb-4">
+          <i className="sap-icon sap-icon-alert text-[18px] text-warning shrink-0" />
+          <p className="text-warning text-sm">
+            Du hast ungespeicherte Änderungen. Bitte drücke unten auf „Speichern", um sie zu sichern.
+          </p>
         </div>
       )}
 
@@ -1069,14 +1092,6 @@ export default function MyTeam() {
             <div className="text-center py-6">
               <i className="sap-icon sap-icon-switch-classes text-[32px] text-subtle mb-2" />
               <p className="text-sm text-muted mb-3">Noch keine Winterwechsel eingetragen.</p>
-              <Button
-                variant="emphasized"
-                size="sm"
-                onClick={handleAddTransfer}
-              >
-                <i className="sap-icon sap-icon-add text-xs mr-1" />
-                Ersten Wechsel hinzufügen
-              </Button>
             </div>
           )}
 
@@ -1284,6 +1299,79 @@ export default function MyTeam() {
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {hasUnsavedChanges && (
+        <div className="sticky bottom-0 z-20 -mx-4 mt-6 px-4 py-3 bg-elevated border-t border-border shadow-lg">
+          <div className="flex flex-wrap items-center gap-3">
+            <i className="sap-icon sap-icon-alert text-[18px] text-warning shrink-0" />
+            <span className="text-sm text-muted mr-auto">Ungespeicherte Änderungen</span>
+            {isBeforeSeason && hasChanges && (
+              <div className="flex gap-2">
+                <Button
+                  variant="emphasized"
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={saving || isBudgetExceeded || hasTeamViolation || !allSlotsFilled}
+                >
+                  {saving ? 'Wird gespeichert...' : 'Aufstellung speichern'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleReset}
+                  disabled={saving}
+                >
+                  Zurücksetzen
+                </Button>
+              </div>
+            )}
+            {isHinrunde && hasTransferChanges && (
+              <div className="flex gap-2">
+                <Button
+                  variant="emphasized"
+                  size="sm"
+                  onClick={handleSaveTransfers}
+                  disabled={savingTransfers || !transfersComplete || isTransferBudgetExceeded || hasTransferTeamViolation || hasTransferPositionViolation}
+                >
+                  {savingTransfers ? 'Wird gespeichert...' : 'Winterwechsel speichern'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetTransfers}
+                  disabled={savingTransfers}
+                >
+                  Zurücksetzen
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {blocker.state === 'blocked' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-surface border border-border rounded-card w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-start gap-3 mb-4">
+              <i className="sap-icon sap-icon-alert text-[24px] text-warning shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Seite verlassen?</h3>
+                <p className="text-sm text-muted mt-1">
+                  Du hast ungespeicherte Änderungen. Wenn du die Seite verlässt, gehen diese verloren.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" size="sm" onClick={() => blocker.reset()}>
+                Abbrechen
+              </Button>
+              <Button variant="negative" size="sm" onClick={() => blocker.proceed()}>
+                Trotzdem verlassen
+              </Button>
+            </div>
           </div>
         </div>
       )}
