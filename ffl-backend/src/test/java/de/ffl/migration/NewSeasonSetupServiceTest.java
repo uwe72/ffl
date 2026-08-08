@@ -37,6 +37,11 @@ import static org.mockito.Mockito.doReturn;
 @ActiveProfiles("test")
 class NewSeasonSetupServiceTest extends AbstractSeasonTestBase {
 
+    @Override
+    protected boolean calculateSeasonInSetup() {
+        return false;
+    }
+
     @Autowired
     private NewSeasonSetupService setupService;
 
@@ -69,8 +74,6 @@ class NewSeasonSetupServiceTest extends AbstractSeasonTestBase {
 
     @BeforeEach
     void setUp() throws Exception {
-        loadTestData();
-
         prizePayoutRepository.save(PrizePayout.builder()
                 .manager(managerUwe72)
                 .season(season)

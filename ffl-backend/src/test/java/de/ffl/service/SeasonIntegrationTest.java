@@ -11,16 +11,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SeasonIntegrationTest extends AbstractSeasonTestBase {
 
-    @BeforeEach
-    void setUp() throws Exception {
-        loadTestData();
-    }
-
     @Test
     @Order(1)
     void calculateSeason_shouldComputeCorrectTotalPointsForManager() {
-        seasonCalculationService.calculateSeason(season.getId());
-
         Round round34 = roundMap.get(34);
         Optional<ManagerRank> rank = managerRankRepository.findByManagerIdAndRoundId(
                 managerUwe72.getId(), round34.getId());
@@ -32,8 +25,6 @@ class SeasonIntegrationTest extends AbstractSeasonTestBase {
     @Test
     @Order(2)
     void calculateSeason_shouldComputeCorrectPerRoundPoints() {
-        seasonCalculationService.calculateSeason(season.getId());
-
         int[] expectedPerRound = {13, 6, 21, 9, 15, 5, 5, 15, 17, 13, 0, 9, 9, 7, 3, 17, 22, 2, 0, 10, 12, 25, 10, 14, 13, 9, 18, 11, 15, 16, 9, 26, 0, 14};
 
         List<ManagerRank> ranks = managerRankRepository.findByManagerIdOrderByRoundIdAsc(managerUwe72.getId());
@@ -49,8 +40,6 @@ class SeasonIntegrationTest extends AbstractSeasonTestBase {
     @Test
     @Order(3)
     void calculateSeason_shouldComputeCorrectPointsBeforeTransferRound() {
-        seasonCalculationService.calculateSeason(season.getId());
-
         Round round15 = roundMap.get(15);
         Optional<ManagerRank> rank = managerRankRepository.findByManagerIdAndRoundId(
                 managerUwe72.getId(), round15.getId());
@@ -62,8 +51,6 @@ class SeasonIntegrationTest extends AbstractSeasonTestBase {
     @Test
     @Order(4)
     void calculateSeason_shouldComputeCorrectPointsAtTransferRound() {
-        seasonCalculationService.calculateSeason(season.getId());
-
         Round round16 = roundMap.get(16);
         Optional<ManagerRank> rank = managerRankRepository.findByManagerIdAndRoundId(
                 managerUwe72.getId(), round16.getId());
@@ -75,8 +62,6 @@ class SeasonIntegrationTest extends AbstractSeasonTestBase {
     @Test
     @Order(5)
     void calculateSeason_shouldSetCurrentMatchday() {
-        seasonCalculationService.calculateSeason(season.getId());
-
         season = seasonRepository.findById(season.getId()).orElseThrow();
         assertThat(season.getCurrentMatchday()).isEqualTo(34);
     }
@@ -84,8 +69,6 @@ class SeasonIntegrationTest extends AbstractSeasonTestBase {
     @Test
     @Order(Integer.MAX_VALUE)
     void printTestSummary() {
-        seasonCalculationService.calculateSeason(season.getId());
-
         Round round34 = roundMap.get(34);
         Optional<ManagerRank> rank = managerRankRepository.findByManagerIdAndRoundId(
                 managerUwe72.getId(), round34.getId());

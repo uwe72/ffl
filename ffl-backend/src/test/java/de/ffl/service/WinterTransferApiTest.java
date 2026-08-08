@@ -14,6 +14,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class WinterTransferApiTest extends AbstractSeasonTestBase {
 
+    @Override
+    protected boolean calculateSeasonInSetup() {
+        return false;
+    }
+
     @Autowired
     private ManagerService managerService;
 
@@ -27,8 +32,6 @@ class WinterTransferApiTest extends AbstractSeasonTestBase {
 
     @BeforeEach
     void setUp() throws Exception {
-        loadTestData();
-
         mane = findPlayerByName("Filippo Man\u00e9");
         hack = findPlayerByName("Robin Hack");
         scienza = findPlayerByName("Leonardo Scienza");

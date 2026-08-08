@@ -20,9 +20,7 @@ class BestTeamServiceTest extends AbstractSeasonTestBase {
     private BestTeamResult bestTeam;
 
     @BeforeEach
-    void setUp() throws Exception {
-        loadTestData();
-        seasonCalculationService.calculateSeason(season.getId());
+    void setUp() {
         bestTeam = bestTeamService.getBestTeam(season.getId());
     }
 

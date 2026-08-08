@@ -5,16 +5,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.ffl.domain.*;
 import de.ffl.repository.*;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.InputStream;
 import java.util.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
 public abstract class AbstractSeasonTestBase {
 
@@ -24,6 +31,8 @@ public abstract class AbstractSeasonTestBase {
     protected SeasonCalculationService seasonCalculationService;
     @Autowired
     protected SeasonRepository seasonRepository;
+    @Autowired
+    private PlatformTransactionManager transactionManager;
     @Autowired
     protected TeamRepository teamRepository;
     @Autowired
@@ -50,6 +59,58 @@ public abstract class AbstractSeasonTestBase {
     protected Map<Long, Player> playerMap = new HashMap<>();
     protected Map<Long, Team> teamMap = new HashMap<>();
     protected Map<Integer, Round> roundMap = new HashMap<>();
+
+    protected boolean calculateSeasonInSetup() {
+        return true;
+    }
+
+    @BeforeAll
+    void setupSeasonBase() throws Exception {
+        new TransactionTemplate(transactionManager).execute(status -> {
+            try {
+                clearDatabase();
+                loadTestData();
+                if (calculateSeasonInSetup()) {
+                    seasonCalculationService.calculateSeason(season.getId());
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return null;
+        });
+    }
+
+    @AfterAll
+    void cleanupSeasonBase() {
+        new TransactionTemplate(transactionManager).execute(status -> {
+            clearDatabase();
+            return null;
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void clearDatabase() {
+        entityManager.clear();
+        List<String> tables = entityManager.createNativeQuery(
+                "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
+        ).getResultList();
+        entityManager.clear();
+        for (String table : tables) {
+            entityManager.createNativeQuery(
+                    "TRUNCATE TABLE \"" + table + "\" RESTART IDENTITY CASCADE"
+            ).executeUpdate();
+        }
+    }
+
+    @BeforeEach
+    void refreshManagedReferences() {
+        if (season != null && season.getId() != null) {
+            season = seasonRepository.findById(season.getId()).orElseThrow();
+        }
+        if (managerUwe72 != null && managerUwe72.getId() != null) {
+            managerUwe72 = managerRepository.findById(managerUwe72.getId()).orElseThrow();
+        }
+    }
 
     protected void loadTestData() throws Exception {
         ObjectMapper mapper = new ObjectMapper();

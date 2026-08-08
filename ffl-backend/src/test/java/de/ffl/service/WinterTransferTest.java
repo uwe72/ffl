@@ -20,9 +20,7 @@ class WinterTransferTest extends AbstractSeasonTestBase {
     private Player kaminski;
 
     @BeforeEach
-    void setUp() throws Exception {
-        loadTestData();
-
+    void setUp() {
         mane = findPlayerByName("Filippo Man\u00e9");
         hack = findPlayerByName("Robin Hack");
         scienza = findPlayerByName("Leonardo Scienza");
@@ -33,8 +31,6 @@ class WinterTransferTest extends AbstractSeasonTestBase {
 
     @Test
     void beforeTransferRound_oldPlayersAreActive() {
-        seasonCalculationService.calculateSeason(season.getId());
-
         Set<Player> activePlayers = getActivePlayersForRound(managerUwe72, 15, TRANSFER_ROUND);
 
         assertThat(activePlayers).contains(mane, hack, scienza);
@@ -43,8 +39,6 @@ class WinterTransferTest extends AbstractSeasonTestBase {
 
     @Test
     void atTransferRound_newPlayersAreActive() {
-        seasonCalculationService.calculateSeason(season.getId());
-
         Set<Player> activePlayers = getActivePlayersForRound(managerUwe72, TRANSFER_ROUND, TRANSFER_ROUND);
 
         assertThat(activePlayers).contains(diks, elMala, kaminski);
@@ -53,8 +47,6 @@ class WinterTransferTest extends AbstractSeasonTestBase {
 
     @Test
     void afterTransferRound_newPlayersAreActive() {
-        seasonCalculationService.calculateSeason(season.getId());
-
         Set<Player> activePlayers = getActivePlayersForRound(managerUwe72, 34, TRANSFER_ROUND);
 
         assertThat(activePlayers).contains(diks, elMala, kaminski);
@@ -63,8 +55,6 @@ class WinterTransferTest extends AbstractSeasonTestBase {
 
     @Test
     void activeSquad_alwaysHas11Players() {
-        seasonCalculationService.calculateSeason(season.getId());
-
         for (int round = 1; round <= 34; round++) {
             Set<Player> activePlayers = getActivePlayersForRound(managerUwe72, round, TRANSFER_ROUND);
             assertThat(activePlayers)
@@ -80,8 +70,6 @@ class WinterTransferTest extends AbstractSeasonTestBase {
 
     @Test
     void managerPointsReflectTransfer_round15VsRound16() {
-        seasonCalculationService.calculateSeason(season.getId());
-
         Round round15 = roundMap.get(15);
         Round round16 = roundMap.get(16);
 

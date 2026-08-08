@@ -19,15 +19,11 @@ class PlayerPointsCalculationTest extends AbstractSeasonTestBase {
     private Player kramaric;
 
     @BeforeEach
-    void setUp() throws Exception {
-        loadTestData();
-
+    void setUp() {
         harryKane = findPlayerByName("Harry Kane");
         manuelNeuer = findPlayerByName("Manuel Neuer");
         kevinDiks = findPlayerByName("Kevin Diks");
         kramaric = findPlayerByName("Andrej Kramaric");
-
-        seasonCalculationService.calculateSeason(season.getId());
     }
 
     @Test

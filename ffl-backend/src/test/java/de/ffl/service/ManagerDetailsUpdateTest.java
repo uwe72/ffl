@@ -11,13 +11,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ManagerDetailsUpdateTest extends AbstractSeasonTestBase {
 
+    @Override
+    protected boolean calculateSeasonInSetup() {
+        return false;
+    }
+
     @Autowired
     private ManagerService managerService;
 
     @Test
     void updateManagerDetails_updatesUserAndManager() throws Exception {
-        loadTestData();
-
         UpdateManagerDetailsRequest request = new UpdateManagerDetailsRequest();
         request.setFirstName("Uwe");
         request.setLastName("Testmann");
@@ -41,8 +44,6 @@ class ManagerDetailsUpdateTest extends AbstractSeasonTestBase {
 
     @Test
     void updateManagerDetails_doesNotOverrideNullFields() throws Exception {
-        loadTestData();
-
         UpdateManagerDetailsRequest request = new UpdateManagerDetailsRequest();
         request.setPaymentState("NOT_PAID");
 

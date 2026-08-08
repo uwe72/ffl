@@ -4,13 +4,17 @@ import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.parser.PdfTextExtractor;
 import de.ffl.dto.DocumentDto;
 import de.ffl.repository.DocumentRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PlayerPdfServiceTest extends AbstractSeasonTestBase {
+
+    @Override
+    protected boolean calculateSeasonInSetup() {
+        return false;
+    }
 
     @Autowired
     private PlayerPdfService playerPdfService;
@@ -20,11 +24,6 @@ class PlayerPdfServiceTest extends AbstractSeasonTestBase {
 
     @Autowired
     private DocumentRepository documentRepository;
-
-    @BeforeEach
-    void setUp() throws Exception {
-        loadTestData();
-    }
 
     @Test
     void generatePlayersPdf_shouldProduceValidPdfWithAllPlayers() throws Exception {
