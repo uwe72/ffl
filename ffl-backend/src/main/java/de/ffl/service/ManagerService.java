@@ -869,7 +869,7 @@ public class ManagerService {
         int oldPrize = oldP.getPrize() != null ? oldP.getPrize() : 0;
         int newPrize = newP.getPrize() != null ? newP.getPrize() : 0;
         int diff = newPrize - oldPrize;
-        String diffStr = (diff >= 0 ? "+" : "") + TeamChangeMailService.formatPriceCompact(diff);
+        String diffStr = (diff > 0 ? "+" : "") + TeamChangeMailService.formatPriceCompact(diff);
 
         return new TeamChangeMailService.ExchangeDto(
             oldPosLabel, TeamChangeMailService.positionColor(oldPosLabel), TeamChangeMailService.fullName(oldP),

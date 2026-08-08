@@ -340,17 +340,19 @@ public class RegistrationMailService {
     }
 
     private static String formatPriceCompact(int value) {
-        if (value >= 1_000_000) {
-            double millions = value / 1_000_000.0;
+        int abs = Math.abs(value);
+        String sign = value < 0 ? "-" : "";
+        if (abs >= 1_000_000) {
+            double millions = abs / 1_000_000.0;
             String formatted = millions % 1 == 0
                 ? String.format(Locale.GERMAN, "%d", (int) millions)
                 : String.format(Locale.GERMAN, "%.1f", millions);
-            return formatted + "M €";
+            return sign + formatted + "M €";
         }
-        if (value >= 1_000) {
-            return Math.round(value / 1_000.0) + "K €";
+        if (abs >= 1_000) {
+            return sign + Math.round(abs / 1_000.0) + "K €";
         }
-        return value + " €";
+        return sign + abs + " €";
     }
 
     private static String positionFullLabel(String shortLabel) {
