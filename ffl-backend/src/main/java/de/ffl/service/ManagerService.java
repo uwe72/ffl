@@ -825,9 +825,9 @@ public class ManagerService {
                 int remaining = manager.getBudget() - totalPrize;
                 int percent = manager.getBudget() > 0 ? (totalPrize * 100 / manager.getBudget()) : 0;
                 budgetDto = new TeamChangeMailService.BudgetDto(
-                    TeamChangeMailService.formatCurrency(manager.getBudget()),
-                    TeamChangeMailService.formatCurrency(totalPrize),
-                    TeamChangeMailService.formatCurrency(remaining),
+                    TeamChangeMailService.formatPriceCompact(manager.getBudget()),
+                    TeamChangeMailService.formatPriceCompact(totalPrize),
+                    TeamChangeMailService.formatPriceCompact(remaining),
                     percent
                 );
             }
