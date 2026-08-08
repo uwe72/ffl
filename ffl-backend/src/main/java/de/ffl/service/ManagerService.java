@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -814,7 +815,7 @@ public class ManagerService {
                 .map(de.ffl.domain.SystemConfig::getWebUrl).orElse(null);
 
             List<TeamChangeMailService.ExchangeDto> exchanges = buildExchangeDtos(removed, added);
-            List<TeamChangeMailService.PlayerRowDto> playerRows = buildPlayerRows(newTeam);
+            List<TeamChangeMailService.PositionGroupDto> positionGroups = buildPositionGroups(newTeam);
 
             TeamChangeMailService.BudgetDto budgetDto = null;
             if (manager.getBudget() != null) {
@@ -833,7 +834,7 @@ public class ManagerService {
 
             teamChangeMailService.sendTeamChangeConfirmation(
                 user.getEmail(), user.getLogin(), greeting, seasonName, changeTypeLabel,
-                exchanges, playerRows, budgetDto, webUrl);
+                exchanges, positionGroups, budgetDto, webUrl);
         } catch (Exception e) {
             org.slf4j.LoggerFactory.getLogger(ManagerService.class)
                 .warn("Teamänderungsmail konnte nicht gesendet werden: {}", e.getMessage());
@@ -868,30 +869,45 @@ public class ManagerService {
         int oldPrize = oldP.getPrize() != null ? oldP.getPrize() : 0;
         int newPrize = newP.getPrize() != null ? newP.getPrize() : 0;
         int diff = newPrize - oldPrize;
-        String diffStr = (diff >= 0 ? "+" : "") + TeamChangeMailService.formatCurrency(diff);
+        String diffStr = (diff >= 0 ? "+" : "") + TeamChangeMailService.formatPriceCompact(diff);
 
         return new TeamChangeMailService.ExchangeDto(
             oldPosLabel, TeamChangeMailService.positionColor(oldPosLabel), oldP.getNameKicker(),
-            teamName(oldP), TeamChangeMailService.formatCurrency(oldPrize),
+            teamName(oldP), TeamChangeMailService.formatPriceCompact(oldPrize),
             newPosLabel, TeamChangeMailService.positionColor(newPosLabel), newP.getNameKicker(),
-            teamName(newP), TeamChangeMailService.formatCurrency(newPrize),
+            teamName(newP), TeamChangeMailService.formatPriceCompact(newPrize),
             diffStr
         );
     }
 
-    private List<TeamChangeMailService.PlayerRowDto> buildPlayerRows(List<Player> team) {
-        return team.stream()
-            .map(p -> {
-                String posLabel = TeamChangeMailService.positionLabel(p.getPosition());
-                String posColor = TeamChangeMailService.positionColor(posLabel);
-                String posBg = TeamChangeMailService.positionBg(posLabel);
-                int prize = p.getPrize() != null ? p.getPrize() : 0;
-                return new TeamChangeMailService.PlayerRowDto(
-                    posLabel, posColor, posBg, p.getNameKicker(), teamName(p),
-                    TeamChangeMailService.formatCurrency(prize)
-                );
-            })
-            .toList();
+    private List<TeamChangeMailService.PositionGroupDto> buildPositionGroups(List<Player> team) {
+        Map<String, List<TeamChangeMailService.PlayerRowDto>> grouped = new LinkedHashMap<>();
+        grouped.put("TW", new ArrayList<>());
+        grouped.put("ABW", new ArrayList<>());
+        grouped.put("MF", new ArrayList<>());
+        grouped.put("ST", new ArrayList<>());
+
+        for (Player p : team) {
+            String posKey = TeamChangeMailService.positionLabel(p.getPosition());
+            if (!grouped.containsKey(posKey)) posKey = "ST";
+            int prize = p.getPrize() != null ? p.getPrize() : 0;
+            grouped.get(posKey).add(new TeamChangeMailService.PlayerRowDto(
+                posKey, TeamChangeMailService.positionColor(posKey), TeamChangeMailService.positionBg(posKey),
+                p.getNameKicker(), teamName(p), TeamChangeMailService.formatPriceCompact(prize)
+            ));
+        }
+
+        List<TeamChangeMailService.PositionGroupDto> groups = new ArrayList<>();
+        for (Map.Entry<String, List<TeamChangeMailService.PlayerRowDto>> entry : grouped.entrySet()) {
+            if (entry.getValue().isEmpty()) continue;
+            groups.add(new TeamChangeMailService.PositionGroupDto(
+                TeamChangeMailService.positionFullLabel(entry.getKey()),
+                TeamChangeMailService.positionColor(entry.getKey()),
+                entry.getKey(),
+                entry.getValue()
+            ));
+        }
+        return groups;
     }
 
     private String teamName(Player p) {

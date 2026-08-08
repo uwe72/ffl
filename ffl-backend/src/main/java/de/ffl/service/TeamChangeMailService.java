@@ -46,7 +46,7 @@ public class TeamChangeMailService {
     public void sendTeamChangeConfirmation(String userEmail, String userLogin, String greeting,
                                            String seasonName, String changeTypeLabel,
                                            List<ExchangeDto> exchanges,
-                                           List<PlayerRowDto> newPlayers,
+                                           List<PositionGroupDto> positionGroups,
                                            BudgetDto budget,
                                            String webUrl) {
         try {
@@ -76,7 +76,7 @@ public class TeamChangeMailService {
 
             helper.setSubject("FFL | Team geändert | " + seasonName + " | " + userLogin);
 
-            String html = buildTeamChangeHtml(greeting, seasonName, changeTypeLabel, exchanges, newPlayers, budget, webUrl);
+            String html = buildTeamChangeHtml(greeting, seasonName, changeTypeLabel, exchanges, positionGroups, budget, webUrl);
             helper.setText(html, true);
 
             mailSender.send(msg);
@@ -88,14 +88,14 @@ public class TeamChangeMailService {
     }
 
     private String buildTeamChangeHtml(String greeting, String seasonName, String changeTypeLabel,
-                                       List<ExchangeDto> exchanges, List<PlayerRowDto> newPlayers,
+                                       List<ExchangeDto> exchanges, List<PositionGroupDto> positionGroups,
                                        BudgetDto budget, String webUrl) {
         Context context = new Context(Locale.GERMAN);
         context.setVariable("greeting", greeting);
         context.setVariable("seasonName", seasonName);
         context.setVariable("changeTypeLabel", changeTypeLabel);
         context.setVariable("exchanges", exchanges);
-        context.setVariable("players", newPlayers);
+        context.setVariable("positionGroups", positionGroups);
         context.setVariable("budget", budget);
         context.setVariable("webUrl", normalizeWebUrl(webUrl));
         return templateEngine.process("mail/team-change-confirmation", context);
@@ -160,7 +160,33 @@ public class TeamChangeMailService {
         return NumberFormat.getNumberInstance(Locale.GERMAN).format(value) + " €";
     }
 
+    public static String formatPriceCompact(int value) {
+        if (value >= 1_000_000) {
+            double millions = value / 1_000_000.0;
+            String formatted = millions % 1 == 0
+                ? String.format(Locale.GERMAN, "%d", (int) millions)
+                : String.format(Locale.GERMAN, "%.1f", millions);
+            return formatted + "M €";
+        }
+        if (value >= 1_000) {
+            return Math.round(value / 1_000.0) + "K €";
+        }
+        return value + " €";
+    }
+
+    public static String positionFullLabel(String shortLabel) {
+        return switch (shortLabel) {
+            case "TW" -> "Torwart";
+            case "ABW" -> "Abwehr";
+            case "MF" -> "Mittelfeld";
+            case "ST" -> "Sturm";
+            default -> "Freie Wahl";
+        };
+    }
+
     public record PlayerRowDto(String posLabel, String posColorHex, String posBgHex, String nameKicker, String teamName, String prizeFormatted) {}
+
+    public record PositionGroupDto(String label, String colorHex, String posLabel, List<PlayerRowDto> players) {}
 
     public record ExchangeDto(String oldPosLabel, String oldPosColorHex, String oldName, String oldTeam, String oldPrizeFormatted,
                               String newPosLabel, String newPosColorHex, String newName, String newTeam, String newPrizeFormatted,

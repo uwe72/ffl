@@ -51,28 +51,39 @@
           <tr>
             <td>
               <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Deine &Auml;nderungen</p>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
-                <thead>
-                  <tr style="background:#f5f5f4;">
-                    <th align="left" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Position</th>
-                    <th align="left" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#b91c1c;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Raus</th>
-                    <th align="left" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">&nbsp;</th>
-                    <th align="left" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#15803d;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Rein</th>
-                    <th align="right" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Diff.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr th:each="ex,iter : ${exchanges}" th:style="${iter.odd ? 'background:#ffffff;' : 'background:#f5f5f4;'}">
-                    <td style="padding:8px 12px;border-bottom:1px solid #e7e5e4;">
-                      <span th:style="${'display:inline-block;background:' + ex.oldPosColorHex + ';color:#ffffff;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;'}" th:text="${ex.oldPosLabel}">POS</span>
+              <th:block th:each="ex,iter : ${exchanges}">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" th:style="${'background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;margin-bottom:' + (iter.last ? '0' : '10px') + ';'}">
+                  <tr>
+                    <td style="padding:12px 16px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="vertical-align:top;">
+                            <span th:style="${'display:inline-block;background:' + ex.oldPosColorHex + ';color:#ffffff;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;margin-bottom:6px;'}" th:text="${ex.oldPosLabel}">POS</span>
+                            <p style="margin:0 0 2px 0;color:#b91c1c;font-size:14px;font-weight:600;" th:text="${ex.oldName}">Alt-Spieler</p>
+                            <p style="margin:0;color:#78716c;font-size:12px;" th:text="${ex.oldTeam + ' &middot; ' + ex.oldPrizeFormatted}">Verein &middot; 0 &euro;</p>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding:8px 0;text-align:center;color:#78716c;font-size:18px;font-weight:700;line-height:1;">&darr;</td>
+                        </tr>
+                        <tr>
+                          <td style="vertical-align:top;">
+                            <span th:style="${'display:inline-block;background:' + ex.newPosColorHex + ';color:#ffffff;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;margin-bottom:6px;'}" th:text="${ex.newPosLabel}">POS</span>
+                            <p style="margin:0 0 2px 0;color:#15803d;font-size:14px;font-weight:600;" th:text="${ex.newName}">Neu-Spieler</p>
+                            <p style="margin:0;color:#78716c;font-size:12px;" th:text="${ex.newTeam + ' &middot; ' + ex.newPrizeFormatted}">Verein &middot; 0 &euro;</p>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding-top:8px;text-align:right;border-top:1px solid #e7e5e4;">
+                            <span style="color:#57534e;font-size:11px;font-weight:500;">Preisdifferenz:</span>
+                            <span style="color:#1c1917;font-size:13px;font-weight:700;margin-left:4px;" th:text="${ex.priceDiffFormatted}">0 &euro;</span>
+                          </td>
+                        </tr>
+                      </table>
                     </td>
-                    <td style="padding:8px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;font-size:13px;font-weight:500;" th:text="${ex.oldName}">Alt-Spieler</td>
-                    <td align="center" style="padding:8px 12px;border-bottom:1px solid #e7e5e4;color:#78716c;font-size:14px;font-weight:700;">&rarr;</td>
-                    <td style="padding:8px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;font-size:13px;font-weight:500;" th:text="${ex.newName}">Neu-Spieler</td>
-                    <td align="right" style="padding:8px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;font-size:13px;font-weight:600;" th:text="${ex.priceDiffFormatted}">0 &euro;</td>
                   </tr>
-                </tbody>
-              </table>
+                </table>
+              </th:block>
             </td>
           </tr>
 
@@ -83,26 +94,22 @@
           <tr>
             <td>
               <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Dein neues Team</p>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
-                <thead>
-                  <tr style="background:#f5f5f4;">
-                    <th align="left" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Position</th>
-                    <th align="left" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Spieler</th>
-                    <th align="right" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Verein</th>
-                    <th align="right" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Preis</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr th:each="p,iter : ${players}" th:style="${iter.odd ? 'background:#ffffff;' : 'background:#f5f5f4;'}">
-                    <td style="padding:8px 12px;border-bottom:1px solid #e7e5e4;">
-                      <span th:style="${'display:inline-block;background:' + p.posBgHex + ';color:' + p.posColorHex + ';border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;'}" th:text="${p.posLabel}">POS</span>
-                    </td>
-                    <td style="padding:8px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;font-size:13px;font-weight:500;" th:text="${p.nameKicker}">Spielername</td>
-                    <td align="right" style="padding:8px 12px;border-bottom:1px solid #e7e5e4;color:#57534e;font-size:13px;" th:text="${p.teamName}">-</td>
-                    <td align="right" style="padding:8px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;font-size:13px;font-weight:600;" th:text="${p.prizeFormatted}">0 &euro;</td>
-                  </tr>
-                </tbody>
-              </table>
+              <th:block th:each="grp,gIter : ${positionGroups}">
+                <p th:style="${'margin:' + (gIter.first ? '0 0 8px 0' : '12px 0 8px 0') + ';color:' + grp.colorHex + ';font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;'}" th:text="${grp.label}">Position</p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" th:style="${'background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;margin-bottom:' + (gIter.last ? '0' : '12px') + ';'}">
+                  <th:block th:each="p,pIter : ${grp.players}">
+                    <tr th:style="${pIter.last ? '' : 'border-bottom:1px solid #e7e5e4;'}">
+                      <td style="padding:9px 16px;" th:style="${pIter.last ? 'padding:9px 16px;' : 'padding:9px 16px;border-bottom:1px solid #e7e5e4;'}">
+                        <p style="margin:0;color:#1c1917;font-size:14px;font-weight:600;line-height:1.3;" th:text="${p.nameKicker}">Spielername</p>
+                        <p style="margin:2px 0 0 0;color:#78716c;font-size:12px;" th:text="${p.teamName}">-</p>
+                      </td>
+                      <td align="right" style="vertical-align:middle;padding:9px 16px;" th:style="${pIter.last ? 'vertical-align:middle;padding:9px 16px;' : 'vertical-align:middle;padding:9px 16px;border-bottom:1px solid #e7e5e4;'}">
+                        <span style="color:#1c1917;font-size:14px;font-weight:600;white-space:nowrap;" th:text="${p.prizeFormatted}">0 &euro;</span>
+                      </td>
+                    </tr>
+                  </th:block>
+                </table>
+              </th:block>
             </td>
           </tr>
 

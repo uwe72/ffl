@@ -132,7 +132,7 @@ public class RegistrationMailService {
         String name = Optional.ofNullable(user.getFirstName()).orElse("") + " " + Optional.ofNullable(user.getLastName()).orElse("");
         context.setVariable("userName", name.trim().isEmpty() ? "-" : name.trim());
 
-        context.setVariable("players", buildPlayerRows(manager));
+        context.setVariable("positionGroups", buildPositionGroups(manager));
 
         if (manager.getBudget() != null) {
             int totalPrize = calculateTotalPrize(manager);
@@ -176,7 +176,7 @@ public class RegistrationMailService {
         return templateEngine.process("mail/registration-confirmation", context);
     }
 
-    private List<PlayerRowDto> buildPlayerRows(Manager manager) {
+    private List<PositionGroupDto> buildPositionGroups(Manager manager) {
         Map<String, Player> playerBySlot = new LinkedHashMap<>();
         playerBySlot.put("TW", manager.getPlayerGoalkeeper());
         playerBySlot.put("ABW1", manager.getPlayerDefender1());
@@ -190,33 +190,47 @@ public class RegistrationMailService {
         playerBySlot.put("ST3", manager.getPlayerStriker3());
         playerBySlot.put("FREI", manager.getPlayerFreeChoice());
 
-        List<PlayerRowDto> rows = new ArrayList<>();
+        Map<String, List<PlayerRowDto>> grouped = new LinkedHashMap<>();
+        grouped.put("TW", new ArrayList<>());
+        grouped.put("ABW", new ArrayList<>());
+        grouped.put("MF", new ArrayList<>());
+        grouped.put("ST", new ArrayList<>());
+
         for (Map.Entry<String, Player> entry : playerBySlot.entrySet()) {
             Player p = entry.getValue();
             if (p == null) continue;
 
             String slot = entry.getKey();
-            String posLabel = slot.startsWith("TW") ? "TW"
+            String posKey = slot.startsWith("TW") ? "TW"
                 : slot.startsWith("ABW") ? "ABW"
                 : slot.startsWith("MF") ? "MF"
                 : slot.startsWith("ST") ? "ST"
-                : "FREI";
-            String posColor = positionColor(posLabel);
-            String posBg = positionBg(posLabel);
-            if ("FREI".equals(slot) && p.getPosition() != null) {
-                posLabel = positionLabel(p.getPosition());
-                posColor = positionColor(p.getPosition());
-                posBg = positionBg(p.getPosition());
+                : null;
+            if (posKey == null && p.getPosition() != null) {
+                posKey = positionLabel(p.getPosition());
             }
+            if (posKey == null) posKey = "ST";
 
             String teamName = p.getTeams() != null && !p.getTeams().isEmpty()
                 ? p.getTeams().get(p.getTeams().size() - 1).getName()
                 : "-";
             int prize = p.getPrize() != null ? p.getPrize() : 0;
-
-            rows.add(new PlayerRowDto(posLabel, posColor, posBg, p.getNameKicker(), teamName, formatCurrency(prize)));
+            grouped.get(posKey).add(new PlayerRowDto(
+                posKey, positionColor(posKey), positionBg(posKey), p.getNameKicker(), teamName, formatPriceCompact(prize)
+            ));
         }
-        return rows;
+
+        List<PositionGroupDto> groups = new ArrayList<>();
+        for (Map.Entry<String, List<PlayerRowDto>> entry : grouped.entrySet()) {
+            if (entry.getValue().isEmpty()) continue;
+            groups.add(new PositionGroupDto(
+                positionFullLabel(entry.getKey()),
+                positionColor(entry.getKey()),
+                entry.getKey(),
+                entry.getValue()
+            ));
+        }
+        return groups;
     }
 
     private String buildTeamChangeHtml(User user, Manager manager) {
@@ -325,6 +339,30 @@ public class RegistrationMailService {
         return NumberFormat.getNumberInstance(Locale.GERMAN).format(value) + " €";
     }
 
+    private static String formatPriceCompact(int value) {
+        if (value >= 1_000_000) {
+            double millions = value / 1_000_000.0;
+            String formatted = millions % 1 == 0
+                ? String.format(Locale.GERMAN, "%d", (int) millions)
+                : String.format(Locale.GERMAN, "%.1f", millions);
+            return formatted + "M €";
+        }
+        if (value >= 1_000) {
+            return Math.round(value / 1_000.0) + "K €";
+        }
+        return value + " €";
+    }
+
+    private static String positionFullLabel(String shortLabel) {
+        return switch (shortLabel) {
+            case "TW" -> "Torwart";
+            case "ABW" -> "Abwehr";
+            case "MF" -> "Mittelfeld";
+            case "ST" -> "Sturm";
+            default -> "Freie Wahl";
+        };
+    }
+
     private String escape(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;")
@@ -334,6 +372,8 @@ public class RegistrationMailService {
     }
 
     public record PlayerRowDto(String posLabel, String posColorHex, String posBgHex, String nameKicker, String teamName, String prizeFormatted) {}
+
+    public record PositionGroupDto(String label, String colorHex, String posLabel, List<PlayerRowDto> players) {}
 
     public record BudgetDto(String budgetFormatted, String totalFormatted, String remainingFormatted, int percent) {}
 
