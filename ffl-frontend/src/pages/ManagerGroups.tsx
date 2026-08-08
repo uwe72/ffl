@@ -109,7 +109,7 @@ export default function ManagerGroups() {
       <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-foreground">Manager-Gruppen ({filteredGroups.length})</h2>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="relative w-64">
               <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
               <input
