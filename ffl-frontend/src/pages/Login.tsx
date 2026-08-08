@@ -80,7 +80,7 @@ export default function Login() {
       <div className="bg-surface border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl">
         <div className="flex items-start justify-between px-6 pt-6 pb-2">
           <div>
-            <h2 className="text-xl font-bold text-foreground">FFL</h2>
+            <h2 className="text-xl font-bold text-foreground">FFL{season?.name ? ` - ${season.name}` : ''}</h2>
             <p className="text-muted text-sm mt-0.5">Fantasy Football League</p>
           </div>
           <button
