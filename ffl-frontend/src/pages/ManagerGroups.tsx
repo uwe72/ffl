@@ -107,7 +107,7 @@ export default function ManagerGroups() {
   return (
     <div>
       <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between gap-4 mb-4">
           <h2 className="text-xl font-semibold text-foreground">Manager-Gruppen ({filteredGroups.length})</h2>
           <div className="flex items-center gap-3">
             <div className="relative w-64">
