@@ -88,8 +88,6 @@ export default function Login() {
       >
         <source src="/login.mp4" type="video/mp4" />
       </video>
-      <div className="absolute inset-0 bg-overlay-dark" aria-hidden="true" />
-
       <div className="relative bg-surface/80 backdrop-blur-md border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl ffl-login-enter">
         <div className="flex items-start justify-between px-6 pt-6 pb-2">
           <div className="flex items-center gap-3">
