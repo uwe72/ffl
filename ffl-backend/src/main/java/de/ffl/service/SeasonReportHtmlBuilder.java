@@ -237,7 +237,7 @@ public class SeasonReportHtmlBuilder {
                 int pos = 1;
                 for (ManagerRank r : sorted) {
                     String rowBg = rowIndex % 2 == 0 ? CARD_BG : "#f5f5f5";
-                    String name = r.getManager() != null ? escape(r.getManager().getName()) : "-";
+                    String name = r.getManager() != null ? escape(formatManagerWithLogin(r.getManager())) : "-";
                     sb.append("<tr style=\"background:").append(rowBg).append(";\">");
                     sb.append(td("center", "font-weight:600;")).append(pos).append(".</td>");
                     sb.append(td("left", "")).append(name).append("</td>");
@@ -251,7 +251,7 @@ public class SeasonReportHtmlBuilder {
                 sb.append("<p style=\"color:#6b7280;font-size:12px;\">Mitglieder: ");
                 if (group.getManagers() != null && !group.getManagers().isEmpty()) {
                     sb.append(group.getManagers().stream()
-                        .map(m -> escape(m.getName()))
+                        .map(m -> escape(formatManagerWithLogin(m)))
                         .collect(Collectors.joining(", ")));
                 }
                 sb.append("</p>");
@@ -283,7 +283,6 @@ public class SeasonReportHtmlBuilder {
             sb.append("<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;\">");
             sb.append("<strong style=\"color:").append(TEXT_SECONDARY).append(";font-size:14px;\">").append(name).append("</strong>");
             sb.append("<span style=\"font-size:12px;\">").append(email)
-              .append(" | Budget: ").append(m.getBudget() != null ? String.format("%,d", m.getBudget()).replace(",", ".") : "-")
               .append(" | <span style=\"color:").append(paymentColor).append(";\">").append(payment).append("</span></span>");
             sb.append("</div>");
 
@@ -369,6 +368,16 @@ public class SeasonReportHtmlBuilder {
         sb.append("<td style=\"padding:4px 6px;color:#36b37e;font-size:11px;\">Rein: ").append(newPlayer != null ? escape(newPlayer.getNameKicker()) : "-").append("</td>");
         sb.append("<td style=\"padding:4px 6px;\"></td>");
         sb.append("</tr>");
+    }
+
+    private String formatManagerWithLogin(Manager m) {
+        if (m == null) return "-";
+        String name = m.getName();
+        String login = m.getShortName();
+        if (name == null && login == null) return "-";
+        if (login == null) return name;
+        if (name == null) return login;
+        return name + " (" + login + ")";
     }
 
     private void buildTableOfContents(StringBuilder sb, boolean hasPayouts) {
