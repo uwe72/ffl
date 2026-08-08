@@ -1038,24 +1038,6 @@ export default function MyTeam() {
             </div>
           ))}
 
-          {isBeforeSeason && hasChanges && (
-            <div className="mt-6 flex gap-4 pt-4 border-t border-border">
-              <Button
-                variant="emphasized"
-                onClick={handleSave}
-                disabled={saving || isBudgetExceeded || hasTeamViolation || !allSlotsFilled}
-              >
-                {saving ? 'Wird gespeichert...' : 'Aufstellung speichern'}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={handleReset}
-                disabled={saving}
-              >
-                Zurücksetzen
-              </Button>
-            </div>
-          )}
         </div>
       </div>
 
