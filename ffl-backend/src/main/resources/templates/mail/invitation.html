@@ -83,15 +83,15 @@
           <!-- Block 3: Einsatz und Gewinn -->
           <tr>
             <td>
-              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Einsatz und Gewinn</p>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Einsatz: <span th:text="${spieleinsatz}" style="color:#c2410c;">10</span> Euro pro Manager</p>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
                 <tr>
                   <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
                     <ul style="margin:0;padding-left:20px;">
-                      <li style="margin-bottom:6px;"><strong style="color:#c2410c;" th:text="${spieleinsatz}">10</strong> Euro pro Manager</li>
-                      <li style="margin-bottom:6px;">Der Einsatz geht abz&uuml;glich <strong style="color:#c2410c;" th:text="${serverkosten}">70</strong> Euro Serverkosten an die <strong style="color:#1c1917;">besten <span style="color:#c2410c;" th:text="${gewinnProzent}">12</span> Prozent</strong></li>
-                      <li style="margin-bottom:6px;">Der Tabellenletzte erh&auml;lt <strong style="color:#c2410c;" th:text="${gewinnLetzter}">15</strong> Euro zur&uuml;ck</li>
-                      <li style="margin-bottom:0;">Die <strong style="color:#c2410c;" th:text="${anzahlSpielleiter}">2</strong> Spielleiter nehmen mit je einem Team kostenlos teil</li>
+                      <li style="margin-bottom:6px;">Die <strong style="color:#c2410c;" th:text="${anzahlSpielleiter}">2</strong> Spielleiter spielen mit je einem Team kostenlos mit.</li>
+                      <li style="margin-bottom:6px;">Vom Einsatz gehen <strong style="color:#c2410c;" th:text="${serverkosten}">70</strong> Euro Serverkosten ab.</li>
+                      <li style="margin-bottom:6px;">Ausgesch&uuml;ttet wird an die besten 10 Prozent, aufgerundet, bei 200 Managern also an die ersten 20.</li>
+                      <li style="margin-bottom:0;">Der Erste Gewinner bekommt <strong style="color:#c2410c;" th:text="${gewinnProzent}">12</strong> Prozent der Aussch&uuml;ttung, der letzte Gewinner <strong style="color:#c2410c;" th:text="${gewinnLetzter}">15</strong> Euro.</li>
                     </ul>
                   </td>
                 </tr>

@@ -244,11 +244,11 @@ public class InvitationMailService {
         }
         sb.append("Anmeldeschluss: ").append(deadlineDate).append(" um ").append(deadlineTime).append(" Uhr. Bis dahin kannst Du Dein Team beliebig oft umbauen.\r\n\r\n");
 
-        sb.append("EINSATZ UND GEWINN\r\n\r\n");
-        sb.append("- ").append(spieleinsatz).append(" Euro pro Manager\r\n");
-        sb.append("- Der Einsatz geht abzüglich ").append(serverkosten).append(" Euro Serverkosten an die besten ").append(gewinnProzent).append(" Prozent\r\n");
-        sb.append("- Der Tabellenletzte erhält ").append(gewinnLetzter).append(" Euro zurück\r\n");
-        sb.append("- Die ").append(anzahlSpielleiter).append(" Spielleiter nehmen mit je einem Team kostenlos teil\r\n\r\n");
+        sb.append("EINSATZ: ").append(spieleinsatz).append(" EURO PRO MANAGER\r\n\r\n");
+        sb.append("- Die ").append(anzahlSpielleiter).append(" Spielleiter spielen mit je einem Team kostenlos mit.\r\n");
+        sb.append("- Vom Einsatz gehen ").append(serverkosten).append(" Euro Serverkosten ab.\r\n");
+        sb.append("- Ausgeschüttet wird an die besten 10 Prozent, aufgerundet, bei 200 Managern also an die ersten 20.\r\n");
+        sb.append("- Der Erste Gewinner bekommt ").append(gewinnProzent).append(" Prozent der Ausschüttung, der letzte Gewinner ").append(gewinnLetzter).append(" Euro.\r\n\r\n");
 
         sb.append("SPIELREGELN\r\n\r\n");
         sb.append("- Elf Spieler: 1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm, dazu 1 Joker auf einer frei wählbaren Feldposition\r\n");
