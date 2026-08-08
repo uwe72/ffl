@@ -22,6 +22,7 @@ import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.PlayerRankRepository;
 import de.ffl.repository.PlayerRepository;
 import de.ffl.repository.SeasonRepository;
+import de.ffl.repository.SystemConfigRepository;
 import de.ffl.repository.UserRepository;
 import org.hibernate.Hibernate;
 import org.springframework.security.core.Authentication;
@@ -47,19 +48,25 @@ public class ManagerService {
     private final PlayerRankRepository playerRankRepository;
     private final ManagerRankRepository managerRankRepository;
     private final UserRepository userRepository;
+    private final TeamChangeMailService teamChangeMailService;
+    private final SystemConfigRepository systemConfigRepository;
 
     public ManagerService(ManagerRepository managerRepository,
                           PlayerRepository playerRepository,
                           SeasonRepository seasonRepository,
                           PlayerRankRepository playerRankRepository,
                           ManagerRankRepository managerRankRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          TeamChangeMailService teamChangeMailService,
+                          SystemConfigRepository systemConfigRepository) {
         this.managerRepository = managerRepository;
         this.playerRepository = playerRepository;
         this.seasonRepository = seasonRepository;
         this.playerRankRepository = playerRankRepository;
         this.managerRankRepository = managerRankRepository;
         this.userRepository = userRepository;
+        this.teamChangeMailService = teamChangeMailService;
+        this.systemConfigRepository = systemConfigRepository;
     }
 
     @Transactional(readOnly = true)
@@ -574,6 +581,10 @@ public class ManagerService {
             .build();
         validateTeam(validationManager);
 
+        List<Player> oldLineup = getCurrentLineupPlayers(manager);
+        Set<Long> oldIds = oldLineup.stream().map(Player::getId).collect(Collectors.toSet());
+        Set<Long> newIds = new HashSet<>(playerIds);
+
         manager.setPlayerGoalkeeper(playerMap.get(request.getPlayerGoalkeeperId()));
         manager.setPlayerDefender1(playerMap.get(request.getPlayerDefender1Id()));
         manager.setPlayerDefender2(playerMap.get(request.getPlayerDefender2Id()));
@@ -587,7 +598,19 @@ public class ManagerService {
         manager.setPlayerFreeChoice(playerMap.get(request.getPlayerFreeChoiceId()));
         manager.setPlayers(new HashSet<>(players));
 
-        return managerRepository.save(manager);
+        Manager saved = managerRepository.save(manager);
+
+        List<Player> removed = oldLineup.stream()
+            .filter(p -> !newIds.contains(p.getId()))
+            .toList();
+        List<Player> added = players.stream()
+            .filter(p -> !oldIds.contains(p.getId()))
+            .toList();
+        if (!removed.isEmpty() && !added.isEmpty() && removed.size() == added.size()) {
+            sendTeamChangeMail(manager, season, removed, added, players, "Aufstellung geändert");
+        }
+
+        return saved;
     }
 
     public void validateTeam(Manager manager) {
@@ -745,7 +768,20 @@ public class ManagerService {
         manager.setPlayerExchangedNew2(newPlayer2);
         manager.setPlayerExchangedNew3(newPlayer3);
 
-        return managerRepository.save(manager);
+        Manager saved = managerRepository.save(manager);
+
+        List<Player> removedPlayers = transfers.stream()
+            .map(t -> currentLineup.stream()
+                .filter(p -> p.getId().equals(t.getOldPlayerId()))
+                .findFirst().orElse(null))
+            .toList();
+        List<Player> addedPlayers = transfers.stream()
+            .map(t -> newPlayerMap.get(t.getNewPlayerId()))
+            .toList();
+        sendTeamChangeMail(manager, manager.getSeason(), removedPlayers, addedPlayers,
+            new ArrayList<>(resultingTeam), "Winterwechsel");
+
+        return saved;
     }
 
     private List<Player> getCurrentLineupPlayers(Manager manager) {
@@ -762,6 +798,106 @@ public class ManagerService {
         if (manager.getPlayerStriker3() != null) players.add(manager.getPlayerStriker3());
         if (manager.getPlayerFreeChoice() != null) players.add(manager.getPlayerFreeChoice());
         return players;
+    }
+
+    private void sendTeamChangeMail(Manager manager, Season season, List<Player> removed, List<Player> added,
+                                    List<Player> newTeam, String changeTypeLabel) {
+        try {
+            User user = manager.getUser();
+            if (user == null || season == null) return;
+            Hibernate.initialize(user);
+
+            String greeting = user.getFirstName() != null && !user.getFirstName().isBlank()
+                ? user.getFirstName() : user.getLogin();
+            String seasonName = season.getName() != null ? season.getName() : "Aktuelle Saison";
+            String webUrl = systemConfigRepository.findFirstByOrderByIdAsc()
+                .map(de.ffl.domain.SystemConfig::getWebUrl).orElse(null);
+
+            List<TeamChangeMailService.ExchangeDto> exchanges = buildExchangeDtos(removed, added);
+            List<TeamChangeMailService.PlayerRowDto> playerRows = buildPlayerRows(newTeam);
+
+            TeamChangeMailService.BudgetDto budgetDto = null;
+            if (manager.getBudget() != null) {
+                int totalPrize = newTeam.stream()
+                    .mapToInt(p -> p.getPrize() != null ? p.getPrize() : 0)
+                    .sum();
+                int remaining = manager.getBudget() - totalPrize;
+                int percent = manager.getBudget() > 0 ? (totalPrize * 100 / manager.getBudget()) : 0;
+                budgetDto = new TeamChangeMailService.BudgetDto(
+                    TeamChangeMailService.formatCurrency(manager.getBudget()),
+                    TeamChangeMailService.formatCurrency(totalPrize),
+                    TeamChangeMailService.formatCurrency(remaining),
+                    percent
+                );
+            }
+
+            teamChangeMailService.sendTeamChangeConfirmation(
+                user.getEmail(), user.getLogin(), greeting, seasonName, changeTypeLabel,
+                exchanges, playerRows, budgetDto, webUrl);
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(ManagerService.class)
+                .warn("Teamänderungsmail konnte nicht gesendet werden: {}", e.getMessage());
+        }
+    }
+
+    private List<TeamChangeMailService.ExchangeDto> buildExchangeDtos(List<Player> removed, List<Player> added) {
+        List<Player> remainingAdded = new ArrayList<>(added);
+        List<TeamChangeMailService.ExchangeDto> exchanges = new ArrayList<>();
+
+        for (Player oldP : removed) {
+            Player matchedNew = null;
+            for (int i = 0; i < remainingAdded.size(); i++) {
+                if (remainingAdded.get(i).getPosition() == oldP.getPosition()) {
+                    matchedNew = remainingAdded.remove(i);
+                    break;
+                }
+            }
+            if (matchedNew == null && !remainingAdded.isEmpty()) {
+                matchedNew = remainingAdded.remove(0);
+            }
+            if (matchedNew == null) continue;
+
+            exchanges.add(toExchangeDto(oldP, matchedNew));
+        }
+        return exchanges;
+    }
+
+    private TeamChangeMailService.ExchangeDto toExchangeDto(Player oldP, Player newP) {
+        String oldPosLabel = TeamChangeMailService.positionLabel(oldP.getPosition());
+        String newPosLabel = TeamChangeMailService.positionLabel(newP.getPosition());
+        int oldPrize = oldP.getPrize() != null ? oldP.getPrize() : 0;
+        int newPrize = newP.getPrize() != null ? newP.getPrize() : 0;
+        int diff = newPrize - oldPrize;
+        String diffStr = (diff >= 0 ? "+" : "") + TeamChangeMailService.formatCurrency(diff);
+
+        return new TeamChangeMailService.ExchangeDto(
+            oldPosLabel, TeamChangeMailService.positionColor(oldPosLabel), oldP.getNameKicker(),
+            teamName(oldP), TeamChangeMailService.formatCurrency(oldPrize),
+            newPosLabel, TeamChangeMailService.positionColor(newPosLabel), newP.getNameKicker(),
+            teamName(newP), TeamChangeMailService.formatCurrency(newPrize),
+            diffStr
+        );
+    }
+
+    private List<TeamChangeMailService.PlayerRowDto> buildPlayerRows(List<Player> team) {
+        return team.stream()
+            .map(p -> {
+                String posLabel = TeamChangeMailService.positionLabel(p.getPosition());
+                String posColor = TeamChangeMailService.positionColor(posLabel);
+                String posBg = TeamChangeMailService.positionBg(posLabel);
+                int prize = p.getPrize() != null ? p.getPrize() : 0;
+                return new TeamChangeMailService.PlayerRowDto(
+                    posLabel, posColor, posBg, p.getNameKicker(), teamName(p),
+                    TeamChangeMailService.formatCurrency(prize)
+                );
+            })
+            .toList();
+    }
+
+    private String teamName(Player p) {
+        return p.getTeams() != null && !p.getTeams().isEmpty()
+            ? p.getTeams().get(p.getTeams().size() - 1).getName()
+            : "-";
     }
 
     @Transactional(readOnly = true)
