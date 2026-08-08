@@ -169,7 +169,7 @@ function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeam
     setSelectedTeamId('ALL')
     setPriceMin('')
     setPriceMax('')
-    setAktivFilter('aktiv')
+    setAktivFilter('alle')
   }
 
   const visiblePositions = fixedPosition ? [fixedPosition] : (['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const)
@@ -282,7 +282,7 @@ export default function PlayerTable({
   const [searchTerm, setSearchTerm] = useState('')
   const [priceMin, setPriceMin] = useState('')
   const [priceMax, setPriceMax] = useState('')
-  const [aktivFilter, setAktivFilter] = useState<'aktiv' | 'inaktiv' | 'alle'>('aktiv')
+  const [aktivFilter, setAktivFilter] = useState<'aktiv' | 'inaktiv' | 'alle'>('alle')
   const [sortKey, setSortKey] = useState<SortKey>('position')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
@@ -301,7 +301,7 @@ export default function PlayerTable({
     }
   }
 
-  const hasActiveFilter = selectedPositions.size > 0 || selectedTeamId !== 'ALL' || searchTerm !== '' || priceMin !== '' || priceMax !== '' || aktivFilter !== 'aktiv'
+  const hasActiveFilter = selectedPositions.size > 0 || selectedTeamId !== 'ALL' || searchTerm !== '' || priceMin !== '' || priceMax !== '' || aktivFilter !== 'alle'
 
   const filteredPlayers = useMemo(() => {
     const filtered = players.filter(player => {
