@@ -646,12 +646,6 @@ export default function MyTeam() {
     setProfileEmail(originalProfile.email)
   }
 
-  const formatDate = (date?: string) => {
-    if (!date) return ''
-    const [y, m, d] = date.split('-')
-    return `${d}.${m}.${y}`
-  }
-
   const hasUnsavedChanges = hasChanges || hasTransferChanges
 
   useEffect(() => {
@@ -766,16 +760,6 @@ export default function MyTeam() {
 
   return (
     <div className="max-w-6xl">
-      {isBeforeSeason && season?.seasonStartDate && (
-        <div className="flex items-center gap-3 p-3 bg-accent-muted border border-accent/30 rounded-card mb-6">
-          <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0" />
-          <p className="text-sm text-foreground">
-            Änderungen sind bis zum Saisonstart am <span className="font-semibold">{formatDate(season.seasonStartDate)}</span>
-            {season.seasonStartTime && <> um <span className="font-semibold">{season.seasonStartTime} Uhr</span></>} möglich.
-          </p>
-        </div>
-      )}
-
       {isHinrunde && (
         <div className="flex items-center gap-3 p-3 bg-accent-muted border border-accent/30 rounded-card mb-6">
           <i className="sap-icon sap-icon-switch-classes text-[18px] text-accent shrink-0" />
@@ -815,15 +799,6 @@ export default function MyTeam() {
         <div className="flex items-center gap-3 p-3 bg-success-bg border border-success/30 rounded-card mb-4">
           <i className="sap-icon sap-icon-accept text-[18px] text-success shrink-0" />
           <p className="text-success text-sm">{success}</p>
-        </div>
-      )}
-
-      {hasUnsavedChanges && (
-        <div className="flex items-center gap-3 p-3 bg-warning-bg border border-warning/30 rounded-card mb-4">
-          <i className="sap-icon sap-icon-alert text-[18px] text-warning shrink-0" />
-          <p className="text-warning text-sm">
-            Du hast ungespeicherte Änderungen. Bitte drücke unten auf „Speichern", um sie zu sichern.
-          </p>
         </div>
       )}
 
