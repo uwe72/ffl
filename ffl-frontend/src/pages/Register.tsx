@@ -121,6 +121,7 @@ export default function Register() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [showBankDetails, setShowBankDetails] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const { register } = useAuth()
   const navigate = useNavigate()
@@ -1189,14 +1190,19 @@ export default function Register() {
               )}
 
               {(season?.iban || season?.bankName) && (
-                <>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-1 h-px bg-border" />
-                    <span className="text-xs text-muted uppercase tracking-wider">Alternativ per Überweisung</span>
-                    <div className="flex-1 h-px bg-border" />
-                  </div>
+                <div className="mb-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowBankDetails(s => !s)}
+                    aria-expanded={showBankDetails}
+                    className="w-full flex items-center justify-center gap-1.5 text-sm text-muted hover:text-foreground py-2 border border-border rounded-card transition-colors"
+                  >
+                    <i className={`sap-icon ${showBankDetails ? 'sap-icon-navigation-up-arrow' : 'sap-icon-navigation-down-arrow'} text-[12px]`} />
+                    Alternativ per Überweisung
+                  </button>
 
-                  <div className="bg-card-muted rounded-card px-5 py-4 mb-6">
+                  {showBankDetails && (
+                  <div className="bg-card-muted rounded-card px-5 py-4 mt-2">
                     <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
                       {season.kontoinhaber && (
                         <>
@@ -1230,7 +1236,8 @@ export default function Register() {
                       )}
                     </div>
                   </div>
-                </>
+                  )}
+                </div>
               )}
 
               <p className="text-xs text-muted text-center mb-6">
