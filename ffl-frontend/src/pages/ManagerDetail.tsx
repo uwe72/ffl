@@ -1,12 +1,13 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
-import { useManager, useManagerRoundDetails, useManagerGroups } from '../hooks/useManagers'
+import { useManager, useManagerRoundDetails, useManagerGroups, useUpdateManagerDetails } from '../hooks/useManagers'
 import { useManagerGroupsWithStats } from '../hooks/useManagerGroups'
 import { useAuth } from '../context/AuthContext'
 import { useAvatar, useUploadAvatar, useDeleteAvatar } from '../hooks/useAvatar'
 import { positionLabels, positionColors } from './Players'
 import Badge from '../components/Badge'
+import Button from '../components/Button'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
@@ -19,6 +20,11 @@ const LINE_COLORS = CHART_SERIES_PALETTE
 const paymentStateLabels = {
   PAID: 'Bezahlt',
   NOT_PAID: 'Nicht bezahlt'
+}
+
+const mailThemeLabels = {
+  LIGHTMODE: 'Lightmode',
+  DARKMODE: 'Darkmode'
 }
 
 const positionOrder: Record<string, number> = {
@@ -302,10 +308,65 @@ export default function ManagerDetail() {
   const { user } = useAuth()
   const uploadAvatar = useUploadAvatar()
   const deleteAvatar = useDeleteAvatar()
+  const updateDetails = useUpdateManagerDetails()
   const { data: managerAvatarUrl } = useAvatar(manager?.userId ?? null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const isAdmin = user?.role === 'ADMIN'
   const isOwnManager = !!(user && manager && manager.login === user.login)
+
+  const [stammdatenOpen, setStammdatenOpen] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [editData, setEditData] = useState({
+    firstName: '',
+    lastName: '',
+    paymentState: 'NOT_PAID',
+    description: '',
+    mailTheme: 'LIGHTMODE'
+  })
+
+  useEffect(() => {
+    if (manager) {
+      setEditData({
+        firstName: manager.firstName || '',
+        lastName: manager.lastName || '',
+        paymentState: manager.paymentState || 'NOT_PAID',
+        description: manager.description || '',
+        mailTheme: manager.mailTheme || 'LIGHTMODE'
+      })
+    }
+  }, [manager])
+
+  const hasDetailsChanges = manager && (
+    editData.firstName !== (manager.firstName || '') ||
+    editData.lastName !== (manager.lastName || '') ||
+    editData.paymentState !== (manager.paymentState || 'NOT_PAID') ||
+    editData.description !== (manager.description || '') ||
+    editData.mailTheme !== (manager.mailTheme || 'LIGHTMODE')
+  )
+
+  const handleDetailsSave = async () => {
+    setIsSaving(true)
+    try {
+      await updateDetails.mutateAsync({ id: Number(id), data: editData })
+      setStammdatenOpen(false)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleDetailsCancel = () => {
+    if (manager) {
+      setEditData({
+        firstName: manager.firstName || '',
+        lastName: manager.lastName || '',
+        paymentState: manager.paymentState || 'NOT_PAID',
+        description: manager.description || '',
+        mailTheme: manager.mailTheme || 'LIGHTMODE'
+      })
+    }
+    setStammdatenOpen(false)
+  }
 
   const managerInitials = useMemo(() => {
     if (!manager) return ''
@@ -547,15 +608,115 @@ export default function ManagerDetail() {
               className="hidden"
               onChange={handleAvatarChange}
             />
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-xl font-bold text-foreground">{manager.name}</h1>
-              {manager.shortName && (
-                <Badge>{manager.shortName}</Badge>
-              )}
-              <Badge variant="muted">Manager</Badge>
+            <div className="min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-xl font-bold text-foreground">{manager.name}</h1>
+                {manager.shortName && (
+                  <Badge>{manager.shortName}</Badge>
+                )}
+                <Badge variant="muted">Manager</Badge>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
-                {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
-              </span>
+                  {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
+                </span>
+                {isAdmin && (
+                  <Button
+                    variant={stammdatenOpen ? 'ghost' : 'emphasized'}
+                    size="sm"
+                    onClick={() => setStammdatenOpen(o => !o)}
+                    aria-expanded={stammdatenOpen}
+                    aria-controls="manager-stammdaten-form"
+                    className="ml-auto shrink-0"
+                  >
+                    <i className={`sap-icon sap-icon-slim-arrow-${stammdatenOpen ? 'up' : 'down'} text-xs mr-1`} />
+                    {stammdatenOpen ? 'Schließen' : 'Bearbeiten'}
+                  </Button>
+                )}
+              </div>
+
+              {stammdatenOpen && (
+                <div id="manager-stammdaten-form" className="mt-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted">Vorname</span>
+                      <input
+                        type="text"
+                        value={editData.firstName}
+                        onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
+                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted">Nachname</span>
+                      <input
+                        type="text"
+                        value={editData.lastName}
+                        onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
+                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted">Login (Kürzel)</span>
+                      <input
+                        type="text"
+                        value={manager.login || ''}
+                        readOnly
+                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted">Zahlungsstatus</span>
+                      <select
+                        value={editData.paymentState}
+                        onChange={(e) => setEditData({ ...editData, paymentState: e.target.value })}
+                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
+                      >
+                        <option value="PAID">Bezahlt</option>
+                        <option value="NOT_PAID">Nicht bezahlt</option>
+                      </select>
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted">Theme Spieltagsmail</span>
+                      <select
+                        value={editData.mailTheme}
+                        onChange={(e) => setEditData({ ...editData, mailTheme: e.target.value })}
+                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
+                      >
+                        {Object.entries(mailThemeLabels).map(([key, label]) => (
+                          <option key={key} value={key}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="md:col-span-3 min-w-0">
+                      <span className="text-xs text-muted">Beschreibung</span>
+                      <textarea
+                        rows={2}
+                        value={editData.description}
+                        onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                      />
+                    </div>
+                  </div>
+                  {hasDetailsChanges && (
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        variant="emphasized"
+                        size="sm"
+                        onClick={handleDetailsSave}
+                        disabled={isSaving}
+                      >
+                        {isSaving ? 'Wird gespeichert...' : 'Speichern'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleDetailsCancel}
+                      >
+                        Abbrechen
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-2 md:flex md:items-start md:gap-2">
               <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">

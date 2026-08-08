@@ -320,6 +320,14 @@ export interface WinterTransferRequest {
   transfers: { oldPlayerId: number; newPlayerId: number }[]
 }
 
+export interface UpdateManagerDetailsRequest {
+  firstName?: string
+  lastName?: string
+  paymentState?: string
+  description?: string
+  mailTheme?: string
+}
+
 export interface AuthResponse {
   token: string
   refreshToken: string

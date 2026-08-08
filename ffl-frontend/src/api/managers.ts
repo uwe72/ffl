@@ -1,5 +1,5 @@
 import api from './client'
-import type { Manager, ManagerRank, ManagerGroup, RoundDetail, PositionStats, ManagerRoundStats, PlayerPoint, UpdateLineupRequest, WinterTransferRequest } from '../types'
+import type { Manager, ManagerRank, ManagerGroup, RoundDetail, PositionStats, ManagerRoundStats, PlayerPoint, UpdateLineupRequest, WinterTransferRequest, UpdateManagerDetailsRequest } from '../types'
 
 export const managerApi = {
   getAll: () => api.get<Manager[]>('/managers'),
@@ -15,4 +15,5 @@ export const managerApi = {
   getRoundStats: (seasonId: number) => api.get<ManagerRoundStats[]>(`/managers/round-stats?seasonId=${seasonId}`),
   updateLineup: (data: UpdateLineupRequest) => api.put<Manager>('/managers/current/lineup', data),
   updateWinterTransfers: (data: WinterTransferRequest) => api.put<Manager>('/managers/current/winter-transfers', data),
+  updateDetails: (id: number, data: UpdateManagerDetailsRequest) => api.put<Manager>(`/managers/${id}/details`, data),
 }

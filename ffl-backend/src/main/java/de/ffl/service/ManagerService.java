@@ -3,6 +3,7 @@ package de.ffl.service;
 import de.ffl.domain.MailTheme;
 import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerRank;
+import de.ffl.domain.PaymentState;
 import de.ffl.domain.Player;
 import de.ffl.domain.PlayerRank;
 import de.ffl.domain.Position;
@@ -14,6 +15,7 @@ import de.ffl.dto.ManagerRoundStatsDto;
 import de.ffl.dto.PlayerDto;
 import de.ffl.dto.PositionStatsDto;
 import de.ffl.dto.UpdateLineupRequest;
+import de.ffl.dto.UpdateManagerDetailsRequest;
 import de.ffl.dto.WinterTransferRequest;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.ManagerRepository;
@@ -487,6 +489,39 @@ public class ManagerService {
     public Manager updateManager(Manager manager) {
         validateTeam(manager);
         return managerRepository.save(manager);
+    }
+
+    @Transactional
+    public ManagerDto updateManagerDetails(Long managerId, UpdateManagerDetailsRequest request) {
+        Manager manager = managerRepository.findById(managerId).orElse(null);
+        if (manager == null) {
+            return null;
+        }
+
+        if (manager.getUser() != null) {
+            User user = manager.getUser();
+            if (request.getFirstName() != null) {
+                user.setFirstName(request.getFirstName());
+            }
+            if (request.getLastName() != null) {
+                user.setLastName(request.getLastName());
+            }
+            userRepository.save(user);
+        }
+
+        if (request.getPaymentState() != null && !request.getPaymentState().isEmpty()) {
+            manager.setPaymentState(PaymentState.valueOf(request.getPaymentState()));
+        }
+        if (request.getDescription() != null) {
+            manager.setDescription(request.getDescription());
+        }
+        if (request.getMailTheme() != null && !request.getMailTheme().isEmpty()) {
+            manager.setMailTheme(MailTheme.valueOf(request.getMailTheme()));
+        }
+
+        managerRepository.save(manager);
+
+        return findById(managerId);
     }
 
     @Transactional

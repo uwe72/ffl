@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { managerApi } from '../api/managers'
+import type { UpdateManagerDetailsRequest } from '../types'
 
 export const useManagers = () => {
   return useQuery({
@@ -84,5 +85,17 @@ export const useManagerCurrentPlayers = (id: number) => {
     queryKey: ['manager', id, 'current-players'],
     queryFn: () => managerApi.getCurrentPlayers(id).then(res => res.data),
     enabled: !!id,
+  })
+}
+
+export const useUpdateManagerDetails = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateManagerDetailsRequest }) =>
+      managerApi.updateDetails(id, data).then(res => res.data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['manager', variables.id] })
+      queryClient.invalidateQueries({ queryKey: ['managers'] })
+    },
   })
 }
