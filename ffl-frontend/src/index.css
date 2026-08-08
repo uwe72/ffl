@@ -510,3 +510,18 @@ body {
   box-shadow: 0 0 0 3px var(--color-accent-ring);
   outline: none;
 }
+
+@keyframes ffl-login-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ffl-login-enter {
+  animation: ffl-login-enter 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}

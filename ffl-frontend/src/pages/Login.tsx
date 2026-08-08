@@ -76,12 +76,32 @@ export default function Login() {
   }, [])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background.png')" }}>
-      <div className="bg-surface border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl">
+    <div className="relative min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        poster="/background.png"
+        className="absolute inset-0 w-full h-full object-cover"
+        aria-hidden="true"
+      >
+        <source src="/login.mp4" type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 bg-overlay-dark" aria-hidden="true" />
+
+      <div className="relative bg-surface/80 backdrop-blur-md border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl ffl-login-enter">
         <div className="flex items-start justify-between px-6 pt-6 pb-2">
-          <div>
-            <h2 className="text-xl font-bold text-foreground">FFL{season?.name ? ` - ${season.name}` : ''}</h2>
-            <p className="text-muted text-sm mt-0.5">Fantasy Football League</p>
+          <div className="flex items-center gap-3">
+            <span className="text-[26px] leading-none text-accent">
+              <i className="sap-icon sap-icon-manager" />
+            </span>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground leading-tight">Willkommen zurück</h2>
+              <p className="text-muted text-sm mt-0.5">
+                Fantasy Football League{season?.name ? ` – ${season.name}` : ''}
+              </p>
+            </div>
           </div>
           <button
             className="p-1.5 rounded-control text-subtle hover:text-foreground hover:bg-elevated transition-colors -mr-1.5 mt-0.5"
@@ -119,19 +139,22 @@ export default function Login() {
               <label className="block text-sm text-muted mb-1.5">
                 Login <span className="text-muted">*</span>
               </label>
-              <input
-                ref={firstInputRef}
-                type="text"
-                required
-                placeholder="Login"
-                value={login}
-                onChange={(e) => {
-                  setLogin(e.target.value)
-                  if (fieldErrors.login) validateField('login', e.target.value)
-                }}
-                onBlur={() => handleBlur('login', login)}
-                className={`input-field w-full px-3 py-2 text-sm ${fieldErrors.login ? 'border-danger focus:border-danger' : ''}`}
-              />
+              <div className="relative">
+                <i className="sap-icon sap-icon-account absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-subtle pointer-events-none" />
+                <input
+                  ref={firstInputRef}
+                  type="text"
+                  required
+                  placeholder="Login"
+                  value={login}
+                  onChange={(e) => {
+                    setLogin(e.target.value)
+                    if (fieldErrors.login) validateField('login', e.target.value)
+                  }}
+                  onBlur={() => handleBlur('login', login)}
+                  className={`input-field w-full pl-10 pr-3 py-2 text-sm ${fieldErrors.login ? 'border-danger focus:border-danger' : ''}`}
+                />
+              </div>
               {fieldErrors.login && (
                 <p className="text-xs text-danger mt-1">{fieldErrors.login}</p>
               )}
@@ -141,18 +164,21 @@ export default function Login() {
               <label className="block text-sm text-muted mb-1.5">
                 Passwort <span className="text-muted">*</span>
               </label>
-              <input
-                type="password"
-                required
-                placeholder="Passwort"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  if (fieldErrors.password) validateField('password', e.target.value)
-                }}
-                onBlur={() => handleBlur('password', password)}
-                className={`input-field w-full px-3 py-2 text-sm ${fieldErrors.password ? 'border-danger focus:border-danger' : ''}`}
-              />
+              <div className="relative">
+                <i className="sap-icon sap-icon-locked absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-subtle pointer-events-none" />
+                <input
+                  type="password"
+                  required
+                  placeholder="Passwort"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (fieldErrors.password) validateField('password', e.target.value)
+                  }}
+                  onBlur={() => handleBlur('password', password)}
+                  className={`input-field w-full pl-10 pr-3 py-2 text-sm ${fieldErrors.password ? 'border-danger focus:border-danger' : ''}`}
+                />
+              </div>
               {fieldErrors.password && (
                 <p className="text-xs text-danger mt-1">{fieldErrors.password}</p>
               )}
@@ -187,7 +213,10 @@ export default function Login() {
                   type="submit"
                   disabled={isLoading}
                 >
-                  Anmelden
+                  {isLoading && (
+                    <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  )}
+                  {isLoading ? 'Anmelden …' : 'Anmelden'}
                 </Button>
               </div>
             </div>
