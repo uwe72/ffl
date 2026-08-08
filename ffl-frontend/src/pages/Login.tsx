@@ -91,19 +91,8 @@ export default function Login() {
       </video>
 
       <div className="relative bg-surface/80 backdrop-blur-md border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl ffl-login-enter">
-        <button
-          className="absolute top-4 right-4 p-1.5 rounded-control text-subtle hover:text-foreground hover:bg-elevated transition-colors z-10"
-          onClick={() => navigate('/')}
-          aria-label="Schließen"
-        >
-          <i className="sap-icon sap-icon-decline text-[20px]" />
-        </button>
-
-        <div className="flex flex-col items-center text-center gap-2 px-6 pt-8 pb-2">
-          <span className="w-16 h-16 rounded-full bg-accent-soft flex items-center justify-center">
-            <i className="sap-icon sap-icon-manager text-[32px] text-accent" />
-          </span>
-          <h2 className="text-2xl font-bold text-foreground leading-tight mt-1">Willkommen</h2>
+        <div className="flex flex-col items-center text-center gap-1 px-6 pt-8 pb-2">
+          <h2 className="text-2xl font-bold text-foreground leading-tight">Willkommen</h2>
           <p className="text-muted text-sm">
             Fantasy Football League{season?.name ? ` – ${season.name}` : ''}
           </p>
