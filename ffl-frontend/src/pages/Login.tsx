@@ -17,6 +17,7 @@ export default function Login() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+  const [showPassword, setShowPassword] = useState(false)
   const { login: authLogin } = useAuth()
   const { open: openFeedback } = useFeedback()
   const { data: season } = useCurrentSeason()
@@ -88,26 +89,24 @@ export default function Login() {
       >
         <source src="/login.mp4" type="video/mp4" />
       </video>
+
       <div className="relative bg-surface/80 backdrop-blur-md border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl ffl-login-enter">
-        <div className="flex items-start justify-between px-6 pt-6 pb-2">
-          <div className="flex items-center gap-3">
-            <span className="text-[26px] leading-none text-accent">
-              <i className="sap-icon sap-icon-manager" />
-            </span>
-            <div>
-              <h2 className="text-2xl font-bold text-foreground leading-tight">Willkommen zurück</h2>
-              <p className="text-muted text-sm mt-0.5">
-                Fantasy Football League{season?.name ? ` – ${season.name}` : ''}
-              </p>
-            </div>
-          </div>
-          <button
-            className="p-1.5 rounded-control text-subtle hover:text-foreground hover:bg-elevated transition-colors -mr-1.5 mt-0.5"
-            onClick={() => navigate('/')}
-            aria-label="Schließen"
-          >
-            <i className="sap-icon sap-icon-decline text-[20px]" />
-          </button>
+        <button
+          className="absolute top-4 right-4 p-1.5 rounded-control text-subtle hover:text-foreground hover:bg-elevated transition-colors z-10"
+          onClick={() => navigate('/')}
+          aria-label="Schließen"
+        >
+          <i className="sap-icon sap-icon-decline text-[20px]" />
+        </button>
+
+        <div className="flex flex-col items-center text-center gap-2 px-6 pt-8 pb-2">
+          <span className="w-16 h-16 rounded-full bg-accent-soft flex items-center justify-center">
+            <i className="sap-icon sap-icon-manager text-[32px] text-accent" />
+          </span>
+          <h2 className="text-2xl font-bold text-foreground leading-tight mt-1">Willkommen</h2>
+          <p className="text-muted text-sm">
+            Fantasy Football League{season?.name ? ` – ${season.name}` : ''}
+          </p>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 pb-6">
@@ -134,7 +133,7 @@ export default function Login() {
             )}
 
             <div>
-              <label className="block text-sm text-muted mb-1.5">
+              <label className="block text-[13px] text-muted mb-2">
                 Login <span className="text-muted">*</span>
               </label>
               <div className="relative">
@@ -150,7 +149,7 @@ export default function Login() {
                     if (fieldErrors.login) validateField('login', e.target.value)
                   }}
                   onBlur={() => handleBlur('login', login)}
-                  className={`input-field w-full pl-10 pr-3 py-2 text-sm ${fieldErrors.login ? 'border-danger focus:border-danger' : ''}`}
+                  className={`input-field w-full pl-10 pr-3 py-2.5 text-[15px] ${fieldErrors.login ? 'border-danger focus:border-danger' : ''}`}
                 />
               </div>
               {fieldErrors.login && (
@@ -159,13 +158,13 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-sm text-muted mb-1.5">
+              <label className="block text-[13px] text-muted mb-2">
                 Passwort <span className="text-muted">*</span>
               </label>
               <div className="relative">
                 <i className="sap-icon sap-icon-locked absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-subtle pointer-events-none" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="Passwort"
                   value={password}
@@ -174,8 +173,16 @@ export default function Login() {
                     if (fieldErrors.password) validateField('password', e.target.value)
                   }}
                   onBlur={() => handleBlur('password', password)}
-                  className={`input-field w-full pl-10 pr-3 py-2 text-sm ${fieldErrors.password ? 'border-danger focus:border-danger' : ''}`}
+                  className={`input-field w-full pl-10 pr-10 py-2.5 text-[15px] ${fieldErrors.password ? 'border-danger focus:border-danger' : ''}`}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(prev => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle hover:text-foreground transition-colors"
+                  aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                >
+                  <i className={`sap-icon ${showPassword ? 'sap-icon-hide' : 'sap-icon-show'} text-[18px]`} />
+                </button>
               </div>
               {fieldErrors.password && (
                 <p className="text-xs text-danger mt-1">{fieldErrors.password}</p>

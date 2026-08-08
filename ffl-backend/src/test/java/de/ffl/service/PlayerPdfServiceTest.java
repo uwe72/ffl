@@ -48,6 +48,12 @@ class PlayerPdfServiceTest extends AbstractSeasonTestBase {
             assertThat(text).contains("Bayern München");
             assertThat(text).contains("Marktwert");
             assertThat(text).contains("Manager");
+            assertThat(text).contains("FFL · FANTASY FOOTBALL LEAGUE");
+            assertThat(text).contains("SPIELER GESAMT");
+            assertThat(text).contains("MARKTWERT GESAMT");
+            assertThat(text).contains("MANAGER GESAMT");
+            assertThat(text).contains("FFL — Fantasy Football League");
+            assertThat(text).contains("Seite 1 von");
         } finally {
             reader.close();
         }
