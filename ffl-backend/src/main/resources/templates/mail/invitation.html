@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
+  <title>FFL | Einladung zur Saison</title>
+</head>
+<body style="margin:0;padding:0;background:#e7e5e4;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1c1917;-webkit-font-smoothing:antialiased;">
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#e7e5e4;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+          <!-- Hero-Banner -->
+          <tr>
+            <td style="background:#1c1917;border-radius:6px;padding:32px 28px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="vertical-align:top;">
+                    <p style="margin:0 0 10px 0;color:#ede9e3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">FFL &middot; Fantasy Football League</p>
+                    <h1 style="margin:0 0 6px 0;color:#fafaf9;font-size:26px;font-weight:700;line-height:1.2;">Einladung zur neuen Saison</h1>
+                    <p style="margin:0;color:#a8a29e;font-size:15px;font-weight:500;line-height:1.4;">Saison <span th:text="${seasonName}" style="color:#fca5a5;font-weight:700;">Aktuelle Saison</span></p>
+                  </td>
+                  <td width="44" style="vertical-align:top;text-align:right;">
+                    <span style="display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;background:#15803d;color:#ffffff;border-radius:9999px;font-size:18px;font-weight:700;">&#9993;</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="20" style="line-height:20px;font-size:20px;">&nbsp;</td></tr>
+
+          <!-- Begrüßung + Intro -->
+          <tr>
+            <td style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;padding:20px 22px;">
+              <p style="margin:0 0 12px 0;color:#1c1917;font-size:16px;font-weight:700;">Hallo FFL Fan!</p>
+              <p style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">
+                Am <span th:text="${startDateShort}" style="color:#dc2626;font-weight:700;">--</span> rollt der Ball wieder, und damit startet auch unsere <strong>Fantasy Football League</strong> in die neue Saison. Wir freuen uns, wenn Du wieder mit dabei bist.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Jetzt anmelden -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Jetzt anmelden</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <p style="margin:0 0 14px 0;color:#57534e;font-size:14px;line-height:1.6;">Die Anmeldung ist ausschlie&szlig;lich online m&ouml;glich. Klicke auf den Link, um Dich zu registrieren und Dein Team aufzustellen:</p>
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="background:#3f3a34;border-radius:6px;">
+                          <a th:href="${webUrl}" style="display:inline-block;padding:12px 22px;color:#fafaf9;font-size:14px;font-weight:700;text-decoration:none;"><span th:text="${webUrl}" style="color:#fca5a5;">https://ffl.ipv64.de</span></a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Worum geht es? -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Worum geht es?</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
+                <tr>
+                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.6;">
+                    <p style="margin:0 0 10px 0;">Du stellst vor Saisonbeginn <strong>einmalig</strong> ein Team aus echten Bundesligaspielern zusammen. 34 Spieltage lang sammelst Du Punkte f&uuml;r deren Tore und Leistungen. Der Aufwand ist einmalig, der Spa&szlig; h&auml;lt die ganze Saison.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Warum mitmachen? -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Warum mitmachen?</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
+                <tr>
+                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.6;">
+                    <ul style="margin:0;padding-left:20px;">
+                      <li style="margin-bottom:6px;">Einmal aufstellen, <strong>34 Spieltage</strong> lang mitfiebern</li>
+                      <li style="margin-bottom:6px;">Auch das unbedeutendste Spiel wird spannend, wenn eigene Spieler auf dem Platz stehen</li>
+                      <li style="margin-bottom:0;">Montags im B&uuml;ro mit den eigenen Punkten gl&auml;nzen</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Einsatz und Gewinn -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Einsatz und Gewinn</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
+                <tr>
+                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
+                    <ul style="margin:0;padding-left:20px;">
+                      <li style="margin-bottom:6px;"><span th:text="${spieleinsatz}" style="color:#dc2626;font-weight:700;">10</span> Euro pro Manager</li>
+                      <li style="margin-bottom:6px;">Der komplette Einsatz, abz&uuml;glich <span th:text="${serverkosten}" style="color:#dc2626;font-weight:700;">60</span> Euro Serverkosten, geht an die <strong>besten <span th:text="${gewinnProzent}" style="color:#dc2626;font-weight:700;">10</span> Prozent</strong></li>
+                      <li style="margin-bottom:6px;">Der Tabellenletzte erh&auml;lt <span th:text="${gewinnLetzter}" style="color:#dc2626;font-weight:700;">15</span> Euro zur&uuml;ck</li>
+                      <li style="margin-bottom:6px;">An der Organisation beteiligen sich <span th:text="${anzahlSpielleiter}" style="color:#dc2626;font-weight:700;">2</span> Spielleiter, die mit je einem Team kostenlos teilnehmen</li>
+                      <li style="margin-bottom:0;">Je mehr Mitspieler, desto gr&ouml;&szlig;er der Jackpot. Also gerne Freunde, Familie und Kollegen mitbringen und ehemalige Mitspieler reaktivieren</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Die Basics -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Die Basics</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
+                <tr>
+                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
+                    <ul style="margin:0;padding-left:20px;">
+                      <li style="margin-bottom:6px;"><strong>Elf Spieler:</strong> 1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm, dazu 1 Joker auf einer frei w&auml;hlbaren Feldposition</li>
+                      <li style="margin-bottom:6px;"><strong>Budget: <span th:text="${budget}" style="color:#dc2626;font-weight:700;">30</span> Millionen</strong></li>
+                      <li style="margin-bottom:0;">Keine Begrenzung der Spieler pro Verein</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Punktesystem -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Punktesystem</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
+                <tr>
+                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
+                    <ul style="margin:0;padding-left:20px;">
+                      <li style="margin-bottom:6px;"><strong>3 Punkte</strong> f&uuml;r ein Tor eines St&uuml;rmers</li>
+                      <li style="margin-bottom:6px;"><strong>5 Punkte</strong> f&uuml;r ein Tor eines Mittelfeldspielers</li>
+                      <li style="margin-bottom:6px;"><strong>7 Punkte</strong> f&uuml;r ein Tor eines Abwehrspielers</li>
+                      <li style="margin-bottom:6px;"><strong>5 Punkte</strong>, wenn der Torwart zu Null spielt</li>
+                      <li style="margin-bottom:6px;"><strong>2 Punkte</strong> f&uuml;r einen Abwehrspieler, der zu Null spielt</li>
+                      <li style="margin-bottom:6px;"><strong>10 Punkte</strong> f&uuml;r ein Tor des Torh&uuml;ters (ohne Elfmeter)</li>
+                      <li style="margin-bottom:6px;"><strong>3 Punkte</strong> f&uuml;r ein Elfmetertor eines Torwarts</li>
+                      <li style="margin-bottom:0;">Eigentore geben keine Punkte ;-)</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Spielerliste -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Spielerliste</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
+                <tr>
+                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
+                    <ul style="margin:0;padding-left:20px;">
+                      <li style="margin-bottom:6px;">Online als <strong>PDF</strong>: <a href="http://uwe72.hopto.org:999/FFL_Saison_2026_2027.pdf" style="color:#1d4ed8;text-decoration:none;">FFL_Saison_2026_2027.pdf</a></li>
+                      <li style="margin-bottom:6px;">Im <strong>kicker Sonderheft</strong> zur neuen Saison</li>
+                      <li style="margin-bottom:0;">Die erfolgreichsten Spieler der letzten Saison: <a href="http://uwe72.hopto.org:999/FFL_vorherigeSaison.pdf" style="color:#1d4ed8;text-decoration:none;">FFL_vorherigeSaison.pdf</a></li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Wichtige Termine -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Wichtige Termine</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
+                <tr>
+                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
+                    <ul style="margin:0;padding-left:20px;">
+                      <li style="margin-bottom:6px;"><strong>Anmeldeschluss: <span th:text="${deadlineDate}" style="color:#dc2626;font-weight:700;">--</span> um <span th:text="${deadlineTime}" style="color:#dc2626;font-weight:700;">--</span> Uhr</strong>, also vor dem Er&ouml;ffnungsspiel</li>
+                      <li style="margin-bottom:6px;">Du kannst Dich sofort anmelden und Dein Team bis dahin <strong>beliebig oft umbauen</strong></li>
+                      <li style="margin-bottom:6px;">In der <strong>Winterpause</strong> d&uuml;rfen bis zu drei Spieler getauscht werden</li>
+                      <li style="margin-bottom:6px;">Die R&uuml;ckrunde beginnt an <strong>Spieltag <span th:text="${startRoundRueckrunde}" style="color:#dc2626;font-weight:700;">--</span></strong></li>
+                      <li style="margin-bottom:0;">An jedem Spieltag bekommst Du Deinen <strong>pers&ouml;nlichen Bericht</strong> ins Postfach</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Zahlung -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Zahlung</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f4;border:1px solid #d6d3d1;border-radius:6px;">
+                <tr>
+                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.6;">
+                    Bitte beachte die <strong>Bankverbindung bzw. den Link zu PayPal</strong> aus der Best&auml;tigungsmail Deiner Anmeldung.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Schluss -->
+          <tr>
+            <td style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;padding:20px 22px;">
+              <p style="margin:0 0 10px 0;color:#57534e;font-size:14px;line-height:1.6;">
+                Die FFL ist privat und ehrenamtlich organisiert und verfolgt keine wirtschaftlichen Interessen, der Rechtsweg ist ausgeschlossen.
+              </p>
+              <p style="margin:0;color:#1c1917;font-size:14px;line-height:1.6;">
+                Wir w&uuml;nschen allen Managerinnen und Managern eine gute Hand beim Aufstellen, viele Punkte und vor allem viel Spa&szlig;. <strong>M&ouml;ge das beste Team gewinnen!</strong>
+              </p>
+              <p style="margin:14px 0 0 0;color:#1c1917;font-size:14px;line-height:1.6;">
+                Viele Gr&uuml;&szlig;e<br/>
+                <strong>Uwe Clement</strong><br/>
+                <strong>Wolfgang Gehring</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="28" style="line-height:28px;font-size:28px;">&nbsp;</td></tr>
+
+          <!-- Webseite -->
+          <th:block th:if="${webUrl != null and !webUrl.isEmpty()}">
+            <tr>
+              <td align="center" style="padding-bottom:14px;">
+                <a th:href="${webUrl}" style="color:#1d4ed8;font-size:13px;font-weight:700;text-decoration:none;">FFL &mdash; Fantasy Football League</a>
+              </td>
+            </tr>
+          </th:block>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding-top:16px;border-top:1px solid #d6d3d1;text-align:center;">
+              <p style="margin:0;color:#78716c;font-size:12px;line-height:1.6;">Fragen? Antworte einfach direkt auf diese E-Mail.</p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import ReactQuill, { Quill } from 'react-quill-new'
-import 'react-quill-new/dist/quill.snow.css'
-import { useCurrentSeason, useUpdateSeason, useInvitationMailPreview } from '../hooks/useSeasons'
+import { useCurrentSeason, useUpdateSeason, useInvitationMailPreview, useSendInvitationTestMail } from '../hooks/useSeasons'
 import InvitationMailSendDialog from '../components/InvitationMailSendDialog'
 import Button from '../components/Button'
 import FormCard from '../components/FormCard'
 import type { Season } from '../types'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Size = Quill.import('formats/size') as any
-Size.whitelist = ['8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px']
-Quill.register(Size, true)
-
 export default function MailingInvitation() {
   const { data: season, isLoading } = useCurrentSeason()
   const updateSeason = useUpdateSeason()
   const { refetch: fetchInvitationPreview, isFetching: isFetchingPreview } = useInvitationMailPreview(season?.id ?? 0)
+  const sendTestMail = useSendInvitationTestMail()
 
   const [formData, setFormData] = useState<Partial<Season>>({})
   const [hasChanges, setHasChanges] = useState(false)
@@ -79,28 +73,19 @@ export default function MailingInvitation() {
             placeholder="z.B. FFL | Saison 25/26 | Einladung"
             className="input-field w-full px-3 py-2 focus:outline-none mb-4"
           />
-          <label className="block text-sm text-muted mb-2">Einladungsmail</label>
-          <div className="quill-mail">
-            <ReactQuill
-              theme="snow"
-              value={formData.invitationMailText ?? ''}
-              onChange={(value) => handleChange('invitationMailText', value)}
-              placeholder="Einladungstext, Informationen zur neuen Saison, Anmeldelink..."
-              modules={{
-                toolbar: [
-                  [{ 'size': ['8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px'] }],
-                  ['bold', 'italic', 'underline'],
-                  [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                  ['link'],
-                  ['clean']
-                ]
-              }}
-            />
+          <div className="bg-info/10 border border-border rounded-card p-4 mb-2">
+            <p className="text-sm text-muted leading-relaxed">
+              Der Inhalt der Einladungsmail wird aus einem festen Template automatisch aus den Saisondaten generiert
+              (Saisonname, Startdatum, Anmeldeschluss, Rückrunden-Spieltag, Spieleinsatz, Serverkosten, Gewinnausschüttung,
+              Anzahl Spielleiter, Budget). In der Vorschau und Testmail sind die aus der Datenbank geladenen Werte
+              <strong className="text-danger"> rot</strong> markiert. Passe den Betreff oben an, speichere und sende eine
+              Testmail an die Admin-Adresse, um das Ergebnis zu prüfen.
+            </p>
           </div>
         </FormCard>
       </div>
 
-      <div className="mt-6 flex gap-4">
+      <div className="mt-6 flex flex-wrap gap-4">
         {hasChanges && (
           <>
             <Button
@@ -135,7 +120,38 @@ export default function MailingInvitation() {
         >
           {isFetchingPreview ? 'Lade Vorschau...' : 'Vorschau'}
         </Button>
+        <Button
+          variant="transparent"
+          onClick={() => {
+            if (hasChanges) {
+              updateSeason.mutateAsync({ id: season.id, data: formData }).then(() => {
+                setHasChanges(false)
+                sendTestMail.mutate(season.id)
+              })
+            } else {
+              sendTestMail.mutate(season.id)
+            }
+          }}
+          disabled={sendTestMail.isPending}
+        >
+          {sendTestMail.isPending ? 'Wird gesendet...' : 'Test-Mail an Admin'}
+        </Button>
       </div>
+
+      {sendTestMail.isSuccess && (
+        <div className="mt-4 bg-success/10 border border-success rounded-card p-4">
+          <p className="text-success text-sm font-medium">
+            Test-Einladungsmail wurde an die Admin-Adresse versendet.
+          </p>
+        </div>
+      )}
+      {sendTestMail.isError && (
+        <div className="mt-4 bg-danger/10 border border-danger rounded-card p-4">
+          <p className="text-danger text-sm font-medium">
+            Fehler: {(sendTestMail.error as any)?.response?.data?.message || (sendTestMail.error as Error)?.message || 'Unbekannter Fehler'}
+          </p>
+        </div>
+      )}
 
       <div className="mt-6">
         <Button

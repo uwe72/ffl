@@ -12,9 +12,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -26,32 +33,73 @@ public class InvitationMailService {
 
     private static final Logger log = LoggerFactory.getLogger(InvitationMailService.class);
 
+    private static final DateTimeFormatter DATE_LONG = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy", Locale.GERMANY);
+    private static final DateTimeFormatter DATE_SHORT = DateTimeFormatter.ofPattern("d. MMMM yyyy", Locale.GERMANY);
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+
     private final SystemConfigRepository systemConfigRepository;
     private final SeasonRepository seasonRepository;
     private final EmailAddressRepository emailAddressRepository;
     private final UnsubscribeService unsubscribeService;
+    private final SpringTemplateEngine templateEngine;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public InvitationMailService(SystemConfigRepository systemConfigRepository,
                                  SeasonRepository seasonRepository,
                                  EmailAddressRepository emailAddressRepository,
-                                 UnsubscribeService unsubscribeService) {
+                                 UnsubscribeService unsubscribeService,
+                                 SpringTemplateEngine templateEngine) {
         this.systemConfigRepository = systemConfigRepository;
         this.seasonRepository = seasonRepository;
         this.emailAddressRepository = emailAddressRepository;
         this.unsubscribeService = unsubscribeService;
+        this.templateEngine = templateEngine;
     }
 
     public String generatePreviewHtml(Long seasonId) {
         Season season = seasonRepository.findById(seasonId)
             .orElseThrow(() -> new RuntimeException("Saison " + seasonId + " nicht gefunden"));
 
-        if (season.getInvitationMailText() == null || season.getInvitationMailText().isBlank()) {
-            throw new RuntimeException("Kein Einladungsmail-Text für diese Saison hinterlegt");
+        SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc()
+            .orElse(null);
+        String webUrl = config != null ? normalizeWebUrl(config.getWebUrl()) : null;
+
+        return buildHtmlContent(season, webUrl);
+    }
+
+    public void sendTestMail(Long seasonId) {
+        SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc()
+            .orElseThrow(() -> new RuntimeException("Keine Systemkonfiguration vorhanden"));
+
+        if (config.getGmailSenderEmail() == null || config.getGmailSenderEmail().isBlank()
+            || config.getGmailAppPassword() == null || config.getGmailAppPassword().isBlank()) {
+            throw new RuntimeException("Gmail-Zugangsdaten sind nicht vollständig konfiguriert");
         }
 
-        return buildHtmlContent(season);
+        Season season = seasonRepository.findById(seasonId)
+            .orElseThrow(() -> new RuntimeException("Saison nicht gefunden"));
+
+        String webUrl = normalizeWebUrl(config.getWebUrl());
+        String html = buildHtmlContent(season, webUrl);
+        String subject = (season.getInvitationMailSubject() != null && !season.getInvitationMailSubject().isBlank())
+            ? season.getInvitationMailSubject()
+            : "FFL | Einladung zur Saison " + season.getName();
+
+        try {
+            JavaMailSenderImpl mailSender = buildMailSender(config);
+            MimeMessage msg = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+            helper.setFrom(config.getGmailSenderEmail());
+            helper.setTo(config.getGmailSenderEmail());
+            helper.setSubject(subject);
+            helper.setText(html, true);
+            mailSender.send(msg);
+            log.info("Einladungsmail (Test) gesendet an Admin: {}", config.getGmailSenderEmail());
+        } catch (Exception e) {
+            log.error("Fehler beim Senden der Test-Einladungsmail: {}", e.getMessage(), e);
+            throw new RuntimeException("Versand fehlgeschlagen: " + e.getMessage(), e);
+        }
     }
 
     public SseEmitter streamInvitationMail(Long seasonId, List<Long> emailIds, boolean testMode) {
@@ -71,12 +119,6 @@ public class InvitationMailService {
                 Season season = seasonRepository.findById(seasonId)
                     .orElseThrow(() -> new RuntimeException("Saison nicht gefunden"));
 
-                if (season.getInvitationMailText() == null || season.getInvitationMailText().isBlank()) {
-                    emitter.send(SseEmitter.event().name("error").data("FEHLER: Kein Einladungsmail-Text hinterlegt"));
-                    emitter.complete();
-                    return;
-                }
-
                 if (season.getInvitationMailSubject() == null || season.getInvitationMailSubject().isBlank()) {
                     emitter.send(SseEmitter.event().name("error").data("FEHLER: Kein Betreff für die Einladungsmail hinterlegt"));
                     emitter.complete();
@@ -88,9 +130,9 @@ public class InvitationMailService {
                     .collect(Collectors.toMap(EmailAddress::getId, e -> e));
 
                 JavaMailSenderImpl mailSender = buildMailSender(config);
-                String baseHtml = buildHtmlContent(season);
+                String webUrl = normalizeWebUrl(config.getWebUrl());
+                String baseHtml = buildHtmlContent(season, webUrl);
                 String subject = season.getInvitationMailSubject();
-                String webUrl = config.getWebUrl();
 
                 send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
                 send(emitter, "Starte Versand an " + emailIds.size() + " Empfänger...");
@@ -110,7 +152,7 @@ public class InvitationMailService {
                     String recipientEmail = emailAddress.getEmail();
 
                     try {
-                        String unsubscribeUrl = unsubscribeService.generateUnsubscribeUrl(emailId, webUrl);
+                        String unsubscribeUrl = unsubscribeService.generateUnsubscribeUrl(emailId, config.getWebUrl());
                         String htmlContent = insertUnsubscribeFooter(baseHtml, unsubscribeUrl);
 
                         MimeMessage msg = mailSender.createMimeMessage();
@@ -168,23 +210,47 @@ public class InvitationMailService {
         return emitter;
     }
 
-    private String buildHtmlContent(Season season) {
-        String bodyBg = "#f5f5f7";
-        String textPrimary = "#0a0a0a";
+    private String buildHtmlContent(Season season, String webUrl) {
+        Context context = new Context(Locale.GERMANY);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>");
-        sb.append("<body style=\"background:").append(bodyBg).append(";color:").append(textPrimary).append(";font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;padding:20px;margin:0;word-break:keep-all;overflow-wrap:anywhere;hyphens:none;\">");
-        sb.append("<div style=\"max-width:700px;margin:0 auto;\">");
+        context.setVariable("seasonName", season.getName() != null ? season.getName() : "Aktuelle Saison");
+        context.setVariable("startDateShort", formatOrDefault(season.getSeasonStartDate(), DATE_SHORT, "dem Eröffnungsspiel"));
+        context.setVariable("deadlineDate", formatOrDefault(season.getFinalRegistrationDate(), DATE_LONG, "siehe Webseite"));
+        context.setVariable("deadlineTime", formatOrDefault(season.getSeasonStartTime(), TIME_FMT, "20:30"));
+        context.setVariable("startRoundRueckrunde", season.getStartRoundRueckrunde() != null ? String.valueOf(season.getStartRoundRueckrunde()) : "--");
+        context.setVariable("spieleinsatz", formatCurrency(season.getSpieleinsatzEuro(), "10"));
+        context.setVariable("serverkosten", formatCurrency(season.getServerkostenEuro(), "60"));
+        context.setVariable("gewinnProzent", season.getGewinnErsterPlatzProzent() != null ? String.valueOf(season.getGewinnErsterPlatzProzent()) : "10");
+        context.setVariable("gewinnLetzter", formatCurrency(season.getGewinnLetzterPlatzEuro(), "15"));
+        context.setVariable("anzahlSpielleiter", season.getAnzahlSpielleiter() != null ? String.valueOf(season.getAnzahlSpielleiter()) : "2");
+        context.setVariable("budget", season.getBudget() != null ? String.valueOf(season.getBudget()) : "30");
+        context.setVariable("webUrl", webUrl);
 
-        if (season.getInvitationMailText() != null && !season.getInvitationMailText().isBlank()) {
-            sb.append("<div style='margin-bottom:24px;word-break:keep-all;overflow-wrap:anywhere;hyphens:none;'>");
-            sb.append(PrizeDistributionHtmlBuilder.prepareMailText(season.getInvitationMailText()));
-            sb.append("</div>");
+        return templateEngine.process("mail/invitation", context);
+    }
+
+    private String formatOrDefault(LocalDate date, DateTimeFormatter fmt, String fallback) {
+        return date != null ? date.format(fmt) : fallback;
+    }
+
+    private String formatOrDefault(LocalTime time, DateTimeFormatter fmt, String fallback) {
+        return time != null ? time.format(fmt) : fallback;
+    }
+
+    private String formatCurrency(java.math.BigDecimal value, String fallback) {
+        if (value == null) {
+            return fallback;
         }
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.GERMANY);
+        nf.setMaximumFractionDigits(0);
+        return nf.format(value);
+    }
 
-        sb.append("</div></body></html>");
-        return sb.toString();
+    private String normalizeWebUrl(String webUrl) {
+        if (webUrl == null || webUrl.isBlank()) {
+            return null;
+        }
+        return webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
     }
 
     private String insertUnsubscribeFooter(String html, String unsubscribeUrl) {
@@ -193,7 +259,7 @@ public class InvitationMailService {
             + "Wenn Sie keine weiteren Mails der FFL erhalten möchten, können Sie sich "
             + "<a href=\"" + unsubscribeUrl + "\" target=\"_blank\" style=\"color:#9ca3af;text-decoration:underline;\">hier austragen</a>."
             + "</p></div>";
-        return html.replace("</div></body></html>", footer + "</div></body></html>");
+        return html.replace("</body>", footer + "</body>");
     }
 
     private JavaMailSenderImpl buildMailSender(SystemConfig config) {

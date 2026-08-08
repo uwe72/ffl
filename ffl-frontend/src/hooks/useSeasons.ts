@@ -108,6 +108,13 @@ export function useInvitationMailPreview(seasonId: number) {
   })
 }
 
+export function useSendInvitationTestMail() {
+  return useMutation({
+    mutationFn: (seasonId: number) =>
+      seasonApi.sendInvitationTestMail(seasonId).then(res => res.data),
+  })
+}
+
 export function useSendSeasonReport() {
   return useMutation({
     mutationFn: (seasonId: number) =>

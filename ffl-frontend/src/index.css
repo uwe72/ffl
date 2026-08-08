@@ -369,18 +369,18 @@ body {
   border: 1px solid var(--color-border-hover);
   border-top: none;
   border-radius: 0 0 var(--radius-card) var(--radius-card);
-  background-color: var(--color-background);
+  background-color: var(--color-surface);
   font-family: inherit;
 }
 
 .ql-editor {
   color: var(--color-foreground);
   font-size: 14px;
-  min-height: 120px;
+  min-height: 320px;
 }
 
 .quill-mail .ql-editor {
-  min-height: 60px;
+  min-height: 320px;
 }
 
 .ql-editor.ql-blank::before {

@@ -278,6 +278,20 @@ public class SeasonController {
         }
     }
 
+    @PostMapping("/{id}/invitation-mail/test")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> sendInvitationTestMail(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            invitationMailService.sendTestMail(id);
+            return ResponseEntity.ok(new MessageResponse("Test-Einladungsmail wurde an die Admin-Adresse versendet."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
     @GetMapping(value = "/{id}/invitation-mail/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
     public SseEmitter streamInvitationMail(
