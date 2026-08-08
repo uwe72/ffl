@@ -216,7 +216,7 @@ public class RegistrationMailService {
                 : "-";
             int prize = p.getPrize() != null ? p.getPrize() : 0;
             grouped.get(posKey).add(new PlayerRowDto(
-                posKey, positionColor(posKey), positionBg(posKey), p.getNameKicker(), teamName, formatPriceCompact(prize)
+                posKey, positionColor(posKey), positionBg(posKey), fullName(p), teamName, formatPriceCompact(prize)
             ));
         }
 
@@ -361,6 +361,18 @@ public class RegistrationMailService {
             case "ST" -> "Sturm";
             default -> "Freie Wahl";
         };
+    }
+
+    private static String fullName(Player p) {
+        if (p == null) return "";
+        String first = p.getFirstName() != null ? p.getFirstName().trim() : null;
+        String last = p.getLastName() != null ? p.getLastName().trim() : null;
+        if (first != null && !first.isEmpty() && last != null && !last.isEmpty()) {
+            return first + " " + last;
+        }
+        if (first != null && !first.isEmpty()) return first;
+        if (last != null && !last.isEmpty()) return last;
+        return p.getNameKicker() != null ? p.getNameKicker() : "";
     }
 
     private String escape(String s) {

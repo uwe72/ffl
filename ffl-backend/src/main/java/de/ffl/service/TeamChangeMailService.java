@@ -184,6 +184,18 @@ public class TeamChangeMailService {
         };
     }
 
+    public static String fullName(de.ffl.domain.Player p) {
+        if (p == null) return "";
+        String first = p.getFirstName() != null ? p.getFirstName().trim() : null;
+        String last = p.getLastName() != null ? p.getLastName().trim() : null;
+        if (first != null && !first.isEmpty() && last != null && !last.isEmpty()) {
+            return first + " " + last;
+        }
+        if (first != null && !first.isEmpty()) return first;
+        if (last != null && !last.isEmpty()) return last;
+        return p.getNameKicker() != null ? p.getNameKicker() : "";
+    }
+
     public record PlayerRowDto(String posLabel, String posColorHex, String posBgHex, String nameKicker, String teamName, String prizeFormatted) {}
 
     public record PositionGroupDto(String label, String colorHex, String posLabel, List<PlayerRowDto> players) {}

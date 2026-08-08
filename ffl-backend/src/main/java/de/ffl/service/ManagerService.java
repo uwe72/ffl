@@ -872,9 +872,9 @@ public class ManagerService {
         String diffStr = (diff >= 0 ? "+" : "") + TeamChangeMailService.formatPriceCompact(diff);
 
         return new TeamChangeMailService.ExchangeDto(
-            oldPosLabel, TeamChangeMailService.positionColor(oldPosLabel), oldP.getNameKicker(),
+            oldPosLabel, TeamChangeMailService.positionColor(oldPosLabel), TeamChangeMailService.fullName(oldP),
             teamName(oldP), TeamChangeMailService.formatPriceCompact(oldPrize),
-            newPosLabel, TeamChangeMailService.positionColor(newPosLabel), newP.getNameKicker(),
+            newPosLabel, TeamChangeMailService.positionColor(newPosLabel), TeamChangeMailService.fullName(newP),
             teamName(newP), TeamChangeMailService.formatPriceCompact(newPrize),
             diffStr
         );
@@ -893,7 +893,7 @@ public class ManagerService {
             int prize = p.getPrize() != null ? p.getPrize() : 0;
             grouped.get(posKey).add(new TeamChangeMailService.PlayerRowDto(
                 posKey, TeamChangeMailService.positionColor(posKey), TeamChangeMailService.positionBg(posKey),
-                p.getNameKicker(), teamName(p), TeamChangeMailService.formatPriceCompact(prize)
+                TeamChangeMailService.fullName(p), teamName(p), TeamChangeMailService.formatPriceCompact(prize)
             ));
         }
 
