@@ -3,6 +3,7 @@ package de.ffl.service;
 import de.ffl.domain.Manager;
 import de.ffl.domain.Player;
 import de.ffl.domain.Position;
+import de.ffl.domain.Season;
 import de.ffl.domain.SystemConfig;
 import de.ffl.domain.User;
 import de.ffl.repository.SystemConfigRepository;
@@ -13,28 +14,47 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.text.NumberFormat;
-import java.util.Comparator;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.TreeMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Service
 public class RegistrationMailService {
 
     private static final Logger log = LoggerFactory.getLogger(RegistrationMailService.class);
 
-    private final SystemConfigRepository systemConfigRepository;
+    private static final String DEFAULT_BANK_NAME = "DKB";
+    private static final String DEFAULT_KONTOINHABER = "Uwe Clement";
+    private static final String DEFAULT_IBAN = "DE 60 1203 0000 1055 4306 39";
+    private static final String DEFAULT_BIC = "BYLADEM1001";
 
-    public RegistrationMailService(SystemConfigRepository systemConfigRepository) {
+    private static final String POS_COLOR_TW = "#57534e";
+    private static final String POS_COLOR_ABW = "#0f766e";
+    private static final String POS_COLOR_MF = "#4338ca";
+    private static final String POS_COLOR_ST = "#be123c";
+    private static final String POS_COLOR_FREI = "#6b6b6b";
+
+    private static final String POS_BG_TW = "#ede9e3";
+    private static final String POS_BG_ABW = "#ccfbf1";
+    private static final String POS_BG_MF = "#e0e7ff";
+    private static final String POS_BG_ST = "#fce7f3";
+    private static final String POS_BG_FREI = "#f5f5f4";
+
+    private final SystemConfigRepository systemConfigRepository;
+    private final SpringTemplateEngine templateEngine;
+
+    public RegistrationMailService(SystemConfigRepository systemConfigRepository, SpringTemplateEngine templateEngine) {
         this.systemConfigRepository = systemConfigRepository;
+        this.templateEngine = templateEngine;
     }
 
     @Async
@@ -97,50 +117,66 @@ public class RegistrationMailService {
     }
 
     private String buildRegistrationHtml(User user, Manager manager, String webUrl) {
-        String bodyBg = "#f5f5f7";
-        String bodyText = "#0a0a0a";
-        String cardBg = "#ffffff";
-        String cardBgAlt = "#f0f0f0";
-        String textPrimary = "#0a0a0a";
-        String textSecondary = "#1a3a5c";
-        String textTertiary = "#6b7280";
-        String linkColor = "#0056CC";
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>");
-        sb.append("<body style=\"background:").append(bodyBg).append(";color:").append(bodyText).append(";font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;padding:20px 2px;margin:0;\">");
-        sb.append("<div style=\"max-width:600px;margin:0 auto;\">");
+        Context context = new Context(Locale.GERMAN);
 
         String greeting = user.getFirstName() != null && !user.getFirstName().isBlank()
             ? user.getFirstName()
             : user.getLogin();
-        sb.append("<p style=\"color:").append(textTertiary).append(";font-size:15px;font-weight:700;line-height:1.5;margin:0 0 14px 0;\">Hallo ").append(escape(greeting)).append("!</p>");
+        context.setVariable("greeting", greeting);
 
-        String introCardStyle = "background:" + cardBgAlt + ";padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;border-radius:12px;border:1px solid #c0c0c0;";
-        sb.append("<div style=\"").append(introCardStyle).append("\">");
-        sb.append("<span style=\"color:#30D158;margin-right:6px;\">✓</span>");
-        sb.append("Deine Registrierung bei FFL war erfolgreich! Hier sind alle Details zu deiner Anmeldung:");
-        sb.append("</div>");
+        String seasonName = manager.getSeason() != null ? manager.getSeason().getName() : "Aktuelle Saison";
+        context.setVariable("seasonName", seasonName);
 
-        sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine Daten</div>");
-        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;border-collapse:collapse;border:1px solid #c0c0c0;margin-bottom:14px;\">");
-
-        addTableRow(sb, "Login", user.getLogin(), cardBg, textPrimary, textSecondary, true);
-        addTableRow(sb, "E-Mail", user.getEmail(), cardBgAlt, textPrimary, textSecondary, false);
+        context.setVariable("userLogin", user.getLogin());
+        context.setVariable("userEmail", user.getEmail());
         String name = Optional.ofNullable(user.getFirstName()).orElse("") + " " + Optional.ofNullable(user.getLastName()).orElse("");
-        addTableRow(sb, "Name", name.trim().isEmpty() ? "-" : name.trim(), cardBg, textPrimary, textSecondary, false);
+        context.setVariable("userName", name.trim().isEmpty() ? "-" : name.trim());
 
-        sb.append("</table>");
+        context.setVariable("players", buildPlayerRows(manager));
 
-        sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">Dein Team</div>");
-        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;border-collapse:collapse;border:1px solid #c0c0c0;margin-bottom:14px;\">");
-        sb.append("<tr style=\"background:#f0f0f0;\">");
-        sb.append("<th align=\"left\" style=\"padding:7px 8px;font-weight:500;border:1px solid #c0c0c0;color:").append(textSecondary).append(";font-size:11px;\">Position</th>");
-        sb.append("<th align=\"left\" style=\"padding:7px 8px;font-weight:500;border:1px solid #c0c0c0;color:").append(textSecondary).append(";font-size:11px;\">Spieler</th>");
-        sb.append("<th align=\"right\" style=\"padding:7px 8px;font-weight:500;border:1px solid #c0c0c0;color:").append(textSecondary).append(";font-size:11px;\">Verein</th>");
-        sb.append("<th align=\"right\" style=\"padding:7px 8px;font-weight:500;border:1px solid #c0c0c0;color:").append(textSecondary).append(";font-size:11px;\">Preis</th>");
-        sb.append("</tr>");
+        if (manager.getBudget() != null) {
+            int totalPrize = calculateTotalPrize(manager);
+            int remainingBudget = manager.getBudget() - totalPrize;
+            int budgetPercent = manager.getBudget() > 0 ? (totalPrize * 100 / manager.getBudget()) : 0;
+            context.setVariable("budget", new BudgetDto(
+                formatCurrency(manager.getBudget()),
+                formatCurrency(totalPrize),
+                formatCurrency(remainingBudget),
+                budgetPercent
+            ));
+        } else {
+            context.setVariable("budget", null);
+        }
 
+        Season season = manager.getSeason();
+        if (season != null) {
+            int spieleinsatz = season.getSpieleinsatzEuro() != null ? season.getSpieleinsatzEuro().intValue() : 10;
+            String verwendungszweck = "FFL " + seasonName + " " + user.getLogin();
+            String firstName = user.getFirstName() != null && !user.getFirstName().isBlank() ? user.getFirstName() : "bitte";
+
+            String paypalLink = season.getPaypalLink();
+            context.setVariable("payment", new PaymentDto(
+                firstName,
+                spieleinsatz,
+                paypalLink,
+                verwendungszweck,
+                resolveOrDefault(season.getKontoinhaber(), DEFAULT_KONTOINHABER),
+                resolveOrDefault(season.getIban(), DEFAULT_IBAN),
+                resolveOrDefault(season.getBic(), DEFAULT_BIC),
+                resolveOrDefault(season.getBankName(), DEFAULT_BANK_NAME)
+            ));
+        } else {
+            context.setVariable("payment", null);
+        }
+
+        context.setVariable("teamChange", buildTeamChangeHtml(user, manager));
+
+        context.setVariable("webUrl", normalizeWebUrl(webUrl));
+
+        return templateEngine.process("mail/registration-confirmation", context);
+    }
+
+    private List<PlayerRowDto> buildPlayerRows(Manager manager) {
         Map<String, Player> playerBySlot = new LinkedHashMap<>();
         playerBySlot.put("TW", manager.getPlayerGoalkeeper());
         playerBySlot.put("ABW1", manager.getPlayerDefender1());
@@ -154,116 +190,65 @@ public class RegistrationMailService {
         playerBySlot.put("ST3", manager.getPlayerStriker3());
         playerBySlot.put("FREI", manager.getPlayerFreeChoice());
 
-        int rowIndex = 0;
+        List<PlayerRowDto> rows = new ArrayList<>();
         for (Map.Entry<String, Player> entry : playerBySlot.entrySet()) {
             Player p = entry.getValue();
             if (p == null) continue;
 
             String slot = entry.getKey();
-            String posLabel = slot.startsWith("TW") ? "TW" : slot.startsWith("ABW") ? "ABW" : slot.startsWith("MF") ? "MF" : slot.startsWith("ST") ? "ST" : "FREI";
+            String posLabel = slot.startsWith("TW") ? "TW"
+                : slot.startsWith("ABW") ? "ABW"
+                : slot.startsWith("MF") ? "MF"
+                : slot.startsWith("ST") ? "ST"
+                : "FREI";
             String posColor = positionColor(posLabel);
+            String posBg = positionBg(posLabel);
             if ("FREI".equals(slot) && p.getPosition() != null) {
                 posLabel = positionLabel(p.getPosition());
                 posColor = positionColor(p.getPosition());
+                posBg = positionBg(p.getPosition());
             }
 
-            String rowBg = rowIndex % 2 == 0 ? "#ffffff" : "#f5f5f5";
-            String teamName = p.getTeams() != null && !p.getTeams().isEmpty() 
-                ? p.getTeams().get(p.getTeams().size() - 1).getName() 
+            String teamName = p.getTeams() != null && !p.getTeams().isEmpty()
+                ? p.getTeams().get(p.getTeams().size() - 1).getName()
                 : "-";
-
             int prize = p.getPrize() != null ? p.getPrize() : 0;
 
-            sb.append("<tr style=\"background:").append(rowBg).append(";\">");
-            sb.append("<td align=\"left\" style=\"padding:7px 8px;border:1px solid #c0c0c0;\">");
-            sb.append("<span style=\"display:inline-block;background:").append(posColor).append("15;color:").append(posColor).append(";border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;\">").append(posLabel).append("</span>");
-            sb.append("</td>");
-            sb.append("<td align=\"left\" style=\"padding:7px 8px;border:1px solid #c0c0c0;color:").append(textPrimary).append(";\">").append(escape(p.getNameKicker())).append("</td>");
-            sb.append("<td align=\"right\" style=\"padding:7px 8px;border:1px solid #c0c0c0;color:").append(textSecondary).append(";\">").append(escape(teamName)).append("</td>");
-            sb.append("<td align=\"right\" style=\"padding:7px 8px;border:1px solid #c0c0c0;color:").append(textSecondary).append(";\">").append(formatCurrency(prize)).append("</td>");
-            sb.append("</tr>");
-            rowIndex++;
+            rows.add(new PlayerRowDto(posLabel, posColor, posBg, p.getNameKicker(), teamName, formatCurrency(prize)));
+        }
+        return rows;
+    }
+
+    private String buildTeamChangeHtml(User user, Manager manager) {
+        Season season = manager.getSeason();
+        if (season == null) {
+            return null;
         }
 
-        sb.append("</table>");
-
-        if (manager.getBudget() != null) {
-            int totalPrize = calculateTotalPrize(manager);
-            int remainingBudget = manager.getBudget() - totalPrize;
-            int budgetPercent = manager.getBudget() > 0 ? (totalPrize * 100 / manager.getBudget()) : 0;
-
-            sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">Budget</div>");
-            sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;border-collapse:collapse;border:1px solid #c0c0c0;margin-bottom:14px;\">");
-            addTableRow(sb, "Gesamtbudget", formatCurrency(manager.getBudget()), cardBg, textPrimary, textSecondary, true);
-            addTableRow(sb, "Verbraucht", formatCurrency(totalPrize) + " (" + budgetPercent + "%)", cardBgAlt, textPrimary, textSecondary, false);
-            addTableRow(sb, "Verbleibend", formatCurrency(remainingBudget), cardBg, textPrimary, textSecondary, false);
-            sb.append("</table>");
-        }
-
-        if (manager.getSeason() != null) {
-            sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">Zahlungsinformationen</div>");
-            sb.append("<div style=\"background:").append(cardBgAlt).append(";padding:12px 14px;margin:0 0 14px 0;font-size:13px;line-height:1.5;border-radius:12px;border:1px solid #c0c0c0;\">");
-
-            int spieleinsatz = manager.getSeason().getSpieleinsatzEuro() != null ? manager.getSeason().getSpieleinsatzEuro().intValue() : 10;
-            String seasonNameShort = manager.getSeason().getName() != null ? manager.getSeason().getName().replace("/", "/") : "";
-            String verwendungszweck = "FFL " + seasonNameShort + " " + user.getLogin();
-            
-            String userName = user.getFirstName() != null && !user.getFirstName().isBlank() ? user.getFirstName() : "bitte";
-            sb.append(escape(userName)).append(", bitte überweise die Startgebühr von <strong>").append(spieleinsatz).append(",00 €</strong>.<br><br>");
-
-            if (manager.getSeason().getPaypalLink() != null && !manager.getSeason().getPaypalLink().isBlank()) {
-                sb.append("<strong>PayPal:</strong><br>");
-                sb.append("<a href=\"").append(escape(manager.getSeason().getPaypalLink())).append("\" style=\"display:inline-block;background:#003087;color:#ffffff;padding:10px 20px;text-decoration:none;border-radius:5px;font-weight:bold;margin:8px 0;\">Jetzt mit PayPal bezahlen</a><br><br>");
-            }
-
-            sb.append("<strong>Alternativ per Überweisung</strong><br>");
-            sb.append("Kontoinhaber: Uwe Clement<br>");
-            sb.append("IBAN: DE 60 1203 0000 1055 4306 39<br>");
-            sb.append("BIC: BYLADEM1001<br>");
-            sb.append("Bank: DKB<br>");
-            sb.append("Verwendungszweck: <strong>").append(escape(verwendungszweck)).append("</strong>");
-
-            sb.append("</div>");
-
-            sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">Team ändern</div>");
-            sb.append("<div style=\"background:").append(cardBgAlt).append(";padding:12px 14px;margin:0 0 14px 0;font-size:13px;line-height:1.5;border-radius:12px;border:1px solid #c0c0c0;\">");
-            String seasonNameForText = manager.getSeason().getName() != null ? manager.getSeason().getName() : "der Saison";
-            
-            if (manager.getSeason().getSeasonStartDate() != null) {
-                String dateStr = manager.getSeason().getSeasonStartDate().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-                if (manager.getSeason().getSeasonStartTime() != null) {
-                    String timeStr = manager.getSeason().getSeasonStartTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
-                    sb.append("Bis zum <strong>").append(dateStr).append(" um ").append(timeStr).append(" Uhr</strong> kannst Du jederzeit Dein aktuell angemeldetes Team modifizieren. Gehe hierzu auf die FFL-Webseite und logge Dich mit Deinem Benutzernamen <strong>").append(escape(user.getLogin())).append("</strong> und Passwort ein.");
-                } else {
-                    sb.append("Bis zum <strong>").append(dateStr).append("</strong> kannst Du jederzeit Dein aktuell angemeldetes Team modifizieren. Gehe hierzu auf die FFL-Webseite und logge Dich mit Deinem Benutzernamen <strong>").append(escape(user.getLogin())).append("</strong> und Passwort ein.");
-                }
+        StringBuilder sb = new StringBuilder();
+        if (season.getSeasonStartDate() != null) {
+            String dateStr = season.getSeasonStartDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+            if (season.getSeasonStartTime() != null) {
+                String timeStr = season.getSeasonStartTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+                sb.append("Bis zum <strong>").append(dateStr).append(" um ").append(timeStr).append(" Uhr</strong> kannst Du jederzeit Dein aktuell angemeldetes Team modifizieren. Gehe hierzu auf die FFL-Webseite und logge Dich mit Deinem Benutzernamen <strong>").append(escape(user.getLogin())).append("</strong> und Passwort ein.");
             } else {
-                sb.append("Du kannst jederzeit Dein aktuell angemeldetes Team modifizieren. Gehe hierzu auf die FFL-Webseite und logge Dich mit Deinem Benutzernamen <strong>").append(escape(user.getLogin())).append("</strong> und Passwort ein.");
+                sb.append("Bis zum <strong>").append(dateStr).append("</strong> kannst Du jederzeit Dein aktuell angemeldetes Team modifizieren. Gehe hierzu auf die FFL-Webseite und logge Dich mit Deinem Benutzernamen <strong>").append(escape(user.getLogin())).append("</strong> und Passwort ein.");
             }
-            sb.append("</div>");
+        } else {
+            sb.append("Du kannst jederzeit Dein aktuell angemeldetes Team modifizieren. Gehe hierzu auf die FFL-Webseite und logge Dich mit Deinem Benutzernamen <strong>").append(escape(user.getLogin())).append("</strong> und Passwort ein.");
         }
-
-        if (webUrl != null && !webUrl.isBlank()) {
-            String base = webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
-            sb.append("<div style=\"margin-top:24px;color:").append(textTertiary).append(";font-size:12px;text-align:center;\">");
-            sb.append("<div style=\"font-size:10px;font-weight:700;color:").append(textSecondary).append(";margin-bottom:2px;\">Webseite</div>");
-            sb.append("<a href=\"").append(escape(base)).append("\" style=\"color:").append(linkColor).append(";font-weight:700;text-decoration:none;\">FFL - Fantasy Football League</a>");
-            sb.append("</div>");
-        }
-
-        sb.append("<div style=\"margin-top:16px;padding-top:16px;border-top:1px solid #c0c0c0;color:").append(textTertiary).append(";font-size:12px;text-align:center;line-height:1.6;\">");
-        sb.append("Fragen? Antworte einfach direkt auf diese E-Mail.");
-        sb.append("</div>");
-
-        sb.append("</div></body></html>");
         return sb.toString();
     }
 
-    private void addTableRow(StringBuilder sb, String label, String value, String rowBg, String textPrimary, String textSecondary, boolean isHeader) {
-        sb.append("<tr style=\"background:").append(rowBg).append(";\">");
-        sb.append("<td align=\"left\" style=\"padding:7px 8px;border:1px solid #c0c0c0;color:").append(textSecondary).append(";font-weight:500;\">").append(escape(label)).append("</td>");
-        sb.append("<td align=\"left\" style=\"padding:7px 8px;border:1px solid #c0c0c0;color:").append(textPrimary).append(";\">").append(escape(value)).append("</td>");
-        sb.append("</tr>");
+    private String normalizeWebUrl(String webUrl) {
+        if (webUrl == null || webUrl.isBlank()) {
+            return null;
+        }
+        return webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
+    }
+
+    private String resolveOrDefault(String value, String fallback) {
+        return value != null && !value.isBlank() ? value : fallback;
     }
 
     private String positionLabel(Position pos) {
@@ -277,39 +262,63 @@ public class RegistrationMailService {
     }
 
     private String positionColor(Position pos) {
-        if (pos == null) return "#6b6b6b";
+        if (pos == null) return POS_COLOR_FREI;
         return switch (pos) {
-            case GOALKEEPER -> "#30D158";
-            case DEFENDER -> "#FF9F0A";
-            case MIDFIELD -> "#FF2D55";
-            case STRIKER -> "#0A84FF";
+            case GOALKEEPER -> POS_COLOR_TW;
+            case DEFENDER -> POS_COLOR_ABW;
+            case MIDFIELD -> POS_COLOR_MF;
+            case STRIKER -> POS_COLOR_ST;
+        };
+    }
+
+    private String positionBg(Position pos) {
+        if (pos == null) return POS_BG_FREI;
+        return switch (pos) {
+            case GOALKEEPER -> POS_BG_TW;
+            case DEFENDER -> POS_BG_ABW;
+            case MIDFIELD -> POS_BG_MF;
+            case STRIKER -> POS_BG_ST;
         };
     }
 
     private String positionColor(String label) {
         return switch (label) {
-            case "TW" -> "#30D158";
-            case "ABW" -> "#FF9F0A";
-            case "MF" -> "#FF2D55";
-            case "ST" -> "#0A84FF";
-            default -> "#BF5AF2";
+            case "TW" -> POS_COLOR_TW;
+            case "ABW" -> POS_COLOR_ABW;
+            case "MF" -> POS_COLOR_MF;
+            case "ST" -> POS_COLOR_ST;
+            default -> POS_COLOR_FREI;
+        };
+    }
+
+    private String positionBg(String label) {
+        return switch (label) {
+            case "TW" -> POS_BG_TW;
+            case "ABW" -> POS_BG_ABW;
+            case "MF" -> POS_BG_MF;
+            case "ST" -> POS_BG_ST;
+            default -> POS_BG_FREI;
         };
     }
 
     private int calculateTotalPrize(Manager manager) {
         int sum = 0;
-        if (manager.getPlayerGoalkeeper() != null) sum += manager.getPlayerGoalkeeper().getPrize() != null ? manager.getPlayerGoalkeeper().getPrize() : 0;
-        if (manager.getPlayerDefender1() != null) sum += manager.getPlayerDefender1().getPrize() != null ? manager.getPlayerDefender1().getPrize() : 0;
-        if (manager.getPlayerDefender2() != null) sum += manager.getPlayerDefender2().getPrize() != null ? manager.getPlayerDefender2().getPrize() : 0;
-        if (manager.getPlayerDefender3() != null) sum += manager.getPlayerDefender3().getPrize() != null ? manager.getPlayerDefender3().getPrize() : 0;
-        if (manager.getPlayerMidfield1() != null) sum += manager.getPlayerMidfield1().getPrize() != null ? manager.getPlayerMidfield1().getPrize() : 0;
-        if (manager.getPlayerMidfield2() != null) sum += manager.getPlayerMidfield2().getPrize() != null ? manager.getPlayerMidfield2().getPrize() : 0;
-        if (manager.getPlayerMidfield3() != null) sum += manager.getPlayerMidfield3().getPrize() != null ? manager.getPlayerMidfield3().getPrize() : 0;
-        if (manager.getPlayerStriker1() != null) sum += manager.getPlayerStriker1().getPrize() != null ? manager.getPlayerStriker1().getPrize() : 0;
-        if (manager.getPlayerStriker2() != null) sum += manager.getPlayerStriker2().getPrize() != null ? manager.getPlayerStriker2().getPrize() : 0;
-        if (manager.getPlayerStriker3() != null) sum += manager.getPlayerStriker3().getPrize() != null ? manager.getPlayerStriker3().getPrize() : 0;
-        if (manager.getPlayerFreeChoice() != null) sum += manager.getPlayerFreeChoice().getPrize() != null ? manager.getPlayerFreeChoice().getPrize() : 0;
+        if (manager.getPlayerGoalkeeper() != null) sum += prizeOrZero(manager.getPlayerGoalkeeper());
+        if (manager.getPlayerDefender1() != null) sum += prizeOrZero(manager.getPlayerDefender1());
+        if (manager.getPlayerDefender2() != null) sum += prizeOrZero(manager.getPlayerDefender2());
+        if (manager.getPlayerDefender3() != null) sum += prizeOrZero(manager.getPlayerDefender3());
+        if (manager.getPlayerMidfield1() != null) sum += prizeOrZero(manager.getPlayerMidfield1());
+        if (manager.getPlayerMidfield2() != null) sum += prizeOrZero(manager.getPlayerMidfield2());
+        if (manager.getPlayerMidfield3() != null) sum += prizeOrZero(manager.getPlayerMidfield3());
+        if (manager.getPlayerStriker1() != null) sum += prizeOrZero(manager.getPlayerStriker1());
+        if (manager.getPlayerStriker2() != null) sum += prizeOrZero(manager.getPlayerStriker2());
+        if (manager.getPlayerStriker3() != null) sum += prizeOrZero(manager.getPlayerStriker3());
+        if (manager.getPlayerFreeChoice() != null) sum += prizeOrZero(manager.getPlayerFreeChoice());
         return sum;
+    }
+
+    private int prizeOrZero(Player player) {
+        return player.getPrize() != null ? player.getPrize() : 0;
     }
 
     private String formatCurrency(int value) {
@@ -323,4 +332,10 @@ public class RegistrationMailService {
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;");
     }
+
+    public record PlayerRowDto(String posLabel, String posColorHex, String posBgHex, String nameKicker, String teamName, String prizeFormatted) {}
+
+    public record BudgetDto(String budgetFormatted, String totalFormatted, String remainingFormatted, int percent) {}
+
+    public record PaymentDto(String firstName, int spieleinsatz, String paypalLink, String verwendungszweck, String kontoinhaber, String iban, String bic, String bankName) {}
 }

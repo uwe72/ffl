@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
+  <title>FFL | Registrierung erfolgreich</title>
+</head>
+<body style="margin:0;padding:0;background:#e7e5e4;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1c1917;-webkit-font-smoothing:antialiased;">
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#e7e5e4;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+          <!-- Hero-Banner -->
+          <tr>
+            <td style="background:#1c1917;border-radius:6px;padding:32px 28px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="vertical-align:top;">
+                    <p style="margin:0 0 10px 0;color:#ede9e3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">FFL &middot; Fantasy Football League</p>
+                    <h1 style="margin:0 0 6px 0;color:#fafaf9;font-size:26px;font-weight:700;line-height:1.2;">Registrierung erfolgreich</h1>
+                    <p style="margin:0;color:#a8a29e;font-size:15px;font-weight:500;line-height:1.4;">Saison <span th:text="${seasonName}">Aktuelle Saison</span></p>
+                  </td>
+                  <td width="44" style="vertical-align:top;text-align:right;">
+                    <span style="display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;background:#15803d;color:#ffffff;border-radius:9999px;font-size:20px;font-weight:700;">&#10003;</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="20" style="line-height:20px;font-size:20px;">&nbsp;</td></tr>
+
+          <!-- Begrüßung + Intro -->
+          <tr>
+            <td style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;padding:20px 22px;">
+              <p style="margin:0 0 12px 0;color:#1c1917;font-size:16px;font-weight:700;">Hallo <span th:text="${greeting}">Manager</span>!</p>
+              <p style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">Deine Registrierung bei FFL war erfolgreich! Hier sind alle Details zu deiner Anmeldung:</p>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Sektion: Deine Daten -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Deine Daten</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
+                <tr>
+                  <td style="padding:11px 16px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:13px;font-weight:500;">Login</td>
+                  <td align="right" style="padding:11px 16px;border-bottom:1px solid #d6d3d1;color:#1c1917;font-size:13px;font-weight:600;" th:text="${userLogin}">login</td>
+                </tr>
+                <tr style="background:#f5f5f4;">
+                  <td style="padding:11px 16px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:13px;font-weight:500;">E-Mail</td>
+                  <td align="right" style="padding:11px 16px;border-bottom:1px solid #d6d3d1;color:#1c1917;font-size:13px;font-weight:600;" th:text="${userEmail}">email</td>
+                </tr>
+                <tr>
+                  <td style="padding:11px 16px;color:#57534e;font-size:13px;font-weight:500;">Name</td>
+                  <td align="right" style="padding:11px 16px;color:#1c1917;font-size:13px;font-weight:600;" th:text="${userName}">-</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Sektion: Dein Team -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Dein Team</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
+                <thead>
+                  <tr style="background:#f5f5f4;">
+                    <th align="left" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Position</th>
+                    <th align="left" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Spieler</th>
+                    <th align="right" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Verein</th>
+                    <th align="right" style="padding:9px 12px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Preis</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="p,iter : ${players}" th:style="${iter.odd ? 'background:#ffffff;' : 'background:#f5f5f4;'}">
+                    <td style="padding:8px 12px;border-bottom:1px solid #e7e5e4;">
+                      <span th:style="${'display:inline-block;background:' + p.posBgHex + ';color:' + p.posColorHex + ';border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;'}" th:text="${p.posLabel}">POS</span>
+                    </td>
+                    <td style="padding:8px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;font-size:13px;font-weight:500;" th:text="${p.nameKicker}">Spielername</td>
+                    <td align="right" style="padding:8px 12px;border-bottom:1px solid #e7e5e4;color:#57534e;font-size:13px;" th:text="${p.teamName}">-</td>
+                    <td align="right" style="padding:8px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;font-size:13px;font-weight:600;" th:text="${p.prizeFormatted}">0 &euro;</td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Sektion: Budget -->
+          <th:block th:if="${budget != null}">
+            <!-- Spacer -->
+            <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+            <tr>
+              <td>
+                <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Budget</p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
+                  <tr>
+                    <td style="padding:11px 16px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:13px;font-weight:500;">Gesamtbudget</td>
+                    <td align="right" style="padding:11px 16px;border-bottom:1px solid #d6d3d1;color:#1c1917;font-size:13px;font-weight:600;" th:text="${budget.budgetFormatted}">0 &euro;</td>
+                  </tr>
+                  <tr style="background:#f5f5f4;">
+                    <td style="padding:11px 16px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:13px;font-weight:500;">Verbraucht (<span th:text="${budget.percent}">0</span>%)</td>
+                    <td align="right" style="padding:11px 16px;border-bottom:1px solid #d6d3d1;color:#1c1917;font-size:13px;font-weight:600;" th:text="${budget.totalFormatted}">0 &euro;</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:11px 16px;color:#57534e;font-size:13px;font-weight:500;">Verbleibend</td>
+                    <td align="right" style="padding:11px 16px;color:#1c1917;font-size:13px;font-weight:600;" th:text="${budget.remainingFormatted}">0 &euro;</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="padding:14px 16px;background:#ffffff;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="background:#ede9e3;border-radius:9999px;height:8px;line-height:8px;font-size:8px;padding:0;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" th:style="${'width:' + budget.percent + '%;'}">
+                              <tr><td style="background:#3f3a34;border-radius:9999px;height:8px;line-height:8px;font-size:8px;">&nbsp;</td></tr>
+                            </table>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </th:block>
+
+          <!-- Sektion: Zahlungsinformationen -->
+          <th:block th:if="${payment != null}">
+            <!-- Spacer -->
+            <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+            <tr>
+              <td>
+                <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Zahlungsinformationen</p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f4;border:1px solid #d6d3d1;border-radius:6px;">
+                  <tr>
+                    <td style="padding:18px 20px;">
+                      <p style="margin:0 0 16px 0;color:#1c1917;font-size:14px;line-height:1.6;">
+                        <span th:text="${payment.firstName}">bitte</span>, bitte &uuml;berweise die Startgeb&uuml;hr von <strong th:text="${payment.spieleinsatz + ',00 &euro;'}">10,00 &euro;</strong>.
+                      </p>
+
+                      <th:block th:if="${payment.paypalLink != null and !payment.paypalLink.isEmpty()}">
+                        <p style="margin:0 0 8px 0;color:#57534e;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">PayPal</p>
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px 0;">
+                          <tr>
+                            <td style="background:#3f3a34;border-radius:6px;">
+                              <a th:href="${payment.paypalLink}" style="display:inline-block;padding:12px 22px;color:#fafaf9;font-size:14px;font-weight:700;text-decoration:none;">Jetzt mit PayPal bezahlen</a>
+                            </td>
+                          </tr>
+                        </table>
+                      </th:block>
+
+                      <p style="margin:0 0 10px 0;color:#57534e;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Alternativ per &Uuml;berweisung</p>
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:13px;line-height:1.7;color:#1c1917;">
+                        <tr><td style="color:#57534e;width:130px;">Kontoinhaber</td><td th:text="${payment.kontoinhaber}">Uwe Clement</td></tr>
+                        <tr><td style="color:#57534e;">IBAN</td><td th:text="${payment.iban}">DE 60 1203 0000 1055 4306 39</td></tr>
+                        <tr><td style="color:#57534e;">BIC</td><td th:text="${payment.bic}">BYLADEM1001</td></tr>
+                        <tr><td style="color:#57534e;">Bank</td><td th:text="${payment.bankName}">DKB</td></tr>
+                        <tr><td style="color:#57534e;vertical-align:top;">Verwendungszweck</td><td><strong th:text="${payment.verwendungszweck}">FFL</strong></td></tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </th:block>
+
+          <!-- Sektion: Team ändern -->
+          <th:block th:if="${teamChange != null}">
+            <!-- Spacer -->
+            <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+            <tr>
+              <td>
+                <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Team &auml;ndern</p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f4;border:1px solid #d6d3d1;border-radius:6px;">
+                  <tr>
+                    <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.6;" th:utext="${teamChange}">Team&auml;nderungshinweis</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </th:block>
+
+          <!-- Spacer -->
+          <tr><td height="28" style="line-height:28px;font-size:28px;">&nbsp;</td></tr>
+
+          <!-- Webseite -->
+          <th:block th:if="${webUrl != null and !webUrl.isEmpty()}">
+            <tr>
+              <td align="center" style="padding-bottom:14px;">
+                <a th:href="${webUrl}" style="color:#1d4ed8;font-size:13px;font-weight:700;text-decoration:none;">FFL &mdash; Fantasy Football League</a>
+              </td>
+            </tr>
+          </th:block>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding-top:16px;border-top:1px solid #d6d3d1;text-align:center;">
+              <p style="margin:0;color:#78716c;font-size:12px;line-height:1.6;">Fragen? Antworte einfach direkt auf diese E-Mail.</p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
