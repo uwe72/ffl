@@ -62,7 +62,7 @@
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
                 <tr>
                   <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.6;">
-                    <p style="margin:0 0 16px 0;color:#57534e;">Die Anmeldung ist ausschlie&szlig;lich online m&ouml;glich. Registriere Dich und stelle Dein Team auf:</p>
+                    <p style="margin:0 0 16px 0;color:#57534e;">Registriere Dich und stelle Dein Team auf:</p>
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;">
                       <tr>
                         <td style="background:#3f3a34;border-radius:6px;">
@@ -89,7 +89,9 @@
                   <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
                     <ul style="margin:0;padding-left:20px;">
                       <li style="margin-bottom:6px;"><strong style="color:#c2410c;" th:text="${spieleinsatz}">10</strong> Euro pro Manager</li>
-                      <li style="margin-bottom:0;">Der Einsatz geht abz&uuml;glich <strong style="color:#c2410c;" th:text="${serverkosten}">70</strong> Euro Serverkosten an die <strong style="color:#1c1917;">besten <span style="color:#c2410c;" th:text="${gewinnProzent}">12</span> Prozent</strong></li>
+                      <li style="margin-bottom:6px;">Der Einsatz geht abz&uuml;glich <strong style="color:#c2410c;" th:text="${serverkosten}">70</strong> Euro Serverkosten an die <strong style="color:#1c1917;">besten <span style="color:#c2410c;" th:text="${gewinnProzent}">12</span> Prozent</strong></li>
+                      <li style="margin-bottom:6px;">Der Tabellenletzte erh&auml;lt <strong style="color:#c2410c;" th:text="${gewinnLetzter}">15</strong> Euro zur&uuml;ck</li>
+                      <li style="margin-bottom:0;">Die <strong style="color:#c2410c;" th:text="${anzahlSpielleiter}">2</strong> Spielleiter nehmen mit je einem Team kostenlos teil</li>
                     </ul>
                   </td>
                 </tr>
@@ -111,9 +113,7 @@
                       <li style="margin-bottom:6px;"><strong style="color:#1c1917;">Elf Spieler:</strong> 1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm, dazu 1 Joker auf einer frei w&auml;hlbaren Feldposition</li>
                       <li style="margin-bottom:6px;"><strong style="color:#1c1917;">Budget: <span style="color:#c2410c;" th:text="${budget}">30.000.000</span> Euro</strong>, keine Begrenzung der Spieler pro Verein</li>
                       <li style="margin-bottom:6px;"><strong style="color:#1c1917;">Tore:</strong> St&uuml;rmer 3 Punkte, Mittelfeld 5, Abwehr 7, Torwart 10, per Elfmeter 3</li>
-                      <li style="margin-bottom:6px;"><strong style="color:#1c1917;">Zu Null:</strong> Torwart 5 Punkte, Abwehr 2</li>
-                      <li style="margin-bottom:6px;">Der Tabellenletzte erh&auml;lt <strong style="color:#c2410c;" th:text="${gewinnLetzter}">15</strong> Euro zur&uuml;ck</li>
-                      <li style="margin-bottom:0;">Die <strong style="color:#c2410c;" th:text="${anzahlSpielleiter}">2</strong> Spielleiter nehmen mit je einem Team kostenlos teil</li>
+                      <li style="margin-bottom:0;"><strong style="color:#1c1917;">Zu Null:</strong> Torwart 5 Punkte, Abwehr 2</li>
                     </ul>
                   </td>
                 </tr>

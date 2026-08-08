@@ -238,7 +238,7 @@ public class InvitationMailService {
         sb.append("Die FFL ist ein einfaches Managerspiel: Du stellst einmalig ein Team aus echten Bundesligaspielern zusammen und sammelst 34 Spieltage lang Punkte für deren Tore und Leistungen.\r\n\r\n");
 
         sb.append("JETZT ANMELDEN\r\n\r\n");
-        sb.append("Die Anmeldung ist ausschließlich online möglich. Registriere Dich und stelle Dein Team auf:\r\n");
+        sb.append("Registriere Dich und stelle Dein Team auf:\r\n");
         if (webUrl != null) {
             sb.append(webUrl).append("\r\n\r\n");
         }
@@ -246,15 +246,15 @@ public class InvitationMailService {
 
         sb.append("EINSATZ UND GEWINN\r\n\r\n");
         sb.append("- ").append(spieleinsatz).append(" Euro pro Manager\r\n");
-        sb.append("- Der Einsatz geht abzüglich ").append(serverkosten).append(" Euro Serverkosten an die besten ").append(gewinnProzent).append(" Prozent\r\n\r\n");
+        sb.append("- Der Einsatz geht abzüglich ").append(serverkosten).append(" Euro Serverkosten an die besten ").append(gewinnProzent).append(" Prozent\r\n");
+        sb.append("- Der Tabellenletzte erhält ").append(gewinnLetzter).append(" Euro zurück\r\n");
+        sb.append("- Die ").append(anzahlSpielleiter).append(" Spielleiter nehmen mit je einem Team kostenlos teil\r\n\r\n");
 
         sb.append("SPIELREGELN\r\n\r\n");
         sb.append("- Elf Spieler: 1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm, dazu 1 Joker auf einer frei wählbaren Feldposition\r\n");
         sb.append("- Budget: ").append(budget).append(" Euro, keine Begrenzung der Spieler pro Verein\r\n");
         sb.append("- Tore: Stürmer 3 Punkte, Mittelfeld 5, Abwehr 7, Torwart 10, per Elfmeter 3\r\n");
-        sb.append("- Zu Null: Torwart 5 Punkte, Abwehr 2\r\n");
-        sb.append("- Der Tabellenletzte erhält ").append(gewinnLetzter).append(" Euro zurück\r\n");
-        sb.append("- Die ").append(anzahlSpielleiter).append(" Spielleiter nehmen mit je einem Team kostenlos teil\r\n\r\n");
+        sb.append("- Zu Null: Torwart 5 Punkte, Abwehr 2\r\n\r\n");
 
         sb.append("SPIELERLISTE UND SAISONVERLAUF\r\n\r\n");
         if (playersUrl != null) {
