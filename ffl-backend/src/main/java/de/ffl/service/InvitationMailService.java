@@ -233,55 +233,39 @@ public class InvitationMailService {
         sb.append("Einladung zur Saison ").append(seasonName).append("\r\n\r\n");
 
         sb.append("HALLO FFL FAN!\r\n\r\n");
-        sb.append("Am ").append(startDateLong).append(" rollt der Ball wieder, und damit startet auch unsere Fantasy Football League in die neue Saison. Wir freuen uns, wenn Du wieder mit dabei bist.\r\n\r\n");
-        sb.append("Wir betreuen das Spiel seit der Saison 2011/2012. Mittlerweile spielen zwischen 200 und 260 Fußballfans mit, nicht nur aus Deutschland, sondern auch aus Irland, Kanada oder Kuba.\r\n\r\n");
-        sb.append("Die FFL ist ein einfaches Managerspiel: Du stellst vor Saisonbeginn einmalig ein Team aus echten Bundesligaspielern zusammen und sammelst 34 Spieltage lang Punkte für deren Tore und Leistungen.\r\n\r\n");
-        sb.append("- Einmal aufstellen, 34 Spieltage lang mitfiebern\r\n");
-        sb.append("- Auch das unbedeutendste Spiel wird spannend, wenn eigene Spieler auf dem Platz stehen\r\n");
-        sb.append("- Montags im Büro mit den eigenen Punkten glänzen\r\n\r\n");
+        sb.append("Am ").append(startDateLong).append(" rollt der Ball wieder, und damit geht auch unsere Fantasy Football League in die nächste Saison. Wir freuen uns, wenn Du dabei bist.\r\n\r\n");
+        sb.append("Wir betreuen das Spiel seit 2011/2012, mittlerweile spielen 200 bis 260 Fußballfans mit, von Deutschland bis Irland, Kanada und Kuba.\r\n\r\n");
+        sb.append("Die FFL ist ein einfaches Managerspiel: Du stellst einmalig ein Team aus echten Bundesligaspielern zusammen und sammelst 34 Spieltage lang Punkte für deren Tore und Leistungen.\r\n\r\n");
 
         sb.append("JETZT ANMELDEN\r\n\r\n");
         sb.append("Die Anmeldung ist ausschließlich online möglich. Registriere Dich und stelle Dein Team auf:\r\n");
         if (webUrl != null) {
             sb.append(webUrl).append("\r\n\r\n");
         }
-        sb.append("Anmeldeschluss: ").append(deadlineDate).append(" um ").append(deadlineTime).append(" Uhr, also vor dem Eröffnungsspiel. Bis dahin kannst Du Dein Team beliebig oft umbauen.\r\n\r\n");
+        sb.append("Anmeldeschluss: ").append(deadlineDate).append(" um ").append(deadlineTime).append(" Uhr. Bis dahin kannst Du Dein Team beliebig oft umbauen.\r\n\r\n");
 
         sb.append("EINSATZ UND GEWINN\r\n\r\n");
         sb.append("- ").append(spieleinsatz).append(" Euro pro Manager\r\n");
-        sb.append("- Der komplette Einsatz, abzüglich ").append(serverkosten).append(" Euro Serverkosten, geht an die besten ").append(gewinnProzent).append(" Prozent\r\n");
-        sb.append("- Der Tabellenletzte erhält ").append(gewinnLetzter).append(" Euro zurück\r\n");
-        sb.append("- An der Organisation beteiligen sich ").append(anzahlSpielleiter).append(" Spielleiter, die mit je einem Team kostenlos teilnehmen\r\n\r\n");
-        sb.append("Je mehr Mitspieler, desto größer der Jackpot. Bring gerne Freunde, Familie und Kollegen mit und reaktiviere ehemalige Mitspieler.\r\n\r\n");
+        sb.append("- Der Einsatz geht abzüglich ").append(serverkosten).append(" Euro Serverkosten an die besten ").append(gewinnProzent).append(" Prozent\r\n\r\n");
 
         sb.append("SPIELREGELN\r\n\r\n");
         sb.append("- Elf Spieler: 1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm, dazu 1 Joker auf einer frei wählbaren Feldposition\r\n");
-        sb.append("- Budget: ").append(budget).append(" Euro\r\n");
-        sb.append("- Keine Begrenzung der Spieler pro Verein\r\n\r\n");
-        sb.append("Punkte\r\n");
-        sb.append("Tore:\r\n");
-        sb.append("- Stürmer: 3 Punkte\r\n");
-        sb.append("- Mittelfeldspieler: 5 Punkte\r\n");
-        sb.append("- Abwehrspieler: 7 Punkte\r\n");
-        sb.append("- Torwart: 10 Punkte, per Elfmeter 3 Punkte\r\n\r\n");
-        sb.append("Zu Null:\r\n");
-        sb.append("- Torwart: 5 Punkte\r\n");
-        sb.append("- Abwehrspieler: 2 Punkte\r\n\r\n");
-        sb.append("Eigentore geben keine Punkte ;-)\r\n\r\n");
+        sb.append("- Budget: ").append(budget).append(" Euro, keine Begrenzung der Spieler pro Verein\r\n");
+        sb.append("- Tore: Stürmer 3 Punkte, Mittelfeld 5, Abwehr 7, Torwart 10, per Elfmeter 3\r\n");
+        sb.append("- Zu Null: Torwart 5 Punkte, Abwehr 2\r\n");
+        sb.append("- Der Tabellenletzte erhält ").append(gewinnLetzter).append(" Euro zurück\r\n");
+        sb.append("- Die ").append(anzahlSpielleiter).append(" Spielleiter nehmen mit je einem Team kostenlos teil\r\n\r\n");
 
         sb.append("SPIELERLISTE UND SAISONVERLAUF\r\n\r\n");
         if (playersUrl != null) {
-            sb.append("- Spielerliste online öffnen: ").append(playersUrl).append("\r\n");
+            sb.append("- Spielerliste online öffnen: ").append(playersUrl).append(" oder im kicker Sonderheft\r\n");
         }
-        sb.append("- Im kicker Sonderheft zur neuen Saison\r\n");
         if (documentsUrl != null) {
-            sb.append("- Die erfolgreichsten Spieler der letzten Saison: in den Dokumenten auf der FFL-Webseite: ").append(documentsUrl).append("\r\n");
+            sb.append("- Die erfolgreichsten Spieler der letzten Saison: in den Dokumenten: ").append(documentsUrl).append("\r\n");
         }
-        sb.append("\r\n");
-        sb.append("- In der Winterpause dürfen bis zu drei Spieler getauscht werden\r\n");
-        sb.append("- Die Rückrunde beginnt an Spieltag ").append(startRoundRueckrunde).append("\r\n");
-        sb.append("- An jedem Spieltag bekommst Du Deinen persönlichen Bericht ins Postfach\r\n\r\n");
+        sb.append("- In der Winterpause dürfen bis zu drei Spieler getauscht werden\r\n\r\n");
 
+        sb.append("VIEL ERFOLG\r\n\r\n");
         sb.append("Wir wünschen allen Managerinnen und Managern eine gute Hand beim Aufstellen, viele Punkte und vor allem viel Spaß. Möge das beste Team gewinnen!\r\n\r\n");
         sb.append("Viele Grüße\r\n");
         sb.append("Uwe Clement\r\n");
