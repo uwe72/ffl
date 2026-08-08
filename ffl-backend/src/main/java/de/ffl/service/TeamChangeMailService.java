@@ -95,7 +95,7 @@ public class TeamChangeMailService {
         context.setVariable("greeting", greeting);
         context.setVariable("seasonName", seasonName);
         context.setVariable("changeTypeLabel", changeTypeLabel);
-        context.setVariable("changeCountLabel", teamChangeCount + ". Änderung");
+        context.setVariable("teamChangeCount", teamChangeCount);
         context.setVariable("exchanges", exchanges);
         context.setVariable("positionGroups", positionGroups);
         context.setVariable("budget", budget);

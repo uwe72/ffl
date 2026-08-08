@@ -23,7 +23,7 @@
                   <td style="vertical-align:top;">
                     <p style="margin:0 0 10px 0;color:#ede9e3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">FFL &middot; Fantasy Football League</p>
                     <h1 style="margin:0 0 6px 0;color:#fafaf9;font-size:26px;font-weight:700;line-height:1.2;">Team geändert</h1>
-                    <p style="margin:0;color:#a8a29e;font-size:15px;font-weight:500;line-height:1.4;"><span th:text="${changeTypeLabel}">Aufstellung geändert</span> &middot; Saison <span th:text="${seasonName}">Aktuelle Saison</span> &middot; <span th:text="${changeCountLabel}">1. Änderung</span></p>
+                    <p style="margin:0;color:#a8a29e;font-size:15px;font-weight:500;line-height:1.4;"><span th:text="${changeTypeLabel}">Aufstellung geändert</span> &middot; Saison <span th:text="${seasonName}">Aktuelle Saison</span></p>
                   </td>
                   <td width="44" style="vertical-align:top;text-align:right;">
                     <span style="display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;background:#b7791f;color:#ffffff;border-radius:9999px;font-size:20px;font-weight:700;">&#8635;</span>
@@ -40,7 +40,7 @@
           <tr>
             <td style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;padding:20px 22px;">
               <p style="margin:0 0 12px 0;color:#1c1917;font-size:16px;font-weight:700;">Hallo <span th:text="${greeting}">Manager</span>!</p>
-              <p style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">Du hast Dein Team geändert. Hier ist die Übersicht der ausgetauschten Spieler und Deine neue Aufstellung:</p>
+              <p style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">Du hast Dein Team zum <strong th:text="${teamChangeCount}">1</strong>. Mal geändert. Hier ist die Übersicht der ausgetauschten Spieler und Deine neue Aufstellung:</p>
             </td>
           </tr>
 
