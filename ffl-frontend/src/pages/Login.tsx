@@ -85,7 +85,7 @@ export default function Login() {
         className="absolute inset-0 w-full h-full object-cover"
       />
 
-      <div className="relative bg-surface/80 backdrop-blur-md border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl ffl-login-enter">
+      <div className="relative bg-surface/70 backdrop-blur-md border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl ffl-login-enter">
         <div className="flex flex-col items-center text-center gap-1 px-6 pt-8 pb-2">
           <h2 className="text-2xl font-bold text-foreground leading-tight">Willkommen</h2>
           <p className="text-muted text-sm">
