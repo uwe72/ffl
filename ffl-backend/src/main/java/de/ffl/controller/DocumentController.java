@@ -1,0 +1,86 @@
+package de.ffl.controller;
+
+import de.ffl.dto.DocumentDto;
+import de.ffl.service.DocumentService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/documents")
+public class DocumentController {
+
+    private final DocumentService documentService;
+
+    public DocumentController(DocumentService documentService) {
+        this.documentService = documentService;
+    }
+
+    @GetMapping
+    public List<DocumentDto> getAllDocuments() {
+        return documentService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DocumentDto> getDocumentById(@PathVariable Long id) {
+        DocumentDto doc = documentService.findById(id);
+        if (doc == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(doc);
+    }
+
+    @GetMapping("/{id}/content")
+    public ResponseEntity<byte[]> getDocumentContent(@PathVariable Long id) {
+        return documentService.findFileData(id)
+            .map(doc -> ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(doc.getContentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                    "inline; filename=\"" + URLEncoder.encode(doc.getFilename(), StandardCharsets.UTF_8) + "\"")
+                .header(HttpHeaders.CACHE_CONTROL, "no-cache")
+                .body(doc.getData()))
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> uploadDocument(@RequestParam("file") MultipartFile file) {
+        try {
+            String uploaderLogin = getCurrentLogin();
+            DocumentDto created = documentService.upload(file, uploaderLogin);
+            return ResponseEntity.ok(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Fehler beim Hochladen: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteDocument(@PathVariable Long id) {
+        try {
+            documentService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    private String getCurrentLogin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return "unknown";
+        }
+        return auth.getName();
+    }
+}

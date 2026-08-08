@@ -13,6 +13,7 @@ import Managers from './pages/Managers'
 import ManagerDetail from './pages/ManagerDetail'
 import ManagerGroups from './pages/ManagerGroups'
 import ManagerGroupDetail from './pages/ManagerGroupDetail'
+import Documents from './pages/Documents'
 import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
 import Users from './pages/Users'
@@ -74,6 +75,7 @@ function App() {
             <Route path="managers/:id" element={<SeasonRestrictedRoute><ManagerDetail /></SeasonRestrictedRoute>} />
             <Route path="manager-groups" element={<ManagerGroups />} />
             <Route path="manager-groups/:id" element={<ManagerGroupDetail />} />
+            <Route path="documents" element={<Documents />} />
             <Route path="users" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Users />

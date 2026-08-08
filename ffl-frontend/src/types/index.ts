@@ -117,6 +117,7 @@ export interface Player {
   position: Position
   prize: number
   pictureUrl?: string
+  aktiv?: boolean
   teams: Team[]
   season?: Season
   managerCount?: number
@@ -528,6 +529,15 @@ export interface BestTeamResult {
   totalCost: number
   formation: string
   budget: number
+}
+
+export interface Document {
+  id: number
+  filename: string
+  contentType: string
+  fileSize: number
+  uploadedAt: string
+  uploadedBy: string
 }
 
 export interface SetupPreviewTeamBreakdown {
