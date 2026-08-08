@@ -549,13 +549,9 @@ export default function ManagerDetail() {
     manager.playerFreeChoice
   ].filter(Boolean) as Player[]
 
-  const hinrundeBudget = hinrundePlayers.reduce((sum, p) => sum + p.prize, 0)
-
   const rueckrundePlayers = hasExchanges
     ? [...hinrundePlayers.filter(p => !oldPlayers.find(op => op.id === p.id)), ...newPlayers]
     : hinrundePlayers
-
-  const rueckrundeBudget = rueckrundePlayers.reduce((sum, p) => sum + p.prize, 0)
 
   const chartData = roundDetails?.map(r => ({
     name: `${r.roundNumber}`,
@@ -795,16 +791,6 @@ export default function ManagerDetail() {
               label="Spieltag"
               value={currentRoundNumber ? String(currentRoundNumber) : '—'}
             />
-            <StatTile
-              label="Hinrunde-Wert"
-              value={`${(hinrundeBudget / 1000000).toFixed(2)} Mio. €`}
-            />
-            {hasExchanges && (
-              <StatTile
-                label="Rückrunde-Wert"
-                value={`${(rueckrundeBudget / 1000000).toFixed(2)} Mio. €`}
-              />
-            )}
           </div>
         </div>
       </div>
