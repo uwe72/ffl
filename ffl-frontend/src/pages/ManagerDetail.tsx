@@ -6,10 +6,9 @@ import { useManagerGroupsWithStats } from '../hooks/useManagerGroups'
 import { useAuth } from '../context/AuthContext'
 import { useAvatar, useUploadAvatar, useDeleteAvatar } from '../hooks/useAvatar'
 import { positionLabels, positionColors } from './Players'
-import Badge from '../components/Badge'
 import Button from '../components/Button'
-import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
+import StatTile from '../components/StatTile'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import { getChartColors, CHART_SERIES_PALETTE } from '../utils/chartColors'
 import type { Player, ManagerGroup, RulePoint } from '../types'
@@ -477,9 +476,60 @@ export default function ManagerDetail() {
     return null
   }
 
-  if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
-  if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
-  if (!manager) return <div className="text-center py-8 text-subtle">Manager nicht gefunden</div>
+  if (isLoading) {
+    return (
+      <div className="max-w-6xl" aria-busy="true">
+        <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+          <i className="sap-icon sap-icon-nav-back text-base" />
+          Zurück zur Übersicht
+        </RouterLink>
+        <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+          <div className="flex gap-6">
+            <div className="w-24 h-24 rounded-full bg-card-muted animate-pulse motion-reduce:animate-none shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="h-3 w-24 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none mb-3" />
+              <div className="grid grid-cols-3 gap-4">
+                {[0, 1, 2].map(i => (
+                  <div key={i}>
+                    <div className="h-3 w-16 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none mb-2" />
+                    <div className="h-8 w-full rounded-control bg-card-muted animate-pulse motion-reduce:animate-none" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="max-w-6xl">
+        <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+          <i className="sap-icon sap-icon-nav-back text-base" />
+          Zurück zur Übersicht
+        </RouterLink>
+        <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card">
+          <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
+          <p className="text-danger text-sm">Fehler beim Laden des Managers.</p>
+        </div>
+      </div>
+    )
+  }
+  if (!manager) {
+    return (
+      <div className="max-w-6xl">
+        <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
+          <i className="sap-icon sap-icon-nav-back text-base" />
+          Zurück zur Übersicht
+        </RouterLink>
+        <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card">
+          <i className="sap-icon sap-icon-information text-[18px] text-muted shrink-0" />
+          <p className="text-sm text-muted">Manager nicht gefunden.</p>
+        </div>
+      </div>
+    )
+  }
 
   const oldPlayers = [manager.playerExchangedOld1, manager.playerExchangedOld2, manager.playerExchangedOld3].filter(Boolean) as Player[]
   const newPlayers = [manager.playerExchangedNew1, manager.playerExchangedNew2, manager.playerExchangedNew3].filter(Boolean) as Player[]
@@ -547,370 +597,363 @@ export default function ManagerDetail() {
   }
 
   return (
-    <div>
-      <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
+    <div className="max-w-6xl">
+      <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
         <i className="sap-icon sap-icon-nav-back text-base" />
         Zurück zur Übersicht
       </RouterLink>
-      
-      <CardContainer>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] md:grid-rows-[auto_auto] gap-3 md:gap-x-6 md:gap-y-3">
-            <div className="relative group w-24 h-24 shrink-0 justify-self-center md:justify-self-start row-span-1 md:row-span-2">
-              <button
-                onClick={handleAvatarClick}
-                className={`w-24 h-24 p-0 rounded-full overflow-hidden ${isOwnManager ? 'cursor-pointer' : 'cursor-default'}`}
-                disabled={!isOwnManager || uploadAvatar.isPending || deleteAvatar.isPending}
-                title={isOwnManager ? 'Profilbild ändern' : undefined}
-              >
-                {managerAvatarUrl ? (
-                  <img
-                    src={managerAvatarUrl}
-                    alt={manager.name}
-                    className="w-24 h-24 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-elevated flex items-center justify-center">
-                    {managerInitials ? (
-                      <span className="text-2xl font-bold text-primary">{managerInitials}</span>
-                    ) : (
-                      <i className="sap-icon sap-icon-employee text-[28px] text-primary" />
-                    )}
-                  </div>
-                )}
-              </button>
-              {isOwnManager && (
-                <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
-                  <i className="sap-icon sap-icon-camera text-white text-xl" />
-                </div>
-              )}
-              {isOwnManager && managerAvatarUrl && (
-                <button
-                  type="button"
-                  onClick={handleAvatarDelete}
-                  disabled={deleteAvatar.isPending || uploadAvatar.isPending}
-                  className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
-                  title="Profilbild löschen"
-                >
-                  <i className="sap-icon sap-icon-delete text-sm" />
-                </button>
-              )}
-              {(uploadAvatar.isPending || deleteAvatar.isPending) && (
-                <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
-                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handleAvatarChange}
-            />
-            <div className="min-w-0">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-xl font-bold text-foreground">{manager.name}</h1>
-                {manager.shortName && (
-                  <Badge>{manager.shortName}</Badge>
-                )}
-                <Badge variant="muted">Manager</Badge>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
-                  {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
-                </span>
-                {isAdmin && (
-                  <Button
-                    variant={stammdatenOpen ? 'ghost' : 'emphasized'}
-                    size="sm"
-                    onClick={() => setStammdatenOpen(o => !o)}
-                    aria-expanded={stammdatenOpen}
-                    aria-controls="manager-stammdaten-form"
-                    className="ml-auto shrink-0"
-                  >
-                    <i className={`sap-icon sap-icon-slim-arrow-${stammdatenOpen ? 'up' : 'down'} text-xs mr-1`} />
-                    {stammdatenOpen ? 'Schließen' : 'Bearbeiten'}
-                  </Button>
-                )}
-              </div>
 
-              {stammdatenOpen && (
-                <div id="manager-stammdaten-form" className="mt-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="min-w-0">
-                      <span className="text-xs text-muted">Vorname</span>
-                      <input
-                        type="text"
-                        value={editData.firstName}
-                        onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
-                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs text-muted">Nachname</span>
-                      <input
-                        type="text"
-                        value={editData.lastName}
-                        onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
-                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs text-muted">Login (Kürzel)</span>
-                      <input
-                        type="text"
-                        value={manager.login || ''}
-                        readOnly
-                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs text-muted">Zahlungsstatus</span>
-                      <select
-                        value={editData.paymentState}
-                        onChange={(e) => setEditData({ ...editData, paymentState: e.target.value })}
-                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
-                      >
-                        <option value="PAID">Bezahlt</option>
-                        <option value="NOT_PAID">Nicht bezahlt</option>
-                      </select>
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs text-muted">Theme Spieltagsmail</span>
-                      <select
-                        value={editData.mailTheme}
-                        onChange={(e) => setEditData({ ...editData, mailTheme: e.target.value })}
-                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
-                      >
-                        {Object.entries(mailThemeLabels).map(([key, label]) => (
-                          <option key={key} value={key}>{label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="md:col-span-3 min-w-0">
-                      <span className="text-xs text-muted">Beschreibung</span>
-                      <textarea
-                        rows={2}
-                        value={editData.description}
-                        onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
-                      />
-                    </div>
-                  </div>
-                  {hasDetailsChanges && (
-                    <div className="mt-3 flex gap-2">
-                      <Button
-                        variant="emphasized"
-                        size="sm"
-                        onClick={handleDetailsSave}
-                        disabled={isSaving}
-                      >
-                        {isSaving ? 'Wird gespeichert...' : 'Speichern'}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleDetailsCancel}
-                      >
-                        Abbrechen
-                      </Button>
-                    </div>
+      <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+        <div className="flex items-start gap-4">
+          <div className="relative group w-24 h-24 shrink-0">
+            <button
+              onClick={handleAvatarClick}
+              className={`w-24 h-24 p-0 rounded-full overflow-hidden ${isOwnManager ? 'cursor-pointer' : 'cursor-default'}`}
+              disabled={!isOwnManager || uploadAvatar.isPending || deleteAvatar.isPending}
+              title={isOwnManager ? 'Profilbild ändern' : undefined}
+            >
+              {managerAvatarUrl ? (
+                <img
+                  src={managerAvatarUrl}
+                  alt={manager.name}
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-elevated flex items-center justify-center">
+                  {managerInitials ? (
+                    <span className="text-2xl font-bold text-primary">{managerInitials}</span>
+                  ) : (
+                    <i className="sap-icon sap-icon-employee text-[28px] text-primary" />
                   )}
                 </div>
               )}
-            </div>
-            <div className="grid grid-cols-2 gap-2 md:flex md:items-start md:gap-2">
-              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
-                <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <i className="sap-icon sap-icon-badge text-base text-primary" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted leading-tight">Position (Saison)</p>
-                  <p className="text-sm font-bold text-foreground leading-tight">{manager.positionTotal ? `${manager.positionTotal}.` : '-'}</p>
+            </button>
+            {isOwnManager && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
+                <i className="sap-icon sap-icon-camera text-white text-xl" />
+              </div>
+            )}
+            {isOwnManager && managerAvatarUrl && (
+              <button
+                type="button"
+                onClick={handleAvatarDelete}
+                disabled={deleteAvatar.isPending || uploadAvatar.isPending}
+                className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
+                title="Profilbild löschen"
+              >
+                <i className="sap-icon sap-icon-delete text-sm" />
+              </button>
+            )}
+            {(uploadAvatar.isPending || deleteAvatar.isPending) && (
+              <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
+
+          <div className="flex-1 min-w-0">
+            {!stammdatenOpen && (
+              <div>
+                <h2 className="text-3xl font-bold text-foreground truncate">
+                  {manager.firstName || manager.lastName
+                    ? `${manager.firstName} ${manager.lastName}`.trim()
+                    : manager.name}
+                </h2>
+                <p className="text-xs uppercase tracking-wide text-subtle mt-2">
+                  Manager
+                  {manager.shortName ? ` · ${manager.shortName}` : ''}
+                  {` · ${paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState || '-'}`}
+                </p>
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                  {manager.shortName && (
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-accent">
+                      {manager.shortName}
+                    </span>
+                  )}
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
+                    {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
+                  </span>
                 </div>
               </div>
-              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
-                <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <i className="sap-icon sap-icon-horizontal-bar-chart text-base text-primary" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted leading-tight">Punkte (Saison)</p>
-                  <p className="text-sm font-bold text-foreground leading-tight">{manager.pointsTotal ?? '-'}</p>
-                </div>
-              </div>
-              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
-                <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <i className="sap-icon sap-icon-calendar text-base text-primary" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted leading-tight">Letzte Runde</p>
-                  <p className="text-sm font-bold text-foreground leading-tight">{manager.pointsLastRound ?? '-'} Pkt</p>
-                </div>
-              </div>
-              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
-                <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <i className="sap-icon sap-icon-date-time text-base text-primary" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted leading-tight">Spieltag</p>
-                  <p className="text-sm font-bold text-foreground leading-tight">{currentRoundNumber || '-'}</p>
-                </div>
-              </div>
-              <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
-                <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <i className="sap-icon sap-icon-money-bills text-base text-primary" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted leading-tight">Hinrunde-Wert</p>
-                  <p className="text-sm font-bold text-foreground leading-tight">{(hinrundeBudget / 1000000).toFixed(2)} Mio. €</p>
-                </div>
-              </div>
-              {hasExchanges && (
-                <div className="p-2 bg-elevated border border-border-hover rounded-card flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-control bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <i className="sap-icon sap-icon-money-bills text-base text-primary" />
+            )}
+
+            {stammdatenOpen && (
+              <div id="manager-stammdaten-form">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Vorname</span>
+                    <input
+                      type="text"
+                      value={editData.firstName}
+                      onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
                   </div>
-                  <div>
-                    <p className="text-[10px] text-muted leading-tight">Rückrunde-Wert</p>
-                    <p className="text-sm font-bold text-foreground leading-tight">{(rueckrundeBudget / 1000000).toFixed(2)} Mio. €</p>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Nachname</span>
+                    <input
+                      type="text"
+                      value={editData.lastName}
+                      onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Login (Kürzel)</span>
+                    <input
+                      type="text"
+                      value={manager.login || ''}
+                      readOnly
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Zahlungsstatus</span>
+                    <select
+                      value={editData.paymentState}
+                      onChange={(e) => setEditData({ ...editData, paymentState: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
+                    >
+                      <option value="PAID">Bezahlt</option>
+                      <option value="NOT_PAID">Nicht bezahlt</option>
+                    </select>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">Theme Spieltagsmail</span>
+                    <select
+                      value={editData.mailTheme}
+                      onChange={(e) => setEditData({ ...editData, mailTheme: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
+                    >
+                      {Object.entries(mailThemeLabels).map(([key, label]) => (
+                        <option key={key} value={key}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="min-w-0" />
+                  <div className="col-span-3 min-w-0">
+                    <span className="text-xs text-muted">Beschreibung</span>
+                    <textarea
+                      rows={2}
+                      value={editData.description}
+                      onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                    />
                   </div>
                 </div>
+                {hasDetailsChanges && (
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      variant="emphasized"
+                      size="sm"
+                      onClick={handleDetailsSave}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? 'Wird gespeichert...' : 'Speichern'}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleDetailsCancel}
+                    >
+                      Abbrechen
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {isAdmin && (
+            <Button
+              variant={stammdatenOpen ? 'ghost' : 'emphasized'}
+              size="sm"
+              onClick={() => setStammdatenOpen(o => !o)}
+              aria-expanded={stammdatenOpen}
+              aria-controls="manager-stammdaten-form"
+              className="shrink-0 self-start"
+            >
+              <i className={`sap-icon sap-icon-slim-arrow-${stammdatenOpen ? 'up' : 'down'} text-xs mr-1`} />
+              {stammdatenOpen ? 'Schließen' : 'Bearbeiten'}
+            </Button>
+          )}
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-border">
+          <h3 className="text-xl font-semibold text-foreground mb-4">Managerstatistik</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            <StatTile
+              label="Pos. (Saison)"
+              value={manager.positionTotal ? `${manager.positionTotal}.` : '—'}
+            />
+            <StatTile
+              label="Pkt. (Saison)"
+              value={manager.pointsTotal != null ? String(manager.pointsTotal) : '—'}
+            />
+            <StatTile
+              label="Letzte Runde"
+              value={manager.pointsLastRound != null ? `${manager.pointsLastRound} Pkt` : '—'}
+            />
+            <StatTile
+              label="Spieltag"
+              value={currentRoundNumber ? String(currentRoundNumber) : '—'}
+            />
+            <StatTile
+              label="Hinrunde-Wert"
+              value={`${(hinrundeBudget / 1000000).toFixed(2)} Mio. €`}
+            />
+            {hasExchanges && (
+              <StatTile
+                label="Rückrunde-Wert"
+                value={`${(rueckrundeBudget / 1000000).toFixed(2)} Mio. €`}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {lastRoundPlayerPoints.length > 0 && (
+        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+          <h3 className="text-xl font-semibold text-foreground mb-4">Punkte letzte Runde</h3>
+          <LastRoundPlayerTable players={lastRoundPlayerPoints} allPlayers={rueckrundePlayers.length > 0 ? rueckrundePlayers : hinrundePlayers} />
+        </div>
+      )}
+
+      {managerGroups && managerGroups.length > 0 && (
+        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+          <h3 className="text-xl font-semibold text-foreground mb-4">Gruppen</h3>
+          {managerGroups.map(group => (
+            <ManagerGroupTable key={group.id} group={group} currentManagerId={manager.id} />
+          ))}
+        </div>
+      )}
+
+      {(hinrundePlayers.length > 0 || hasExchanges) && (
+        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+          {hinrundePlayers.length > 0 && (
+            <PlayerTable players={hinrundePlayers} title={`Hinrunde-Aufstellung (${hinrundePlayers.length} Spieler)`} />
+          )}
+
+          {hasExchanges && (
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold text-foreground mb-3">Winterwechsel</h3>
+              {oldPlayers.length > 0 && (
+                <PlayerTable players={oldPlayers} title="Raus:" />
+              )}
+              {newPlayers.length > 0 && (
+                <PlayerTable players={newPlayers} title="Rein:" />
               )}
             </div>
+          )}
+
+          {hasExchanges && rueckrundePlayers.length > 0 && (
+            <PlayerTable players={rueckrundePlayers} title={`Rückrunde-Aufstellung (${rueckrundePlayers.length} Spieler)`} />
+          )}
+        </div>
+      )}
+
+      {chartData.length > 0 && (
+        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+          <h3 className="text-xl font-semibold text-foreground mb-3">Punkte pro Spieltag</h3>
+          <div className="bg-card p-4 rounded-card border border-border">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                <XAxis dataKey="name" stroke={chartColors.axis} />
+                <YAxis stroke={chartColors.axis} />
+                <RechartsTooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
+                <Bar dataKey="punkte" fill={chartColors.accent} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
+      )}
 
-        <div className="px-6 pb-6">
-        {lastRoundPlayerPoints.length > 0 && (
-          <LastRoundPlayerTable players={lastRoundPlayerPoints} allPlayers={rueckrundePlayers.length > 0 ? rueckrundePlayers : hinrundePlayers} />
-        )}
-
-        {managerGroups && managerGroups.length > 0 && (
-          <>
-            {managerGroups.map(group => (
-              <ManagerGroupTable key={group.id} group={group} currentManagerId={manager.id} />
-            ))}
-          </>
-        )}
-
-        {hinrundePlayers.length > 0 && (
-          <PlayerTable players={hinrundePlayers} title={`Hinrunde-Aufstellung (${hinrundePlayers.length} Spieler)`} />
-        )}
-
-        {hasExchanges && (
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold text-foreground mb-3">Winterwechsel</h2>
-            
-            {oldPlayers.length > 0 && (
-              <PlayerTable players={oldPlayers} title="Raus:" />
-            )}
-
-            {newPlayers.length > 0 && (
-              <PlayerTable players={newPlayers} title="Rein:" />
-            )}
+      {positionChartData.length > 0 && (
+        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+          <h3 className="text-xl font-semibold text-foreground mb-3">Gesamtposition pro Spieltag</h3>
+          <div className="bg-card p-4 rounded-card border border-border">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={positionChartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                <XAxis dataKey="name" stroke={chartColors.axis} label={{ value: 'Spieltag', position: 'bottom', fill: chartColors.axis }} />
+                <YAxis stroke={chartColors.axis} reversed domain={[1, 'auto']} tickCount={10} />
+                <RechartsTooltip
+                  cursor={false}
+                  wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-surface border border-border rounded-card p-3 shadow-lg">
+                          <p className="text-foreground font-semibold">Spieltag {label}</p>
+                          <p className="text-primary">Position: {payload[0].value}.</p>
+                        </div>
+                      )
+                    }
+                    return null
+                  }}
+                />
+                <Line type="monotone" dataKey="position" stroke={chartColors.accent} strokeWidth={2} dot={{ fill: chartColors.accent, strokeWidth: 2 }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        )}
+        </div>
+      )}
 
-        {hasExchanges && rueckrundePlayers.length > 0 && (
-          <PlayerTable players={rueckrundePlayers} title={`Rückrunde-Aufstellung (${rueckrundePlayers.length} Spieler)`} />
-        )}
+      {managerGroupsWithStats && managerGroupsWithStats.length > 0 && (
+        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-foreground">Punkte-Entwicklung in Gruppe</h3>
+            <select
+              value={selectedGroupId}
+              onChange={(e) => setSelectedGroupId(e.target.value)}
+              className="input-field control rounded-control px-4 py-2 focus:outline-none focus:border-accent cursor-pointer"
+            >
+              <option value="">Gruppe wählen</option>
+              {managerGroupsWithStats.map((group) => (
+                <option key={group.groupId} value={group.groupId}>
+                  {group.groupName}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {chartData.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold text-foreground mb-3">Punkte pro Spieltag</h2>
-            <div className="bg-surface p-4 rounded-card border border-border">
+          {selectedGroup && groupLineChartData.length > 0 ? (
+            <div className="bg-card p-4 rounded-card border border-border">
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
+                <LineChart data={groupLineChartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                  <XAxis dataKey="name" stroke={chartColors.axis} />
+                  <XAxis dataKey="round" stroke={chartColors.axis} />
                   <YAxis stroke={chartColors.axis} />
-                  <RechartsTooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
-                  <Bar dataKey="punkte" fill={chartColors.accent} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-
-        {positionChartData.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold text-foreground mb-3">Gesamtposition pro Spieltag</h2>
-            <div className="bg-surface p-4 rounded-card border border-border">
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={positionChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                  <XAxis dataKey="name" stroke={chartColors.axis} label={{ value: 'Spieltag', position: 'bottom', fill: chartColors.axis }} />
-                  <YAxis stroke={chartColors.axis} reversed domain={[1, 'auto']} tickCount={10} />
-                  <RechartsTooltip 
-                    cursor={false}
-                    wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
-                    content={({ active, payload, label }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-surface border border-border rounded-card p-3 shadow-lg">
-                            <p className="text-foreground font-semibold">Spieltag {label}</p>
-                            <p className="text-primary">Position: {payload[0].value}.</p>
-                          </div>
-                        )
-                      }
-                      return null
-                    }}
-                  />
-                  <Line type="monotone" dataKey="position" stroke={chartColors.accent} strokeWidth={2} dot={{ fill: chartColors.accent, strokeWidth: 2 }} />
+                  <RechartsTooltip content={<GroupCustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
+                  {sortedGroupManagers.map((m, index) => (
+                    <Line
+                      key={m.managerId}
+                      type="monotone"
+                      dataKey={m.shortName || m.managerName}
+                      stroke={m.isCurrentUser ? chartColors.accent : LINE_COLORS[index % LINE_COLORS.length]}
+                      strokeWidth={m.isCurrentUser ? 3 : 2}
+                      dot={{ r: 3 }}
+                    />
+                  ))}
                 </LineChart>
               </ResponsiveContainer>
+              <GroupLegend managers={sortedGroupManagers} />
             </div>
-          </div>
-        )}
-
-        {managerGroupsWithStats && managerGroupsWithStats.length > 0 && (
-          <div className="mt-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-foreground">Punkte-Entwicklung in Gruppe</h2>
-              <select
-                value={selectedGroupId}
-                onChange={(e) => setSelectedGroupId(e.target.value)}
-                className="input-field rounded-control px-4 py-2 focus:outline-none focus:border-accent"
-              >
-                <option value="">Gruppe wählen</option>
-                {managerGroupsWithStats.map((group) => (
-                  <option key={group.groupId} value={group.groupId}>
-                    {group.groupName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            {selectedGroup && groupLineChartData.length > 0 ? (
-              <div className="bg-surface p-4 rounded-card border border-border">
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={groupLineChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                    <XAxis dataKey="round" stroke={chartColors.axis} />
-                    <YAxis stroke={chartColors.axis} />
-                    <RechartsTooltip content={<GroupCustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
-                    {sortedGroupManagers.map((m, index) => (
-                      <Line
-                        key={m.managerId}
-                        type="monotone"
-                        dataKey={m.shortName || m.managerName}
-                        stroke={m.isCurrentUser ? chartColors.accent : LINE_COLORS[index % LINE_COLORS.length]}
-                        strokeWidth={m.isCurrentUser ? 3 : 2}
-                        dot={{ r: 3 }}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-                <GroupLegend managers={sortedGroupManagers} />
-              </div>
-            ) : (
-              <p className="text-subtle text-center py-8">
-                Wähle eine Gruppe aus, um die Punkte-Entwicklung zu sehen.
-              </p>
-            )}
-          </div>
-        )}
+          ) : (
+            <p className="text-subtle text-center py-8">
+              Wähle eine Gruppe aus, um die Punkte-Entwicklung zu sehen.
+            </p>
+          )}
         </div>
-      </CardContainer>
+      )}
     </div>
   )
 }
@@ -974,8 +1017,7 @@ function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: nu
   }, [enrichedPlayers, sortKey, sortOrder])
 
   return (
-    <div className="mt-6">
-      <h2 className="text-lg font-semibold text-foreground mb-3">Punkte letzte Runde</h2>
+    <div>
       <div className="overflow-x-auto rounded-card border border-border">
         <table className="w-full">
           <TableHead>
