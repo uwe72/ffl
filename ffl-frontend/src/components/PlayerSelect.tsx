@@ -3,6 +3,7 @@ import type { Player, Position } from '../types'
 import { positionLabels, positionColors } from '../pages/Players'
 import { positionBarColor } from '../utils/positions'
 import EmptySlotCard from './EmptySlotCard'
+import PlayerTable from './PlayerTable'
 
 export interface PlayerSlot {
   key: string
@@ -73,6 +74,12 @@ export default function PlayerSelect({
 
     return filtered.sort((a, b) => a.nameKicker.localeCompare(b.nameKicker))
   }, [players, slot.position, selectedIds, value, search, priceMin, priceMax])
+
+  const excludedIds = useMemo(() => {
+    const set = new Set(selectedIds)
+    if (value != null) set.delete(value)
+    return set
+  }, [selectedIds, value])
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -170,7 +177,7 @@ export default function PlayerSelect({
           }}
         >
           <div
-            className="bg-surface border border-border rounded-card shadow-2xl w-full max-w-[520px] max-h-[80vh] flex flex-col"
+            className="bg-surface border border-border rounded-card shadow-2xl w-full max-w-[760px] max-h-[85vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
@@ -189,64 +196,13 @@ export default function PlayerSelect({
                 <i className="sap-icon sap-icon-decline text-[18px]" />
               </button>
             </div>
-            <div className="p-2 border-b border-border space-y-1.5">
-              <input
-                ref={inputRef}
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Spieler suchen..."
-                className="input-field control w-full px-2 py-1.5 rounded-badge text-xs focus:outline-none"
+            <div className="overflow-y-auto flex-1 p-3">
+              <PlayerTable
+                players={players}
+                fixedPosition={slot.position}
+                excludePlayerIds={excludedIds}
+                onSelect={handleSelect}
               />
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={priceMin}
-                  onChange={(e) => setPriceMin(e.target.value)}
-                  placeholder="Min €"
-                  className="input-field control w-1/2 px-2 py-1 rounded-badge text-[11px] focus:outline-none"
-                />
-                <input
-                  type="number"
-                  value={priceMax}
-                  onChange={(e) => setPriceMax(e.target.value)}
-                  placeholder="Max €"
-                  className="input-field control w-1/2 px-2 py-1 rounded-badge text-[11px] focus:outline-none"
-                />
-              </div>
-            </div>
-            <div className="overflow-y-auto flex-1">
-              {filteredPlayers.length === 0 ? (
-                <div className="px-3 py-4 text-center text-subtle text-xs">Keine Spieler gefunden</div>
-              ) : (
-                filteredPlayers.map(player => {
-                  const team = player.teams && player.teams.length > 0 ? player.teams[player.teams.length - 1] : null
-                  return (
-                    <button
-                      key={player.id}
-                      type="button"
-                      onClick={() => handleSelect(player)}
-                      className={`w-full text-left px-3 py-2 text-xs hover:bg-elevated transition-colors flex items-center justify-between gap-3 ${
-                        player.id === value ? 'bg-accent-muted' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        {player.pictureUrl && (
-                          <img src={player.pictureUrl} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
-                        )}
-                        <span className="text-foreground whitespace-nowrap">{player.nameKicker}</span>
-                        <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded-badge`}>{positionLabels[player.position]}</span>
-                        {team && (
-                          <span className="text-subtle text-[11px] whitespace-nowrap">
-                            {team.shortName || team.name}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-accent text-[11px] font-semibold shrink-0">{player.prize.toLocaleString('de-DE')} €</span>
-                    </button>
-                  )
-                })
-              )}
             </div>
           </div>
         </div>
