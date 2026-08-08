@@ -82,9 +82,7 @@ public class InvitationMailService {
 
         String webUrl = normalizeWebUrl(config.getWebUrl());
         String html = buildHtmlContent(season, webUrl);
-        String subject = (season.getInvitationMailSubject() != null && !season.getInvitationMailSubject().isBlank())
-            ? season.getInvitationMailSubject()
-            : "FFL | Einladung zur Saison " + season.getName();
+        String subject = "FFL | Einladung zur Saison " + season.getName();
 
         try {
             JavaMailSenderImpl mailSender = buildMailSender(config);
@@ -119,12 +117,6 @@ public class InvitationMailService {
                 Season season = seasonRepository.findById(seasonId)
                     .orElseThrow(() -> new RuntimeException("Saison nicht gefunden"));
 
-                if (season.getInvitationMailSubject() == null || season.getInvitationMailSubject().isBlank()) {
-                    emitter.send(SseEmitter.event().name("error").data("FEHLER: Kein Betreff für die Einladungsmail hinterlegt"));
-                    emitter.complete();
-                    return;
-                }
-
                 List<EmailAddress> allEmails = emailAddressRepository.findAll();
                 Map<Long, EmailAddress> emailsById = allEmails.stream()
                     .collect(Collectors.toMap(EmailAddress::getId, e -> e));
@@ -132,7 +124,7 @@ public class InvitationMailService {
                 JavaMailSenderImpl mailSender = buildMailSender(config);
                 String webUrl = normalizeWebUrl(config.getWebUrl());
                 String baseHtml = buildHtmlContent(season, webUrl);
-                String subject = season.getInvitationMailSubject();
+                String subject = "FFL | Einladung zur Saison " + season.getName();
 
                 send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
                 send(emitter, "Starte Versand an " + emailIds.size() + " Empfänger...");

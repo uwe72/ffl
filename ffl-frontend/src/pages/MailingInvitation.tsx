@@ -1,52 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { useCurrentSeason, useUpdateSeason, useInvitationMailPreview, useSendInvitationTestMail } from '../hooks/useSeasons'
+import { useCurrentSeason, useInvitationMailPreview, useSendInvitationTestMail } from '../hooks/useSeasons'
 import InvitationMailSendDialog from '../components/InvitationMailSendDialog'
 import Button from '../components/Button'
 import FormCard from '../components/FormCard'
-import type { Season } from '../types'
 
 export default function MailingInvitation() {
   const { data: season, isLoading } = useCurrentSeason()
-  const updateSeason = useUpdateSeason()
   const { refetch: fetchInvitationPreview, isFetching: isFetchingPreview } = useInvitationMailPreview(season?.id ?? 0)
   const sendTestMail = useSendInvitationTestMail()
 
-  const [formData, setFormData] = useState<Partial<Season>>({})
-  const [hasChanges, setHasChanges] = useState(false)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [previewHtml, setPreviewHtml] = useState<string | null>(null)
   const [showSendDialog, setShowSendDialog] = useState(false)
-
-  useEffect(() => {
-    if (season) {
-      setFormData({
-        invitationMailSubject: season.invitationMailSubject ?? '',
-        invitationMailText: season.invitationMailText ?? ''
-      })
-      setHasChanges(false)
-    }
-  }, [season])
-
-  const handleChange = (field: keyof Season, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    setHasChanges(true)
-  }
-
-  const handleSave = async () => {
-    if (!season || !hasChanges) return
-    await updateSeason.mutateAsync({ id: season.id, data: formData })
-    setHasChanges(false)
-  }
-
-  const resetFormData = () => {
-    if (!season) return
-    setFormData({
-      invitationMailSubject: season.invitationMailSubject ?? '',
-      invitationMailText: season.invitationMailText ?? ''
-    })
-    setHasChanges(false)
-  }
 
   if (isLoading) {
     return <div className="text-muted">Laden...</div>
@@ -65,51 +31,23 @@ export default function MailingInvitation() {
 
       <div className="grid gap-6">
         <FormCard className="overflow-visible">
-          <label className="block text-sm text-muted mb-2">Betreff</label>
-          <input
-            type="text"
-            value={formData.invitationMailSubject ?? ''}
-            onChange={(e) => handleChange('invitationMailSubject', e.target.value)}
-            placeholder="z.B. FFL | Saison 25/26 | Einladung"
-            className="input-field w-full px-3 py-2 focus:outline-none mb-4"
-          />
-          <div className="bg-info/10 border border-border rounded-card p-4 mb-2">
+          <div className="bg-info/10 border border-border rounded-card p-4">
             <p className="text-sm text-muted leading-relaxed">
               Der Inhalt der Einladungsmail wird aus einem festen Template automatisch aus den Saisondaten generiert
               (Saisonname, Startdatum, Anmeldeschluss, Rückrunden-Spieltag, Spieleinsatz, Serverkosten, Gewinnausschüttung,
-              Anzahl Spielleiter, Budget). In der Vorschau und Testmail sind die aus der Datenbank geladenen Werte
-              <strong className="text-danger"> rot</strong> markiert. Passe den Betreff oben an, speichere und sende eine
-              Testmail an die Admin-Adresse, um das Ergebnis zu prüfen.
+              Anzahl Spielleiter, Budget). Der Betreff lautet immer
+              <strong> FFL | Einladung zur Saison {season.name}</strong>. In der Vorschau und Testmail sind die aus der
+              Datenbank geladenen Werte <strong className="text-danger">rot</strong> markiert. Sende eine Testmail an die
+              Admin-Adresse, um das Ergebnis zu prüfen.
             </p>
           </div>
         </FormCard>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-4">
-        {hasChanges && (
-          <>
-            <Button
-              variant="emphasized"
-              onClick={handleSave}
-              disabled={updateSeason.isPending}
-            >
-              {updateSeason.isPending ? 'Wird gespeichert...' : 'Speichern'}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={resetFormData}
-            >
-              Abbrechen
-            </Button>
-          </>
-        )}
         <Button
           variant="transparent"
           onClick={async () => {
-            if (hasChanges) {
-              await updateSeason.mutateAsync({ id: season.id, data: formData })
-              setHasChanges(false)
-            }
             const result = await fetchInvitationPreview()
             if (result.data) {
               setPreviewHtml(result.data.html)
@@ -122,16 +60,7 @@ export default function MailingInvitation() {
         </Button>
         <Button
           variant="transparent"
-          onClick={() => {
-            if (hasChanges) {
-              updateSeason.mutateAsync({ id: season.id, data: formData }).then(() => {
-                setHasChanges(false)
-                sendTestMail.mutate(season.id)
-              })
-            } else {
-              sendTestMail.mutate(season.id)
-            }
-          }}
+          onClick={() => sendTestMail.mutate(season.id)}
           disabled={sendTestMail.isPending}
         >
           {sendTestMail.isPending ? 'Wird gesendet...' : 'Test-Mail an Admin'}
