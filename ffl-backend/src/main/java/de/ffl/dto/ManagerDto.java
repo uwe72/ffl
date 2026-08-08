@@ -42,6 +42,7 @@ public class ManagerDto {
     private PlayerDto playerExchangedNew3;
     private Integer currentMatchday;
     private Integer positionChange;
+    private Integer teamChangeCount;
     private String avatarUrl;
 
     public static ManagerDto fromEntity(Manager manager) {
@@ -64,6 +65,7 @@ public class ManagerDto {
         dto.setPaymentState(manager.getPaymentState().name());
         dto.setDescription(manager.getDescription());
         dto.setMailTheme(manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
+        dto.setTeamChangeCount(manager.getTeamChangeCount());
         
         if (manager.getSeason() != null) {
             dto.setSeasonId(manager.getSeason().getId());
@@ -218,6 +220,8 @@ public class ManagerDto {
     public void setCurrentMatchday(Integer currentMatchday) { this.currentMatchday = currentMatchday; }
     public Integer getPositionChange() { return positionChange; }
     public void setPositionChange(Integer positionChange) { this.positionChange = positionChange; }
+    public Integer getTeamChangeCount() { return teamChangeCount; }
+    public void setTeamChangeCount(Integer teamChangeCount) { this.teamChangeCount = teamChangeCount; }
     public String getMailTheme() { return mailTheme; }
     public void setMailTheme(String mailTheme) { this.mailTheme = mailTheme; }
     public String getAvatarUrl() { return avatarUrl; }

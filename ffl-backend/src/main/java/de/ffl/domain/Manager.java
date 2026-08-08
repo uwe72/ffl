@@ -46,6 +46,10 @@ public class Manager {
     @Builder.Default
     private MailTheme mailTheme = MailTheme.LIGHTMODE;
 
+    @Column(name = "team_change_count")
+    @Builder.Default
+    private Integer teamChangeCount = 0;
+
     @ManyToMany
     @JoinTable(
         name = "manager_2_player",

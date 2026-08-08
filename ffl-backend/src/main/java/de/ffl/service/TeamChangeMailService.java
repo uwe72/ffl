@@ -48,7 +48,8 @@ public class TeamChangeMailService {
                                            List<ExchangeDto> exchanges,
                                            List<PositionGroupDto> positionGroups,
                                            BudgetDto budget,
-                                           String webUrl) {
+                                           String webUrl,
+                                           int teamChangeCount) {
         try {
             SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc().orElse(null);
             if (config == null) {
@@ -74,9 +75,9 @@ public class TeamChangeMailService {
                 helper.setBcc(config.getGmailSenderEmail());
             }
 
-            helper.setSubject("FFL | Team geändert | " + seasonName + " | " + userLogin);
+            helper.setSubject("FFL | " + seasonName + " | " + userLogin + " | " + teamChangeCount + ". Änderung");
 
-            String html = buildTeamChangeHtml(greeting, seasonName, changeTypeLabel, exchanges, positionGroups, budget, webUrl);
+            String html = buildTeamChangeHtml(greeting, seasonName, changeTypeLabel, exchanges, positionGroups, budget, webUrl, teamChangeCount);
             helper.setText(html, true);
 
             mailSender.send(msg);
@@ -89,11 +90,12 @@ public class TeamChangeMailService {
 
     private String buildTeamChangeHtml(String greeting, String seasonName, String changeTypeLabel,
                                        List<ExchangeDto> exchanges, List<PositionGroupDto> positionGroups,
-                                       BudgetDto budget, String webUrl) {
+                                       BudgetDto budget, String webUrl, int teamChangeCount) {
         Context context = new Context(Locale.GERMAN);
         context.setVariable("greeting", greeting);
         context.setVariable("seasonName", seasonName);
         context.setVariable("changeTypeLabel", changeTypeLabel);
+        context.setVariable("changeCountLabel", teamChangeCount + ". Änderung");
         context.setVariable("exchanges", exchanges);
         context.setVariable("positionGroups", positionGroups);
         context.setVariable("budget", budget);

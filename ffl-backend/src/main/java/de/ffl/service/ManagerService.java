@@ -599,15 +599,21 @@ public class ManagerService {
         manager.setPlayerFreeChoice(playerMap.get(request.getPlayerFreeChoiceId()));
         manager.setPlayers(new HashSet<>(players));
 
-        Manager saved = managerRepository.save(manager);
-
         List<Player> removed = oldLineup.stream()
             .filter(p -> !newIds.contains(p.getId()))
             .toList();
         List<Player> added = players.stream()
             .filter(p -> !oldIds.contains(p.getId()))
             .toList();
-        if (!removed.isEmpty() && !added.isEmpty() && removed.size() == added.size()) {
+        boolean hasChanges = !removed.isEmpty() && !added.isEmpty() && removed.size() == added.size();
+        if (hasChanges) {
+            int current = manager.getTeamChangeCount() != null ? manager.getTeamChangeCount() : 0;
+            manager.setTeamChangeCount(current + 1);
+        }
+
+        Manager saved = managerRepository.save(manager);
+
+        if (hasChanges) {
             sendTeamChangeMail(manager, season, removed, added, players, "Aufstellung geändert");
         }
 
@@ -769,6 +775,11 @@ public class ManagerService {
         manager.setPlayerExchangedNew2(newPlayer2);
         manager.setPlayerExchangedNew3(newPlayer3);
 
+        if (!transfers.isEmpty()) {
+            int current = manager.getTeamChangeCount() != null ? manager.getTeamChangeCount() : 0;
+            manager.setTeamChangeCount(current + 1);
+        }
+
         Manager saved = managerRepository.save(manager);
 
         List<Player> removedPlayers = transfers.stream()
@@ -832,9 +843,11 @@ public class ManagerService {
                 );
             }
 
+            int teamChangeCount = manager.getTeamChangeCount() != null ? manager.getTeamChangeCount() : 0;
+
             teamChangeMailService.sendTeamChangeConfirmation(
                 user.getEmail(), user.getLogin(), greeting, seasonName, changeTypeLabel,
-                exchanges, positionGroups, budgetDto, webUrl);
+                exchanges, positionGroups, budgetDto, webUrl, teamChangeCount);
         } catch (Exception e) {
             org.slf4j.LoggerFactory.getLogger(ManagerService.class)
                 .warn("Teamänderungsmail konnte nicht gesendet werden: {}", e.getMessage());

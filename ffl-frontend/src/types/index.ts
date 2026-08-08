@@ -13,6 +13,10 @@ export interface SystemConfig {
   llmBaseUrl?: string
   matchdayMailPrompt?: string
   webUrl?: string
+  autoUpdateEnabled?: boolean
+  autoUpdateCron?: string
+  autoUpdateSourceUrl?: string
+  autoUpdateLastRun?: string
 }
 
 export interface TestMailResult {
@@ -249,6 +253,7 @@ export interface Manager {
   playerExchangedNew2?: Player
   playerExchangedNew3?: Player
   currentMatchday?: number
+  teamChangeCount?: number
 }
 
 export interface ManagerInfo {
