@@ -619,7 +619,7 @@ export default function ManagerDetail() {
                   className="w-24 h-24 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-elevated flex items-center justify-center">
+                <div className="w-24 h-24 rounded-full bg-elevated border border-border flex items-center justify-center">
                   {managerInitials ? (
                     <span className="text-2xl font-bold text-primary">{managerInitials}</span>
                   ) : (
@@ -665,22 +665,12 @@ export default function ManagerDetail() {
                   {manager.firstName || manager.lastName
                     ? `${manager.firstName} ${manager.lastName}`.trim()
                     : manager.name}
+                  {manager.login && ` (${manager.login})`}
                 </h2>
                 <p className="text-xs uppercase tracking-wide text-subtle mt-2">
                   Manager
-                  {manager.shortName ? ` · ${manager.shortName}` : ''}
                   {` · ${paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState || '-'}`}
                 </p>
-                <div className="flex items-center gap-2 mt-3 flex-wrap">
-                  {manager.shortName && (
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-accent">
-                      {manager.shortName}
-                    </span>
-                  )}
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
-                    {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
-                  </span>
-                </div>
               </div>
             )}
 
