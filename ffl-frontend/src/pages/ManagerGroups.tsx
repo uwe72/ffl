@@ -120,15 +120,6 @@ export default function ManagerGroups() {
                 className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
               />
             </div>
-            {searchTerm !== '' && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
-                title="Filter zurücksetzen"
-              >
-                <i className="sap-icon sap-icon-decline text-[14px]" />
-              </button>
-            )}
             <Button
               onClick={() => navigate('/manager-groups/create')}
               size="compact"
@@ -137,6 +128,18 @@ export default function ManagerGroups() {
             </Button>
           </div>
         </div>
+
+        {searchTerm !== '' && (
+          <div className="flex items-center gap-3 flex-wrap mb-4">
+            <button
+              onClick={() => setSearchTerm('')}
+              className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
+              title="Filter zurücksetzen"
+            >
+              <i className="sap-icon sap-icon-decline text-[14px]" />
+            </button>
+          </div>
+        )}
 
         {!isMobile && (
           <>
