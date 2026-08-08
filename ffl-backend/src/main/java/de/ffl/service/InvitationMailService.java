@@ -273,8 +273,8 @@ public class InvitationMailService {
         if (webUrl != null) {
             sb.append(webUrl).append("\r\n\r\n");
         }
-        sb.append("Die FFL ist privat und ehrenamtlich organisiert und verfolgt keine wirtschaftlichen Interessen, der Rechtsweg ist ausgeschlossen.\r\n");
-        sb.append("Fragen? Antworte einfach direkt auf diese Mail.\r\n");
+        sb.append("Private Liga, ehrenamtlich, ohne Gewinnabsicht. Rechtsweg ausgeschlossen.\r\n");
+        sb.append("Fragen? Einfach auf diese Mail antworten.\r\n");
 
         return sb.toString();
     }
