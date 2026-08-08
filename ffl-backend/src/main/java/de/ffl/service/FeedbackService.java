@@ -10,12 +10,17 @@ import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,11 +33,13 @@ public class FeedbackService {
 
     private final SystemConfigRepository systemConfigRepository;
     private final UserRepository userRepository;
+    private final SpringTemplateEngine templateEngine;
     private final Map<String, Deque<Instant>> submitsByIp = new ConcurrentHashMap<>();
 
-    public FeedbackService(SystemConfigRepository systemConfigRepository, UserRepository userRepository) {
+    public FeedbackService(SystemConfigRepository systemConfigRepository, UserRepository userRepository, SpringTemplateEngine templateEngine) {
         this.systemConfigRepository = systemConfigRepository;
         this.userRepository = userRepository;
+        this.templateEngine = templateEngine;
     }
 
     public static class RateLimitExceededException extends RuntimeException {
@@ -71,7 +78,7 @@ public class FeedbackService {
             helper.setBcc(adminEmails.toArray(new String[0]));
             helper.setReplyTo(request.getEmail());
             helper.setSubject("[FFL-Feedback] " + request.getSubject());
-            helper.setText(buildHtmlBody(request), true);
+            helper.setText(buildHtmlBody(request, clientIp, config), true);
             mailSender.send(msg);
         } catch (RuntimeException e) {
             throw e;
@@ -80,43 +87,26 @@ public class FeedbackService {
         }
     }
 
-    private String buildHtmlBody(FeedbackRequest r) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>");
-        sb.append("<body style=\"background:#0f1419;color:#f5f5f5;font-family:Arial,Helvetica,sans-serif;padding:16px;margin:0;\">");
-        sb.append("<div style=\"max-width:480px;margin:0 auto;\">");
+    private String buildHtmlBody(FeedbackRequest r, String clientIp, SystemConfig config) {
+        Context context = new Context(Locale.GERMAN);
+        context.setVariable("name", r.getName());
+        context.setVariable("email", r.getEmail());
+        context.setVariable("subject", r.getSubject());
+        context.setVariable("messageHtml", escape(r.getMessage()).replace("\n", "<br>"));
+        context.setVariable("submittedAt", DateTimeFormatter
+            .ofPattern("dd.MM.yyyy HH:mm")
+            .withZone(ZoneId.of("Europe/Berlin"))
+            .format(Instant.now()));
+        context.setVariable("clientIp", clientIp == null ? "-" : clientIp);
+        context.setVariable("webUrl", normalizeWebUrl(config.getWebUrl()));
+        return templateEngine.process("mail/feedback-message", context);
+    }
 
-        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:16px;\">");
-        sb.append("<h1 style=\"color:#c9a66b;margin:0 0 4px 0;font-size:20px;\">FFL Feedback</h1>");
-        sb.append("<div style=\"color:#a0aec0;font-size:14px;\">Neue Nachricht von einem Benutzer</div>");
-        sb.append("</div>");
-
-        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-bottom:16px;\"><tr>");
-        sb.append("<td width=\"50%\" style=\"padding-right:4px;\">");
-        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:12px;\">");
-        sb.append("<div style=\"font-size:12px;color:#a0aec0;\">Name</div>");
-        sb.append("<div style=\"font-size:16px;font-weight:600;color:#f5f5f5;margin-top:4px;\">").append(escape(r.getName())).append("</div>");
-        sb.append("</div></td>");
-        sb.append("<td width=\"50%\" style=\"padding-left:4px;\">");
-        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:12px;\">");
-        sb.append("<div style=\"font-size:12px;color:#a0aec0;\">E-Mail</div>");
-        sb.append("<div style=\"font-size:14px;font-weight:600;color:#f5f5f5;margin-top:4px;\">").append(escape(r.getEmail())).append("</div>");
-        sb.append("</div></td>");
-        sb.append("</tr></table>");
-
-        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-left:3px solid #c9a66b;border-radius:8px;padding:12px;margin-bottom:16px;\">");
-        sb.append("<div style=\"font-size:12px;color:#a0aec0;\">Betreff</div>");
-        sb.append("<div style=\"font-size:16px;font-weight:600;color:#f5f5f5;margin-top:4px;\">").append(escape(r.getSubject())).append("</div>");
-        sb.append("</div>");
-
-        sb.append("<div style=\"background:#1a2028;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:16px;\">");
-        sb.append("<div style=\"font-size:12px;color:#a0aec0;margin-bottom:8px;\">Nachricht</div>");
-        sb.append("<div style=\"font-size:14px;line-height:1.6;color:#f5f5f5;\">").append(escape(r.getMessage()).replace("\n", "<br>")).append("</div>");
-        sb.append("</div>");
-
-        sb.append("<div style=\"color:#6b7280;font-size:12px;text-align:center;\">FFL — Fantasy Football League</div>");
-        sb.append("</div></body></html>");
-        return sb.toString();
+    private String normalizeWebUrl(String webUrl) {
+        if (webUrl == null || webUrl.isBlank()) {
+            return null;
+        }
+        return webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
     }
 
     private String escape(String s) {
