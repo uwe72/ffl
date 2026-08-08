@@ -34,7 +34,6 @@ public class InvitationMailService {
     private static final Logger log = LoggerFactory.getLogger(InvitationMailService.class);
 
     private static final DateTimeFormatter DATE_LONG = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy", Locale.GERMANY);
-    private static final DateTimeFormatter DATE_SHORT = DateTimeFormatter.ofPattern("d. MMMM yyyy", Locale.GERMANY);
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
     private final SystemConfigRepository systemConfigRepository;
@@ -65,7 +64,7 @@ public class InvitationMailService {
             .orElse(null);
         String webUrl = config != null ? normalizeWebUrl(config.getWebUrl()) : null;
 
-        return buildHtmlContent(season, webUrl);
+        return buildHtml(season, webUrl);
     }
 
     public void sendTestMail(Long seasonId) {
@@ -81,7 +80,8 @@ public class InvitationMailService {
             .orElseThrow(() -> new RuntimeException("Saison nicht gefunden"));
 
         String webUrl = normalizeWebUrl(config.getWebUrl());
-        String html = buildHtmlContent(season, webUrl);
+        String html = buildHtml(season, webUrl);
+        String plainText = buildPlainText(season, webUrl);
         String subject = "FFL | Einladung zur Saison " + season.getName();
 
         try {
@@ -91,7 +91,8 @@ public class InvitationMailService {
             helper.setFrom(config.getGmailSenderEmail());
             helper.setTo(config.getGmailSenderEmail());
             helper.setSubject(subject);
-            helper.setText(html, true);
+            helper.setText(plainText, html);
+
             mailSender.send(msg);
             log.info("Einladungsmail (Test) gesendet an Admin: {}", config.getGmailSenderEmail());
         } catch (Exception e) {
@@ -123,7 +124,8 @@ public class InvitationMailService {
 
                 JavaMailSenderImpl mailSender = buildMailSender(config);
                 String webUrl = normalizeWebUrl(config.getWebUrl());
-                String baseHtml = buildHtmlContent(season, webUrl);
+                String baseHtml = buildHtml(season, webUrl);
+                String basePlainText = buildPlainText(season, webUrl);
                 String subject = "FFL | Einladung zur Saison " + season.getName();
 
                 send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
@@ -146,13 +148,14 @@ public class InvitationMailService {
                     try {
                         String unsubscribeUrl = unsubscribeService.generateUnsubscribeUrl(emailId, config.getWebUrl());
                         String htmlContent = insertUnsubscribeFooter(baseHtml, unsubscribeUrl);
+                        String textContent = appendUnsubscribePlainText(basePlainText, unsubscribeUrl);
 
                         MimeMessage msg = mailSender.createMimeMessage();
                         MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
                         helper.setFrom(config.getGmailSenderEmail());
                         helper.setTo(testMode ? config.getGmailSenderEmail() : recipientEmail);
                         helper.setSubject(subject);
-                        helper.setText(htmlContent, true);
+                        helper.setText(textContent, htmlContent);
 
                         mailSender.send(msg);
 
@@ -202,11 +205,103 @@ public class InvitationMailService {
         return emitter;
     }
 
-    private String buildHtmlContent(Season season, String webUrl) {
+    private String buildHtml(Season season, String webUrl) {
+        Context context = buildContext(season, webUrl);
+        return templateEngine.process("mail/invitation", context);
+    }
+
+    private String buildPlainText(Season season, String webUrl) {
+        String seasonName = season.getName() != null ? season.getName() : "Aktuelle Saison";
+        String startDateLong = formatOrDefault(season.getSeasonStartDate(), DATE_LONG, "siehe Webseite");
+        LocalDate deadlineDateRaw = season.getFinalRegistrationDate() != null
+            ? season.getFinalRegistrationDate()
+            : season.getSeasonStartDate();
+        String deadlineDate = formatOrDefault(deadlineDateRaw, DATE_LONG, "siehe Webseite");
+        String deadlineTime = formatOrDefault(season.getSeasonStartTime(), TIME_FMT, "20:30");
+        String startRoundRueckrunde = season.getStartRoundRueckrunde() != null ? String.valueOf(season.getStartRoundRueckrunde()) : "--";
+        String spieleinsatz = formatCurrency(season.getSpieleinsatzEuro(), "10");
+        String serverkosten = formatCurrency(season.getServerkostenEuro(), "60");
+        String gewinnProzent = season.getGewinnErsterPlatzProzent() != null ? String.valueOf(season.getGewinnErsterPlatzProzent()) : "10";
+        String gewinnLetzter = formatCurrency(season.getGewinnLetzterPlatzEuro(), "15");
+        String anzahlSpielleiter = season.getAnzahlSpielleiter() != null ? String.valueOf(season.getAnzahlSpielleiter()) : "2";
+        String budget = formatBudget(season.getBudget());
+        String playersUrl = webUrl != null ? webUrl + "/players" : null;
+        String documentsUrl = webUrl != null ? webUrl + "/documents" : null;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("FFL · Fantasy Football League\r\n");
+        sb.append("Einladung zur Saison ").append(seasonName).append("\r\n\r\n");
+
+        sb.append("HALLO FFL FAN!\r\n\r\n");
+        sb.append("Am ").append(startDateLong).append(" rollt der Ball wieder, und damit startet auch unsere Fantasy Football League in die neue Saison. Wir freuen uns, wenn Du wieder mit dabei bist.\r\n\r\n");
+        sb.append("Wir betreuen das Spiel seit der Saison 2011/2012. Mittlerweile spielen zwischen 200 und 260 Fußballfans mit, nicht nur aus Deutschland, sondern auch aus Irland, Kanada oder Kuba.\r\n\r\n");
+        sb.append("Die FFL ist ein einfaches Managerspiel: Du stellst vor Saisonbeginn einmalig ein Team aus echten Bundesligaspielern zusammen und sammelst 34 Spieltage lang Punkte für deren Tore und Leistungen.\r\n\r\n");
+
+        sb.append("JETZT ANMELDEN\r\n\r\n");
+        sb.append("Die Anmeldung ist ausschließlich online möglich. Registriere Dich und stelle Dein Team auf:\r\n");
+        if (webUrl != null) {
+            sb.append(webUrl).append("\r\n\r\n");
+        }
+        sb.append("Anmeldeschluss: ").append(deadlineDate).append(" um ").append(deadlineTime).append(" Uhr, also vor dem Eröffnungsspiel. Bis dahin kannst Du Dein Team beliebig oft umbauen.\r\n\r\n");
+
+        sb.append("WARUM MITMACHEN?\r\n\r\n");
+        sb.append("- Einmal aufstellen, 34 Spieltage lang mitfiebern\r\n");
+        sb.append("- Auch das unbedeutendste Spiel wird spannend, wenn eigene Spieler auf dem Platz stehen\r\n");
+        sb.append("- Montags im Büro mit den eigenen Punkten glänzen\r\n\r\n");
+
+        sb.append("EINSATZ UND GEWINN\r\n\r\n");
+        sb.append("- ").append(spieleinsatz).append(" Euro pro Manager\r\n");
+        sb.append("- Der komplette Einsatz, abzüglich ").append(serverkosten).append(" Euro Serverkosten, geht an die besten ").append(gewinnProzent).append(" Prozent\r\n");
+        sb.append("- Der Tabellenletzte erhält ").append(gewinnLetzter).append(" Euro zurück\r\n");
+        sb.append("- An der Organisation beteiligen sich ").append(anzahlSpielleiter).append(" Spielleiter, die mit je einem Team kostenlos teilnehmen\r\n\r\n");
+        sb.append("Je mehr Mitspieler, desto größer der Jackpot. Bring gerne Freunde, Familie und Kollegen mit und reaktiviere ehemalige Mitspieler.\r\n\r\n");
+
+        sb.append("SPIELREGELN\r\n\r\n");
+        sb.append("- Elf Spieler: 1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm, dazu 1 Joker auf einer frei wählbaren Feldposition\r\n");
+        sb.append("- Budget: ").append(budget).append(" Euro\r\n");
+        sb.append("- Keine Begrenzung der Spieler pro Verein\r\n\r\n");
+        sb.append("Punkte\r\n");
+        sb.append("Tore:\r\n");
+        sb.append("- Stürmer: 3 Punkte\r\n");
+        sb.append("- Mittelfeldspieler: 5 Punkte\r\n");
+        sb.append("- Abwehrspieler: 7 Punkte\r\n");
+        sb.append("- Torwart: 10 Punkte, per Elfmeter 3 Punkte\r\n\r\n");
+        sb.append("Zu Null:\r\n");
+        sb.append("- Torwart: 5 Punkte\r\n");
+        sb.append("- Abwehrspieler: 2 Punkte\r\n\r\n");
+        sb.append("Eigentore geben keine Punkte ;-)\r\n\r\n");
+
+        sb.append("SPIELERLISTE UND SAISONVERLAUF\r\n\r\n");
+        if (playersUrl != null) {
+            sb.append("- Spielerliste online öffnen: ").append(playersUrl).append("\r\n");
+        }
+        sb.append("- Im kicker Sonderheft zur neuen Saison\r\n");
+        if (documentsUrl != null) {
+            sb.append("- Die erfolgreichsten Spieler der letzten Saison: in den Dokumenten auf der FFL-Webseite: ").append(documentsUrl).append("\r\n");
+        }
+        sb.append("\r\n");
+        sb.append("- In der Winterpause dürfen bis zu drei Spieler getauscht werden\r\n");
+        sb.append("- Die Rückrunde beginnt an Spieltag ").append(startRoundRueckrunde).append("\r\n");
+        sb.append("- An jedem Spieltag bekommst Du Deinen persönlichen Bericht ins Postfach\r\n\r\n");
+
+        sb.append("Wir wünschen allen Managerinnen und Managern eine gute Hand beim Aufstellen, viele Punkte und vor allem viel Spaß. Möge das beste Team gewinnen!\r\n\r\n");
+        sb.append("Viele Grüße\r\n");
+        sb.append("Uwe Clement\r\n");
+        sb.append("Wolfgang Gehring\r\n\r\n");
+        if (webUrl != null) {
+            sb.append(webUrl).append("\r\n\r\n");
+        }
+        sb.append("Die FFL ist privat und ehrenamtlich organisiert und verfolgt keine wirtschaftlichen Interessen, der Rechtsweg ist ausgeschlossen.\r\n");
+        sb.append("Fragen? Antworte einfach direkt auf diese Mail.\r\n");
+
+        return sb.toString();
+    }
+
+    private Context buildContext(Season season, String webUrl) {
         Context context = new Context(Locale.GERMANY);
 
         context.setVariable("seasonName", season.getName() != null ? season.getName() : "Aktuelle Saison");
-        context.setVariable("startDateShort", formatOrDefault(season.getSeasonStartDate(), DATE_SHORT, "dem Eröffnungsspiel"));
+        context.setVariable("startDateLong", formatOrDefault(season.getSeasonStartDate(), DATE_LONG, "siehe Webseite"));
         LocalDate deadline = season.getFinalRegistrationDate() != null
             ? season.getFinalRegistrationDate()
             : season.getSeasonStartDate();
@@ -223,7 +318,7 @@ public class InvitationMailService {
         context.setVariable("documentsUrl", webUrl != null ? webUrl + "/documents" : null);
         context.setVariable("webUrl", webUrl);
 
-        return templateEngine.process("mail/invitation", context);
+        return context;
     }
 
     private String formatOrDefault(LocalDate date, DateTimeFormatter fmt, String fallback) {
@@ -265,6 +360,10 @@ public class InvitationMailService {
             + "<a href=\"" + unsubscribeUrl + "\" target=\"_blank\" style=\"color:#9ca3af;text-decoration:underline;\">hier austragen</a>."
             + "</p></div>";
         return html.replace("</body>", footer + "</body>");
+    }
+
+    private String appendUnsubscribePlainText(String text, String unsubscribeUrl) {
+        return text + "\r\n\r\nWenn Sie keine weiteren Mails der FFL erhalten möchten, können Sie sich hier austragen: " + unsubscribeUrl;
     }
 
     private JavaMailSenderImpl buildMailSender(SystemConfig config) {
