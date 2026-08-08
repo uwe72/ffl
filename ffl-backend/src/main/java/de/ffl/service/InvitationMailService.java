@@ -242,12 +242,13 @@ public class InvitationMailService {
         if (webUrl != null) {
             sb.append(webUrl).append("\r\n\r\n");
         }
-        sb.append("Anmeldeschluss: ").append(deadlineDate).append(" um ").append(deadlineTime).append(" Uhr. Bis dahin kannst Du Dein Team beliebig oft umbauen.\r\n\r\n");
+        sb.append("- Anmeldeschluss: ").append(deadlineDate).append(" um ").append(deadlineTime).append(" Uhr\r\n");
+        sb.append("- Bis dahin kannst Du Dein Team beliebig oft umbauen\r\n\r\n");
 
         sb.append("EINSATZ: ").append(spieleinsatz).append(" EURO PRO MANAGER\r\n\r\n");
         sb.append("- Die ").append(anzahlSpielleiter).append(" Spielleiter spielen mit je einem Team kostenlos mit.\r\n");
-        sb.append("- Vom Einsatz gehen ").append(serverkosten).append(" Euro Serverkosten ab.\r\n");
-        sb.append("- Ausgeschüttet wird an die besten 10 Prozent, aufgerundet, bei 200 Managern also an die ersten 20.\r\n");
+        sb.append("- Vom Einsatz gehen ").append(serverkosten).append(" Euro für Serverbetrieb und KI Nutzung ab.\r\n");
+        sb.append("- Ausgeschüttet wird an die besten 10 Prozent, bei 200 Managern also an die ersten 20.\r\n");
         sb.append("- Der Erste Gewinner bekommt ").append(gewinnProzent).append(" Prozent der Ausschüttung, der letzte Gewinner ").append(gewinnLetzter).append(" Euro.\r\n\r\n");
 
         sb.append("SPIELREGELN\r\n\r\n");

@@ -43,9 +43,9 @@
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
                 <tr>
                   <td style="padding:20px 22px;color:#57534e;font-size:14px;line-height:1.6;">
-                    <p style="margin:0 0 12px 0;">Am <span th:text="${startDateLong}" style="color:#c2410c;font-weight:700;">--</span> rollt der Ball wieder, und damit geht auch unsere <strong style="color:#1c1917;">Fantasy Football League</strong> in die n&auml;chste Saison. Wir freuen uns, wenn Du dabei bist.</p>
-                    <p style="margin:0 0 12px 0;">Wir betreuen das Spiel seit 2011/2012, mittlerweile spielen 200 bis 260 Fu&szlig;ballfans mit, von Deutschland bis Irland, Kanada und Kuba.</p>
-                    <p style="margin:0;">Die FFL ist ein einfaches Managerspiel: Du stellst einmalig ein Team aus echten Bundesligaspielern zusammen und sammelst <strong style="color:#1c1917;">34 Spieltage</strong> lang Punkte f&uuml;r deren Tore und Leistungen.</p>
+                    <p style="margin:0 0 12px 0;">Am <strong th:text="${startDateLong}">--</strong> rollt der Ball wieder, und damit geht auch unsere <strong>Fantasy Football League</strong> in die n&auml;chste Saison. Wir freuen uns, wenn Du dabei bist.</p>
+                    <p style="margin:0 0 12px 0;">Wir betreuen das Spiel seit <strong>2011/2012</strong>, mittlerweile spielen <strong>200 bis 260 Fu&szlig;ballfans</strong> mit, von Deutschland bis Irland, Kanada und Kuba.</p>
+                    <p style="margin:0;">Die FFL ist ein einfaches Managerspiel: Du stellst <strong>einmalig</strong> ein Team aus echten Bundesligaspielern zusammen und sammelst <strong>34 Spieltage</strong> lang Punkte f&uuml;r deren Tore und Leistungen.</p>
                   </td>
                 </tr>
               </table>
@@ -70,7 +70,10 @@
                         </td>
                       </tr>
                     </table>
-                    <p style="margin:0;color:#57534e;"><strong style="color:#1c1917;">Anmeldeschluss: <span th:text="${deadlineDate}" style="color:#c2410c;font-weight:700;">--</span> um <span th:text="${deadlineTime}" style="color:#c2410c;font-weight:700;">--</span> Uhr</strong>. Bis dahin kannst Du Dein Team <strong style="color:#1c1917;">beliebig oft umbauen</strong>.</p>
+                    <ul style="margin:0;padding-left:20px;color:#57534e;font-size:14px;line-height:1.7;">
+                      <li style="margin-bottom:6px;"><strong>Anmeldeschluss: <span th:text="${deadlineDate}" style="font-weight:700;">--</span> um <span th:text="${deadlineTime}" style="font-weight:700;">--</span> Uhr</strong></li>
+                      <li style="margin-bottom:0;">Bis dahin kannst Du Dein Team <strong>beliebig oft umbauen</strong></li>
+                    </ul>
                   </td>
                 </tr>
               </table>
@@ -83,15 +86,15 @@
           <!-- Block 3: Einsatz und Gewinn -->
           <tr>
             <td>
-              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Einsatz: <span th:text="${spieleinsatz}" style="color:#c2410c;">10</span> Euro pro Manager</p>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Einsatz: <strong th:text="${spieleinsatz}">10</strong> Euro pro Manager</p>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
                 <tr>
                   <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
                     <ul style="margin:0;padding-left:20px;">
-                      <li style="margin-bottom:6px;">Die <strong style="color:#c2410c;" th:text="${anzahlSpielleiter}">2</strong> Spielleiter spielen mit je einem Team kostenlos mit.</li>
-                      <li style="margin-bottom:6px;">Vom Einsatz gehen <strong style="color:#c2410c;" th:text="${serverkosten}">70</strong> Euro Serverkosten ab.</li>
-                      <li style="margin-bottom:6px;">Ausgesch&uuml;ttet wird an die besten 10 Prozent, aufgerundet, bei 200 Managern also an die ersten 20.</li>
-                      <li style="margin-bottom:0;">Der Erste Gewinner bekommt <strong style="color:#c2410c;" th:text="${gewinnProzent}">12</strong> Prozent der Aussch&uuml;ttung, der letzte Gewinner <strong style="color:#c2410c;" th:text="${gewinnLetzter}">15</strong> Euro.</li>
+                      <li style="margin-bottom:6px;">Die <strong th:text="${anzahlSpielleiter}">2</strong> Spielleiter spielen mit je einem Team kostenlos mit.</li>
+                      <li style="margin-bottom:6px;">Vom Einsatz gehen <strong th:text="${serverkosten}">70</strong> Euro f&uuml;r <strong>Serverbetrieb und KI Nutzung</strong> ab.</li>
+                      <li style="margin-bottom:6px;">Ausgesch&uuml;ttet wird an die <strong>besten 10 Prozent</strong>, bei 200 Managern also an die <strong>ersten 20</strong>.</li>
+                      <li style="margin-bottom:0;">Der Erste Gewinner bekommt <strong th:text="${gewinnProzent}">12</strong> Prozent der Aussch&uuml;ttung, der letzte Gewinner <strong th:text="${gewinnLetzter}">15</strong> Euro.</li>
                     </ul>
                   </td>
                 </tr>
@@ -110,10 +113,10 @@
                 <tr>
                   <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
                     <ul style="margin:0;padding-left:20px;">
-                      <li style="margin-bottom:6px;"><strong style="color:#1c1917;">Elf Spieler:</strong> 1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm, dazu 1 Joker auf einer frei w&auml;hlbaren Feldposition</li>
-                      <li style="margin-bottom:6px;"><strong style="color:#1c1917;">Budget: <span style="color:#c2410c;" th:text="${budget}">30.000.000</span> Euro</strong>, keine Begrenzung der Spieler pro Verein</li>
-                      <li style="margin-bottom:6px;"><strong style="color:#1c1917;">Tore:</strong> St&uuml;rmer 3 Punkte, Mittelfeld 5, Abwehr 7, Torwart 10, per Elfmeter 3</li>
-                      <li style="margin-bottom:0;"><strong style="color:#1c1917;">Zu Null:</strong> Torwart 5 Punkte, Abwehr 2</li>
+                      <li style="margin-bottom:6px;"><strong>Elf Spieler:</strong> 1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm, dazu 1 Joker auf einer frei w&auml;hlbaren Feldposition</li>
+                      <li style="margin-bottom:6px;"><strong>Budget: <strong th:text="${budget}">30.000.000</strong> Euro</strong>, keine Begrenzung der Spieler pro Verein</li>
+                      <li style="margin-bottom:6px;"><strong>Tore:</strong> St&uuml;rmer <strong>3 Punkte</strong>, Mittelfeld <strong>5</strong>, Abwehr <strong>7</strong>, Torwart <strong>10</strong>, per Elfmeter <strong>3</strong></li>
+                      <li style="margin-bottom:0;"><strong>Zu Null:</strong> Torwart <strong>5 Punkte</strong>, Abwehr <strong>2</strong></li>
                     </ul>
                   </td>
                 </tr>
@@ -132,9 +135,9 @@
                 <tr>
                   <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
                     <ul style="margin:0;padding-left:20px;">
-                      <li style="margin-bottom:6px;"><a th:href="${playersUrl}" style="color:#1d4ed8;text-decoration:none;"><strong style="color:#1d4ed8;">Spielerliste online &ouml;ffnen</strong></a> oder im <strong style="color:#1c1917;">kicker Sonderheft</strong></li>
+                      <li style="margin-bottom:6px;"><a th:href="${playersUrl}" style="color:#1d4ed8;text-decoration:none;"><strong>Spielerliste online &ouml;ffnen</strong></a> oder im <strong>kicker Sonderheft</strong></li>
                       <li style="margin-bottom:6px;">Die erfolgreichsten Spieler der letzten Saison: in den <a th:href="${documentsUrl}" style="color:#1d4ed8;text-decoration:none;">Dokumenten</a></li>
-                      <li style="margin-bottom:0;">In der <strong style="color:#1c1917;">Winterpause</strong> d&uuml;rfen bis zu drei Spieler getauscht werden</li>
+                      <li style="margin-bottom:0;">In der <strong>Winterpause</strong> d&uuml;rfen <strong>bis zu drei Spieler</strong> getauscht werden</li>
                     </ul>
                   </td>
                 </tr>
@@ -152,7 +155,7 @@
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
                 <tr>
                   <td style="padding:20px 22px;color:#1c1917;font-size:14px;line-height:1.6;">
-                    <p style="margin:0 0 14px 0;color:#57534e;">Wir w&uuml;nschen allen Managerinnen und Managern eine gute Hand beim Aufstellen, viele Punkte und vor allem viel Spa&szlig;. <strong style="color:#1c1917;">M&ouml;ge das beste Team gewinnen!</strong></p>
+                    <p style="margin:0 0 14px 0;color:#57534e;">Wir w&uuml;nschen allen Managerinnen und Managern eine gute Hand beim Aufstellen, viele Punkte und vor allem viel Spa&szlig;. <strong>M&ouml;ge das beste Team gewinnen!</strong></p>
                     <p style="margin:0;">
                       Viele Gr&uuml;&szlig;e<br/>
                       <strong>Uwe Clement</strong><br/>
