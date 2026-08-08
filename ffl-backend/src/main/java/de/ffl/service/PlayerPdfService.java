@@ -77,8 +77,6 @@ public class PlayerPdfService {
             Font titleFont = new Font(bfBold, 22, Font.NORMAL, BANNER_TITLE);
             Font subFont = new Font(bf, 12, Font.NORMAL, BANNER_SUB);
             Font metaFont = new Font(bf, 9, Font.NORMAL, BANNER_EYEBROW);
-            Font kpiLabelFont = new Font(bf, 8, Font.NORMAL, FAINT);
-            Font kpiValueFont = new Font(bfBold, 13, Font.NORMAL, TEXT);
             Font headerFont = new Font(bfBold, 9, Font.NORMAL, BANNER_TITLE);
             Font cellFont = new Font(bf, 9, Font.NORMAL, TEXT);
             Font cellBold = new Font(bfBold, 9, Font.NORMAL, TEXT);
@@ -91,7 +89,6 @@ public class PlayerPdfService {
             document.open();
 
             document.add(headerBand(seasonName, dateStr, players.size(), eyebrowFont, titleFont, subFont, metaFont));
-            document.add(kpiStrip(players, kpiLabelFont, kpiValueFont));
             document.add(playerTable(players, headerFont, cellFont, cellBold, cellAccent));
             document.close();
             return out.toByteArray();
@@ -128,37 +125,6 @@ public class PlayerPdfService {
         table.addCell(left);
         table.addCell(right);
         return table;
-    }
-
-    private PdfPTable kpiStrip(List<PlayerDto> players, Font labelFont, Font valueFont) {
-        int count = players.size();
-        long totalPrize = players.stream().mapToLong(p -> p.getPrize() != null ? p.getPrize() : 0).sum();
-        long totalPoints = players.stream().mapToLong(p -> p.getPoints() != null ? p.getPoints() : 0).sum();
-        long totalManagers = players.stream().mapToLong(p -> p.getManagerCount() != null ? p.getManagerCount() : 0).sum();
-        double avgPoints = count > 0 ? (double) totalPoints / count : 0;
-
-        PdfPTable table = new PdfPTable(4);
-        table.setWidthPercentage(100);
-        table.setSpacingAfter(18);
-
-        kpiCell(table, "Spieler gesamt", String.format("%,d", count), labelFont, valueFont);
-        kpiCell(table, "Marktwert gesamt", formatPrizeTotal(totalPrize), labelFont, valueFont);
-        kpiCell(table, "Ø Punkte", formatAvg(avgPoints), labelFont, valueFont);
-        kpiCell(table, "Manager gesamt", String.format("%,d", totalManagers), labelFont, valueFont);
-        return table;
-    }
-
-    private void kpiCell(PdfPTable table, String label, String value, Font labelFont, Font valueFont) {
-        PdfPCell cell = new PdfPCell();
-        cell.setBackgroundColor(CARD);
-        cell.setBorderColor(OUTER);
-        cell.setBorderWidth(0.5f);
-        cell.setPadding(12);
-        cell.setPaddingTop(11);
-        cell.setPaddingBottom(11);
-        cell.addElement(paragraph(label.toUpperCase(), labelFont, 4));
-        cell.addElement(paragraph(value, valueFont, 0));
-        table.addCell(cell);
     }
 
     private PdfPTable playerTable(List<PlayerDto> players, Font headerFont, Font cellFont,
@@ -288,21 +254,6 @@ public class PlayerPdfService {
     private String formatPrize(Integer prize) {
         if (prize == null) return "0";
         return String.format("%,d", prize);
-    }
-
-    private String formatPrizeTotal(long total) {
-        if (total >= 1_000_000) {
-            double mio = total / 1_000_000.0;
-            return String.format("%.1f Mio. €", mio).replace('.', ',');
-        }
-        return String.format("%,d €", total);
-    }
-
-    private String formatAvg(double avg) {
-        if (avg == Math.floor(avg)) {
-            return String.format("%,d", (long) avg);
-        }
-        return String.format("%.1f", avg).replace('.', ',');
     }
 
     private static class FooterEvent extends PdfPageEventHelper {
