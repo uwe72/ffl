@@ -215,7 +215,10 @@ public class InvitationMailService {
 
         context.setVariable("seasonName", season.getName() != null ? season.getName() : "Aktuelle Saison");
         context.setVariable("startDateShort", formatOrDefault(season.getSeasonStartDate(), DATE_SHORT, "dem Eröffnungsspiel"));
-        context.setVariable("deadlineDate", formatOrDefault(season.getFinalRegistrationDate(), DATE_LONG, "siehe Webseite"));
+        LocalDate deadline = season.getFinalRegistrationDate() != null
+            ? season.getFinalRegistrationDate()
+            : season.getSeasonStartDate();
+        context.setVariable("deadlineDate", formatOrDefault(deadline, DATE_LONG, "siehe Webseite"));
         context.setVariable("deadlineTime", formatOrDefault(season.getSeasonStartTime(), TIME_FMT, "20:30"));
         context.setVariable("startRoundRueckrunde", season.getStartRoundRueckrunde() != null ? String.valueOf(season.getStartRoundRueckrunde()) : "--");
         context.setVariable("spieleinsatz", formatCurrency(season.getSpieleinsatzEuro(), "10"));
@@ -223,7 +226,9 @@ public class InvitationMailService {
         context.setVariable("gewinnProzent", season.getGewinnErsterPlatzProzent() != null ? String.valueOf(season.getGewinnErsterPlatzProzent()) : "10");
         context.setVariable("gewinnLetzter", formatCurrency(season.getGewinnLetzterPlatzEuro(), "15"));
         context.setVariable("anzahlSpielleiter", season.getAnzahlSpielleiter() != null ? String.valueOf(season.getAnzahlSpielleiter()) : "2");
-        context.setVariable("budget", season.getBudget() != null ? String.valueOf(season.getBudget()) : "30");
+        context.setVariable("budget", formatBudget(season.getBudget()));
+        context.setVariable("playersUrl", webUrl != null ? webUrl + "/players" : null);
+        context.setVariable("documentsUrl", webUrl != null ? webUrl + "/documents" : null);
         context.setVariable("webUrl", webUrl);
 
         return templateEngine.process("mail/invitation", context);
@@ -243,6 +248,14 @@ public class InvitationMailService {
         }
         NumberFormat nf = NumberFormat.getNumberInstance(Locale.GERMANY);
         nf.setMaximumFractionDigits(0);
+        return nf.format(value);
+    }
+
+    private String formatBudget(Integer value) {
+        if (value == null) {
+            return "30.000.000";
+        }
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.GERMANY);
         return nf.format(value);
     }
 

@@ -22,7 +22,7 @@
                 <tr>
                   <td style="vertical-align:top;">
                     <p style="margin:0 0 10px 0;color:#ede9e3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">FFL &middot; Fantasy Football League</p>
-                    <h1 style="margin:0 0 6px 0;color:#fafaf9;font-size:26px;font-weight:700;line-height:1.2;">Einladung zur neuen Saison</h1>
+                    <h1 style="margin:0 0 6px 0;color:#fafaf9;font-size:26px;font-weight:700;line-height:1.2;">Einladung</h1>
                     <p style="margin:0;color:#a8a29e;font-size:15px;font-weight:500;line-height:1.4;">Saison <span th:text="${seasonName}" style="color:#fca5a5;font-weight:700;">Aktuelle Saison</span></p>
                   </td>
                   <td width="44" style="vertical-align:top;text-align:right;">
@@ -40,9 +40,29 @@
           <tr>
             <td style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;padding:20px 22px;">
               <p style="margin:0 0 12px 0;color:#1c1917;font-size:16px;font-weight:700;">Hallo FFL Fan!</p>
-              <p style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">
+              <p style="margin:0 0 12px 0;color:#57534e;font-size:14px;line-height:1.6;">
                 Am <span th:text="${startDateShort}" style="color:#dc2626;font-weight:700;">--</span> rollt der Ball wieder, und damit startet auch unsere <strong>Fantasy Football League</strong> in die neue Saison. Wir freuen uns, wenn Du wieder mit dabei bist.
               </p>
+              <p style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">
+                Wir betreuen das Spiel seit der Saison 2011/2012. Mittlerweile spielen zwischen 200 und 260 Fu&szlig;ballfans nicht nur aus Deutschland, sondern auch aus Irland, Kanada oder Kuba mit.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Grundprinzip -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Grundprinzip</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
+                <tr>
+                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.6;">
+                    Die FFL ist ein einfaches Fu&szlig;ball-Manager-Spiel. Ziel ist es, mit einem bestimmten Budget einmalig eine erfolgreiche Mannschaft aus 11 Spielern zusammenzustellen. Deine Spieler erhalten Punkte, indem sie im realen Leben erfolgreich sind.
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
@@ -143,7 +163,7 @@
                   <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
                     <ul style="margin:0;padding-left:20px;">
                       <li style="margin-bottom:6px;"><strong>Elf Spieler:</strong> 1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm, dazu 1 Joker auf einer frei w&auml;hlbaren Feldposition</li>
-                      <li style="margin-bottom:6px;"><strong>Budget: <span th:text="${budget}" style="color:#dc2626;font-weight:700;">30</span> Millionen</strong></li>
+                      <li style="margin-bottom:6px;"><strong>Budget: <span th:text="${budget}" style="color:#dc2626;font-weight:700;">30.000.000</span> Euro</strong></li>
                       <li style="margin-bottom:0;">Keine Begrenzung der Spieler pro Verein</li>
                     </ul>
                   </td>
@@ -189,9 +209,9 @@
                 <tr>
                   <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
                     <ul style="margin:0;padding-left:20px;">
-                      <li style="margin-bottom:6px;">Online als <strong>PDF</strong>: <a href="http://uwe72.hopto.org:999/FFL_Saison_2026_2027.pdf" style="color:#1d4ed8;text-decoration:none;">FFL_Saison_2026_2027.pdf</a></li>
+                      <li style="margin-bottom:6px;">Online auf der <strong>FFL-Webseite</strong>: <a th:href="${playersUrl}" th:text="${playersUrl}" style="color:#1d4ed8;text-decoration:none;">/players</a></li>
                       <li style="margin-bottom:6px;">Im <strong>kicker Sonderheft</strong> zur neuen Saison</li>
-                      <li style="margin-bottom:0;">Die erfolgreichsten Spieler der letzten Saison: <a href="http://uwe72.hopto.org:999/FFL_vorherigeSaison.pdf" style="color:#1d4ed8;text-decoration:none;">FFL_vorherigeSaison.pdf</a></li>
+                      <li style="margin-bottom:0;">Die erfolgreichsten Spieler der letzten Saison: in den <a th:href="${documentsUrl}" style="color:#1d4ed8;text-decoration:none;">Dokumenten</a> auf der FFL-Webseite</li>
                     </ul>
                   </td>
                 </tr>
@@ -225,37 +245,27 @@
           <!-- Spacer -->
           <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
 
-          <!-- Zahlung -->
+          <!-- Wir wünschen viel Spaß! -->
           <tr>
             <td>
-              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Zahlung</p>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f4;border:1px solid #d6d3d1;border-radius:6px;">
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Wir w&uuml;nschen viel Spa&szlig;!</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
                 <tr>
-                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.6;">
-                    Bitte beachte die <strong>Bankverbindung bzw. den Link zu PayPal</strong> aus der Best&auml;tigungsmail Deiner Anmeldung.
+                  <td style="padding:20px 22px;">
+                    <p style="margin:0 0 10px 0;color:#57534e;font-size:14px;line-height:1.6;">
+                      Die FFL ist privat und ehrenamtlich organisiert und verfolgt keine wirtschaftlichen Interessen, der Rechtsweg ist ausgeschlossen.
+                    </p>
+                    <p style="margin:0 0 14px 0;color:#1c1917;font-size:14px;line-height:1.6;">
+                      Wir w&uuml;nschen allen Managerinnen und Managern eine gute Hand beim Aufstellen, viele Punkte und vor allem viel Spa&szlig;. <strong>M&ouml;ge das beste Team gewinnen!</strong>
+                    </p>
+                    <p style="margin:0;color:#1c1917;font-size:14px;line-height:1.6;">
+                      Viele Gr&uuml;&szlig;e<br/>
+                      <strong>Uwe Clement</strong><br/>
+                      <strong>Wolfgang Gehring</strong>
+                    </p>
                   </td>
                 </tr>
               </table>
-            </td>
-          </tr>
-
-          <!-- Spacer -->
-          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
-
-          <!-- Schluss -->
-          <tr>
-            <td style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;padding:20px 22px;">
-              <p style="margin:0 0 10px 0;color:#57534e;font-size:14px;line-height:1.6;">
-                Die FFL ist privat und ehrenamtlich organisiert und verfolgt keine wirtschaftlichen Interessen, der Rechtsweg ist ausgeschlossen.
-              </p>
-              <p style="margin:0;color:#1c1917;font-size:14px;line-height:1.6;">
-                Wir w&uuml;nschen allen Managerinnen und Managern eine gute Hand beim Aufstellen, viele Punkte und vor allem viel Spa&szlig;. <strong>M&ouml;ge das beste Team gewinnen!</strong>
-              </p>
-              <p style="margin:14px 0 0 0;color:#1c1917;font-size:14px;line-height:1.6;">
-                Viele Gr&uuml;&szlig;e<br/>
-                <strong>Uwe Clement</strong><br/>
-                <strong>Wolfgang Gehring</strong>
-              </p>
             </td>
           </tr>
 
