@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Link as RouterLink, useBlocker } from 'react-router-dom'
+import { Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { managerApi } from '../api/managers'
 import { authApi } from '../api/auth'
@@ -653,8 +653,6 @@ export default function MyTeam() {
   }
 
   const hasUnsavedChanges = hasChanges || hasTransferChanges
-
-  const blocker = useBlocker(hasUnsavedChanges)
 
   useEffect(() => {
     if (!hasUnsavedChanges) return
@@ -1352,29 +1350,6 @@ export default function MyTeam() {
         </div>
       )}
 
-      {blocker.state === 'blocked' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-surface border border-border rounded-card w-full max-w-md p-6 shadow-2xl">
-            <div className="flex items-start gap-3 mb-4">
-              <i className="sap-icon sap-icon-alert text-[24px] text-warning shrink-0 mt-0.5" />
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">Seite verlassen?</h3>
-                <p className="text-sm text-muted mt-1">
-                  Du hast ungespeicherte Änderungen. Wenn du die Seite verlässt, gehen diese verloren.
-                </p>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={() => blocker.reset()}>
-                Abbrechen
-              </Button>
-              <Button variant="negative" size="sm" onClick={() => blocker.proceed()}>
-                Trotzdem verlassen
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
