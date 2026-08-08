@@ -75,10 +75,10 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
         )}
         <SidebarItem to="/manager-groups" label="Gruppen" icon="sap-icon-group-2" collapsed={collapsed} />
-        <SidebarItem to="/documents" label="Dokumente" icon="sap-icon-attachment-text" collapsed={collapsed} />
         {!isRestricted && (
           <SidebarItem to="/games" label="Spiele" icon="sap-icon-calendar" collapsed={collapsed} />
         )}
+        <SidebarItem to="/documents" label="Dokumente" icon="sap-icon-documents" collapsed={collapsed} />
         <button
           onClick={openFeedback}
           title={collapsed ? 'Feedback' : undefined}

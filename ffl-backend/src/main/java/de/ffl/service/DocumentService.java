@@ -78,6 +78,31 @@ public class DocumentService {
     }
 
     @Transactional
+    public DocumentDto storeGenerated(byte[] data, String filename, String contentType, String uploaderLogin) {
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            throw new IllegalArgumentException("Nur PDF, TXT, PNG und JPG Dateien sind erlaubt");
+        }
+        if (data.length > MAX_FILE_SIZE) {
+            throw new IllegalArgumentException("Datei darf maximal 10 MB groß sein");
+        }
+        if (filename == null || filename.isBlank()) {
+            throw new IllegalArgumentException("Dateiname darf nicht leer sein");
+        }
+
+        Document doc = Document.builder()
+            .filename(filename)
+            .contentType(contentType)
+            .fileSize(data.length)
+            .uploadedAt(Instant.now())
+            .uploadedBy(uploaderLogin)
+            .data(data)
+            .build();
+
+        Document saved = documentRepository.save(doc);
+        return DocumentDto.fromEntity(saved);
+    }
+
+    @Transactional
     public void delete(Long id) {
         if (!documentRepository.existsById(id)) {
             throw new IllegalArgumentException("Dokument nicht gefunden");

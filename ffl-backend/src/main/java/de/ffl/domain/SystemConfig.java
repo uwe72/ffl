@@ -3,6 +3,8 @@ package de.ffl.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "ffl_system_config")
 @Getter
@@ -44,4 +46,17 @@ public class SystemConfig {
 
     @Column(name = "web_url")
     private String webUrl;
+
+    @Column(name = "auto_update_enabled")
+    @Builder.Default
+    private Boolean autoUpdateEnabled = false;
+
+    @Column(name = "auto_update_cron")
+    private String autoUpdateCron;
+
+    @Column(name = "auto_update_source_url")
+    private String autoUpdateSourceUrl;
+
+    @Column(name = "auto_update_last_run")
+    private LocalDateTime autoUpdateLastRun;
 }

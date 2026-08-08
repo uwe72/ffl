@@ -56,7 +56,8 @@ export default function PlayerDetail() {
     lastName: '',
     prize: 0,
     pictureUrl: '',
-    position: '' as Position
+    position: '' as Position,
+    aktiv: true
   })
   const [isSaving, setIsSaving] = useState(false)
   const updatePlayer = useUpdatePlayer()
@@ -74,7 +75,8 @@ export default function PlayerDetail() {
         lastName: player.lastName || '',
         prize: player.prize,
         pictureUrl: player.pictureUrl || '',
-        position: player.position
+        position: player.position,
+        aktiv: player.aktiv ?? true
       })
     }
   }, [player])
@@ -107,7 +109,8 @@ export default function PlayerDetail() {
     editData.lastName !== (player.lastName || '') ||
     editData.prize !== player.prize ||
     editData.pictureUrl !== (player.pictureUrl || '') ||
-    editData.position !== player.position
+    editData.position !== player.position ||
+    editData.aktiv !== (player.aktiv ?? true)
   )
 
   const chartData = useMemo(() => {
@@ -318,6 +321,7 @@ export default function PlayerDetail() {
                     {positionLabels[player.position]}
                     {player.prize ? ` · ${formatPrice(player.prize)}` : ''}
                     {player.teams.length > 0 && ` · ${player.teams.map(t => t.name).join(', ')}`}
+                    {player.aktiv === false && ' · Inaktiv'}
                   </p>
                 </div>
                 {player.teams.length > 0 && (
@@ -390,6 +394,17 @@ export default function PlayerDetail() {
                     </select>
                   </div>
                   <div className="min-w-0">
+                    <span className="text-xs text-muted cursor-help" title="Aktiv: aktueller Bundesliga-Spieler · Inaktiv: Spieler hat die Bundesliga verlassen">Aktiv</span>
+                    <select
+                      value={editData.aktiv ? 'true' : 'false'}
+                      onChange={(e) => setEditData({ ...editData, aktiv: e.target.value === 'true' })}
+                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
+                    >
+                      <option value="true">Ja</option>
+                      <option value="false">Nein</option>
+                    </select>
+                  </div>
+                  <div className="min-w-0">
                     <span className="text-xs text-muted">Marktwert</span>
                     <input
                       type="text"
@@ -459,7 +474,8 @@ export default function PlayerDetail() {
                           lastName: player.lastName || '',
                           prize: player.prize,
                           pictureUrl: player.pictureUrl || '',
-                          position: player.position
+                          position: player.position,
+                          aktiv: player.aktiv ?? true
                         })
                         setStammdatenOpen(false)
                       }}

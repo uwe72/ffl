@@ -20,6 +20,7 @@ public class PlayerDto {
     private Position position;
     private Integer prize;
     private String pictureUrl;
+    private Boolean aktiv;
     private List<TeamInfo> teams;
     private Integer managerCount;
     private List<ManagerInfo> managers;
@@ -43,6 +44,7 @@ public class PlayerDto {
         dto.setPosition(player.getPosition());
         dto.setPrize(player.getPrize());
         dto.setPictureUrl(player.getPictureUrl());
+        dto.setAktiv(player.getAktiv());
         if (player.getTeams() != null) {
             dto.setTeams(player.getTeams().stream()
                 .map(t -> new TeamInfo(t.getId(), t.getName(), t.getLogoXxlUrl(), t.getLogoSUrl()))
@@ -124,6 +126,8 @@ public class PlayerDto {
     public void setPrize(Integer prize) { this.prize = prize; }
     public String getPictureUrl() { return pictureUrl; }
     public void setPictureUrl(String pictureUrl) { this.pictureUrl = pictureUrl; }
+    public Boolean getAktiv() { return aktiv; }
+    public void setAktiv(Boolean aktiv) { this.aktiv = aktiv; }
     public List<TeamInfo> getTeams() { return teams; }
     public void setTeams(List<TeamInfo> teams) { this.teams = teams; }
     public Integer getManagerCount() { return managerCount; }

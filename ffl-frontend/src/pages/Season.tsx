@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
 import { trackEvent } from '../hooks/useMatomo'
-import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePreviewSeasonSetup } from '../hooks/useSeasons'
+import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePreviewSeasonSetup, useGeneratePlayersPdf } from '../hooks/useSeasons'
+import { useSystemConfig, useUpdateSystemConfig } from '../hooks/useSystemConfig'
+import { useAuth } from '../context/AuthContext'
 import CalculationDialog from '../components/CalculationDialog'
 import SetupProgressDialog from '../components/SetupProgressDialog'
 import Badge from '../components/Badge'
@@ -26,7 +28,7 @@ const tabItems = [
   { key: 'saisondaten', label: 'Saisondaten' },
   { key: 'bankverbindung', label: 'Bankverbindung' },
   { key: 'gewinnausschuettung', label: 'Gewinnausschüttung' },
-  { key: 'neue-saison', label: 'Neue Saison' }
+  { key: 'neue-saison', label: 'Saison Datenimport' }
 ]
 
 const DEFAULT_SOURCE_URL = 'https://classic.kicker-libero.de/api/gameloop/v1/state/current/se-k00012026.json'
@@ -140,6 +142,11 @@ export default function Season() {
   const { data: season, isLoading, error } = useCurrentSeason()
   const updateSeason = useUpdateSeason()
   const previewSeasonSetup = usePreviewSeasonSetup()
+  const generatePlayersPdf = useGeneratePlayersPdf()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
+  const { data: systemConfig } = useSystemConfig()
+  const updateSystemConfig = useUpdateSystemConfig()
   const { data: prizeDistribution, isLoading: isLoadingPrize } = usePrizeDistribution(season?.id ?? 0)
   const { data: prizeDistributionLog } = usePrizeDistributionLog(season?.id ?? 0)
   const calculatePrize = useCalculatePrizeDistribution()
@@ -153,11 +160,19 @@ export default function Season() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [commentDialogManager, setCommentDialogManager] = useState<PrizePayout | null>(null)
   const [commentDraft, setCommentDraft] = useState('')
-  const [setupSourceUrl, setSetupSourceUrl] = useState(DEFAULT_SOURCE_URL)
   const [setupSeasonName, setSetupSeasonName] = useState('')
   const [setupPreview, setSetupPreview] = useState<SetupPreviewDto | null>(null)
   const [showSetupConfirm, setShowSetupConfirm] = useState(false)
   const [showSetupDialog, setShowSetupDialog] = useState(false)
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false)
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false)
+  const [autoUpdateEnabled, setAutoUpdateEnabled] = useState(false)
+  const [autoUpdateCron, setAutoUpdateCron] = useState('0 0 8 * * *')
+  const [autoUpdateConfigError, setAutoUpdateConfigError] = useState<string | null>(null)
+  const [autoUpdateSaving, setAutoUpdateSaving] = useState(false)
+  const [sourceUrlDraft, setSourceUrlDraft] = useState(DEFAULT_SOURCE_URL)
+  const [sourceUrlSaving, setSourceUrlSaving] = useState(false)
+  const [pdfFeedback, setPdfFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
     if (season) {
@@ -185,6 +200,16 @@ export default function Season() {
       }
     }
   }, [season])
+
+  useEffect(() => {
+    if (systemConfig) {
+      setAutoUpdateEnabled(systemConfig.autoUpdateEnabled ?? false)
+      setAutoUpdateCron(systemConfig.autoUpdateCron ?? '0 0 8 * * *')
+      setSourceUrlDraft(systemConfig.autoUpdateSourceUrl || DEFAULT_SOURCE_URL)
+    }
+  }, [systemConfig])
+
+  const effectiveSourceUrl = systemConfig?.autoUpdateSourceUrl || DEFAULT_SOURCE_URL
 
   const handleChange = (field: keyof Season, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -700,16 +725,82 @@ export default function Season() {
                         </td>
                       </tr>
                     ))}
-                   </TableBody>
-                 </table>
-               </div>
-             </div>
+                    </TableBody>
+                  </table>
+                </div>
+              </div>
            )}
-</>
-        )}
+        </>
+      )}
 
       {activeTab === 'neue-saison' && (
         <>
+          {isAdmin && (
+            <div className="bg-surface border border-border rounded-card p-6 mb-6">
+              <h2 className="text-lg font-bold text-foreground mb-2">PDF erstellen</h2>
+              <p className="text-muted text-sm mb-4">
+                Erstellt ein PDF mit allen Spielern der aktuellen Saison (Position, Spieler, Verein,
+                Position, Marktwert, Punkte, Anzahl Manager) und fügt es der Dokumentenliste hinzu.
+              </p>
+              <Button
+                variant="emphasized"
+                disabled={!season || generatePlayersPdf.isPending}
+                onClick={async () => {
+                  setPdfFeedback(null)
+                  try {
+                    await generatePlayersPdf.mutateAsync(season!.id)
+                    setPdfFeedback({ type: 'success', text: 'PDF wurde erstellt und der Dokumentenliste hinzugefügt.' })
+                  } catch (err: any) {
+                    const message = err?.response?.data?.message || err?.message || 'PDF-Erstellung fehlgeschlagen'
+                    setPdfFeedback({ type: 'error', text: message })
+                  }
+                }}
+              >
+                {generatePlayersPdf.isPending ? 'PDF wird erstellt...' : 'PDF erstellen – Spielerliste'}
+              </Button>
+              {pdfFeedback && (
+                <div className={`mt-4 p-4 border rounded-card ${pdfFeedback.type === 'success' ? 'bg-success-bg border-success/30' : 'bg-danger-bg border-danger'}`}>
+                  <p className={`text-sm ${pdfFeedback.type === 'success' ? 'text-success' : 'text-danger'}`}>{pdfFeedback.text}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="bg-surface border border-border rounded-card p-6 mb-6">
+            <h2 className="text-lg font-bold text-foreground mb-2">Quell-URL</h2>
+            <p className="text-muted text-sm mb-4">
+              Diese URL wird für das manuelle und das automatische Spieler-Update verwendet
+              (kicker-libero State-URL).
+            </p>
+            <FormCard className="mb-4">
+              <label className="block text-sm text-muted mb-1">Quell-URL</label>
+              <input
+                value={sourceUrlDraft}
+                onChange={(e) => setSourceUrlDraft(e.target.value)}
+                className="input-field w-full px-3 py-2 rounded-control focus:outline-none"
+                placeholder="https://classic.kicker-libero.de/api/gameloop/v1/state/current/se-k00012026.json"
+              />
+            </FormCard>
+            <Button
+              variant="emphasized"
+              disabled={sourceUrlSaving || !sourceUrlDraft}
+              onClick={async () => {
+                setSourceUrlSaving(true)
+                setAutoUpdateConfigError(null)
+                try {
+                  await updateSystemConfig.mutateAsync({ autoUpdateSourceUrl: sourceUrlDraft })
+                } catch (err: any) {
+                  const message = err?.response?.data?.message || err?.message || 'Speichern fehlgeschlagen'
+                  setAutoUpdateConfigError(message)
+                } finally {
+                  setSourceUrlSaving(false)
+                }
+              }}
+            >
+              {sourceUrlSaving ? 'Speichert...' : 'Quell-URL speichern'}
+            </Button>
+          </div>
+
           <div className="bg-surface border border-border rounded-card p-6 mb-6">
             <h2 className="text-lg font-bold text-foreground mb-4">Neue Saison erstellen</h2>
             <p className="text-muted text-sm mb-4">
@@ -718,7 +809,7 @@ export default function Season() {
               aktuellen Saison übernommen. Die alte Saison inkl. Manager, Benutzer (außer Admin), Spieler, Vereine und
               Spiele wird vollständig gelöscht.
             </p>
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6">
               <FormCard>
                 <label className="block text-sm text-muted mb-1">Saison-Name</label>
                 <input
@@ -726,15 +817,6 @@ export default function Season() {
                   onChange={(e) => setSetupSeasonName(e.target.value)}
                   className="input-field w-full px-3 py-2 rounded-control focus:outline-none"
                   placeholder="z.B. 2026/27"
-                />
-              </FormCard>
-              <FormCard>
-                <label className="block text-sm text-muted mb-1">Quell-URL (kicker-libero State-URL)</label>
-                <input
-                  value={setupSourceUrl}
-                  onChange={(e) => setSetupSourceUrl(e.target.value)}
-                  className="input-field w-full px-3 py-2 rounded-control focus:outline-none"
-                  placeholder="https://classic.kicker-libero.de/api/gameloop/v1/state/current/se-k00012026.json"
                 />
               </FormCard>
             </div>
@@ -745,14 +827,14 @@ export default function Season() {
                   setSetupPreview(null)
                   setErrorMessage(null)
                   try {
-                    const data = await previewSeasonSetup.mutateAsync({ sourceUrl: setupSourceUrl, seasonName: setupSeasonName })
+                    const data = await previewSeasonSetup.mutateAsync({ sourceUrl: effectiveSourceUrl, seasonName: setupSeasonName })
                     setSetupPreview(data)
                   } catch (err: any) {
                     const message = err?.response?.data?.message || err?.message || 'Vorschau fehlgeschlagen'
                     setErrorMessage(message)
                   }
                 }}
-                disabled={previewSeasonSetup.isPending || !setupSourceUrl || !setupSeasonName}
+                disabled={previewSeasonSetup.isPending || !effectiveSourceUrl || !setupSeasonName}
               >
                 {previewSeasonSetup.isPending ? 'Lade Vorschau...' : 'Vorschau laden'}
               </Button>
@@ -830,6 +912,97 @@ export default function Season() {
                   </TableBody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {season && (
+            <div className="bg-surface border border-border rounded-card p-6 mt-6">
+              <h2 className="text-lg font-bold text-foreground mb-4">Spieler aktualisieren (manuell)</h2>
+              <p className="text-muted text-sm mb-4">
+                Lädt die kicker-Datenbank von der Quell-URL und übernimmt neue Spieler in die aktuelle Saison
+                (nicht-destruktiv, es wird nichts gelöscht).
+                {season.seasonState === 'BEFORE_SEASON'
+                  ? ' Da sich die Saison im Status "Vor Saison" befindet, werden auch Vereinswechsel bestehender Spieler übernommen.'
+                  : ' Vereinswechsel bestehender Spieler werden nur im Status "Vor Saison" übernommen und daher aktuell übersprungen.'}
+              </p>
+              <div className="flex gap-4">
+                <Button
+                  variant="emphasized"
+                  onClick={() => setShowUpdateConfirm(true)}
+                  disabled={!effectiveSourceUrl}
+                >
+                  Spieler aktualisieren
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {season && (
+            <div className="bg-surface border border-border rounded-card p-6 mt-6">
+              <h2 className="text-lg font-bold text-foreground mb-2">Spieler aktualisieren (automatisch)</h2>
+              <p className="text-muted text-sm mb-4">
+                Stößt das Spieler-Update automatisch zum hinterlegten Zeitpunkt (Cron) an und sendet das Ergebnis-Log
+                als E-Mail an alle Admins. Im Betreff ist ersichtlich, ob und was geändert wurde.
+              </p>
+              <div className="grid gap-6 md:grid-cols-2 mb-4">
+                <FormCard>
+                  <label className="block text-sm text-muted mb-1">Automatisches Update aktivieren</label>
+                  <label className="flex items-center gap-2 mt-1">
+                    <input
+                      type="checkbox"
+                      checked={autoUpdateEnabled}
+                      onChange={(e) => setAutoUpdateEnabled(e.target.checked)}
+                      className="h-5 w-5 rounded-control border-border-strong"
+                    />
+                    <span className="text-sm text-foreground">
+                      {autoUpdateEnabled ? 'Aktiviert' : 'Deaktiviert'}
+                    </span>
+                  </label>
+                </FormCard>
+                <FormCard>
+                  <label className="block text-sm text-muted mb-1">Cron-Ausdruck (Spring, 6 Felder)</label>
+                  <input
+                    value={autoUpdateCron}
+                    onChange={(e) => setAutoUpdateCron(e.target.value)}
+                    className="input-field w-full px-3 py-2 rounded-control focus:outline-none"
+                    placeholder="0 0 8 * * *"
+                  />
+                  <p className="text-xs text-subtle mt-1">
+                    Format: Sekunden Minuten Stunden Tag Monat Wochentag — z.B. <code>0 0 8 * * *</code> = täglich 08:00 Uhr
+                  </p>
+                </FormCard>
+              </div>
+              {systemConfig?.autoUpdateLastRun && (
+                <p className="text-sm text-muted mb-4">
+                  Letzte Ausführung: {new Date(systemConfig.autoUpdateLastRun).toLocaleString('de-DE')}
+                </p>
+              )}
+              {autoUpdateConfigError && (
+                <div className="bg-danger-bg border border-danger p-4 mb-4">
+                  <p className="text-danger text-sm">{autoUpdateConfigError}</p>
+                </div>
+              )}
+              <Button
+                variant="emphasized"
+                disabled={autoUpdateSaving}
+                onClick={async () => {
+                  setAutoUpdateSaving(true)
+                  setAutoUpdateConfigError(null)
+                  try {
+                    await updateSystemConfig.mutateAsync({
+                      autoUpdateEnabled: autoUpdateEnabled,
+                      autoUpdateCron: autoUpdateCron,
+                    })
+                  } catch (err: any) {
+                    const message = err?.response?.data?.message || err?.message || 'Speichern fehlgeschlagen'
+                    setAutoUpdateConfigError(message)
+                  } finally {
+                    setAutoUpdateSaving(false)
+                  }
+                }}
+              >
+                {autoUpdateSaving ? 'Speichert...' : 'Automatisches Update speichern'}
+              </Button>
             </div>
           )}
         </>
@@ -957,12 +1130,52 @@ Speichern
       {showSetupDialog && (
         <SetupProgressDialog
           isOpen={showSetupDialog}
-          sourceUrl={setupSourceUrl}
+          sourceUrl={effectiveSourceUrl}
           seasonName={setupSeasonName}
           onClose={() => {
             setShowSetupDialog(false)
             setSetupPreview(null)
           }}
+        />
+      )}
+
+      {showUpdateConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <FormCard className="max-w-lg">
+            <h3 className="text-xl font-bold text-foreground mb-4">Spieler aktualisieren (manuell)</h3>
+            <p className="text-muted mb-6">
+              Die kicker-Datenbank wird geladen und neue Spieler werden in die aktuelle Saison übernommen.
+              {season?.seasonState === 'BEFORE_SEASON'
+                ? ' Vereinswechsel bestehender Spieler werden ebenfalls aktualisiert.'
+                : ' Vereinswechsel werden im aktuellen Saison-Status nicht übernommen.'}
+              Es wird nichts gelöscht. Möchten Sie fortfahren?
+            </p>
+            <div className="flex gap-4 justify-end">
+              <Button variant="ghost" onClick={() => setShowUpdateConfirm(false)}>Abbrechen</Button>
+              <Button
+                variant="emphasized"
+                onClick={() => {
+                  setShowUpdateConfirm(false)
+                  setShowUpdateDialog(true)
+                  trackEvent('season', 'update-players', 'start')
+                }}
+              >
+                Fortfahren
+              </Button>
+            </div>
+          </FormCard>
+        </div>
+      )}
+
+      {showUpdateDialog && (
+        <SetupProgressDialog
+          isOpen={showUpdateDialog}
+          sourceUrl={effectiveSourceUrl}
+          seasonName=""
+          streamUrl={`/api/seasons/setup/update-players/stream-sse?sourceUrl=${encodeURIComponent(effectiveSourceUrl)}`}
+          runningTitle="Spieler werden aktualisiert..."
+          successTitle="Spieler-Update abgeschlossen"
+          onClose={() => setShowUpdateDialog(false)}
         />
       )}
     </div>

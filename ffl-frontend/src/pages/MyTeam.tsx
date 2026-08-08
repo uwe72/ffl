@@ -12,7 +12,6 @@ import StatTile from '../components/StatTile'
 import type { PlayerSlot } from '../components/PlayerSelect'
 import type { Player, Season, Position, Manager } from '../types'
 import type { AxiosError } from 'axios'
-import { positionLabels, positionColors } from './Players'
 import { positionTextColor, positionBarColor } from '../utils/positions'
 import { DEFAULT_START_ROUND_RUECKRUNDE } from '../utils/season'
 
@@ -115,355 +114,6 @@ function buildExistingTransfers(manager: Manager): TransferRow[] {
     transfers.push({ oldPlayerId: manager.playerExchangedOld3.id, newPlayerId: manager.playerExchangedNew3.id })
   }
   return transfers
-}
-
-function OldPlayerSearch({
-  players,
-  excludeIds,
-  value,
-  onChange,
-  badge,
-}: {
-  players: Player[]
-  excludeIds: Set<number>
-  value: number | null
-  onChange: (id: number | null) => void
-  badge?: string
-}) {
-  const [search, setSearch] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const selectedPlayer = useMemo(
-    () => (value ? players.find(p => p.id === value) : null),
-    [value, players]
-  )
-
-  const filteredPlayers = useMemo(() => {
-    let filtered = players.filter(p => p.id === value || !excludeIds.has(p.id))
-
-    if (search.trim()) {
-      const term = search.toLowerCase()
-      filtered = filtered.filter(p =>
-        p.nameKicker.toLowerCase().includes(term) ||
-        (p.firstName && p.firstName.toLowerCase().includes(term)) ||
-        (p.lastName && p.lastName.toLowerCase().includes(term))
-      )
-    }
-
-    return filtered.sort((a, b) => a.nameKicker.localeCompare(b.nameKicker))
-  }, [players, excludeIds, value, search])
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-        setSearch('')
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
-
-  const handleSelect = (player: Player) => {
-    onChange(player.id)
-    setIsOpen(false)
-    setSearch('')
-  }
-
-  if (selectedPlayer) {
-    const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
-    return (
-      <div className={`group relative overflow-hidden bg-surface border border-border rounded-none p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover`}>
-        <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[selectedPlayer.position]}`} />
-        <div className="relative shrink-0">
-          {selectedPlayer.pictureUrl ? (
-            <img src={selectedPlayer.pictureUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center">
-              <span className="text-[10px] text-muted">{POSITION_LABELS[selectedPlayer.position]}</span>
-            </div>
-          )}
-          <button
-            onClick={() => onChange(null)}
-            className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            title="Entfernen"
-          >
-            <i className="sap-icon sap-icon-decline text-[11px] text-danger-foreground" />
-          </button>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-base font-semibold text-foreground leading-6 truncate">
-            {selectedPlayer.firstName && selectedPlayer.lastName
-              ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
-              : selectedPlayer.nameKicker}
-          </p>
-          <p className="text-sm font-medium text-muted tabular-nums leading-5">{formatPrice(selectedPlayer.prize)}</p>
-        </div>
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          {team?.logoSUrl && (
-            <img src={team.logoSUrl} alt={team.name} className="w-7 h-7 object-contain rounded-card" />
-          )}
-          {badge && (
-            <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none">{badge}</span>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div ref={containerRef} className="relative">
-      <div
-        className="input-field w-full px-3 py-2 rounded-control text-xs cursor-pointer flex items-center justify-between text-placeholder"
-        onClick={() => {
-          setIsOpen(!isOpen)
-          setTimeout(() => inputRef.current?.focus(), 50)
-        }}
-      >
-        <span>Spieler wählen...</span>
-        <i className="sap-icon sap-icon-slim-arrow-down text-[10px] text-muted" />
-      </div>
-
-      {isOpen && (
-        <div className="absolute z-50 mt-1 min-w-[320px] w-full bg-surface border border-border rounded-card shadow-xl max-h-[280px] flex flex-col">
-          <div className="p-2 border-b border-border">
-            <input
-              ref={inputRef}
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Spieler suchen..."
-              className="input-field control w-full px-2 py-1.5 rounded-control text-xs focus:outline-none"
-            />
-          </div>
-          <div className="overflow-y-auto flex-1">
-            {filteredPlayers.length === 0 ? (
-              <div className="px-3 py-4 text-center text-subtle text-xs">Keine Spieler gefunden</div>
-            ) : (
-              filteredPlayers.map(player => {
-                const team = player.teams && player.teams.length > 0 ? player.teams[player.teams.length - 1] : null
-                return (
-                  <button
-                    key={player.id}
-                    type="button"
-                    onClick={() => handleSelect(player)}
-                    className={`w-full text-left px-3 py-1.5 text-xs hover:bg-elevated transition-colors flex items-center justify-between gap-3 ${
-                      player.id === value ? 'bg-accent-muted' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      {player.pictureUrl && (
-                        <img src={player.pictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
-                      )}
-                      <span className="text-foreground whitespace-nowrap">{player.nameKicker}</span>
-                      <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded-badge`}>{positionLabels[player.position]}</span>
-                      {team && (
-                        <span className="text-subtle text-[11px] whitespace-nowrap">
-                          {team.shortName || team.name}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-accent text-[11px] font-semibold shrink-0">{player.prize.toLocaleString('de-DE')} €</span>
-                  </button>
-                )
-              })
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function TransferPlayerSearch({
-  players,
-  excludeIds,
-  value,
-  onChange,
-  badge,
-}: {
-  players: Player[]
-  excludeIds: Set<number>
-  value: number | null
-  onChange: (id: number | null) => void
-  badge?: string
-}) {
-  const [search, setSearch] = useState('')
-  const [priceMin, setPriceMin] = useState('')
-  const [priceMax, setPriceMax] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const selectedPlayer = useMemo(
-    () => (value ? players.find(p => p.id === value) : null),
-    [value, players]
-  )
-
-  const filteredPlayers = useMemo(() => {
-    let filtered = players.filter(p => p.id === value || !excludeIds.has(p.id))
-
-    if (search.trim()) {
-      const term = search.toLowerCase()
-      filtered = filtered.filter(p =>
-        p.nameKicker.toLowerCase().includes(term) ||
-        (p.firstName && p.firstName.toLowerCase().includes(term)) ||
-        (p.lastName && p.lastName.toLowerCase().includes(term)) ||
-        (p.teams && p.teams.length > 0 && p.teams[p.teams.length - 1].name.toLowerCase().includes(term))
-      )
-    }
-
-    const min = priceMin ? Number(priceMin) : 0
-    const max = priceMax ? Number(priceMax) : Infinity
-    if (min > 0 || max < Infinity) {
-      filtered = filtered.filter(p => p.prize >= min && p.prize <= max)
-    }
-
-    return filtered.sort((a, b) => a.nameKicker.localeCompare(b.nameKicker))
-  }, [players, excludeIds, value, search, priceMin, priceMax])
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-        setSearch('')
-        setPriceMin('')
-        setPriceMax('')
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
-
-  const handleSelect = (player: Player) => {
-    onChange(player.id)
-    setIsOpen(false)
-    setSearch('')
-    setPriceMin('')
-    setPriceMax('')
-  }
-
-  if (selectedPlayer) {
-    const team = selectedPlayer.teams && selectedPlayer.teams.length > 0 ? selectedPlayer.teams[selectedPlayer.teams.length - 1] : null
-    return (
-      <div className={`group relative overflow-hidden bg-surface border border-border rounded-none p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover`}>
-        <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[selectedPlayer.position]}`} />
-        <div className="relative shrink-0">
-          {selectedPlayer.pictureUrl ? (
-            <img src={selectedPlayer.pictureUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center">
-              <span className="text-[10px] text-muted">{POSITION_LABELS[selectedPlayer.position]}</span>
-            </div>
-          )}
-          <button
-            onClick={() => onChange(null)}
-            className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            title="Entfernen"
-          >
-            <i className="sap-icon sap-icon-decline text-[11px] text-danger-foreground" />
-          </button>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-base font-semibold text-foreground leading-6 truncate">
-            {selectedPlayer.firstName && selectedPlayer.lastName
-              ? `${selectedPlayer.firstName} ${selectedPlayer.lastName}`
-              : selectedPlayer.nameKicker}
-          </p>
-          <p className="text-sm font-medium text-muted tabular-nums leading-5">{formatPrice(selectedPlayer.prize)}</p>
-        </div>
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          {team?.logoSUrl && (
-            <img src={team.logoSUrl} alt={team.name} className="w-7 h-7 object-contain rounded-card" />
-          )}
-          {badge && (
-            <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none">{badge}</span>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div ref={containerRef} className="relative">
-      <div
-        className="input-field w-full px-3 py-2 rounded-control text-xs cursor-pointer flex items-center justify-between text-placeholder"
-        onClick={() => {
-          setIsOpen(!isOpen)
-          setTimeout(() => inputRef.current?.focus(), 50)
-        }}
-      >
-        <span>Neuen Spieler wählen...</span>
-        <i className="sap-icon sap-icon-slim-arrow-down text-[10px] text-muted" />
-      </div>
-
-      {isOpen && (
-        <div className="absolute z-50 mt-1 min-w-[380px] w-full bg-surface border border-border rounded-card shadow-xl max-h-[320px] flex flex-col">
-          <div className="p-2 border-b border-border space-y-1.5">
-            <input
-              ref={inputRef}
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Spieler suchen..."
-              className="input-field control w-full px-2 py-1.5 rounded-control text-xs focus:outline-none"
-            />
-            <div className="flex gap-2">
-              <input
-                type="number"
-                value={priceMin}
-                onChange={(e) => setPriceMin(e.target.value)}
-                placeholder="Min €"
-                className="input-field control w-1/2 px-2 py-1 rounded-control text-[11px] focus:outline-none"
-              />
-              <input
-                type="number"
-                value={priceMax}
-                onChange={(e) => setPriceMax(e.target.value)}
-                placeholder="Max €"
-                className="input-field control w-1/2 px-2 py-1 rounded-control text-[11px] focus:outline-none"
-              />
-            </div>
-          </div>
-          <div className="overflow-y-auto flex-1">
-            {filteredPlayers.length === 0 ? (
-              <div className="px-3 py-4 text-center text-subtle text-xs">Keine Spieler gefunden</div>
-            ) : (
-              filteredPlayers.map(player => {
-                const team = player.teams && player.teams.length > 0 ? player.teams[player.teams.length - 1] : null
-                return (
-                  <button
-                    key={player.id}
-                    type="button"
-                    onClick={() => handleSelect(player)}
-                    className={`w-full text-left px-3 py-1.5 text-xs hover:bg-elevated transition-colors flex items-center justify-between gap-3 ${
-                      player.id === value ? 'bg-accent-muted' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      {player.pictureUrl && (
-                        <img src={player.pictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
-                      )}
-                      <span className="text-foreground whitespace-nowrap">{player.nameKicker}</span>
-                      <span className={`${positionColors[player.position]} text-[10px] font-medium px-1.5 py-0.5 rounded-badge`}>{positionLabels[player.position]}</span>
-                      {team && (
-                        <span className="text-subtle text-[11px] whitespace-nowrap">
-                          {team.shortName || team.name}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-accent text-[11px] font-semibold shrink-0">{player.prize.toLocaleString('de-DE')} €</span>
-                  </button>
-                )
-              })
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
 }
 
 export default function MyTeam() {
@@ -1352,6 +1002,7 @@ export default function MyTeam() {
                         disabled={!isBeforeSeason}
                         highlightClass={selectedPlayers[slot.key] && activeReplacedIds.has(selectedPlayers[slot.key]!) ? 'border-2 border-accent' : undefined}
                         badge={selectedPlayers[slot.key] && activeReplacedIds.has(selectedPlayers[slot.key]!) ? 'Wechsel' : undefined}
+                        modal
                       />
                     ))}
                   </div>
@@ -1453,23 +1104,29 @@ export default function MyTeam() {
                     <div key={index} className="flex items-center gap-3 flex-wrap border border-dashed border-border rounded-card p-3 w-fit">
                       <span className="text-xs font-semibold text-muted tabular-nums w-5 text-center shrink-0">{index + 1}</span>
                       <div className="w-[300px] max-w-full">
-                        <OldPlayerSearch
+                        <PlayerSelect
+                          slot={{ key: `transfer-old-${index}`, label: 'Spieler', position: 'GOALKEEPER' }}
                           players={availableOldPlayers}
-                          excludeIds={new Set(usedOldIds)}
+                          selectedIds={new Set(usedOldIds)}
                           value={transfer.oldPlayerId}
                           onChange={(id) => handleTransferOldChange(index, id)}
                           badge="Raus"
+                          modal
+                          fixedPosition={null}
                         />
                       </div>
                       <i className="sap-icon sap-icon-arrow-right text-accent text-lg shrink-0" />
                       <div className="w-[300px] max-w-full">
                         {transfer.oldPlayerId ? (
-                          <TransferPlayerSearch
+                          <PlayerSelect
+                            slot={{ key: `transfer-new-${index}`, label: 'Neuer Spieler', position: 'GOALKEEPER' }}
                             players={allPlayers}
-                            excludeIds={currentExcludeIds}
+                            selectedIds={currentExcludeIds}
                             value={transfer.newPlayerId}
                             onChange={(id) => handleTransferNewChange(index, id)}
                             badge="Rein"
+                            modal
+                            fixedPosition={null}
                           />
                         ) : (
                           <div className="input-field w-full px-3 py-2 rounded-control text-xs text-placeholder">

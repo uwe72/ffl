@@ -28,6 +28,7 @@ export default function PlayerSelect({
   highlightClass,
   badge,
   modal,
+  fixedPosition,
 }: {
   slot: PlayerSlot
   players: Player[]
@@ -38,7 +39,9 @@ export default function PlayerSelect({
   highlightClass?: string
   badge?: string
   modal?: boolean
+  fixedPosition?: Position | null
 }) {
+  const tableFixedPosition = fixedPosition === undefined ? slot.position : fixedPosition
   const [search, setSearch] = useState('')
   const [priceMin, setPriceMin] = useState('')
   const [priceMax, setPriceMax] = useState('')
@@ -199,7 +202,7 @@ export default function PlayerSelect({
             <div className="overflow-y-auto flex-1 p-3">
               <PlayerTable
                 players={players}
-                fixedPosition={slot.position}
+                fixedPosition={tableFixedPosition === null ? undefined : tableFixedPosition}
                 excludePlayerIds={excludedIds}
                 onSelect={handleSelect}
               />

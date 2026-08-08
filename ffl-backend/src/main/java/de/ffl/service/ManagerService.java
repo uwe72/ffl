@@ -834,7 +834,9 @@ public class ManagerService {
                     .mapToInt(p -> p.getPrize() != null ? p.getPrize() : 0)
                     .sum();
                 int remaining = manager.getBudget() - totalPrize;
-                int percent = manager.getBudget() > 0 ? (totalPrize * 100 / manager.getBudget()) : 0;
+                int percent = manager.getBudget() > 0
+                    ? Math.max(0, Math.min(100, (int) ((long) totalPrize * 100 / manager.getBudget())))
+                    : 0;
                 budgetDto = new TeamChangeMailService.BudgetDto(
                     TeamChangeMailService.formatPriceCompact(manager.getBudget()),
                     TeamChangeMailService.formatPriceCompact(totalPrize),

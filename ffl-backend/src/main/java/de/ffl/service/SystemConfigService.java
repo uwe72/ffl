@@ -3,6 +3,7 @@ package de.ffl.service;
 import de.ffl.domain.SystemConfig;
 import de.ffl.dto.SystemConfigDto;
 import de.ffl.repository.SystemConfigRepository;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,6 +59,23 @@ public class SystemConfigService {
         }
         if (updateData.getWebUrl() != null) {
             config.setWebUrl(updateData.getWebUrl().isBlank() ? null : updateData.getWebUrl().trim());
+        }
+        if (updateData.getAutoUpdateEnabled() != null) {
+            config.setAutoUpdateEnabled(updateData.getAutoUpdateEnabled());
+        }
+        if (updateData.getAutoUpdateCron() != null) {
+            String cron = updateData.getAutoUpdateCron().isBlank() ? null : updateData.getAutoUpdateCron().trim();
+            if (cron != null) {
+                try {
+                    CronExpression.parse(cron);
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Ungültiger Cron-Ausdruck: " + e.getMessage());
+                }
+            }
+            config.setAutoUpdateCron(cron);
+        }
+        if (updateData.getAutoUpdateSourceUrl() != null) {
+            config.setAutoUpdateSourceUrl(updateData.getAutoUpdateSourceUrl().isBlank() ? null : updateData.getAutoUpdateSourceUrl().trim());
         }
 
         config = configRepository.save(config);

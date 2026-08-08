@@ -42,6 +42,10 @@ import java.util.function.Consumer;
 public class NewSeasonSetupService {
 
     private static final int ROUND_COUNT = 34;
+    private static final java.util.regex.Pattern LOGO_TEAM_ID_PATTERN =
+            java.util.regex.Pattern.compile("teamId=(\\d+)");
+    public static final String DEFAULT_SOURCE_URL =
+            "https://classic.kicker-libero.de/api/gameloop/v1/state/current/se-k00012026.json";
 
     private final KickerClientDatabaseClient databaseClient;
     private final SeasonRepository seasonRepository;
@@ -264,6 +268,7 @@ public class NewSeasonSetupService {
             Team team = Team.builder()
                     .name(kt.name())
                     .shortName(kt.shortName())
+                    .kickerId(kt.id())
                     .logoSUrl(buildTeamLogoUrl(numericId, 140))
                     .logoXxlUrl(buildTeamLogoUrl(numericId, 290))
                     .build();
@@ -332,6 +337,183 @@ public class NewSeasonSetupService {
         log.accept("Neue Saison: " + seasonName + " (" + teamsByKickerId.size() + " Vereine, "
                 + playerCount + " Spieler, " + gameCount + " Spiele)");
         return newSeason;
+    }
+
+    public record UpdateResult(int playersCreated, int teamChanges, int playersDeactivated) {}
+
+    @Transactional
+    public UpdateResult updatePlayers(String sourceUrl, Consumer<String> log) {
+        log.accept("Lade kicker-Datenbank von " + sourceUrl);
+        KickerClientDatabase db = databaseClient.loadDatabase(sourceUrl);
+
+        if (db.teams() == null || db.teams().isEmpty()) {
+            throw new IllegalStateException("Keine Vereine in der kicker-Datenbank gefunden");
+        }
+        List<KickerPlayer> players = activePlayers(db);
+        if (players.isEmpty()) {
+            throw new IllegalStateException("Keine Spieler in der kicker-Datenbank gefunden");
+        }
+
+        Season season = seasonRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new IllegalStateException("Keine aktive Saison vorhanden"));
+        boolean beforeSeason = season.getSeasonState() == SeasonState.BEFORE_SEASON;
+
+        log.accept("Saison: " + season.getName() + " (id=" + season.getId() + ")");
+        log.accept("Saison-Status: " + (beforeSeason ? "Vor Saison" : season.getSeasonState()));
+        if (!beforeSeason) {
+            log.accept("Hinweis: Vereinswechsel werden nur im Status 'Vor Saison' übernommen.");
+        }
+
+        Map<String, KickerTeam> kickerTeamsById = new LinkedHashMap<>();
+        Map<String, KickerTeam> kickerTeamsByName = new LinkedHashMap<>();
+        Map<String, KickerTeam> kickerTeamsByNumericId = new LinkedHashMap<>();
+        for (KickerTeam kt : db.teams()) {
+            kickerTeamsById.put(kt.id(), kt);
+            String numeric = numericId(kt.id());
+            if (numeric != null && !numeric.isBlank()) {
+                kickerTeamsByNumericId.putIfAbsent(numeric, kt);
+            }
+            if (kt.name() != null && !kt.name().isBlank()) {
+                kickerTeamsByName.putIfAbsent(kt.name().trim().toLowerCase(), kt);
+            }
+        }
+
+        Map<String, Team> teamsByKickerId = new LinkedHashMap<>();
+        int backfilled = 0;
+        for (Team team : teamRepository.findBySeasonId(season.getId())) {
+            String kickerId = team.getKickerId();
+            if (kickerId == null || kickerId.isBlank()) {
+                kickerId = backfillTeamKickerId(team, kickerTeamsByNumericId, kickerTeamsByName);
+                if (kickerId != null) {
+                    team.setKickerId(kickerId);
+                    teamRepository.save(team);
+                    backfilled++;
+                    log.accept("Verein kickerId ergänzt: " + team.getName() + " -> " + kickerId);
+                }
+            }
+            if (kickerId != null && !kickerId.isBlank()) {
+                teamsByKickerId.put(kickerId, team);
+            }
+        }
+        if (backfilled > 0) {
+            log.accept("Vereine mit kickerId ergänzt: " + backfilled);
+        }
+
+        Map<String, Player> existingByKickerId = new LinkedHashMap<>();
+        for (Player p : playerRepository.findBySeasonIdWithTeams(season.getId())) {
+            if (p.getKickerId() != null && !p.getKickerId().isBlank()) {
+                existingByKickerId.put(p.getKickerId(), p);
+            }
+        }
+
+        log.accept("");
+        log.accept("Aktualisiere Spieler ...");
+        int playersCreated = 0;
+        int teamChanges = 0;
+        Set<String> activeKickerIds = new HashSet<>();
+        for (KickerPlayer kp : players) {
+            activeKickerIds.add(kp.id());
+            Team targetTeam = teamsByKickerId.get(kp.teamId());
+            if (targetTeam == null) {
+                log.accept("Warnung: Kein Verein für kickerId " + kp.teamId()
+                        + " (Spieler " + kickerDisplayName(kp) + " übersprungen)");
+                continue;
+            }
+            Player existing = existingByKickerId.get(kp.id());
+            if (existing == null) {
+                List<Team> teamList = new ArrayList<>();
+                teamList.add(targetTeam);
+                Player player = Player.builder()
+                        .kickerId(kp.id())
+                        .nameKicker(kickerDisplayName(kp))
+                        .firstName(kp.firstName())
+                        .lastName(kp.lastName())
+                        .position(Position.valueOf(mapPosition(kp.position())))
+                        .prize(kp.marketValue() != null ? kp.marketValue() : 0)
+                        .pictureUrl(resolvePictureUrl(kp))
+                        .season(season)
+                        .teams(teamList)
+                        .build();
+                playerRepository.save(player);
+                playersCreated++;
+                log.accept("Neuer Spieler: " + kickerDisplayName(kp) + " (" + targetTeam.getName() + ")");
+            } else if (beforeSeason) {
+                Team currentTeam = (existing.getTeams() == null || existing.getTeams().isEmpty())
+                        ? null : existing.getTeams().get(0);
+                if (currentTeam == null || !targetTeam.getId().equals(currentTeam.getId())) {
+                    String oldName = currentTeam == null ? "(kein)" : currentTeam.getName();
+                    existing.getTeams().clear();
+                    existing.getTeams().add(targetTeam);
+                    playerRepository.save(existing);
+                    teamChanges++;
+                    log.accept("Vereinswechsel: " + existing.getNameKicker()
+                            + " (" + oldName + " -> " + targetTeam.getName() + ")");
+                }
+            }
+        }
+
+        log.accept("");
+        log.accept("Prüfe Aktiv-Status ...");
+        int playersDeactivated = 0;
+        int playersReactivated = 0;
+        for (Map.Entry<String, Player> entry : existingByKickerId.entrySet()) {
+            Player existing = entry.getValue();
+            boolean inActiveKicker = activeKickerIds.contains(entry.getKey());
+            if (!inActiveKicker) {
+                if (!Boolean.FALSE.equals(existing.getAktiv())) {
+                    existing.setAktiv(false);
+                    playerRepository.save(existing);
+                    playersDeactivated++;
+                    log.accept("Spieler deaktiviert: " + existing.getNameKicker());
+                }
+            } else {
+                if (Boolean.FALSE.equals(existing.getAktiv())) {
+                    existing.setAktiv(true);
+                    playerRepository.save(existing);
+                    playersReactivated++;
+                    log.accept("Spieler reaktiviert: " + existing.getNameKicker());
+                }
+            }
+        }
+
+        log.accept("");
+        log.accept("=== Spieler-Update abgeschlossen ===");
+        log.accept("Neue Spieler angelegt: " + playersCreated);
+        if (beforeSeason) {
+            log.accept("Vereinswechsel aktualisiert: " + teamChanges);
+        } else {
+            log.accept("Vereinswechsel aktualisiert: 0 (nur im Status 'Vor Saison')");
+        }
+        log.accept("Spieler deaktiviert: " + playersDeactivated);
+        if (playersReactivated > 0) {
+            log.accept("Spieler reaktiviert: " + playersReactivated);
+        }
+
+        return new UpdateResult(playersCreated, teamChanges, playersDeactivated);
+    }
+
+    private String backfillTeamKickerId(Team team, Map<String, KickerTeam> kickerTeamsByNumericId,
+                                        Map<String, KickerTeam> kickerTeamsByName) {
+        String logoUrl = team.getLogoSUrl();
+        if (logoUrl != null && !logoUrl.isBlank()) {
+            java.util.regex.Matcher m = LOGO_TEAM_ID_PATTERN.matcher(logoUrl);
+            if (m.find()) {
+                String numeric = m.group(1);
+                KickerTeam kt = kickerTeamsByNumericId.get(numeric);
+                if (kt != null) {
+                    return kt.id();
+                }
+            }
+        }
+        if (team.getName() == null || team.getName().isBlank()) {
+            return null;
+        }
+        KickerTeam kt = kickerTeamsByName.get(team.getName().trim().toLowerCase());
+        return kt == null ? null : kt.id();
+    }
+
+    private String kickerDisplayName(KickerPlayer kp) {
+        return kp.displayName() != null ? kp.displayName() : kp.displayLongName();
     }
 
     private List<KickerPlayer> activePlayers(KickerClientDatabase db) {

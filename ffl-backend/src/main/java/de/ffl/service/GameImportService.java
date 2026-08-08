@@ -204,6 +204,7 @@ public class GameImportService {
             .nameKickerAlt1(playerName)
             .position(pos)
             .prize(99_000_000)
+            .aktiv(true)
             .teams(team != null ? List.of(team) : new ArrayList<>())
             .season(season)
             .build();

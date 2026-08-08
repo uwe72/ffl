@@ -3,11 +3,14 @@ package de.ffl.controller;
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
 import de.ffl.dto.BestTeamResult;
+import de.ffl.dto.DocumentDto;
 import de.ffl.dto.PrizeDistributionLogDto;
 import de.ffl.dto.PrizePayoutDto;
 import de.ffl.dto.UpdatePayoutRequest;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.service.BestTeamService;
+import de.ffl.service.DocumentService;
+import de.ffl.service.PlayerPdfService;
 import de.ffl.service.PrizeDistributionMailService;
 import de.ffl.service.PrizeDistributionService;
 import de.ffl.service.InvitationMailService;
@@ -16,6 +19,8 @@ import de.ffl.service.SeasonService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -32,8 +37,10 @@ public class SeasonController {
     private final PrizeDistributionMailService prizeDistributionMailService;
     private final InvitationMailService invitationMailService;
     private final SeasonReportMailService seasonReportMailService;
+    private final DocumentService documentService;
+    private final PlayerPdfService playerPdfService;
 
-    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, BestTeamService bestTeamService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, SeasonReportMailService seasonReportMailService) {
+    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, BestTeamService bestTeamService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, SeasonReportMailService seasonReportMailService, DocumentService documentService, PlayerPdfService playerPdfService) {
         this.seasonRepository = seasonRepository;
         this.seasonService = seasonService;
         this.bestTeamService = bestTeamService;
@@ -41,6 +48,8 @@ public class SeasonController {
         this.prizeDistributionMailService = prizeDistributionMailService;
         this.invitationMailService = invitationMailService;
         this.seasonReportMailService = seasonReportMailService;
+        this.documentService = documentService;
+        this.playerPdfService = playerPdfService;
     }
 
     @GetMapping
@@ -286,6 +295,24 @@ public class SeasonController {
         return invitationMailService.streamInvitationMail(id, emailIds, testMode);
     }
 
+    @PostMapping("/{id}/players-pdf")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> generatePlayersPdf(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            byte[] pdf = playerPdfService.generatePlayersPdf(id);
+            String filename = playerPdfService.buildFilename(id);
+            DocumentDto created = documentService.storeGenerated(pdf, filename, "application/pdf", getCurrentLogin());
+            return ResponseEntity.ok(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.internalServerError().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
     public static class MessageResponse {
         private String message;
 
@@ -327,5 +354,13 @@ public class SeasonController {
         public void setName(String name) { this.name = name; }
         public SeasonState getSeasonState() { return seasonState; }
         public void setSeasonState(SeasonState seasonState) { this.seasonState = seasonState; }
+    }
+
+    private String getCurrentLogin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return "unknown";
+        }
+        return auth.getName();
     }
 }

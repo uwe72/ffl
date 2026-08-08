@@ -137,7 +137,9 @@ public class RegistrationMailService {
         if (manager.getBudget() != null) {
             int totalPrize = calculateTotalPrize(manager);
             int remainingBudget = manager.getBudget() - totalPrize;
-            int budgetPercent = manager.getBudget() > 0 ? (totalPrize * 100 / manager.getBudget()) : 0;
+            int budgetPercent = manager.getBudget() > 0
+                ? Math.max(0, Math.min(100, (int) ((long) totalPrize * 100 / manager.getBudget())))
+                : 0;
             context.setVariable("budget", new BudgetDto(
                 formatPriceCompact(manager.getBudget()),
                 formatPriceCompact(totalPrize),

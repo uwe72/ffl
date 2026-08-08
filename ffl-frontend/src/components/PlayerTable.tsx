@@ -138,7 +138,7 @@ function PlayerCard({ player, hideManager, hideStats, onSelect }: { player: Play
   )
 }
 
-function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter, fixedPosition }: {
+function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter, fixedPosition, aktivFilter, setAktivFilter }: {
   selectedPositions: Set<string>
   setSelectedPositions: (s: Set<string>) => void
   selectedTeamId: number | 'ALL'
@@ -150,6 +150,8 @@ function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeam
   setPriceMax: (s: string) => void
   hasFilter: boolean
   fixedPosition?: Position
+  aktivFilter: 'aktiv' | 'inaktiv' | 'alle'
+  setAktivFilter: (v: 'aktiv' | 'inaktiv' | 'alle') => void
 }) {
   const togglePosition = (pos: string) => {
     if (fixedPosition) return
@@ -167,9 +169,18 @@ function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeam
     setSelectedTeamId('ALL')
     setPriceMin('')
     setPriceMax('')
+    setAktivFilter('aktiv')
   }
 
   const visiblePositions = fixedPosition ? [fixedPosition] : (['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const)
+
+  const aktivLabel = aktivFilter === 'aktiv' ? 'Aktiv' : aktivFilter === 'inaktiv' ? 'Inaktiv' : 'Alle'
+  const aktivClass = aktivFilter === 'aktiv'
+    ? 'bg-success-bg text-success border-success'
+    : aktivFilter === 'inaktiv'
+    ? 'bg-danger-bg text-danger border-danger'
+    : chipInactive
+  const cycleAktiv = () => setAktivFilter(aktivFilter === 'aktiv' ? 'inaktiv' : aktivFilter === 'inaktiv' ? 'alle' : 'aktiv')
 
   return (
     <div className="flex items-center gap-3 flex-wrap mb-4">
@@ -187,6 +198,14 @@ function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeam
             </button>
           )
         })}
+        <button
+          onClick={cycleAktiv}
+          title="Aktiv: aktueller Bundesliga-Spieler · Inaktiv: Spieler hat die Bundesliga verlassen (z.B. Transfer ins Ausland, Karriereende) · Alle: beide Gruppen anzeigen"
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${aktivClass} cursor-pointer`}
+        >
+          <i className="sap-icon sap-icon-check-availability text-[12px]" />
+          {aktivLabel}
+        </button>
       </div>
 
       <div className="h-5 w-px bg-border" />
@@ -263,6 +282,7 @@ export default function PlayerTable({
   const [searchTerm, setSearchTerm] = useState('')
   const [priceMin, setPriceMin] = useState('')
   const [priceMax, setPriceMax] = useState('')
+  const [aktivFilter, setAktivFilter] = useState<'aktiv' | 'inaktiv' | 'alle'>('aktiv')
   const [sortKey, setSortKey] = useState<SortKey>('position')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
@@ -281,7 +301,7 @@ export default function PlayerTable({
     }
   }
 
-  const hasActiveFilter = selectedPositions.size > 0 || selectedTeamId !== 'ALL' || searchTerm !== '' || priceMin !== '' || priceMax !== ''
+  const hasActiveFilter = selectedPositions.size > 0 || selectedTeamId !== 'ALL' || searchTerm !== '' || priceMin !== '' || priceMax !== '' || aktivFilter !== 'aktiv'
 
   const filteredPlayers = useMemo(() => {
     const filtered = players.filter(player => {
@@ -295,8 +315,12 @@ export default function PlayerTable({
       const min = priceMin ? Number(priceMin) : 0
       const max = priceMax ? Number(priceMax) : Infinity
       const matchesPrice = player.prize >= min && player.prize <= max
+      const matchesAktiv =
+        aktivFilter === 'alle' ? true
+        : aktivFilter === 'aktiv' ? player.aktiv !== false
+        : player.aktiv === false
       const matchesExcluded = !excludePlayerIds || !excludePlayerIds.has(player.id)
-      return matchesPosition && matchesTeam && matchesSearch && matchesPrice && matchesExcluded
+      return matchesPosition && matchesTeam && matchesSearch && matchesPrice && matchesAktiv && matchesExcluded
     })
 
     return filtered.sort((a, b) => {
@@ -330,7 +354,7 @@ export default function PlayerTable({
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-  }, [players, selectedPositions, selectedTeamId, searchTerm, priceMin, priceMax, sortKey, sortOrder, excludePlayerIds])
+  }, [players, selectedPositions, selectedTeamId, searchTerm, priceMin, priceMax, aktivFilter, sortKey, sortOrder, excludePlayerIds])
 
   return (
     <div>
@@ -360,6 +384,8 @@ export default function PlayerTable({
         setPriceMax={setPriceMax}
         hasFilter={hasActiveFilter}
         fixedPosition={fixedPosition}
+        aktivFilter={aktivFilter}
+        setAktivFilter={setAktivFilter}
       />
 
       {!isMobile && (
@@ -405,7 +431,12 @@ export default function PlayerTable({
                   </ThSortable>
                   )}
                   <Th align="left">Verein</Th>
-                </tr>
+                  <Th align="center">
+                    <span className="cursor-help" title="Aktiv: aktueller Bundesliga-Spieler · Inaktiv: Spieler hat die Bundesliga verlassen">
+                      Aktiv
+                    </span>
+                  </Th>
+                 </tr>
               </TableHead>
               <TableBody>
                 {filteredPlayers.length > 0 ? (
@@ -506,11 +537,18 @@ export default function PlayerTable({
                           </span>
                         ) : '-'}
                       </td>
+                      <td className="px-3 py-2 text-center">
+                        {player.aktiv === false ? (
+                          <span className="text-xs font-medium text-danger">Nein</span>
+                        ) : (
+                          <span className="text-xs font-medium text-success">Ja</span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={9 - (isBeforeSeason ? 4 : 0) - (isBeforeSeasonNonAdmin ? 1 : 0) - (fixedPosition ? 1 : 0)} className="text-center text-subtle py-8">
+                    <td colSpan={10 - (isBeforeSeason ? 4 : 0) - (isBeforeSeasonNonAdmin ? 1 : 0) - (fixedPosition ? 1 : 0)} className="text-center text-subtle py-8">
                       Keine Spieler gefunden
                     </td>
                   </tr>

@@ -129,3 +129,14 @@ export function usePreviewSeasonSetup() {
       seasonApi.previewSetup(req).then(res => res.data),
   })
 }
+
+export function useGeneratePlayersPdf() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (seasonId: number) =>
+      seasonApi.generatePlayersPdf(seasonId).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] })
+    },
+  })
+}

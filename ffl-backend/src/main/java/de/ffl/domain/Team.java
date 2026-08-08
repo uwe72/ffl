@@ -31,6 +31,9 @@ public class Team {
     @Column(name = "logo_s_url")
     private String logoSUrl;
 
+    @Column(name = "kicker_id")
+    private String kickerId;
+
     @ManyToMany(mappedBy = "teams")
     @Builder.Default
     @JsonIgnore

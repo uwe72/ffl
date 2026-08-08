@@ -62,6 +62,33 @@ public class NewSeasonSetupController {
         return emitter;
     }
 
+    @GetMapping(value = "/update-players/stream-sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter updatePlayers(@RequestParam String sourceUrl) {
+        SseEmitter emitter = new SseEmitter(300000L);
+        executor.execute(() -> {
+            try {
+                setupService.updatePlayers(sourceUrl, message -> {
+                    try {
+                        emitter.send(SseEmitter.event().data(message));
+                    } catch (IOException e) {
+                        throw new RuntimeException("SSE-Send fehlgeschlagen", e);
+                    }
+                });
+                emitter.send(SseEmitter.event().name("complete").data("Spieler-Update abgeschlossen"));
+                emitter.complete();
+            } catch (Exception e) {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .name("failure")
+                            .data(buildErrorMessage(e)));
+                } catch (IOException ioException) {
+                }
+                emitter.completeWithError(e);
+            }
+        });
+        return emitter;
+    }
+
     private String buildErrorMessage(Exception e) {
         StringBuilder sb = new StringBuilder("FEHLER: ").append(e.getMessage());
         Throwable cause = e.getCause();

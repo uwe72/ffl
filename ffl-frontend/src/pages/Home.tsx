@@ -467,20 +467,22 @@ export default function Home() {
                   </tr>
                 </TableHead>
                 <TableBody>
-                  {pagedManagers.map(m => {
+                  {pagedManagers.map((m, index) => {
                     const isCurrentManager = m.id === displayManager?.id
-                    const stickyBg = isCurrentManager ? 'bg-accent-muted' : 'bg-surface'
+                    const stickyBg = isCurrentManager ? 'bg-accent-muted' : (index % 2 === 1 ? 'bg-zebra' : 'bg-surface')
+                    const zebraClass = !isCurrentManager && index % 2 === 1 ? 'bg-zebra' : ''
                     return (
                       <TableRow
                         key={m.id}
                         active={isCurrentManager}
+                        className={zebraClass}
                       >
                         <Td align="center" className={`text-foreground ${isMobile ? `sticky left-0 w-[50px] ${stickyBg} z-10` : ''}`}>
                           {m.positionTotal ? `${m.positionTotal}.` : '-'}
                         </Td>
                         <Td align="center" className={isMobile ? `sticky left-[50px] w-[50px] ${stickyBg} z-10` : ''}>
                           {m.positionChange != null && m.positionChange !== 0 ? (
-                            <span className={`${m.positionChange > 0 ? 'text-up' : 'text-down'}`}>
+                            <span className={`${m.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
                               {m.positionChange > 0 ? `↑${m.positionChange}` : `↓${Math.abs(m.positionChange)}`}
                             </span>
                           ) : (
@@ -493,7 +495,7 @@ export default function Home() {
                           ) : (
                             <RouterLink
                               to={`/managers/${m.id}`}
-                              className="text-foreground hover:text-accent hover:underline truncate"
+                              className="link font-medium"
                             >
                               {m.shortName || '-'}
                             </RouterLink>

@@ -582,6 +582,9 @@ public class PlayerService {
         if (updateData.getPosition() != null) {
             player.setPosition(updateData.getPosition());
         }
+        if (updateData.getAktiv() != null) {
+            player.setAktiv(updateData.getAktiv());
+        }
         
         Player saved = playerRepository.save(player);
         Hibernate.initialize(saved.getTeams());

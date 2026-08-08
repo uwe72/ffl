@@ -3,6 +3,7 @@ package de.ffl.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,11 @@ public class Player {
     private Integer prize;
 
     private String pictureUrl;
+
+    @Column(name = "aktiv", nullable = false)
+    @ColumnDefault("true")
+    @Builder.Default
+    private Boolean aktiv = true;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
