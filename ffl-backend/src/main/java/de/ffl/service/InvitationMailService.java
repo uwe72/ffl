@@ -236,6 +236,9 @@ public class InvitationMailService {
         sb.append("Am ").append(startDateLong).append(" rollt der Ball wieder, und damit startet auch unsere Fantasy Football League in die neue Saison. Wir freuen uns, wenn Du wieder mit dabei bist.\r\n\r\n");
         sb.append("Wir betreuen das Spiel seit der Saison 2011/2012. Mittlerweile spielen zwischen 200 und 260 Fußballfans mit, nicht nur aus Deutschland, sondern auch aus Irland, Kanada oder Kuba.\r\n\r\n");
         sb.append("Die FFL ist ein einfaches Managerspiel: Du stellst vor Saisonbeginn einmalig ein Team aus echten Bundesligaspielern zusammen und sammelst 34 Spieltage lang Punkte für deren Tore und Leistungen.\r\n\r\n");
+        sb.append("- Einmal aufstellen, 34 Spieltage lang mitfiebern\r\n");
+        sb.append("- Auch das unbedeutendste Spiel wird spannend, wenn eigene Spieler auf dem Platz stehen\r\n");
+        sb.append("- Montags im Büro mit den eigenen Punkten glänzen\r\n\r\n");
 
         sb.append("JETZT ANMELDEN\r\n\r\n");
         sb.append("Die Anmeldung ist ausschließlich online möglich. Registriere Dich und stelle Dein Team auf:\r\n");
@@ -243,11 +246,6 @@ public class InvitationMailService {
             sb.append(webUrl).append("\r\n\r\n");
         }
         sb.append("Anmeldeschluss: ").append(deadlineDate).append(" um ").append(deadlineTime).append(" Uhr, also vor dem Eröffnungsspiel. Bis dahin kannst Du Dein Team beliebig oft umbauen.\r\n\r\n");
-
-        sb.append("WARUM MITMACHEN?\r\n\r\n");
-        sb.append("- Einmal aufstellen, 34 Spieltage lang mitfiebern\r\n");
-        sb.append("- Auch das unbedeutendste Spiel wird spannend, wenn eigene Spieler auf dem Platz stehen\r\n");
-        sb.append("- Montags im Büro mit den eigenen Punkten glänzen\r\n\r\n");
 
         sb.append("EINSATZ UND GEWINN\r\n\r\n");
         sb.append("- ").append(spieleinsatz).append(" Euro pro Manager\r\n");
