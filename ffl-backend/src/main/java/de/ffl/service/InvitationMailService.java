@@ -330,7 +330,7 @@ public class InvitationMailService {
 
     String insertUnsubscribeFooter(String html, String unsubscribeUrl) {
         String escapedUrl = escapeHtml(unsubscribeUrl);
-        String footer = "<div style=\"margin-top:40px;padding-top:16px;border-top:1px solid #d1d5db;text-align:center;\">"
+        String footer = "<div style=\"margin-top:16px;padding-top:16px;border-top:1px solid #d1d5db;text-align:center;\">"
             + "<p style=\"color:#000000;font-size:14px;margin:0;line-height:1.5;\">"
             + "Wenn Sie keine weiteren Mails der FFL erhalten möchten, können Sie sich "
             + "<a href=\"" + escapedUrl + "\" target=\"_blank\" style=\"color:#000000;text-decoration:underline;\">hier austragen</a>."
