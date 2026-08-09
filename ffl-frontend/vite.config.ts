@@ -83,6 +83,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         globIgnores: ['**/background.png', '**/after_login.png', '**/back2.png', '**/back3.png', '**/hintergrundbild.png', '**/background.mp4'],
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/ffl\.ipv64\.de\/api/,
