@@ -61,23 +61,30 @@ export default function FeedbackDialog({ isOpen, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 flex items-center justify-center z-50 p-4 overflow-hidden"
       role="presentation"
     >
+      <img
+        src="/background2627.png"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <div className="absolute inset-0 bg-overlay" />
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="feedback-dialog-title"
-        className="bg-surface border border-border rounded-card w-full max-w-[600px] max-h-[90vh] flex flex-col shadow-2xl"
+        className="relative bg-surface/70 backdrop-blur-md border border-border rounded-card w-full max-w-[600px] max-h-[90vh] flex flex-col shadow-2xl ffl-login-enter"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-elevated px-6 py-4 border-b border-border">
-          <h2 id="feedback-dialog-title" className="text-xl font-bold text-foreground">Feedback</h2>
-          <p className="text-muted text-sm mt-1">Hinweise, Fragen oder Fehler?</p>
+        <div className="flex flex-col items-center text-center gap-1 px-6 pt-8 pb-2">
+          <h2 id="feedback-dialog-title" className="text-2xl font-bold text-foreground leading-tight">Feedback</h2>
+          <p className="text-muted text-sm">Hinweise, Fragen oder Fehler?</p>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
           <FeedbackForm
             onSuccess={onClose}
             onCancel={onClose}
