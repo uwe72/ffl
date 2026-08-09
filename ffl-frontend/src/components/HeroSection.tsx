@@ -73,7 +73,7 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
 
           <div className="flex flex-col justify-center min-w-0">
             <p className="text-xl md:text-2xl font-bold text-foreground leading-tight">
-              {getGreeting()}, {user?.login || 'Gast'}!
+              {getGreeting()}, {user?.firstName || user?.login || 'Gast'}!
             </p>
             {season && (
               <div className="flex items-center gap-3 mt-0.5">

@@ -117,7 +117,7 @@ function buildExistingTransfers(manager: Manager): TransferRow[] {
 }
 
 export default function MyTeam() {
-  const { user } = useAuth()
+  const { user, updateProfileInfo } = useAuth()
   const [manager, setManager] = useState<Manager | null>(null)
   const [season, setSeason] = useState<Season | null>(null)
   const [allPlayers, setAllPlayers] = useState<Player[]>([])
@@ -630,6 +630,9 @@ export default function MyTeam() {
         data.lastName = profileLastName.trim()
       }
       await authApi.updateProfile(data)
+      if (isBeforeSeason) {
+        updateProfileInfo({ firstName: profileFirstName.trim(), lastName: profileLastName.trim() })
+      }
       setOriginalProfile({ firstName: profileFirstName.trim(), lastName: profileLastName.trim(), email: profileEmail.trim() })
       setProfileSuccess('Profildaten gespeichert.')
       setTimeout(() => setProfileSuccess(''), 4000)

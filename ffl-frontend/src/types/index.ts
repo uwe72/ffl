@@ -343,7 +343,7 @@ export interface AuthResponse {
 }
 
 export interface AuthContextType {
-  user: { id?: number; login: string; role: string; avatarUrl?: string } | null
+  user: { id?: number; login: string; role: string; firstName?: string; lastName?: string; avatarUrl?: string } | null
   isAuthenticated: boolean
   isLoading: boolean
   login: (credentials: LoginRequest) => Promise<void>
@@ -351,6 +351,7 @@ export interface AuthContextType {
   logout: () => void
   refreshAccessToken: () => Promise<boolean>
   updateAvatarUrl: (url: string | null) => void
+  updateProfileInfo: (info: { firstName?: string; lastName?: string }) => void
 }
 
 export interface ManagerInGroup {
