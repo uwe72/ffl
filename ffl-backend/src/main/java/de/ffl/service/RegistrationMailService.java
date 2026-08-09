@@ -6,6 +6,7 @@ import de.ffl.domain.Position;
 import de.ffl.domain.Season;
 import de.ffl.domain.SystemConfig;
 import de.ffl.domain.User;
+import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.SystemConfigRepository;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
@@ -45,10 +46,12 @@ public class RegistrationMailService {
     private static final String POS_BG_FREI = "#f5f5f4";
 
     private final SystemConfigRepository systemConfigRepository;
+    private final ManagerRepository managerRepository;
     private final SpringTemplateEngine templateEngine;
 
-    public RegistrationMailService(SystemConfigRepository systemConfigRepository, SpringTemplateEngine templateEngine) {
+    public RegistrationMailService(SystemConfigRepository systemConfigRepository, ManagerRepository managerRepository, SpringTemplateEngine templateEngine) {
         this.systemConfigRepository = systemConfigRepository;
+        this.managerRepository = managerRepository;
         this.templateEngine = templateEngine;
     }
 
@@ -80,7 +83,8 @@ public class RegistrationMailService {
             }
 
             String seasonName = manager.getSeason() != null ? manager.getSeason().getName() : "Aktuelle Saison";
-            helper.setSubject("FFL | Registrierung erfolgreich | " + seasonName + " | " + user.getLogin());
+            long registrationNumber = managerRepository.count();
+            helper.setSubject("FFL | " + seasonName + " | " + user.getLogin() + " | " + registrationNumber + ". Anmeldung");
 
             String html = buildRegistrationHtml(user, manager, config.getWebUrl());
             helper.setText(html, true);
