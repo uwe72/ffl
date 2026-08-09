@@ -32,11 +32,6 @@ public class RegistrationMailService {
 
     private static final Logger log = LoggerFactory.getLogger(RegistrationMailService.class);
 
-    private static final String DEFAULT_BANK_NAME = "DKB";
-    private static final String DEFAULT_KONTOINHABER = "Uwe Clement";
-    private static final String DEFAULT_IBAN = "DE 60 1203 0000 1055 4306 39";
-    private static final String DEFAULT_BIC = "BYLADEM1001";
-
     private static final String POS_COLOR_TW = "#57534e";
     private static final String POS_COLOR_ABW = "#0f766e";
     private static final String POS_COLOR_MF = "#4338ca";
@@ -162,10 +157,10 @@ public class RegistrationMailService {
                 spieleinsatz,
                 paypalLink,
                 verwendungszweck,
-                resolveOrDefault(season.getKontoinhaber(), DEFAULT_KONTOINHABER),
-                resolveOrDefault(season.getIban(), DEFAULT_IBAN),
-                resolveOrDefault(season.getBic(), DEFAULT_BIC),
-                resolveOrDefault(season.getBankName(), DEFAULT_BANK_NAME)
+                season.getKontoinhaber(),
+                season.getIban(),
+                season.getBic(),
+                season.getBankName()
             ));
         } else {
             context.setVariable("payment", null);
@@ -261,10 +256,6 @@ public class RegistrationMailService {
             return null;
         }
         return webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
-    }
-
-    private String resolveOrDefault(String value, String fallback) {
-        return value != null && !value.isBlank() ? value : fallback;
     }
 
     private String positionLabel(Position pos) {

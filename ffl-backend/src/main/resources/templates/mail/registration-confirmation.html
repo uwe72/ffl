@@ -146,8 +146,8 @@
                         <span th:text="${payment.firstName}">bitte</span>, bitte &uuml;berweise die Startgeb&uuml;hr von <strong th:text="${payment.spieleinsatz + ',00 &euro;'}">10,00 &euro;</strong>.
                       </p>
 
+                      <p style="margin:0 0 8px 0;color:#57534e;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">PayPal</p>
                       <th:block th:if="${payment.paypalLink != null and !payment.paypalLink.isEmpty()}">
-                        <p style="margin:0 0 8px 0;color:#57534e;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">PayPal</p>
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px 0;">
                           <tr>
                             <td style="background:#3f3a34;border-radius:6px;">
@@ -156,15 +156,23 @@
                           </tr>
                         </table>
                       </th:block>
+                      <th:block th:if="${payment.paypalLink == null or payment.paypalLink.isEmpty()}">
+                        <p style="margin:0 0 16px 0;color:#dc2626;font-size:13px;font-weight:700;">[PayPal-Link nicht in Datenbank hinterlegt]</p>
+                      </th:block>
 
                       <p style="margin:0 0 10px 0;color:#57534e;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Alternativ per &Uuml;berweisung</p>
-                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:13px;line-height:1.7;color:#1c1917;">
-                        <tr><td style="color:#57534e;width:130px;">Kontoinhaber</td><td th:text="${payment.kontoinhaber}">Uwe Clement</td></tr>
-                        <tr><td style="color:#57534e;">IBAN</td><td th:text="${payment.iban}">DE 60 1203 0000 1055 4306 39</td></tr>
-                        <tr><td style="color:#57534e;">BIC</td><td th:text="${payment.bic}">BYLADEM1001</td></tr>
-                        <tr><td style="color:#57534e;">Bank</td><td th:text="${payment.bankName}">DKB</td></tr>
-                        <tr><td style="color:#57534e;vertical-align:top;">Verwendungszweck</td><td><strong th:text="${payment.verwendungszweck}">FFL</strong></td></tr>
-                      </table>
+                      <th:block th:if="${payment.kontoinhaber != null and !payment.kontoinhaber.isEmpty() and payment.iban != null and !payment.iban.isEmpty() and payment.bic != null and !payment.bic.isEmpty() and payment.bankName != null and !payment.bankName.isEmpty()}">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:13px;line-height:1.7;color:#1c1917;">
+                          <tr><td style="color:#57534e;width:130px;">Kontoinhaber</td><td th:text="${payment.kontoinhaber}">Uwe Clement</td></tr>
+                          <tr><td style="color:#57534e;">IBAN</td><td th:text="${payment.iban}">DE 60 1203 0000 1055 4306 39</td></tr>
+                          <tr><td style="color:#57534e;">BIC</td><td th:text="${payment.bic}">BYLADEM1001</td></tr>
+                          <tr><td style="color:#57534e;">Bank</td><td th:text="${payment.bankName}">DKB</td></tr>
+                          <tr><td style="color:#57534e;vertical-align:top;">Verwendungszweck</td><td><strong th:text="${payment.verwendungszweck}">FFL</strong></td></tr>
+                        </table>
+                      </th:block>
+                      <th:block th:if="${payment.kontoinhaber == null or payment.kontoinhaber.isEmpty() or payment.iban == null or payment.iban.isEmpty() or payment.bic == null or payment.bic.isEmpty() or payment.bankName == null or payment.bankName.isEmpty()}">
+                        <p style="margin:0 0 16px 0;color:#dc2626;font-size:13px;font-weight:700;">[Bankverbindung nicht in Datenbank hinterlegt]</p>
+                      </th:block>
                     </td>
                   </tr>
                 </table>
