@@ -74,7 +74,7 @@ public class InvitationMailService {
         String unsubscribeUrl = unsubscribeService.getUnsubscribePlaceholderUrl();
         html = insertUnsubscribeFooter(html, unsubscribeUrl);
         plainText = appendUnsubscribePlainText(plainText, unsubscribeUrl);
-        String subject = "FFL | Einladung zur Saison " + season.getName();
+        String subject = "FFL | Einladung Saison " + season.getName();
 
         try {
             JavaMailSenderImpl mailSender = buildMailSender(config);
@@ -118,7 +118,7 @@ public class InvitationMailService {
                 String webUrl = normalizeWebUrl(config.getWebUrl());
                 String baseHtml = buildHtml(season, webUrl);
                 String basePlainText = buildPlainText(season, webUrl);
-                String subject = "FFL | Einladung zur Saison " + season.getName();
+                String subject = "FFL | Einladung Saison " + season.getName();
 
                 send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
                 send(emitter, "Starte Versand an " + emailIds.size() + " Empfänger...");

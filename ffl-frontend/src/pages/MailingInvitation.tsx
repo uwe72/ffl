@@ -33,7 +33,7 @@ export default function MailingInvitation() {
               Der Inhalt der Einladungsmail wird aus einem festen Template automatisch aus den Saisondaten generiert
               (Saisonname, Startdatum, Anmeldeschluss, Rückrunden-Spieltag, Spieleinsatz, Serverkosten, Gewinnausschüttung,
               Anzahl Spielleiter, Budget). Der Betreff lautet immer
-              <strong> FFL | Einladung zur Saison {season.name}</strong>. Sende eine Testmail an die Admin-Adresse,
+              <strong> FFL | Einladung Saison {season.name}</strong>. Sende eine Testmail an die Admin-Adresse,
               um das Ergebnis zu prüfen.
             </p>
           </div>
