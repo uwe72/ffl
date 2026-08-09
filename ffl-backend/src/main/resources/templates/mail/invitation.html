@@ -23,7 +23,7 @@
                   <td style="vertical-align:top;">
                     <p style="margin:0 0 10px 0;color:#ede9e3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">FFL &middot; Fantasy Football League</p>
                     <h1 style="margin:0 0 6px 0;color:#fafaf9;font-size:26px;font-weight:700;line-height:1.2;">Einladung</h1>
-                    <p style="margin:0;color:#a8a29e;font-size:15px;font-weight:500;line-height:1.4;">Saison <span th:text="${seasonName}" style="color:#fca5a5;font-weight:700;">Aktuelle Saison</span></p>
+                    <p style="margin:0;color:#a8a29e;font-size:15px;font-weight:500;line-height:1.4;">Saison <span th:text="${seasonName}" style="font-weight:700;">Aktuelle Saison</span></p>
                   </td>
                   <td width="44" style="vertical-align:top;text-align:right;">
                     <span style="display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;background:#15803d;color:#ffffff;border-radius:9999px;font-size:18px;font-weight:700;">&#9993;</span>
@@ -83,29 +83,7 @@
           <!-- Spacer -->
           <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
 
-          <!-- Block 3: Einsatz und Gewinn -->
-          <tr>
-            <td>
-              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Einsatz: <strong th:text="${spieleinsatz}">10</strong> Euro pro Manager</p>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
-                <tr>
-                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
-                    <ul style="margin:0;padding-left:20px;">
-                      <li style="margin-bottom:6px;">Die <strong th:text="${anzahlSpielleiter}">2</strong> Spielleiter spielen mit je einem Team kostenlos mit.</li>
-                      <li style="margin-bottom:6px;">Vom Einsatz gehen <strong th:text="${serverkosten}">70</strong> Euro f&uuml;r <strong>Serverbetrieb und KI Nutzung</strong> ab.</li>
-                      <li style="margin-bottom:6px;">Ausgesch&uuml;ttet wird an die <strong>besten 10 Prozent</strong>, bei 200 Managern also an die <strong>ersten 20</strong>.</li>
-                      <li style="margin-bottom:0;">Der Erste Gewinner bekommt <strong th:text="${gewinnProzent}">12</strong> Prozent der Aussch&uuml;ttung, der letzte Gewinner <strong th:text="${gewinnLetzter}">15</strong> Euro.</li>
-                    </ul>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Spacer -->
-          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
-
-          <!-- Block 5: Spielregeln -->
+          <!-- Block 3: Spielregeln -->
           <tr>
             <td>
               <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Spielregeln</p>
@@ -127,6 +105,28 @@
           <!-- Spacer -->
           <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
 
+          <!-- Block 4: Einsatz und Gewinn -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Einsatz: <strong th:text="${spieleinsatz}">10</strong> Euro pro Manager</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
+                <tr>
+                  <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
+                    <ul style="margin:0;padding-left:20px;">
+                      <li style="margin-bottom:6px;">Die <strong th:text="${anzahlSpielleiter}">2</strong> Spielleiter spielen mit je einem Team kostenlos mit.</li>
+                      <li style="margin-bottom:6px;">Vom Einsatz gehen <strong th:text="${serverkosten}">70</strong> Euro f&uuml;r <strong>Serverbetrieb und KI Nutzung</strong> ab.</li>
+                      <li style="margin-bottom:6px;">Ausgesch&uuml;ttet wird an die <strong>besten 10 Prozent</strong>, bei 200 Managern also an die <strong>ersten 20</strong>.</li>
+                      <li style="margin-bottom:0;">Der Erste Gewinner bekommt <strong th:text="${gewinnProzent}">12</strong> Prozent der Aussch&uuml;ttung, der letzte Gewinner <strong th:text="${gewinnLetzter}">15</strong> Euro.</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
           <!-- Block 6: Spielerliste und Saisonverlauf -->
           <tr>
             <td>
@@ -136,7 +136,7 @@
                   <td style="padding:18px 20px;color:#1c1917;font-size:14px;line-height:1.7;">
                     <ul style="margin:0;padding-left:20px;">
                       <li style="margin-bottom:6px;"><a th:href="${playersUrl}" style="color:#1d4ed8;text-decoration:none;"><strong>Spielerliste online &ouml;ffnen</strong></a> oder im <strong>kicker Sonderheft</strong></li>
-                      <li style="margin-bottom:6px;">Die erfolgreichsten Spieler der letzten Saison: in den <a th:href="${documentsUrl}" style="color:#1d4ed8;text-decoration:none;">Dokumenten</a></li>
+                      <li style="margin-bottom:6px;">Die erfolgreichsten Spieler der letzten Saison: in den <a th:href="${documentsUrl}" style="color:#1d4ed8;text-decoration:none;"><strong>Dokumenten</strong></a></li>
                       <li style="margin-bottom:0;">In der <strong>Winterpause</strong> d&uuml;rfen <strong>bis zu drei Spieler</strong> getauscht werden</li>
                     </ul>
                   </td>

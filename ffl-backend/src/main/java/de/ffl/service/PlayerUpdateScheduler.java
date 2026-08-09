@@ -1,5 +1,6 @@
 package de.ffl.service;
 
+import de.ffl.config.EnvironmentProvider;
 import de.ffl.domain.Season;
 import de.ffl.domain.SystemConfig;
 import de.ffl.domain.UserRole;
@@ -36,17 +37,20 @@ public class PlayerUpdateScheduler {
     private final UserRepository userRepository;
     private final NewSeasonSetupService setupService;
     private final SpringTemplateEngine templateEngine;
+    private final EnvironmentProvider environmentProvider;
 
     public PlayerUpdateScheduler(SystemConfigRepository configRepository,
                                  SeasonRepository seasonRepository,
                                  UserRepository userRepository,
                                  NewSeasonSetupService setupService,
-                                 SpringTemplateEngine templateEngine) {
+                                 SpringTemplateEngine templateEngine,
+                                 EnvironmentProvider environmentProvider) {
         this.configRepository = configRepository;
         this.seasonRepository = seasonRepository;
         this.userRepository = userRepository;
         this.setupService = setupService;
         this.templateEngine = templateEngine;
+        this.environmentProvider = environmentProvider;
     }
 
     @Scheduled(fixedRate = 60000)

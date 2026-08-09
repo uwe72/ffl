@@ -1,6 +1,6 @@
 package de.ffl.controller;
 
-import org.springframework.beans.factory.annotation.Value;
+import de.ffl.config.EnvironmentProvider;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,12 +11,14 @@ import java.util.Map;
 @RequestMapping("/api/public")
 public class SystemInfoController {
 
-    @Value("${spring.profiles.active:}")
-    private String activeProfile;
+    private final EnvironmentProvider environmentProvider;
+
+    public SystemInfoController(EnvironmentProvider environmentProvider) {
+        this.environmentProvider = environmentProvider;
+    }
 
     @GetMapping("/system-info")
     public Map<String, String> getSystemInfo() {
-        String environment = "docker".equals(activeProfile) ? "PROD" : "TEST";
-        return Map.of("environment", environment);
+        return Map.of("environment", environmentProvider.getEnvironment());
     }
 }
