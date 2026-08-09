@@ -225,7 +225,7 @@ public class InvitationMailService {
         sb.append("Einladung zur Saison ").append(seasonName).append("\r\n\r\n");
 
         sb.append("DIE NEUE SAISON RUFT!\r\n\r\n");
-        sb.append("Am ").append(startDateLong).append(" rollt der Ball wieder, und damit geht auch unsere Fantasy Football League in die nächste Saison. Wir freuen uns, wenn Du dabei bist.\r\n\r\n");
+        sb.append("Ab ").append(startDateLong).append(" rollt der Ball wieder, und damit geht auch unsere Fantasy Football League in die nächste Saison. Wir freuen uns, wenn Du dabei bist.\r\n\r\n");
         sb.append("Wir betreuen das Spiel seit 2011/2012, mittlerweile spielen 200 bis 260 Fußballfans mit, von Deutschland bis Irland, Kanada und Kuba.\r\n\r\n");
         sb.append("Die FFL ist ein einfaches Managerspiel: Du stellst einmalig ein Team aus echten Bundesligaspielern zusammen und sammelst 34 Spieltage lang Punkte für deren Tore und Leistungen.\r\n\r\n");
 
@@ -240,7 +240,7 @@ public class InvitationMailService {
         sb.append("SPIELREGELN\r\n\r\n");
         sb.append("- Elf Spieler: 1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm, dazu 1 Joker auf einer frei wählbaren Feldposition\r\n");
         sb.append("- Budget: ").append(budget).append(" Euro, keine Begrenzung der Spieler pro Verein\r\n");
-        sb.append("- Tore: Stürmer 3 Punkte, Mittelfeld 5, Abwehr 7, Torwart 10, per Elfmeter 3\r\n");
+        sb.append("- Tore: Stürmer 3 Punkte, Mittelfeld 5, Abwehr 7, Torwart 10 (Torwart per Elfmeter 3)\r\n");
         sb.append("- Zu Null: Torwart 5 Punkte, Abwehr 2\r\n\r\n");
 
         sb.append("EINSATZ: ").append(spieleinsatz).append(" EURO PRO MANAGER\r\n\r\n");
@@ -332,7 +332,7 @@ public class InvitationMailService {
         String escapedUrl = escapeHtml(unsubscribeUrl);
         String footer = "<div style=\"margin-top:16px;padding-top:16px;border-top:1px solid #d1d5db;text-align:center;\">"
             + "<p style=\"color:#000000;font-size:14px;margin:0;line-height:1.5;\">"
-            + "Wenn Sie keine weiteren Mails der FFL erhalten möchten, können Sie sich "
+            + "Wenn Du keine weiteren Mails der FFL erhalten möchtest, kannst Du dich "
             + "<a href=\"" + escapedUrl + "\" target=\"_blank\" style=\"color:#000000;text-decoration:underline;\">hier austragen</a>."
             + "</p>"
             + "<p style=\"font-size:14px;margin:0;line-height:1.5;\">&nbsp;</p>"
@@ -341,7 +341,7 @@ public class InvitationMailService {
     }
 
     private String appendUnsubscribePlainText(String text, String unsubscribeUrl) {
-        return text + "\r\n\r\nWenn Sie keine weiteren Mails der FFL erhalten möchten, können Sie sich hier austragen: " + unsubscribeUrl + "\r\n";
+        return text + "\r\n\r\nWenn Du keine weiteren Mails der FFL erhalten möchtest, kannst Du dich hier austragen: " + unsubscribeUrl + "\r\n";
     }
 
     private JavaMailSenderImpl buildMailSender(SystemConfig config) {
