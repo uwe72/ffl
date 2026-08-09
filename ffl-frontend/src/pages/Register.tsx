@@ -569,7 +569,7 @@ export default function Register() {
       className="min-h-screen flex items-center justify-center bg-background py-6 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/background2627.png')" }}
     >
-      <div className={`bg-surface/95 backdrop-blur-sm border border-border rounded-card w-full ${step === 4 ? 'max-w-[1250px]' : step === 3 ? 'max-w-[1170px]' : 'max-w-[940px]'} max-h-[92vh] flex flex-col shadow-2xl overflow-hidden`}>
+      <div className={`bg-surface/70 backdrop-blur-md border border-border rounded-card w-full ${step === 4 ? 'max-w-[1250px]' : step === 3 ? 'max-w-[1170px]' : 'max-w-[940px]'} max-h-[92vh] flex flex-col shadow-2xl overflow-hidden`}>
 
         <div className="relative h-28 shrink-0 overflow-hidden">
           <div
@@ -592,7 +592,7 @@ export default function Register() {
           </div>
         </div>
 
-        <div className="border-b border-border bg-surface/80">
+        <div className="border-b border-border bg-surface/70">
           <WizardStepper currentStep={step} />
         </div>
 
@@ -1038,7 +1038,7 @@ export default function Register() {
           )}
         </div>
 
-        <div className="shrink-0 border-t border-border px-6 py-4 flex gap-3 justify-end bg-surface/95">
+        <div className="shrink-0 border-t border-border px-6 py-4 flex gap-3 justify-end bg-surface/70">
           {step === 1 && (
             <>
               <Button
