@@ -64,7 +64,8 @@ public class InvitationMailService {
             .orElse(null);
         String webUrl = config != null ? normalizeWebUrl(config.getWebUrl()) : null;
 
-        return buildHtml(season, webUrl);
+        String html = buildHtml(season, webUrl);
+        return insertUnsubscribeFooter(html, unsubscribeService.getUnsubscribePlaceholderUrl());
     }
 
     public void sendTestMail(Long seasonId) {
@@ -82,6 +83,9 @@ public class InvitationMailService {
         String webUrl = normalizeWebUrl(config.getWebUrl());
         String html = buildHtml(season, webUrl);
         String plainText = buildPlainText(season, webUrl);
+        String unsubscribeUrl = unsubscribeService.getUnsubscribePlaceholderUrl();
+        html = insertUnsubscribeFooter(html, unsubscribeUrl);
+        plainText = appendUnsubscribePlainText(plainText, unsubscribeUrl);
         String subject = "FFL | Einladung zur Saison " + season.getName();
 
         try {
