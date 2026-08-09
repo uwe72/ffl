@@ -4,7 +4,6 @@ import de.ffl.domain.Deposit;
 import de.ffl.domain.DepositStatus;
 import de.ffl.domain.Manager;
 import de.ffl.domain.PaymentMethod;
-import de.ffl.domain.PaymentState;
 import de.ffl.domain.Season;
 import de.ffl.domain.User;
 import de.ffl.dto.DepositDto;
@@ -111,7 +110,7 @@ class DepositServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
-    void updateDeposit_setsReceivedAndSyncsManagerPaymentState() {
+    void updateDeposit_setsReceivedAndReceivedAt() {
         depositService.syncDeposits(season.getId());
         Long managerId = managerUwe72.getId();
 
@@ -123,13 +122,10 @@ class DepositServiceTest extends AbstractSeasonTestBase {
 
         assertEquals(DepositStatus.RECEIVED, updated.getDepositStatus());
         assertNotNull(updated.getReceivedAt());
-
-        Manager refreshed = managerRepository.findById(managerId).orElseThrow();
-        assertEquals(PaymentState.PAID, refreshed.getPaymentState());
     }
 
     @Test
-    void updateDeposit_setsOpenClearsReceivedAndManagerPaymentState() {
+    void updateDeposit_setsOpenClearsReceivedAt() {
         depositService.syncDeposits(season.getId());
         Long managerId = managerUwe72.getId();
 
@@ -141,9 +137,6 @@ class DepositServiceTest extends AbstractSeasonTestBase {
 
         assertEquals(DepositStatus.OPEN, updated.getDepositStatus());
         assertNull(updated.getReceivedAt());
-
-        Manager refreshed = managerRepository.findById(managerId).orElseThrow();
-        assertEquals(PaymentState.NOT_PAID, refreshed.getPaymentState());
     }
 
     @Test

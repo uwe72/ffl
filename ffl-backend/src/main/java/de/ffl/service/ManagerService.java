@@ -3,7 +3,6 @@ package de.ffl.service;
 import de.ffl.domain.MailTheme;
 import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerRank;
-import de.ffl.domain.PaymentState;
 import de.ffl.domain.Player;
 import de.ffl.domain.PlayerRank;
 import de.ffl.domain.Position;
@@ -314,7 +313,6 @@ public class ManagerService {
             dto.setUserId(manager.getUser().getId());
         }
 
-        dto.setPaymentState(manager.getPaymentState().name());
         dto.setDescription(manager.getDescription());
         dto.setMailTheme(manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
         
@@ -517,9 +515,6 @@ public class ManagerService {
             userRepository.save(user);
         }
 
-        if (request.getPaymentState() != null && !request.getPaymentState().isEmpty()) {
-            manager.setPaymentState(PaymentState.valueOf(request.getPaymentState()));
-        }
         if (request.getDescription() != null) {
             manager.setDescription(request.getDescription());
         }

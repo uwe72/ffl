@@ -309,7 +309,6 @@ public class PlayerService {
             }
             
             info.setTeamValue(calculateTeamValue(m));
-            info.setPaymentState(m.getPaymentState().name());
             
             if (currentRank != null) {
                 info.setPositionTotal(currentRank.getPositionTotal());

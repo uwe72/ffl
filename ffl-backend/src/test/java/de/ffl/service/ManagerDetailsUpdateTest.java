@@ -24,7 +24,6 @@ class ManagerDetailsUpdateTest extends AbstractSeasonTestBase {
         UpdateManagerDetailsRequest request = new UpdateManagerDetailsRequest();
         request.setFirstName("Uwe");
         request.setLastName("Testmann");
-        request.setPaymentState("PAID");
         request.setDescription("Neue Beschreibung");
         request.setMailTheme("DARKMODE");
 
@@ -33,7 +32,6 @@ class ManagerDetailsUpdateTest extends AbstractSeasonTestBase {
         assertNotNull(updated);
         assertEquals("Uwe", updated.getFirstName());
         assertEquals("Testmann", updated.getLastName());
-        assertEquals("PAID", updated.getPaymentState());
         assertEquals("Neue Beschreibung", updated.getDescription());
         assertEquals("DARKMODE", updated.getMailTheme());
 
@@ -45,13 +43,11 @@ class ManagerDetailsUpdateTest extends AbstractSeasonTestBase {
     @Test
     void updateManagerDetails_doesNotOverrideNullFields() throws Exception {
         UpdateManagerDetailsRequest request = new UpdateManagerDetailsRequest();
-        request.setPaymentState("NOT_PAID");
 
         String originalFirstName = managerUwe72.getUser().getFirstName();
 
         ManagerDto updated = managerService.updateManagerDetails(managerUwe72.getId(), request);
 
         assertEquals(originalFirstName, updated.getFirstName());
-        assertEquals("NOT_PAID", updated.getPaymentState());
     }
 }

@@ -137,7 +137,6 @@ export interface ManagerInfo {
   lastName?: string
   email?: string
   teamValue?: number
-  paymentState?: string
   positionTotal?: number
   positionChange?: number
   pointsTotal?: number
@@ -145,8 +144,6 @@ export interface ManagerInfo {
   hinrunde: boolean
   rueckrunde: boolean
 }
-
-export type PaymentState = 'PAID' | 'NOT_PAID'
 
 export type PayoutStatus = 'PAID' | 'UNPAID'
 
@@ -250,7 +247,6 @@ export interface Manager {
   userId?: number
   avatarUrl?: string
   teamValue?: number
-  paymentState: string
   description?: string
   mailTheme?: MailTheme
   seasonId?: number
@@ -353,7 +349,6 @@ export interface WinterTransferRequest {
 export interface UpdateManagerDetailsRequest {
   firstName?: string
   lastName?: string
-  paymentState?: string
   description?: string
   mailTheme?: string
 }

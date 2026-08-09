@@ -275,15 +275,12 @@ public class SeasonReportHtmlBuilder {
         for (Manager m : sorted) {
             String name = m.getName() != null ? escape(m.getName()) : "Unbekannt";
             String email = m.getUser() != null ? escape(m.getUser().getEmail()) : "-";
-            String payment = m.getPaymentState() == PaymentState.PAID ? "Bezahlt" : "Nicht bezahlt";
-            String paymentColor = m.getPaymentState() == PaymentState.PAID ? "#36b37e" : "#ff5630";
 
             sb.append("<div style=\"background:").append(CARD_BG).append(";border:1px solid ").append(BORDER)
               .append(";border-radius:8px;padding:12px;margin-bottom:12px;\">");
             sb.append("<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;\">");
             sb.append("<strong style=\"color:").append(TEXT_SECONDARY).append(";font-size:14px;\">").append(name).append("</strong>");
-            sb.append("<span style=\"font-size:12px;\">").append(email)
-              .append(" | <span style=\"color:").append(paymentColor).append(";\">").append(payment).append("</span></span>");
+            sb.append("<span style=\"font-size:12px;\">").append(email).append("</span>");
             sb.append("</div>");
 
             sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:12px;border-collapse:collapse;\">");

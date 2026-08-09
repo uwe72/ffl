@@ -27,8 +27,8 @@ const COLOR_LAST = chartColors.warning
 const tabItems = [
   { key: 'saisondaten', label: 'Saisondaten' },
   { key: 'bankverbindung', label: 'Bankverbindung' },
-  { key: 'gewinnausschuettung', label: 'Gewinnausschüttung' },
   { key: 'einzahlungen', label: 'Einzahlungen' },
+  { key: 'gewinnausschuettung', label: 'Gewinnausschüttung' },
   { key: 'neue-saison', label: 'Saison Datenimport' }
 ]
 
@@ -821,12 +821,10 @@ export default function Season() {
                 <table className="w-full min-w-[900px]">
                   <TableHead>
                     <tr>
-                      <Th className="whitespace-nowrap">Manager</Th>
+                      <Th className="whitespace-nowrap">Login</Th>
                       <Th className="whitespace-nowrap">Vorname</Th>
                       <Th className="whitespace-nowrap">Nachname</Th>
-                      <Th className="whitespace-nowrap">Login</Th>
                       <Th className="whitespace-nowrap">E-Mail</Th>
-                      <Th align="right" className="whitespace-nowrap">Betrag (€)</Th>
                       <Th align="center" className="whitespace-nowrap">Zahlungsart</Th>
                       <Th align="center" className="whitespace-nowrap">Status</Th>
                       <Th align="center" className="whitespace-nowrap">Kommentar</Th>
@@ -839,16 +837,10 @@ export default function Season() {
                         className="border-b border-border last:border-b-0 hover:bg-card-hover"
                         style={{ borderLeftWidth: '4px', borderLeftColor: deposit.depositStatus === 'RECEIVED' ? 'var(--color-success)' : 'var(--color-border-neutral)' }}
                       >
-                        <td className="px-3 py-2 text-foreground">{deposit.managerName}</td>
+                        <td className="px-3 py-2 text-foreground">{deposit.managerLogin || '-'}</td>
                         <td className="px-3 py-2 text-muted">{deposit.managerFirstName || '-'}</td>
                         <td className="px-3 py-2 text-muted">{deposit.managerLastName || '-'}</td>
-                        <td className="px-3 py-2 text-muted">{deposit.managerLogin || '-'}</td>
                         <td className="px-3 py-2 text-muted">{deposit.managerEmail || '-'}</td>
-                        <td className="px-3 py-2 text-right text-foreground font-medium">
-                          {deposit.amount % 1 === 0
-                            ? Math.round(deposit.amount)
-                            : deposit.amount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
                         <td className="px-3 py-2 text-center">
                           <select
                             value={deposit.paymentMethod || ''}
@@ -1288,7 +1280,7 @@ Speichern
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="text-xl font-bold text-foreground">Kommentar</h3>
-                <p className="text-sm text-muted">{depositCommentDialog.managerName} - {depositCommentDialog.amount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</p>
+                <p className="text-sm text-muted">{depositCommentDialog.managerLogin || depositCommentDialog.managerName}</p>
               </div>
               <Button
                 variant="ghost"

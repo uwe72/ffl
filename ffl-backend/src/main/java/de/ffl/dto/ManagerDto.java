@@ -14,7 +14,6 @@ public class ManagerDto {
     private String login;
     private Long userId;
     private Integer teamValue;
-    private String paymentState;
     private String description;
     private String mailTheme;
     private Long seasonId;
@@ -62,7 +61,6 @@ public class ManagerDto {
             }
         }
         
-        dto.setPaymentState(manager.getPaymentState().name());
         dto.setDescription(manager.getDescription());
         dto.setMailTheme(manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
         dto.setTeamChangeCount(manager.getTeamChangeCount());
@@ -166,8 +164,6 @@ public class ManagerDto {
     public void setUserId(Long userId) { this.userId = userId; }
     public Integer getTeamValue() { return teamValue; }
     public void setTeamValue(Integer teamValue) { this.teamValue = teamValue; }
-    public String getPaymentState() { return paymentState; }
-    public void setPaymentState(String paymentState) { this.paymentState = paymentState; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
     public Long getSeasonId() { return seasonId; }

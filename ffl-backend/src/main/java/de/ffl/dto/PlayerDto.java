@@ -190,7 +190,6 @@ public class PlayerDto {
         private String firstName;
         private String lastName;
         private Integer teamValue;
-        private String paymentState;
         private Integer positionTotal;
         private Integer positionChange;
         private Integer pointsTotal;
@@ -210,8 +209,6 @@ public class PlayerDto {
         public void setLastName(String lastName) { this.lastName = lastName; }
         public Integer getTeamValue() { return teamValue; }
         public void setTeamValue(Integer teamValue) { this.teamValue = teamValue; }
-        public String getPaymentState() { return paymentState; }
-        public void setPaymentState(String paymentState) { this.paymentState = paymentState; }
         public Integer getPositionTotal() { return positionTotal; }
         public void setPositionTotal(Integer positionTotal) { this.positionTotal = positionTotal; }
         public Integer getPositionChange() { return positionChange; }

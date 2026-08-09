@@ -2,17 +2,11 @@ import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import * as XLSX from 'xlsx'
 import { useManagers } from '../hooks/useManagers'
-import { useAuth } from '../context/AuthContext'
 import { trackEvent } from '../hooks/useMatomo'
 import Button from '../components/Button'
 import SortIcon from '../components/SortIcon'
-import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
+import { TableHead, ThSortable, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
-
-const paymentStateLabels = {
-  PAID: 'Bezahlt',
-  NOT_PAID: 'Nicht bezahlt'
-}
 
 type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
 
@@ -59,8 +53,6 @@ export default function Managers() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const { data: managers, isLoading, error } = useManagers()
-  const { user } = useAuth()
-  const isAdmin = user?.role === 'ADMIN'
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -127,9 +119,6 @@ export default function Managers() {
         'Spieltag': manager.pointsLastRound ?? '-',
         'Vorname': manager.firstName || '-',
         'Nachname': manager.lastName || '-',
-      }
-      if (isAdmin) {
-        row['Status'] = paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState || '-'
       }
       row['Teamwert (Mio.)'] = manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'
       return row
@@ -211,7 +200,6 @@ export default function Managers() {
                     <ThSortable align="left" onClick={() => handleSort('lastName')}>
                       Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
-                    {isAdmin && <Th>Status</Th>}
                     <ThSortable align="right" onClick={() => handleSort('teamValue')}>
                       Teamwert<SortIcon column="teamValue" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
@@ -250,15 +238,6 @@ export default function Managers() {
                         <td className="px-3 py-2 text-muted">
                           {manager.lastName || '-'}
                         </td>
-                        {isAdmin && (
-                          <td className="px-3 py-2">
-                            <span
-                              className={`text-xs font-medium px-2 py-0.5 rounded-badge ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}
-                            >
-                              {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState}
-                            </span>
-                          </td>
-                        )}
                         <td className="px-3 py-2 text-right text-foreground">
                           {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
                         </td>
@@ -266,7 +245,7 @@ export default function Managers() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={isAdmin ? 9 : 8} className="text-center text-subtle py-8">
+                      <td colSpan={8} className="text-center text-subtle py-8">
                         Keine Manager gefunden
                       </td>
                     </tr>

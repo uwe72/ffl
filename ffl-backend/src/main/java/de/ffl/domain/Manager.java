@@ -34,11 +34,6 @@ public class Manager {
     @Column(nullable = false)
     private Integer budget;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Builder.Default
-    private PaymentState paymentState = PaymentState.NOT_PAID;
-
     private String description;
 
     @Enumerated(EnumType.STRING)

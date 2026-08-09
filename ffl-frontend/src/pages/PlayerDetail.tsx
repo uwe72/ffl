@@ -7,7 +7,7 @@ import { positionLabels } from './Players'
 import Button from '../components/Button'
 import SortIcon from '../components/SortIcon'
 import StatTile from '../components/StatTile'
-import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
+import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 import { getChartColors } from '../utils/chartColors'
 import type { Position } from '../types'
@@ -16,11 +16,6 @@ const chartColors = getChartColors()
 
 type SortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue' | 'hinrunde' | 'rueckrunde'
 type SortOrder = 'asc' | 'desc'
-
-const paymentStateLabels = {
-  PAID: 'Bezahlt',
-  NOT_PAID: 'Nicht bezahlt'
-}
 
 function formatPrice(price: number | undefined): string {
   if (!price) return '- €'
@@ -583,7 +578,6 @@ export default function PlayerDetail() {
                       <ThSortable align="left" onClick={() => handleSort('lastName')}>
                         Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
                       </ThSortable>
-                      {isAdmin && <Th align="left">Status</Th>}
                       <ThSortable align="right" onClick={() => handleSort('teamValue')}>
                         Teamwert<SortIcon column="teamValue" activeKey={sortKey} order={sortOrder} />
                       </ThSortable>
@@ -628,15 +622,6 @@ export default function PlayerDetail() {
                           <td className="px-3 py-2 text-muted">
                             {manager.lastName || '-'}
                           </td>
-                          {isAdmin && (
-                            <td className="px-3 py-2">
-                              <span
-                                className={`text-xs font-medium px-2 py-0.5 rounded-badge ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}
-                              >
-                                {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState || '-'}
-                              </span>
-                            </td>
-                          )}
                           <td className="px-3 py-2 text-right text-foreground">
                             {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
                           </td>
@@ -658,7 +643,7 @@ export default function PlayerDetail() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={isAdmin ? 11 : 10} className="text-center text-subtle py-8">
+                        <td colSpan={10} className="text-center text-subtle py-8">
                           Keine Manager gefunden
                         </td>
                       </tr>
@@ -678,11 +663,6 @@ export default function PlayerDetail() {
                       <RouterLink to={`/managers/${manager.id}`} className="link font-semibold">
                         {manager.shortName || manager.name || '-'}
                       </RouterLink>
-                      {isAdmin && (
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${manager.paymentState === 'PAID' ? 'chip-success' : 'chip-danger'}`}>
-                          {paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState || '-'}
-                        </span>
-                      )}
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-sm">
                       <div>

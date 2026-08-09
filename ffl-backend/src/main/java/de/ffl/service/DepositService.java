@@ -3,7 +3,6 @@ package de.ffl.service;
 import de.ffl.domain.Deposit;
 import de.ffl.domain.DepositStatus;
 import de.ffl.domain.Manager;
-import de.ffl.domain.PaymentState;
 import de.ffl.domain.Season;
 import de.ffl.domain.User;
 import de.ffl.dto.DepositDto;
@@ -68,8 +67,6 @@ public class DepositService {
             } else if (newStatus == DepositStatus.OPEN) {
                 deposit.setReceivedAt(null);
             }
-            syncManagerPaymentState(deposit.getManager(), newStatus);
-            managerRepository.save(deposit.getManager());
         }
 
         Deposit saved = depositRepository.save(deposit);
@@ -127,14 +124,6 @@ public class DepositService {
 
     private BigDecimal resolveSpieleinsatz(Season season) {
         return season.getSpieleinsatzEuro() != null ? season.getSpieleinsatzEuro() : new BigDecimal("10.00");
-    }
-
-    private void syncManagerPaymentState(Manager manager, DepositStatus depositStatus) {
-        if (depositStatus == DepositStatus.RECEIVED) {
-            manager.setPaymentState(PaymentState.PAID);
-        } else {
-            manager.setPaymentState(PaymentState.NOT_PAID);
-        }
     }
 
     private DepositDto convertToDto(Deposit deposit) {

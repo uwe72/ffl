@@ -16,11 +16,6 @@ import type { Player, ManagerGroup, RulePoint } from '../types'
 const chartColors = getChartColors()
 const LINE_COLORS = CHART_SERIES_PALETTE
 
-const paymentStateLabels = {
-  PAID: 'Bezahlt',
-  NOT_PAID: 'Nicht bezahlt'
-}
-
 const mailThemeLabels = {
   LIGHTMODE: 'Lightmode',
   DARKMODE: 'Darkmode'
@@ -319,7 +314,6 @@ export default function ManagerDetail() {
   const [editData, setEditData] = useState({
     firstName: '',
     lastName: '',
-    paymentState: 'NOT_PAID',
     description: '',
     mailTheme: 'LIGHTMODE'
   })
@@ -329,7 +323,6 @@ export default function ManagerDetail() {
       setEditData({
         firstName: manager.firstName || '',
         lastName: manager.lastName || '',
-        paymentState: manager.paymentState || 'NOT_PAID',
         description: manager.description || '',
         mailTheme: manager.mailTheme || 'LIGHTMODE'
       })
@@ -339,7 +332,6 @@ export default function ManagerDetail() {
   const hasDetailsChanges = manager && (
     editData.firstName !== (manager.firstName || '') ||
     editData.lastName !== (manager.lastName || '') ||
-    editData.paymentState !== (manager.paymentState || 'NOT_PAID') ||
     editData.description !== (manager.description || '') ||
     editData.mailTheme !== (manager.mailTheme || 'LIGHTMODE')
   )
@@ -359,7 +351,6 @@ export default function ManagerDetail() {
       setEditData({
         firstName: manager.firstName || '',
         lastName: manager.lastName || '',
-        paymentState: manager.paymentState || 'NOT_PAID',
         description: manager.description || '',
         mailTheme: manager.mailTheme || 'LIGHTMODE'
       })
@@ -665,7 +656,6 @@ export default function ManagerDetail() {
                 </h2>
                 <p className="text-xs uppercase tracking-wide text-subtle mt-2">
                   Manager
-                  {` · ${paymentStateLabels[manager.paymentState as keyof typeof paymentStateLabels] || manager.paymentState || '-'}`}
                 </p>
               </div>
             )}
@@ -699,17 +689,6 @@ export default function ManagerDetail() {
                       readOnly
                       className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
                     />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-xs text-muted">Zahlungsstatus</span>
-                    <select
-                      value={editData.paymentState}
-                      onChange={(e) => setEditData({ ...editData, paymentState: e.target.value })}
-                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
-                    >
-                      <option value="PAID">Bezahlt</option>
-                      <option value="NOT_PAID">Nicht bezahlt</option>
-                    </select>
                   </div>
                   <div className="min-w-0">
                     <span className="text-xs text-muted">Theme Spieltagsmail</span>

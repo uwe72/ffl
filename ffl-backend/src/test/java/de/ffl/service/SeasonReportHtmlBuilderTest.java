@@ -33,7 +33,6 @@ class SeasonReportHtmlBuilderTest {
             .user(user)
             .season(season)
             .budget(30_000_000)
-            .paymentState(PaymentState.NOT_PAID)
             .build();
 
         ManagerGroup group = ManagerGroup.builder()
@@ -93,7 +92,6 @@ class SeasonReportHtmlBuilderTest {
             .user(user)
             .season(season)
             .budget(0)
-            .paymentState(PaymentState.NOT_PAID)
             .build();
 
         String html = builder.buildReportHtml(
@@ -111,6 +109,5 @@ class SeasonReportHtmlBuilderTest {
 
         assertThat(html).doesNotContain("Budget:");
         assertThat(html).contains("max@example.com");
-        assertThat(html).contains("Nicht bezahlt");
     }
 }
