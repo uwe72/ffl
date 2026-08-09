@@ -236,7 +236,7 @@ public class InvitationMailService {
         sb.append("FFL · Fantasy Football League\r\n");
         sb.append("Einladung zur Saison ").append(seasonName).append("\r\n\r\n");
 
-        sb.append("HALLO FFL FAN!\r\n\r\n");
+        sb.append("DIE NEUE SAISON RUFT!\r\n\r\n");
         sb.append("Am ").append(startDateLong).append(" rollt der Ball wieder, und damit geht auch unsere Fantasy Football League in die nächste Saison. Wir freuen uns, wenn Du dabei bist.\r\n\r\n");
         sb.append("Wir betreuen das Spiel seit 2011/2012, mittlerweile spielen 200 bis 260 Fußballfans mit, von Deutschland bis Irland, Kanada und Kuba.\r\n\r\n");
         sb.append("Die FFL ist ein einfaches Managerspiel: Du stellst einmalig ein Team aus echten Bundesligaspielern zusammen und sammelst 34 Spieltage lang Punkte für deren Tore und Leistungen.\r\n\r\n");
