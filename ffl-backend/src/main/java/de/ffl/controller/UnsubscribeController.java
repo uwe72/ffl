@@ -29,7 +29,7 @@ public class UnsubscribeController {
             return ResponseEntity.ok(buildErrorPage("Diese E-Mail-Adresse ist bereits ausgetragen."));
         }
 
-        return ResponseEntity.ok(buildConfirmationPage(opt.get().getEmail(), id, token));
+        return ResponseEntity.ok(buildConfirmationPage(opt.get().getEmail(), id, token, unsubscribeService.getWebUrl()));
     }
 
     @PostMapping(produces = MediaType.TEXT_HTML_VALUE)
@@ -48,7 +48,7 @@ public class UnsubscribeController {
         return ResponseEntity.ok(buildSuccessPage(email));
     }
 
-    private String buildConfirmationPage(String email, Long id, String token) {
+    private String buildConfirmationPage(String email, Long id, String token, String webUrl) {
         String inner =
               "<div class=\"content-inner\">"
             + "<p style=\"margin:0;color:#57534e;font-size:14px;line-height:1.6;\">Möchten Sie sich wirklich aus dem FFL-Mailverteiler austragen?</p>"
@@ -58,6 +58,7 @@ public class UnsubscribeController {
             + "</div>"
             + "<div class=\"footer-border\">"
             + "<form method=\"POST\" action=\"/api/public/unsubscribe?id=" + id + "&token=" + escapeHtml(token) + "\">"
+            + "<a class=\"btn btn-secondary\" href=\"" + escapeHtml(webUrl) + "\">Abbrechen</a>"
             + "<button type=\"submit\" class=\"btn btn-danger\">Ja, austragen</button>"
             + "</form>"
             + "</div>"
@@ -123,11 +124,13 @@ public class UnsubscribeController {
             + ".callout-success .icon{color:#15803d;}"
             + ".callout-danger{background:#fbe6e4;border:1px solid rgba(185,28,28,0.3);}"
             + ".callout-danger .icon{color:#b91c1c;}"
-            + ".footer-border{border-top:1px solid #d6d3d1;padding-top:16px;display:flex;justify-content:flex-end;}"
+            + ".footer-border{border-top:1px solid #d6d3d1;padding-top:16px;display:flex;justify-content:space-between;gap:12px;}"
             + ".btn{border:none;border-radius:4px;padding:10px 20px;font-size:14px;font-weight:600;"
-            + "cursor:pointer;font-family:inherit;}"
+            + "cursor:pointer;font-family:inherit;text-align:center;text-decoration:none;display:inline-block;}"
             + ".btn-danger{background:#b91c1c;color:#ffffff;}"
             + ".btn-danger:hover{background:#991b1b;}"
+            + ".btn-secondary{background:#e7e5e4;color:#1c1917;border:1px solid #d6d3d1;}"
+            + ".btn-secondary:hover{background:#d6d3d1;}"
             + "@keyframes ffl-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}"
             + "@media (prefers-reduced-motion:reduce){.card{animation:none;}}"
             + "</style>"

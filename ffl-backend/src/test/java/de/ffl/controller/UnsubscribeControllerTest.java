@@ -43,6 +43,21 @@ class UnsubscribeControllerTest {
     }
 
     @Test
+    void showConfirmation_validToken_containsCancelButtonWithWebUrl() {
+        when(unsubscribeService.validateToken(ID, TOKEN)).thenReturn(true);
+        when(unsubscribeService.findEmailById(ID)).thenReturn(Optional.of(
+            EmailAddress.builder().id(ID).email(EMAIL).build()));
+        when(unsubscribeService.getWebUrl()).thenReturn("https://ffl.example.com");
+
+        ResponseEntity<String> response = unsubscribeController.showConfirmation(ID, TOKEN);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("Abbrechen");
+        assertThat(response.getBody()).contains("btn-secondary");
+        assertThat(response.getBody()).contains("https://ffl.example.com");
+    }
+
+    @Test
     void showConfirmation_invalidToken_returnsErrorPage() {
         when(unsubscribeService.validateToken(ID, TOKEN)).thenReturn(false);
 

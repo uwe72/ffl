@@ -107,6 +107,14 @@ public class UnsubscribeService {
         return UNSUBSCRIBE_PLACEHOLDER_URL;
     }
 
+    public String getWebUrl() {
+        return systemConfigRepository.findFirstByOrderByIdAsc()
+                .map(SystemConfig::getWebUrl)
+                .filter(u -> u != null && !u.isBlank())
+                .map(u -> u.replaceAll("/$", ""))
+                .orElse("http://localhost:8080");
+    }
+
     public Optional<EmailAddress> findEmailById(Long emailId) {
         return emailAddressRepository.findById(emailId);
     }
