@@ -22,6 +22,7 @@ import de.ffl.service.ManagerService;
 import de.ffl.service.PasswordResetService;
 import de.ffl.service.RegistrationMailService;
 import de.ffl.service.UserService;
+import de.ffl.service.EmailAddressService;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -54,6 +55,7 @@ public class AuthController {
     private final ManagerService managerService;
     private final RegistrationMailService registrationMailService;
     private final PasswordResetService passwordResetService;
+    private final EmailAddressService emailAddressService;
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
@@ -65,7 +67,8 @@ public class AuthController {
                           PlayerRepository playerRepository,
                           ManagerService managerService,
                           RegistrationMailService registrationMailService,
-                          PasswordResetService passwordResetService) {
+                          PasswordResetService passwordResetService,
+                          EmailAddressService emailAddressService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -77,6 +80,7 @@ public class AuthController {
         this.managerService = managerService;
         this.registrationMailService = registrationMailService;
         this.passwordResetService = passwordResetService;
+        this.emailAddressService = emailAddressService;
     }
 
     @Transactional(readOnly = true)
@@ -158,6 +162,8 @@ public class AuthController {
             .build();
 
         userRepository.save(user);
+
+        emailAddressService.addIfNotExists(request.getEmail());
 
         if (avatar != null && !avatar.isEmpty()) {
             String contentType = avatar.getContentType();
@@ -244,7 +250,12 @@ public class AuthController {
         }
         if (updates.containsKey("email")) {
             String newEmail = updates.get("email");
+            String oldEmail = user.getEmail();
             user.setEmail(newEmail);
+            if (user.getRole() == UserRole.NORMAL
+                    && newEmail != null && !newEmail.equalsIgnoreCase(oldEmail)) {
+                emailAddressService.addIfNotExists(newEmail);
+            }
         }
         if (updates.containsKey("firstName")) {
             user.setFirstName(updates.get("firstName"));

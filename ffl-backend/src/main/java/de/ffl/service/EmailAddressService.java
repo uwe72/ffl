@@ -46,6 +46,22 @@ public class EmailAddressService {
     }
 
     @Transactional
+    public void addIfNotExists(String email) {
+        if (email == null || email.isBlank()) {
+            return;
+        }
+        String trimmed = email.trim().toLowerCase();
+        if (!isValidEmail(trimmed)) {
+            return;
+        }
+        if (emailAddressRepository.existsByEmail(trimmed)) {
+            return;
+        }
+        EmailAddress entity = EmailAddress.builder().email(trimmed).build();
+        emailAddressRepository.save(entity);
+    }
+
+    @Transactional
     public List<EmailAddressDto> bulkCreate(List<String> emails) {
         List<EmailAddressDto> result = new ArrayList<>();
         List<String> errors = new ArrayList<>();
