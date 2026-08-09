@@ -122,7 +122,8 @@ public class PlayerUpdateScheduler {
         try {
             String seasonName = seasonRepository.findAll().stream().findFirst()
                     .map(Season::getName).orElse("Aktuelle Saison");
-            String html = buildHtml(seasonName, success, result, now.format(RUN_FMT), logLines, normalizeWebUrl(config.getWebUrl()));
+            String html = buildHtml(seasonName, success, result, now.format(RUN_FMT), logLines,
+                    normalizeWebUrl(config.getWebUrl()), environmentProvider.getEnvironment());
             sendNotificationMail(config, subject, html);
         } catch (Exception mailEx) {
             log.error("Versenden der Auto-Update-Mail fehlgeschlagen: {}", mailEx.getMessage());
@@ -152,7 +153,7 @@ public class PlayerUpdateScheduler {
     }
 
     String buildHtml(String seasonName, boolean success, NewSeasonSetupService.UpdateResult result,
-                     String runTime, List<String> logLines, String webUrl) {
+                     String runTime, List<String> logLines, String webUrl, String environment) {
         Context context = new Context(Locale.GERMAN);
         context.setVariable("seasonName", seasonName);
         context.setVariable("success", success);
@@ -162,6 +163,7 @@ public class PlayerUpdateScheduler {
         context.setVariable("runTime", runTime);
         context.setVariable("logLines", logLines);
         context.setVariable("webUrl", webUrl);
+        context.setVariable("environment", environment);
         return templateEngine.process("mail/player-update", context);
     }
 

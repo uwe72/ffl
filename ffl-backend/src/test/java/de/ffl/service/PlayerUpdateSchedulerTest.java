@@ -1,5 +1,6 @@
 package de.ffl.service;
 
+import de.ffl.config.EnvironmentProvider;
 import de.ffl.domain.Season;
 import de.ffl.domain.SystemConfig;
 import de.ffl.migration.NewSeasonSetupService;
@@ -44,7 +45,8 @@ class PlayerUpdateSchedulerTest {
     private PlayerUpdateScheduler scheduler;
 
     private PlayerUpdateScheduler scheduler() {
-        return new PlayerUpdateScheduler(configRepository, seasonRepository, userRepository, setupService, templateEngine);
+        EnvironmentProvider environmentProvider = new EnvironmentProvider("test");
+        return new PlayerUpdateScheduler(configRepository, seasonRepository, userRepository, setupService, templateEngine, environmentProvider);
     }
 
     private SystemConfig configEnabled(String cron, LocalDateTime lastRun) {
@@ -196,11 +198,12 @@ class PlayerUpdateSchedulerTest {
                             + "|deactivated=" + ctx.getVariable("playersDeactivated")
                             + "|run=" + ctx.getVariable("runTime")
                             + "|logSize=" + ((List<?>) ctx.getVariable("logLines")).size()
-                            + "|web=" + ctx.getVariable("webUrl");
+                            + "|web=" + ctx.getVariable("webUrl")
+                            + "|env=" + ctx.getVariable("environment");
                 });
 
         String html = scheduler().buildHtml("2026/27", true,
-                new NewSeasonSetupService.UpdateResult(2, 0, 3), "08.08.2026 08:00", lines, "https://ffl.app");
+                new NewSeasonSetupService.UpdateResult(2, 0, 3), "08.08.2026 08:00", lines, "https://ffl.app", "TEST");
 
         assertThat(html).contains("season=2026/27");
         assertThat(html).contains("success=true");
@@ -210,6 +213,7 @@ class PlayerUpdateSchedulerTest {
         assertThat(html).contains("run=08.08.2026 08:00");
         assertThat(html).contains("logSize=2");
         assertThat(html).contains("web=https://ffl.app");
+        assertThat(html).contains("env=TEST");
     }
 
     @Test
@@ -223,7 +227,7 @@ class PlayerUpdateSchedulerTest {
                             + "|changes=" + ctx.getVariable("teamChanges");
                 });
 
-        String html = scheduler().buildHtml("2026/27", false, null, "08.08.2026 08:00", lines, null);
+        String html = scheduler().buildHtml("2026/27", false, null, "08.08.2026 08:00", lines, null, "TEST");
 
         assertThat(html).contains("success=false");
         assertThat(html).contains("players=0");
@@ -240,8 +244,28 @@ class PlayerUpdateSchedulerTest {
                 });
 
         String html = scheduler().buildHtml("2026/27", true,
-                new NewSeasonSetupService.UpdateResult(0, 0, 0), "08.08.2026 08:00", lines, null);
+                new NewSeasonSetupService.UpdateResult(0, 0, 0), "08.08.2026 08:00", lines, null, "TEST");
 
         assertThat(html).contains("web=null");
+    }
+
+    @Test
+    void buildHtml_passesEnvironmentToTemplate() {
+        List<String> lines = List.of("log");
+        when(templateEngine.process(eq("mail/player-update"), any(Context.class)))
+                .thenAnswer(invocation -> {
+                    Context ctx = invocation.getArgument(1);
+                    return "env=" + ctx.getVariable("environment");
+                });
+
+        EnvironmentProvider prodProvider = new EnvironmentProvider("docker");
+        PlayerUpdateScheduler prodScheduler = new PlayerUpdateScheduler(
+                configRepository, seasonRepository, userRepository, setupService, templateEngine, prodProvider);
+
+        String html = prodScheduler.buildHtml("2026/27", true,
+                new NewSeasonSetupService.UpdateResult(0, 0, 0), "08.08.2026 08:00", lines, null, prodProvider.getEnvironment());
+
+        assertThat(prodProvider.getEnvironment()).isEqualTo("PROD");
+        assertThat(html).contains("env=PROD");
     }
 }

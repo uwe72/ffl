@@ -30,6 +30,13 @@
                     <span th:unless="${success}" style="display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;background:#b91c1c;color:#ffffff;border-radius:9999px;font-size:20px;font-weight:700;">!</span>
                   </td>
                 </tr>
+                <tr>
+                  <td style="padding-top:12px;">
+                    <span th:if="${environment == 'PROD'}" style="display:inline-block;background:#15803d;color:#ffffff;border-radius:9999px;padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:0.5px;">PROD</span>
+                    <span th:unless="${environment == 'PROD'}" style="display:inline-block;background:#b45309;color:#ffffff;border-radius:9999px;padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:0.5px;">TEST</span>
+                  </td>
+                  <td></td>
+                </tr>
               </table>
             </td>
           </tr>
