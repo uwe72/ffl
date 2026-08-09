@@ -3,7 +3,6 @@ package de.ffl.service;
 import de.ffl.domain.Deposit;
 import de.ffl.domain.DepositStatus;
 import de.ffl.domain.Manager;
-import de.ffl.domain.PaymentMethod;
 import de.ffl.domain.PaymentState;
 import de.ffl.domain.Season;
 import de.ffl.domain.User;
@@ -104,7 +103,6 @@ public class DepositService {
                     .manager(manager)
                     .season(season)
                     .amount(resolveSpieleinsatz(season))
-                    .paymentMethod(PaymentMethod.UEBERWEISUNG)
                     .depositStatus(DepositStatus.OPEN)
                     .build();
                 depositRepository.save(newDeposit);
@@ -148,6 +146,7 @@ public class DepositService {
             .managerName(manager.getName())
             .managerFirstName(user != null ? user.getFirstName() : null)
             .managerLastName(user != null ? user.getLastName() : null)
+            .managerLogin(manager.getShortName())
             .managerEmail(user != null ? user.getEmail() : null)
             .amount(deposit.getAmount())
             .comment(deposit.getComment())

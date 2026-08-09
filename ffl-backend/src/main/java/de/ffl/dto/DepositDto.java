@@ -19,6 +19,7 @@ public class DepositDto {
     private String managerName;
     private String managerFirstName;
     private String managerLastName;
+    private String managerLogin;
     private String managerEmail;
     private BigDecimal amount;
     private String comment;

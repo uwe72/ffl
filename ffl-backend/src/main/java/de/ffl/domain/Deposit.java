@@ -35,9 +35,8 @@ public class Deposit {
     private String comment;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false)
-    @Builder.Default
-    private PaymentMethod paymentMethod = PaymentMethod.UEBERWEISUNG;
+    @Column(name = "payment_method")
+    private PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "deposit_status", nullable = false)

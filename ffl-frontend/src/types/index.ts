@@ -159,10 +159,11 @@ export interface Deposit {
   managerName: string
   managerFirstName?: string
   managerLastName?: string
+  managerLogin?: string
   managerEmail?: string
   amount: number
   comment?: string
-  paymentMethod: PaymentMethod
+  paymentMethod?: PaymentMethod
   depositStatus: DepositStatus
   receivedAt?: string
 }

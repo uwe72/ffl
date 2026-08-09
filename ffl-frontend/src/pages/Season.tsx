@@ -824,6 +824,7 @@ export default function Season() {
                       <Th className="whitespace-nowrap">Manager</Th>
                       <Th className="whitespace-nowrap">Vorname</Th>
                       <Th className="whitespace-nowrap">Nachname</Th>
+                      <Th className="whitespace-nowrap">Login</Th>
                       <Th className="whitespace-nowrap">E-Mail</Th>
                       <Th align="right" className="whitespace-nowrap">Betrag (€)</Th>
                       <Th align="center" className="whitespace-nowrap">Zahlungsart</Th>
@@ -841,6 +842,7 @@ export default function Season() {
                         <td className="px-3 py-2 text-foreground">{deposit.managerName}</td>
                         <td className="px-3 py-2 text-muted">{deposit.managerFirstName || '-'}</td>
                         <td className="px-3 py-2 text-muted">{deposit.managerLastName || '-'}</td>
+                        <td className="px-3 py-2 text-muted">{deposit.managerLogin || '-'}</td>
                         <td className="px-3 py-2 text-muted">{deposit.managerEmail || '-'}</td>
                         <td className="px-3 py-2 text-right text-foreground font-medium">
                           {deposit.amount % 1 === 0
@@ -849,7 +851,7 @@ export default function Season() {
                         </td>
                         <td className="px-3 py-2 text-center">
                           <select
-                            value={deposit.paymentMethod || 'UEBERWEISUNG'}
+                            value={deposit.paymentMethod || ''}
                             onChange={(e) => {
                               updateDeposit.mutate({
                                 managerId: deposit.managerId,
@@ -858,6 +860,7 @@ export default function Season() {
                             }}
                             className="px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer bg-default text-foreground"
                           >
+                            <option value="" disabled>Bitte wählen</option>
                             <option value="UEBERWEISUNG">Überweisung</option>
                             <option value="PAYPAL">PayPal</option>
                           </select>

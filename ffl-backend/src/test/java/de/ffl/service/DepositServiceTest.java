@@ -50,7 +50,7 @@ class DepositServiceTest extends AbstractSeasonTestBase {
         assertEquals(managerCount, deposits.size());
         Deposit deposit = deposits.get(0);
         assertEquals(DepositStatus.OPEN, deposit.getDepositStatus());
-        assertEquals(PaymentMethod.UEBERWEISUNG, deposit.getPaymentMethod());
+        assertNull(deposit.getPaymentMethod());
         assertEquals(season.getSpieleinsatzEuro(), deposit.getAmount());
         assertNull(deposit.getReceivedAt());
     }
