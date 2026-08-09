@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useUser, useUpdateUser, useDeleteUser } from '../hooks/useUsers'
+import { useAuth } from '../context/AuthContext'
 import Button from '../components/Button'
 import FormCard from '../components/FormCard'
 import type { User } from '../types'
@@ -23,6 +24,8 @@ export default function UserDetail() {
   const { data: user, isLoading, error } = useUser(Number(id))
   const updateUser = useUpdateUser()
   const deleteUser = useDeleteUser()
+  const { user: authUser } = useAuth()
+  const isAdmin = authUser?.role === 'ADMIN'
 
   const [formData, setFormData] = useState<Partial<User>>({})
   const [hasChanges, setHasChanges] = useState(false)
@@ -31,6 +34,7 @@ export default function UserDetail() {
   useEffect(() => {
     if (user) {
       setFormData({
+        login: user.login,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -56,6 +60,7 @@ export default function UserDetail() {
   const handleCancel = () => {
     if (user) {
       setFormData({
+        login: user.login,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -92,8 +97,10 @@ export default function UserDetail() {
         <FormCard>
           <label className="block text-sm text-muted mb-1">Login-Name</label>
           <input
-            value={user.login}
-            readOnly
+            value={isAdmin ? (formData.login ?? user.login) : user.login}
+            readOnly={!isAdmin}
+            onChange={isAdmin ? (e) => handleChange('login', e.target.value) : undefined}
+            maxLength={25}
             className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
           />
         </FormCard>
@@ -181,6 +188,14 @@ export default function UserDetail() {
           </>
         )}
       </div>
+
+      {updateUser.isError && (
+        <div className="mt-4 bg-danger/10 border border-danger rounded-card p-4">
+          <p className="text-danger text-sm font-medium">
+            Fehler: {(updateUser.error as any)?.response?.data || (updateUser.error as Error)?.message || 'Unbekannter Fehler'}
+          </p>
+        </div>
+      )}
 
       {user.managers && user.managers.length > 0 && (
         <FormCard className="mt-6">

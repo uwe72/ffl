@@ -57,6 +57,25 @@ public class UserService {
             return null;
         }
 
+        if (updateData.getLogin() != null && !updateData.getLogin().isBlank()) {
+            String newLogin = updateData.getLogin().trim();
+            if (!newLogin.equals(user.getLogin())) {
+                var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+                boolean isAdmin = auth != null && auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                if (!isAdmin) {
+                    throw new IllegalArgumentException("Nur Admins dürfen den Login-Namen ändern");
+                }
+                if (newLogin.length() > 25) {
+                    throw new IllegalArgumentException("Login darf maximal 25 Zeichen lang sein");
+                }
+                if (userRepository.existsByLogin(newLogin)) {
+                    throw new IllegalArgumentException("Login bereits vergeben");
+                }
+                user.setLogin(newLogin);
+            }
+        }
+
         if (updateData.getEmail() != null) {
             user.setEmail(updateData.getEmail());
         }
