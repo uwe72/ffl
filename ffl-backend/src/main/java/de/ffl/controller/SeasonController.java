@@ -264,20 +264,6 @@ public class SeasonController {
         }
     }
 
-    @GetMapping("/{id}/invitation-mail/preview")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getInvitationMailPreview(@PathVariable Long id) {
-        if (!seasonRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        try {
-            String html = invitationMailService.generatePreviewHtml(id);
-            return ResponseEntity.ok(new MailPreviewResponse(html));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
-        }
-    }
-
     @PostMapping("/{id}/invitation-mail/test")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> sendInvitationTestMail(@PathVariable Long id) {

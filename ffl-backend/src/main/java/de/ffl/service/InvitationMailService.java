@@ -56,18 +56,6 @@ public class InvitationMailService {
         this.templateEngine = templateEngine;
     }
 
-    public String generatePreviewHtml(Long seasonId) {
-        Season season = seasonRepository.findById(seasonId)
-            .orElseThrow(() -> new RuntimeException("Saison " + seasonId + " nicht gefunden"));
-
-        SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc()
-            .orElse(null);
-        String webUrl = config != null ? normalizeWebUrl(config.getWebUrl()) : null;
-
-        String html = buildHtml(season, webUrl);
-        return insertUnsubscribeFooter(html, unsubscribeService.getUnsubscribePlaceholderUrl());
-    }
-
     public void sendTestMail(Long seasonId) {
         SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc()
             .orElseThrow(() -> new RuntimeException("Keine Systemkonfiguration vorhanden"));
@@ -340,11 +328,12 @@ public class InvitationMailService {
         return webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
     }
 
-    private String insertUnsubscribeFooter(String html, String unsubscribeUrl) {
+    String insertUnsubscribeFooter(String html, String unsubscribeUrl) {
+        String escapedUrl = escapeHtml(unsubscribeUrl);
         String footer = "<div style=\"margin-top:40px;padding-top:16px;border-top:1px solid #d1d5db;text-align:center;\">"
             + "<p style=\"color:#000000;font-size:14px;margin:0;line-height:1.5;\">"
             + "Wenn Sie keine weiteren Mails der FFL erhalten möchten, können Sie sich "
-            + "<a href=\"" + unsubscribeUrl + "\" target=\"_blank\" style=\"color:#000000;text-decoration:underline;\">hier austragen</a>."
+            + "<a href=\"" + escapedUrl + "\" target=\"_blank\" style=\"color:#000000;text-decoration:underline;\">hier austragen</a>."
             + "</p></div>";
         return html.replace("</body>", footer + "</body>");
     }
@@ -377,5 +366,13 @@ public class InvitationMailService {
         } catch (Exception e) {
             log.warn("SSE send failed: {}", e.getMessage());
         }
+    }
+
+    private String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                   .replace("<", "&lt;")
+                   .replace(">", "&gt;")
+                   .replace("\"", "&quot;");
     }
 }

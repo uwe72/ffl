@@ -100,14 +100,6 @@ export function usePrizeDistributionMailPreview(seasonId: number) {
   })
 }
 
-export function useInvitationMailPreview(seasonId: number) {
-  return useQuery({
-    queryKey: ['seasons', seasonId, 'invitation-mail-preview'],
-    queryFn: () => seasonApi.getInvitationMailPreview(seasonId).then(res => res.data),
-    enabled: false,
-  })
-}
-
 export function useSendInvitationTestMail() {
   return useMutation({
     mutationFn: (seasonId: number) =>

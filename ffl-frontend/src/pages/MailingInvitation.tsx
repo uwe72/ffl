@@ -1,17 +1,14 @@
 import { useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { useCurrentSeason, useInvitationMailPreview, useSendInvitationTestMail } from '../hooks/useSeasons'
+import { useCurrentSeason, useSendInvitationTestMail } from '../hooks/useSeasons'
 import InvitationMailSendDialog from '../components/InvitationMailSendDialog'
 import Button from '../components/Button'
 import FormCard from '../components/FormCard'
 
 export default function MailingInvitation() {
   const { data: season, isLoading } = useCurrentSeason()
-  const { refetch: fetchInvitationPreview, isFetching: isFetchingPreview } = useInvitationMailPreview(season?.id ?? 0)
   const sendTestMail = useSendInvitationTestMail()
 
-  const [showPreviewModal, setShowPreviewModal] = useState(false)
-  const [previewHtml, setPreviewHtml] = useState<string | null>(null)
   const [showSendDialog, setShowSendDialog] = useState(false)
 
   if (isLoading) {
@@ -36,9 +33,8 @@ export default function MailingInvitation() {
               Der Inhalt der Einladungsmail wird aus einem festen Template automatisch aus den Saisondaten generiert
               (Saisonname, Startdatum, Anmeldeschluss, Rückrunden-Spieltag, Spieleinsatz, Serverkosten, Gewinnausschüttung,
               Anzahl Spielleiter, Budget). Der Betreff lautet immer
-              <strong> FFL | Einladung zur Saison {season.name}</strong>. In der Vorschau und Testmail sind die aus der
-              Datenbank geladenen Werte <strong className="text-danger">rot</strong> markiert. Sende eine Testmail an die
-              Admin-Adresse, um das Ergebnis zu prüfen.
+              <strong> FFL | Einladung zur Saison {season.name}</strong>. Sende eine Testmail an die Admin-Adresse,
+              um das Ergebnis zu prüfen.
             </p>
           </div>
         </FormCard>
@@ -46,24 +42,17 @@ export default function MailingInvitation() {
 
       <div className="mt-6 flex flex-wrap gap-4">
         <Button
-          variant="transparent"
-          onClick={async () => {
-            const result = await fetchInvitationPreview()
-            if (result.data) {
-              setPreviewHtml(result.data.html)
-              setShowPreviewModal(true)
-            }
-          }}
-          disabled={isFetchingPreview}
-        >
-          {isFetchingPreview ? 'Lade Vorschau...' : 'Vorschau'}
-        </Button>
-        <Button
-          variant="transparent"
+          variant="ghost"
           onClick={() => sendTestMail.mutate(season.id)}
           disabled={sendTestMail.isPending}
         >
           {sendTestMail.isPending ? 'Wird gesendet...' : 'Test-Mail an Admin'}
+        </Button>
+        <Button
+          variant="emphasized"
+          onClick={() => setShowSendDialog(true)}
+        >
+          An alle E-Mail-Adressen senden
         </Button>
       </div>
 
@@ -79,53 +68,6 @@ export default function MailingInvitation() {
           <p className="text-danger text-sm font-medium">
             Fehler: {(sendTestMail.error as any)?.response?.data?.message || (sendTestMail.error as Error)?.message || 'Unbekannter Fehler'}
           </p>
-        </div>
-      )}
-
-      <div className="mt-6">
-        <Button
-          variant="emphasized"
-          onClick={() => setShowSendDialog(true)}
-        >
-          An alle E-Mail-Adressen senden
-        </Button>
-      </div>
-
-      {showPreviewModal && previewHtml && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <FormCard className="w-full max-w-4xl max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-foreground">E-Mail Vorschau</h3>
-              <Button
-                variant="ghost"
-                size="compact"
-                onClick={() => {
-                  setShowPreviewModal(false)
-                  setPreviewHtml(null)
-                }}
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="flex-1 overflow-auto rounded-card border border-border-hover">
-              <iframe
-                srcDoc={previewHtml}
-                className="w-full h-[60vh] bg-white"
-                title="E-Mail Vorschau"
-              />
-            </div>
-            <div className="flex justify-end mt-4">
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setShowPreviewModal(false)
-                  setPreviewHtml(null)
-                }}
-              >
-                Schließen
-              </Button>
-            </div>
-          </FormCard>
         </div>
       )}
 

@@ -36,7 +36,6 @@ export const seasonApi = {
   updatePrizePayout: (seasonId: number, managerId: number, data: UpdatePayoutRequest) => 
     api.put<PrizePayout>(`/seasons/${seasonId}/prize-payouts/${managerId}`, data),
   getPrizeDistributionMailPreview: (id: number) => api.get<MailPreviewResponse>(`/seasons/${id}/prize-distribution/mail/preview`),
-  getInvitationMailPreview: (id: number) => api.get<MailPreviewResponse>(`/seasons/${id}/invitation-mail/preview`),
   sendInvitationTestMail: (id: number) => api.post<{ message: string }>(`/seasons/${id}/invitation-mail/test`),
   sendSeasonReport: (id: number) => api.post<{ message: string }>(`/seasons/${id}/report-mail`),
   getBestTeam: (id: number) => api.get<BestTeamResult>(`/seasons/${id}/best-team`),
