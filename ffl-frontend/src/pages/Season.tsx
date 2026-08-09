@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
 import { trackEvent } from '../hooks/useMatomo'
-import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePreviewSeasonSetup, useGeneratePlayersPdf } from '../hooks/useSeasons'
+import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePreviewSeasonSetup, useGeneratePlayersPdf, useDeposits, useUpdateDeposit, useSyncDeposits } from '../hooks/useSeasons'
 import { useSystemConfig, useUpdateSystemConfig } from '../hooks/useSystemConfig'
 import { useAuth } from '../context/AuthContext'
 import CalculationDialog from '../components/CalculationDialog'
@@ -13,7 +13,7 @@ import FormCard from '../components/FormCard'
 import { TableHead, Th, TableBody } from '../components/Table'
 import { seasonStateLabel } from '../utils/season'
 import { getChartColors } from '../utils/chartColors'
-import type { Season, SeasonState, PrizeDistributionLog, PrizePayout, PayoutStatus, SetupPreviewDto } from '../types'
+import type { Season, SeasonState, PrizeDistributionLog, PrizePayout, PayoutStatus, SetupPreviewDto, Deposit, DepositSyncResult, DepositStatus, PaymentMethod } from '../types'
 
 const seasonStateOptions: { value: SeasonState; label: string }[] = (
   ['BEFORE_SEASON', 'RUNNING_HINRUNDE', 'RUNNING_RUECKRUNDE'] as SeasonState[]
@@ -28,6 +28,7 @@ const tabItems = [
   { key: 'saisondaten', label: 'Saisondaten' },
   { key: 'bankverbindung', label: 'Bankverbindung' },
   { key: 'gewinnausschuettung', label: 'Gewinnausschüttung' },
+  { key: 'einzahlungen', label: 'Einzahlungen' },
   { key: 'neue-saison', label: 'Saison Datenimport' }
 ]
 
@@ -151,7 +152,10 @@ export default function Season() {
   const { data: prizeDistributionLog } = usePrizeDistributionLog(season?.id ?? 0)
   const calculatePrize = useCalculatePrizeDistribution()
   const updatePrizePayout = useUpdatePrizePayout(season?.id ?? 0)
-  const [activeTab, setActiveTab] = useState<'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'neue-saison'>('saisondaten')
+  const { data: deposits, isLoading: isLoadingDeposits } = useDeposits(season?.id ?? 0)
+  const updateDeposit = useUpdateDeposit(season?.id ?? 0)
+  const syncDeposits = useSyncDeposits(season?.id ?? 0)
+  const [activeTab, setActiveTab] = useState<'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'einzahlungen' | 'neue-saison'>('saisondaten')
   const [formData, setFormData] = useState<Partial<Season>>({})
   const [hasChanges, setHasChanges] = useState(false)
   const [showCalcDialog, setShowCalcDialog] = useState(false)
@@ -160,6 +164,11 @@ export default function Season() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [commentDialogManager, setCommentDialogManager] = useState<PrizePayout | null>(null)
   const [commentDraft, setCommentDraft] = useState('')
+  const [depositCommentDialog, setDepositCommentDialog] = useState<Deposit | null>(null)
+  const [depositCommentDraft, setDepositCommentDraft] = useState('')
+  const [showDepositSyncConfirm, setShowDepositSyncConfirm] = useState(false)
+  const [depositSyncResult, setDepositSyncResult] = useState<DepositSyncResult | null>(null)
+  const [depositSyncError, setDepositSyncError] = useState<string | null>(null)
   const [setupSeasonName, setSetupSeasonName] = useState('')
   const [setupPreview, setSetupPreview] = useState<SetupPreviewDto | null>(null)
   const [showSetupConfirm, setShowSetupConfirm] = useState(false)
@@ -299,7 +308,7 @@ export default function Season() {
       <Tabs
         items={tabItems}
         active={activeTab}
-        onChange={(key) => setActiveTab(key as 'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'neue-saison')}
+        onChange={(key) => setActiveTab(key as 'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'einzahlungen' | 'neue-saison')}
       />
 
       {activeTab === 'saisondaten' && (
@@ -731,6 +740,177 @@ export default function Season() {
               </div>
            )}
         </>
+       )}
+
+      {activeTab === 'einzahlungen' && (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-foreground">Einzahlungen</h2>
+            <Button
+              variant="emphasized"
+              onClick={() => setShowDepositSyncConfirm(true)}
+              disabled={syncDeposits.isPending}
+            >
+              {syncDeposits.isPending ? 'Wird synchronisiert...' : 'Einzahlungen synchronisieren'}
+            </Button>
+          </div>
+
+          {depositSyncError && (
+            <div className="bg-danger-bg border border-danger p-4 mb-4">
+              <p className="text-danger text-sm">{depositSyncError}</p>
+            </div>
+          )}
+
+          {depositSyncResult && (
+            <div className="bg-surface border border-border rounded-card p-4 mb-4">
+              <p className="text-sm text-muted mb-1">
+                Synchronisation abgeschlossen:
+              </p>
+              <p className="text-sm text-foreground">
+                {depositSyncResult.created.length > 0
+                  ? `${depositSyncResult.created.length} neue Einzahlung(en) angelegt. `
+                  : 'Keine neuen Einzahlungen erforderlich. '}
+                {depositSyncResult.alreadyPresent > 0 && `(${depositSyncResult.alreadyPresent} bereits vorhanden) `}
+              </p>
+              {depositSyncResult.deleted.length > 0 && (
+                <p className="text-sm text-danger mt-2">
+                  Hinweis: Für folgende nicht mehr existente Manager wurden Einzahlungsobjekte gelöscht: {depositSyncResult.deleted.join(', ')}
+                </p>
+              )}
+            </div>
+          )}
+
+          {isLoadingDeposits && (
+            <div className="text-center py-8 text-muted">Lade Einzahlungen...</div>
+          )}
+
+          {deposits && deposits.length > 0 && (
+            <>
+              <div className="bg-surface border border-border rounded-card p-3 mb-4">
+                <div className="flex items-center gap-6 text-sm flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted">Gesamt:</span>
+                    <span className="text-foreground font-medium">{deposits.length}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted">Eingegangen:</span>
+                    <span className="text-success font-medium">
+                      {deposits.filter(d => d.depositStatus === 'RECEIVED').length}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted">Offen:</span>
+                    <span className="text-danger font-medium">
+                      {deposits.filter(d => d.depositStatus !== 'RECEIVED').length}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 h-2 bg-default rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-success"
+                        style={{ width: `${deposits.length > 0 ? (deposits.filter(d => d.depositStatus === 'RECEIVED').length / deposits.length) * 100 : 0}%` }}
+                      />
+                    </div>
+                    <span className="text-foreground font-medium">
+                      {deposits.length > 0 ? Math.round((deposits.filter(d => d.depositStatus === 'RECEIVED').length / deposits.length) * 100) : 0}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-card border border-border overflow-x-auto">
+                <table className="w-full min-w-[900px]">
+                  <TableHead>
+                    <tr>
+                      <Th className="whitespace-nowrap">Manager</Th>
+                      <Th className="whitespace-nowrap">Vorname</Th>
+                      <Th className="whitespace-nowrap">Nachname</Th>
+                      <Th className="whitespace-nowrap">E-Mail</Th>
+                      <Th align="right" className="whitespace-nowrap">Betrag (€)</Th>
+                      <Th align="center" className="whitespace-nowrap">Zahlungsart</Th>
+                      <Th align="center" className="whitespace-nowrap">Status</Th>
+                      <Th align="center" className="whitespace-nowrap">Kommentar</Th>
+                    </tr>
+                  </TableHead>
+                  <TableBody>
+                    {deposits.map((deposit) => (
+                      <tr
+                        key={deposit.managerId}
+                        className="border-b border-border last:border-b-0 hover:bg-card-hover"
+                        style={{ borderLeftWidth: '4px', borderLeftColor: deposit.depositStatus === 'RECEIVED' ? 'var(--color-success)' : 'var(--color-border-neutral)' }}
+                      >
+                        <td className="px-3 py-2 text-foreground">{deposit.managerName}</td>
+                        <td className="px-3 py-2 text-muted">{deposit.managerFirstName || '-'}</td>
+                        <td className="px-3 py-2 text-muted">{deposit.managerLastName || '-'}</td>
+                        <td className="px-3 py-2 text-muted">{deposit.managerEmail || '-'}</td>
+                        <td className="px-3 py-2 text-right text-foreground font-medium">
+                          {deposit.amount % 1 === 0
+                            ? Math.round(deposit.amount)
+                            : deposit.amount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <select
+                            value={deposit.paymentMethod || 'UEBERWEISUNG'}
+                            onChange={(e) => {
+                              updateDeposit.mutate({
+                                managerId: deposit.managerId,
+                                data: { paymentMethod: e.target.value as PaymentMethod }
+                              })
+                            }}
+                            className="px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer bg-default text-foreground"
+                          >
+                            <option value="UEBERWEISUNG">Überweisung</option>
+                            <option value="PAYPAL">PayPal</option>
+                          </select>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <select
+                            value={deposit.depositStatus || 'OPEN'}
+                            onChange={(e) => {
+                              updateDeposit.mutate({
+                                managerId: deposit.managerId,
+                                data: { depositStatus: e.target.value as DepositStatus }
+                              })
+                            }}
+                            className={`px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer ${
+                              deposit.depositStatus === 'RECEIVED'
+                                ? 'bg-success text-success-foreground'
+                                : 'bg-default text-foreground'
+                            }`}
+                          >
+                            <option value="OPEN">Offen</option>
+                            <option value="RECEIVED">Eingegangen</option>
+                          </select>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <button
+                            onClick={() => {
+                              setDepositCommentDialog(deposit)
+                              setDepositCommentDraft(deposit.comment || '')
+                            }}
+                            className={`text-lg p-1 rounded-control transition-colors ${
+                              deposit.comment
+                                ? 'bg-success hover:bg-success'
+                                : 'bg-default hover:bg-elevated'
+                            }`}
+                            title={deposit.comment || 'Kommentar hinzufügen'}
+                          >
+                            📝
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </TableBody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {deposits && deposits.length === 0 && !isLoadingDeposits && (
+            <div className="text-center py-8 text-muted">
+              Noch keine Einzahlungen erfasst. Klicken Sie auf „Einzahlungen synchronisieren“, um für alle Manager Einzahlungsobjekte anzulegen.
+            </div>
+          )}
+        </>
       )}
 
       {activeTab === 'neue-saison' && (
@@ -1093,6 +1273,90 @@ export default function Season() {
                 }}
               >
 Speichern
+              </Button>
+            </div>
+          </FormCard>
+        </div>
+      )}
+
+      {depositCommentDialog && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <FormCard className="w-full max-w-5xl">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-foreground">Kommentar</h3>
+                <p className="text-sm text-muted">{depositCommentDialog.managerName} - {depositCommentDialog.amount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="compact"
+                onClick={() => setDepositCommentDialog(null)}
+              >
+                ✕
+              </Button>
+            </div>
+            <textarea
+              value={depositCommentDraft}
+              onChange={(e) => setDepositCommentDraft(e.target.value)}
+              rows={24}
+              placeholder="Kommentar eingeben..."
+              className="w-full bg-elevated border border-border-hover rounded-control text-foreground p-3 text-sm resize-y"
+            />
+            <div className="flex justify-end gap-3 mt-4">
+              <Button
+                variant="ghost"
+                onClick={() => setDepositCommentDialog(null)}
+              >
+                Abbrechen
+              </Button>
+              <Button
+                variant="emphasized"
+                onClick={() => {
+                  updateDeposit.mutate({
+                    managerId: depositCommentDialog.managerId,
+                    data: { comment: depositCommentDraft }
+                  })
+                  setDepositCommentDialog(null)
+                }}
+              >
+                Speichern
+              </Button>
+            </div>
+          </FormCard>
+        </div>
+      )}
+
+      {showDepositSyncConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <FormCard className="max-w-md">
+            <h3 className="text-xl font-bold text-foreground mb-4">Einzahlungen synchronisieren</h3>
+            <p className="text-muted mb-6">
+              Für alle Manager ohne Einzahlungsobjekt wird ein neues angelegt. Verwaiste Einzahlungsobjekte (Manager nicht mehr in der Saison) werden gelöscht. Möchten Sie fortfahren?
+            </p>
+            <div className="flex gap-4 justify-end">
+              <Button
+                variant="ghost"
+                onClick={() => setShowDepositSyncConfirm(false)}
+              >
+                Abbrechen
+              </Button>
+              <Button
+                variant="emphasized"
+                onClick={async () => {
+                  setShowDepositSyncConfirm(false)
+                  setDepositSyncError(null)
+                  try {
+                    const result = await syncDeposits.mutateAsync()
+                    setDepositSyncResult(result)
+                    trackEvent('einzahlungen', 'synchronisieren', 'success')
+                  } catch (error: any) {
+                    trackEvent('einzahlungen', 'synchronisieren', 'failure')
+                    const message = error?.response?.data?.message || error?.message || 'Ein unbekannter Fehler ist aufgetreten.'
+                    setDepositSyncError(message)
+                  }
+                }}
+              >
+                Synchronisieren
               </Button>
             </div>
           </FormCard>

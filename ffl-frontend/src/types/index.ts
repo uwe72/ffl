@@ -150,6 +150,29 @@ export type PaymentState = 'PAID' | 'NOT_PAID'
 
 export type PayoutStatus = 'PAID' | 'UNPAID'
 
+export type PaymentMethod = 'PAYPAL' | 'UEBERWEISUNG'
+
+export type DepositStatus = 'RECEIVED' | 'OPEN'
+
+export interface Deposit {
+  managerId: number
+  managerName: string
+  managerFirstName?: string
+  managerLastName?: string
+  managerEmail?: string
+  amount: number
+  comment?: string
+  paymentMethod: PaymentMethod
+  depositStatus: DepositStatus
+  receivedAt?: string
+}
+
+export interface DepositSyncResult {
+  created: string[]
+  deleted: string[]
+  alreadyPresent: number
+}
+
 export interface RulePoint {
   rule: string
   ruleLabel: string

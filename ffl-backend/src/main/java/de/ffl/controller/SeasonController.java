@@ -3,12 +3,16 @@ package de.ffl.controller;
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
 import de.ffl.dto.BestTeamResult;
+import de.ffl.dto.DepositDto;
+import de.ffl.dto.DepositSyncResult;
 import de.ffl.dto.DocumentDto;
 import de.ffl.dto.PrizeDistributionLogDto;
 import de.ffl.dto.PrizePayoutDto;
+import de.ffl.dto.UpdateDepositRequest;
 import de.ffl.dto.UpdatePayoutRequest;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.service.BestTeamService;
+import de.ffl.service.DepositService;
 import de.ffl.service.DocumentService;
 import de.ffl.service.PlayerPdfService;
 import de.ffl.service.PrizeDistributionMailService;
@@ -39,8 +43,9 @@ public class SeasonController {
     private final SeasonReportMailService seasonReportMailService;
     private final DocumentService documentService;
     private final PlayerPdfService playerPdfService;
+    private final DepositService depositService;
 
-    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, BestTeamService bestTeamService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, SeasonReportMailService seasonReportMailService, DocumentService documentService, PlayerPdfService playerPdfService) {
+    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, BestTeamService bestTeamService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, SeasonReportMailService seasonReportMailService, DocumentService documentService, PlayerPdfService playerPdfService, DepositService depositService) {
         this.seasonRepository = seasonRepository;
         this.seasonService = seasonService;
         this.bestTeamService = bestTeamService;
@@ -50,6 +55,7 @@ public class SeasonController {
         this.seasonReportMailService = seasonReportMailService;
         this.documentService = documentService;
         this.playerPdfService = playerPdfService;
+        this.depositService = depositService;
     }
 
     @GetMapping
@@ -250,10 +256,50 @@ public class SeasonController {
         }
     }
 
+    @GetMapping("/{id}/deposits")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<DepositDto>> getDeposits(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        List<DepositDto> deposits = depositService.getDeposits(id);
+        return ResponseEntity.ok(deposits);
+    }
+
+    @PutMapping("/{id}/deposits/{managerId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DepositDto> updateDeposit(
+            @PathVariable Long id,
+            @PathVariable Long managerId,
+            @RequestBody UpdateDepositRequest request) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            DepositDto updated = depositService.updateDeposit(id, managerId, request);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/{id}/deposits/sync")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DepositSyncResult> syncDeposits(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            DepositSyncResult result = depositService.syncDeposits(id);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PostMapping("/{id}/report-mail")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> sendSeasonReport(@PathVariable Long id) {
-        if (!seasonRepository.existsById(id)) {
+    public ResponseEntity<?> sendSeasonReport(@PathVariable Long id) {        if (!seasonRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
         try {

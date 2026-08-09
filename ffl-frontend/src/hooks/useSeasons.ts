@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { seasonApi, type UpdatePayoutRequest, type NewSeasonSetupRequest } from '../api/seasons'
+import { seasonApi, type UpdatePayoutRequest, type UpdateDepositRequest, type NewSeasonSetupRequest } from '../api/seasons'
 
 export function useSeasons() {
   return useQuery({
@@ -136,6 +136,35 @@ export function useGeneratePlayersPdf() {
       seasonApi.generatePlayersPdf(seasonId).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] })
+    },
+  })
+}
+
+export function useDeposits(seasonId: number) {
+  return useQuery({
+    queryKey: ['seasons', seasonId, 'deposits'],
+    queryFn: () => seasonApi.getDeposits(seasonId).then(res => res.data),
+    enabled: !!seasonId,
+  })
+}
+
+export function useUpdateDeposit(seasonId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ managerId, data }: { managerId: number; data: UpdateDepositRequest }) =>
+      seasonApi.updateDeposit(seasonId, managerId, data).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seasons', seasonId, 'deposits'] })
+    },
+  })
+}
+
+export function useSyncDeposits(seasonId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => seasonApi.syncDeposits(seasonId).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seasons', seasonId, 'deposits'] })
     },
   })
 }

@@ -1,5 +1,5 @@
 import api from './client'
-import type { Season, PrizePayout, PrizeDistributionLog, MinP1ValidationResult, PayoutStatus, BestTeamResult, SetupPreviewDto, Document } from '../types'
+import type { Season, PrizePayout, PrizeDistributionLog, MinP1ValidationResult, PayoutStatus, BestTeamResult, SetupPreviewDto, Document, Deposit, DepositSyncResult, DepositStatus, PaymentMethod } from '../types'
 
 export interface CalculationResult {
   success: boolean
@@ -10,6 +10,12 @@ export interface CalculationResult {
 export interface UpdatePayoutRequest {
   comment?: string
   payoutStatus?: PayoutStatus
+}
+
+export interface UpdateDepositRequest {
+  comment?: string
+  depositStatus?: DepositStatus
+  paymentMethod?: PaymentMethod
 }
 
 export interface MailPreviewResponse {
@@ -41,4 +47,8 @@ export const seasonApi = {
   getBestTeam: (id: number) => api.get<BestTeamResult>(`/seasons/${id}/best-team`),
   previewSetup: (req: NewSeasonSetupRequest) => api.post<SetupPreviewDto>('/seasons/setup/preview', req),
   generatePlayersPdf: (id: number) => api.post<Document>(`/seasons/${id}/players-pdf`),
+  getDeposits: (id: number) => api.get<Deposit[]>(`/seasons/${id}/deposits`),
+  updateDeposit: (seasonId: number, managerId: number, data: UpdateDepositRequest) =>
+    api.put<Deposit>(`/seasons/${seasonId}/deposits/${managerId}`, data),
+  syncDeposits: (id: number) => api.post<DepositSyncResult>(`/seasons/${id}/deposits/sync`),
 }
