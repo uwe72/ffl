@@ -112,7 +112,7 @@ export default function ForgotPassword() {
                 <div className="flex items-start gap-3 p-4 bg-warning-bg border-2 border-warning rounded-control">
                   <i className="sap-icon sap-icon-alert text-[24px] text-warning shrink-0 mt-0.5" />
                   <p className="text-warning text-sm font-bold leading-snug">
-                    Achtung: Zur neuen Saison muss jeder Teilnehmer einen neuen Account erstellen.
+                    Achtung: Zur neuen Saison{season?.name ? ` (${season.name})` : ''} muss jeder Teilnehmer einen neuen Account erstellen.
                   </p>
                 </div>
               )}
