@@ -205,6 +205,8 @@ export default function PlayerSelect({
                 fixedPosition={tableFixedPosition === null ? undefined : tableFixedPosition}
                 excludePlayerIds={excludedIds}
                 onSelect={handleSelect}
+                defaultSortKey="prize"
+                defaultSortOrder="asc"
               />
             </div>
           </div>

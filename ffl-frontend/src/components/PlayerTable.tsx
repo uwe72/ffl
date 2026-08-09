@@ -265,11 +265,15 @@ export default function PlayerTable({
   fixedPosition,
   excludePlayerIds,
   onSelect,
+  defaultSortKey = 'position',
+  defaultSortOrder = 'asc',
 }: {
   players: Player[]
   fixedPosition?: Position
   excludePlayerIds?: Set<number>
   onSelect?: (player: Player) => void
+  defaultSortKey?: SortKey
+  defaultSortOrder?: 'asc' | 'desc'
 }) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
@@ -283,8 +287,8 @@ export default function PlayerTable({
   const [priceMin, setPriceMin] = useState('')
   const [priceMax, setPriceMax] = useState('')
   const [aktivFilter, setAktivFilter] = useState<'aktiv' | 'inaktiv' | 'alle'>('alle')
-  const [sortKey, setSortKey] = useState<SortKey>('position')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [sortKey, setSortKey] = useState<SortKey>(defaultSortKey)
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(defaultSortOrder)
 
   const teams = useMemo(() => {
     const teamMap = new Map<number, Team>()
