@@ -334,12 +334,14 @@ public class InvitationMailService {
             + "<p style=\"color:#000000;font-size:14px;margin:0;line-height:1.5;\">"
             + "Wenn Sie keine weiteren Mails der FFL erhalten möchten, können Sie sich "
             + "<a href=\"" + escapedUrl + "\" target=\"_blank\" style=\"color:#000000;text-decoration:underline;\">hier austragen</a>."
-            + "</p></div>";
+            + "</p>"
+            + "<p style=\"font-size:14px;margin:0;line-height:1.5;\">&nbsp;</p>"
+            + "</div>";
         return html.replace("</body>", footer + "</body>");
     }
 
     private String appendUnsubscribePlainText(String text, String unsubscribeUrl) {
-        return text + "\r\n\r\nWenn Sie keine weiteren Mails der FFL erhalten möchten, können Sie sich hier austragen: " + unsubscribeUrl;
+        return text + "\r\n\r\nWenn Sie keine weiteren Mails der FFL erhalten möchten, können Sie sich hier austragen: " + unsubscribeUrl + "\r\n";
     }
 
     private JavaMailSenderImpl buildMailSender(SystemConfig config) {
