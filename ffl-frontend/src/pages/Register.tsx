@@ -567,7 +567,7 @@ export default function Register() {
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-background py-6 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/background.png')" }}
+      style={{ backgroundImage: "url('/background2627.png')" }}
     >
       <div className={`bg-surface/95 backdrop-blur-sm border border-border rounded-card w-full ${step === 4 ? 'max-w-[1250px]' : step === 3 ? 'max-w-[1170px]' : 'max-w-[940px]'} max-h-[92vh] flex flex-col shadow-2xl overflow-hidden`}>
 

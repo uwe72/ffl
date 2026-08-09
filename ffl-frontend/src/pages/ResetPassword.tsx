@@ -103,7 +103,7 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background.png')" }}>
+      <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background2627.png')" }}>
         <div className="bg-surface border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl">
           <div className="flex items-start justify-between px-6 pt-6 pb-2">
             <div>
@@ -134,7 +134,7 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background.png')" }}>
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/background2627.png')" }}>
       <div className="bg-surface border border-border rounded-card w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-2xl">
         <div className="flex items-start justify-between px-6 pt-6 pb-2">
           <div>
