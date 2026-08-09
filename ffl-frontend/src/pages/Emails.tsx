@@ -260,8 +260,17 @@ export default function Emails() {
       )}
 
       {showDeleteDialog && deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <FormCard className="w-full max-w-md">
+        <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4 overflow-hidden">
+          <img
+            src="/background2627.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div
+            className="relative w-full max-w-md p-6 bg-surface/70 backdrop-blur-md border border-border rounded-card shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-xl font-bold text-foreground mb-4">E-Mail-Adresse löschen</h2>
             <p className="text-muted mb-6">
               Möchten Sie die E-Mail-Adresse <strong className="text-foreground">{deleteTarget.email}</strong> wirklich löschen?
@@ -279,7 +288,7 @@ export default function Emails() {
                 {deleteEmail.isPending ? 'Wird gelöscht...' : 'Löschen'}
               </Button>
             </div>
-          </FormCard>
+          </div>
         </div>
       )}
     </div>
