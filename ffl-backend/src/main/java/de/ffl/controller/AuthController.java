@@ -199,7 +199,8 @@ public class AuthController {
 
         managerRepository.save(manager);
 
-        registrationMailService.sendRegistrationConfirmation(user, manager);
+        long registrationNumber = managerRepository.count();
+        registrationMailService.sendRegistrationConfirmation(user, manager, registrationNumber);
 
         return ResponseEntity.status(201).body(Map.of("message", "Registrierung erfolgreich"));
     }
