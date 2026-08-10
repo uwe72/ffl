@@ -1168,7 +1168,7 @@ export default function Register() {
               </div>
 
               <p className="text-foreground text-center mb-6">
-                {firstName}, bitte überweise die Startgebühr von{' '}
+                {firstName}, bitte bezahle die Startgebühr von{' '}
                 <span className="font-semibold">
                   {season?.spieleinsatzEuro != null
                     ? `${Number(season.spieleinsatzEuro).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`

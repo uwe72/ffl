@@ -143,7 +143,7 @@
                   <tr>
                     <td style="padding:18px 20px;">
                       <p style="margin:0 0 16px 0;color:#1c1917;font-size:14px;line-height:1.6;">
-                        <span th:text="${payment.firstName}">bitte</span>, bitte &uuml;berweise die Startgeb&uuml;hr von <strong th:text="${payment.spieleinsatz + ',00 &euro;'}">10,00 &euro;</strong>.
+                        <span th:text="${payment.firstName}">bitte</span>, bitte bezahle die Startgeb&uuml;hr von <strong th:text="${payment.spieleinsatz + ',00 &euro;'}">10,00 &euro;</strong>.
                       </p>
 
                       <p style="margin:0 0 8px 0;color:#57534e;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">PayPal</p>
@@ -203,6 +203,7 @@
           <th:block th:if="${webUrl != null and !webUrl.isEmpty()}">
             <tr>
               <td align="center" style="padding-bottom:14px;">
+                <p style="margin:0 0 6px 0;color:#a8a29e;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Webseite:</p>
                 <a th:href="${webUrl}" style="color:#1d4ed8;font-size:13px;font-weight:700;text-decoration:none;">FFL &mdash; Fantasy Football League</a>
               </td>
             </tr>

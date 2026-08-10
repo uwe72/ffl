@@ -80,7 +80,7 @@ public class RegistrationMailService {
             }
 
             String seasonName = manager.getSeason() != null ? manager.getSeason().getName() : "Aktuelle Saison";
-            helper.setSubject("FFL | " + seasonName + " | " + user.getLogin() + " | " + registrationNumber + ". Anmeldung");
+            helper.setSubject("FFL | " + seasonName + " | " + registrationNumber + ". Anmeldung | " + user.getLogin());
 
             String html = buildRegistrationHtml(user, manager, config.getWebUrl());
             helper.setText(html, true);
