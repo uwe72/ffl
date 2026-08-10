@@ -266,8 +266,11 @@ export default function Season() {
     const paypalSum = deposits.filter(d => d.paymentMethod === 'PAYPAL' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
     const ueberweisungSum = deposits.filter(d => d.paymentMethod === 'UEBERWEISUNG' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
     const openSum = deposits.filter(d => d.depositStatus !== 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
+    const receivedSum = paypalSum + ueberweisungSum
+    const paypalPct = receivedSum > 0 ? Math.round((paypalSum / receivedSum) * 100) : 0
+    const ueberweisungPct = receivedSum > 0 ? Math.round((ueberweisungSum / receivedSum) * 100) : 0
     const fmt = (v: number) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    return { receivedCount, openCount, receivedPct, paypalSum, ueberweisungSum, openSum, fmt }
+    return { receivedCount, openCount, receivedPct, paypalSum, paypalPct, ueberweisungSum, ueberweisungPct, openSum, fmt }
   }, [deposits])
 
   const handleDepositSort = (key: typeof depositSortKey) => {
@@ -808,13 +811,14 @@ export default function Season() {
                 <StatTile label="Eingegangen" value={String(depositStats.receivedCount)} tone="warning" />
                 <StatTile label="Offen" value={String(depositStats.openCount)} tone="danger" />
                 <StatTile label="Eingangsquote" value={`${depositStats.receivedPct}%`} />
-                <StatTile label="PayPal" value={`${depositStats.fmt(depositStats.paypalSum)} €`} />
-                <StatTile label="Überweisung" value={`${depositStats.fmt(depositStats.ueberweisungSum)} €`} />
+                <StatTile label="PayPal" value={`${depositStats.fmt(depositStats.paypalSum)} €`} note={`${depositStats.paypalPct}%`} />
+                <StatTile label="Überweisung" value={`${depositStats.fmt(depositStats.ueberweisungSum)} €`} note={`${depositStats.ueberweisungPct}%`} />
                 <StatTile label="Offen (Summe)" value={`${depositStats.fmt(depositStats.openSum)} €`} tone="danger" />
               </div>
             </div>
           )}
 
+          <div className="p-6 bg-surface border border-border rounded-card mb-6">
           <h2 className="text-xl font-semibold text-foreground mb-4">Einzahlungen ({filteredDeposits.length})</h2>
 
           <div className="flex items-center justify-between flex-wrap mb-4">
@@ -924,9 +928,8 @@ export default function Season() {
 
           {deposits && deposits.length > 0 && (
             <>
-              <div className="p-6 bg-surface border border-border rounded-card mb-6">
-                <div className="overflow-x-auto rounded-card border border-border">
-                  <table className="w-full min-w-[900px]">
+              <div className="overflow-x-auto rounded-card border border-border">
+                <table className="w-full min-w-[900px]">
                     <TableHead>
                       <tr>
                         <ThSortable align="left" className="whitespace-nowrap" onClick={() => handleDepositSort('login')}>
@@ -1032,7 +1035,6 @@ export default function Season() {
                 <div className="mt-4 text-sm text-subtle">
                   {filteredDeposits.length} von {deposits.length} Einzahlungen
                 </div>
-              </div>
             </>
           )}
 
@@ -1041,6 +1043,7 @@ export default function Season() {
               Noch keine Einzahlungen erfasst. Klicken Sie auf „Einzahlungen synchronisieren“, um für alle Manager Einzahlungsobjekte anzulegen.
             </div>
           )}
+          </div>
         </div>
         </>
       )}

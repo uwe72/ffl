@@ -5,6 +5,7 @@ type StatTileTone = 'default' | 'warning' | 'danger'
 interface StatTileProps {
   label: string
   value?: string
+  note?: string
   tone?: StatTileTone
   state?: 'default' | 'loading' | 'empty' | 'error'
   icon?: ReactNode
@@ -19,6 +20,7 @@ const toneValueClass: Record<StatTileTone, string> = {
 export default function StatTile({
   label,
   value,
+  note,
   tone = 'default',
   state = 'default',
   icon,
@@ -39,10 +41,11 @@ export default function StatTile({
         </p>
       ) : (
         <p
-          className={`mt-1 inline-flex items-center gap-1 text-2xl font-semibold tabular-nums ${toneValueClass[tone]}`}
+          className={`mt-1 inline-flex items-baseline gap-1 text-2xl font-semibold tabular-nums ${toneValueClass[tone]}`}
         >
           {icon}
           {value}
+          {note && <span className="text-sm font-normal text-muted">({note})</span>}
         </p>
       )}
     </div>
