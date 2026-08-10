@@ -80,6 +80,9 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           <SidebarItem to="/games" label="Spiele" icon="sap-icon-calendar" collapsed={collapsed} />
         )}
         <SidebarItem to="/documents" label="Dokumente" icon="sap-icon-documents" collapsed={collapsed} />
+        {isAuthenticated && user?.role === 'ADMIN' && (
+          <SidebarItem to="/statistik" label="Statistik" icon="sap-icon-bar-chart" collapsed={collapsed} />
+        )}
         <button
           onClick={openFeedback}
           title={collapsed ? 'Feedback' : undefined}
@@ -100,7 +103,6 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
               { to: '/mailing', label: 'Mailing' },
               { to: '/emails', label: 'E-Mailadressen' },
               { to: '/system', label: 'System' },
-              { to: '/statistik', label: 'Statistik' },
             ]}
             expanded={effectiveVerwaltungExpanded}
             onToggle={() => setVerwaltungExpanded(!effectiveVerwaltungExpanded)}
