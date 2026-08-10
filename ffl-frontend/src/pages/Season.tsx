@@ -6,7 +6,6 @@ import { useSystemConfig, useUpdateSystemConfig } from '../hooks/useSystemConfig
 import { useAuth } from '../context/AuthContext'
 import CalculationDialog from '../components/CalculationDialog'
 import SetupProgressDialog from '../components/SetupProgressDialog'
-import Badge from '../components/Badge'
 import Button from '../components/Button'
 import Tabs from '../components/Tabs'
 import FormCard from '../components/FormCard'
@@ -295,9 +294,6 @@ export default function Season() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <Badge>
-          {seasonStateOptions.find(o => o.value === season.seasonState)?.label || season.seasonState}
-        </Badge>
         {season.currentMatchday && (
           <span className="text-sm text-muted">
             {season.currentMatchday}. Spieltag
@@ -762,21 +758,24 @@ export default function Season() {
           )}
 
           {depositSyncResult && (
-            <div className="bg-surface border border-border rounded-card p-4 mb-4">
-              <p className="text-sm text-muted mb-1">
-                Synchronisation abgeschlossen:
-              </p>
-              <p className="text-sm text-foreground">
-                {depositSyncResult.created.length > 0
-                  ? `${depositSyncResult.created.length} neue Einzahlung(en) angelegt. `
-                  : 'Keine neuen Einzahlungen erforderlich. '}
-                {depositSyncResult.alreadyPresent > 0 && `(${depositSyncResult.alreadyPresent} bereits vorhanden) `}
-              </p>
-              {depositSyncResult.deleted.length > 0 && (
-                <p className="text-sm text-danger mt-2">
-                  Hinweis: Für folgende nicht mehr existente Manager wurden Einzahlungsobjekte gelöscht: {depositSyncResult.deleted.join(', ')}
+            <div className="flex items-start gap-3 p-4 mb-4 bg-success-bg border border-success/30 rounded-card">
+              <i className="sap-icon sap-icon-accept text-[18px] text-success shrink-0" />
+              <div>
+                <p className="text-success text-sm mb-1">
+                  Synchronisation abgeschlossen:
                 </p>
-              )}
+                <p className="text-success text-sm">
+                  {depositSyncResult.created.length > 0
+                    ? `${depositSyncResult.created.length} neue Einzahlung(en) angelegt. `
+                    : 'Keine neuen Einzahlungen erforderlich. '}
+                  {depositSyncResult.alreadyPresent > 0 && `(${depositSyncResult.alreadyPresent} bereits vorhanden) `}
+                </p>
+                {depositSyncResult.deleted.length > 0 && (
+                  <p className="text-sm text-danger mt-2">
+                    Hinweis: Für folgende nicht mehr existente Manager wurden Einzahlungsobjekte gelöscht: {depositSyncResult.deleted.join(', ')}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
