@@ -82,9 +82,15 @@ function PlayerCard({ player, hideManager, hideStats, onSelect }: { player: Play
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-foreground truncate">{fullName(player)}</div>
           <div className="mt-1">
-            <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5`}>
-              {positionLabels[player.position]}
-            </span>
+            {hideStats ? (
+              <span className="text-xs font-medium px-2 py-0.5 bg-elevated text-foreground">
+                {formatPrice(player.prize)}
+              </span>
+            ) : (
+              <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5`}>
+                {positionLabels[player.position]}
+              </span>
+            )}
           </div>
         </div>
         {player.teams.length > 0 && player.teams[0].logoSUrl && (

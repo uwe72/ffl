@@ -805,9 +805,9 @@ export default function MyTeam() {
         </div>
       )}
 
-      <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+      <div className="relative p-4 bg-elevated border border-border rounded-card mb-6">
         <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4 pr-10 sm:pr-0">
             <div className="relative group w-12 h-12 shrink-0">
               <button
                 onClick={() => avatarInputRef.current?.click()}
@@ -855,7 +855,7 @@ export default function MyTeam() {
               </p>
             </div>
           </div>
-          <div className="w-full sm:w-auto sm:ml-auto">
+          <div className="hidden sm:block w-auto sm:ml-auto">
             <Button
               variant={profileOpen ? 'ghost' : 'emphasized'}
               size="sm"
@@ -869,6 +869,17 @@ export default function MyTeam() {
             </Button>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={() => setProfileOpen(o => !o)}
+          aria-expanded={profileOpen}
+          aria-controls="profile-form"
+          aria-label={profileOpen ? 'Profilbearbeitung schließen' : 'Profil bearbeiten'}
+          title={profileOpen ? 'Schließen' : 'Bearbeiten'}
+          className="sm:hidden absolute top-3 right-3 w-9 h-9 rounded-full bg-accent-muted text-accent hover:bg-accent hover:text-accent-foreground flex items-center justify-center transition-colors shadow-sm"
+        >
+          <i className={`sap-icon ${profileOpen ? 'sap-icon-decline' : 'sap-icon-edit'} text-sm`} />
+        </button>
 
         {profileOpen && (
           <div id="profile-form" className="mt-4 pt-4 border-t border-border">
