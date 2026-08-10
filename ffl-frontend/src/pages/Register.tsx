@@ -845,24 +845,22 @@ export default function Register() {
           {step === 3 && (
             <div className="mt-4 space-y-4">
               <div
-                className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+                className="p-4 bg-elevated border border-border rounded-card"
                 role={isBudgetExceeded ? 'status' : undefined}
                 aria-label="Budget"
               >
-                <StatTile
-                  label="Budget"
-                  value={formatPrice(budget)}
-                />
-                <StatTile
-                  label="Ausgegeben"
-                  value={formatPrice(totalCost)}
-                />
-                <StatTile
-                  label="Verbleibend"
-                  value={formatPrice(remaining)}
-                  tone={remainingTone}
-                  icon={(isBudgetExceeded || isBudgetLow) ? <i className="sap-icon sap-icon-alert text-base" /> : null}
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  <StatTile
+                    label="Ausgegeben"
+                    value={formatPrice(totalCost)}
+                  />
+                  <StatTile
+                    label="Verbleibend"
+                    value={formatPrice(remaining)}
+                    tone={remainingTone}
+                    icon={(isBudgetExceeded || isBudgetLow) ? <i className="sap-icon sap-icon-alert text-base" /> : null}
+                  />
+                </div>
               </div>
 
               {hasTeamViolation && (
@@ -978,15 +976,21 @@ export default function Register() {
                   </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-border" />
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="min-w-0">
-                    <span className="text-xs text-muted">Ausgegebenes Budget</span>
-                    <p className="text-foreground font-medium mt-1">{totalCost.toLocaleString('de-DE')} €</p>
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-xs text-muted">Restbudget</span>
-                    <p className={`font-medium mt-1 ${isBudgetExceeded ? 'text-danger' : 'text-success'}`}>{remaining.toLocaleString('de-DE')} €</p>
-                  </div>
+                <div
+                  className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+                  role={isBudgetExceeded ? 'status' : undefined}
+                  aria-label="Budget"
+                >
+                  <StatTile
+                    label="Ausgegeben"
+                    value={formatPrice(totalCost)}
+                  />
+                  <StatTile
+                    label="Verbleibend"
+                    value={formatPrice(remaining)}
+                    tone={remainingTone}
+                    icon={(isBudgetExceeded || isBudgetLow) ? <i className="sap-icon sap-icon-alert text-base" /> : null}
+                  />
                 </div>
               </div>
 

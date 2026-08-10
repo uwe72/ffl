@@ -62,20 +62,10 @@ function DocumentCard({ doc, isAdmin, onDelete }: { doc: Document; isAdmin: bool
           </a>
           <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
             <div>
-              <span className="text-subtle">Typ: </span>
-              <span className="font-medium text-foreground">{formatContentType(doc.contentType)}</span>
-            </div>
-            <div>
-              <span className="text-subtle">Größe: </span>
               <span className="text-foreground">{formatFileSize(doc.fileSize)}</span>
             </div>
             <div>
-              <span className="text-subtle">Datum: </span>
               <span className="text-muted">{formatDate(doc.uploadedAt)}</span>
-            </div>
-            <div>
-              <span className="text-subtle">Von: </span>
-              <span className="text-muted">{doc.uploadedBy}</span>
             </div>
           </div>
         </div>
@@ -175,11 +165,13 @@ export default function Documents() {
 
   return (
     <div>
-      <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
+      <div className="p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
         <div className="flex items-center justify-between gap-4 mb-4">
-          <h2 className="text-xl font-semibold text-foreground">Dokumente ({filteredDocs.length})</h2>
-          <div className="flex items-center gap-3">
-            <div className="relative w-64">
+          {!isMobile && (
+            <h2 className="text-xl font-semibold text-foreground">Dokumente ({filteredDocs.length})</h2>
+          )}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+            <div className="relative w-full md:w-64">
               <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
               <input
                 type="text"
@@ -194,6 +186,7 @@ export default function Documents() {
                 onClick={() => fileInputRef.current?.click()}
                 size="compact"
                 disabled={uploadMutation.isPending}
+                className="w-full md:w-auto"
               >
                 {uploadMutation.isPending ? 'Lade hoch...' : '+ Hochladen'}
               </Button>
