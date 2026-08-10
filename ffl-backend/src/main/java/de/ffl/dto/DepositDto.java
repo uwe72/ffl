@@ -26,4 +26,5 @@ public class DepositDto {
     private PaymentMethod paymentMethod;
     private DepositStatus depositStatus;
     private LocalDateTime receivedAt;
+    private boolean spielleiter;
 }

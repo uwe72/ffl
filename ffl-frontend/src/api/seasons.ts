@@ -51,4 +51,6 @@ export const seasonApi = {
   updateDeposit: (seasonId: number, managerId: number, data: UpdateDepositRequest) =>
     api.put<Deposit>(`/seasons/${seasonId}/deposits/${managerId}`, data),
   syncDeposits: (id: number) => api.post<DepositSyncResult>(`/seasons/${id}/deposits/sync`),
+  setSpielleiter: (seasonId: number, managerId: number, spielleiter: boolean) =>
+    api.put<Deposit>(`/seasons/${seasonId}/managers/${managerId}/spielleiter`, { spielleiter }),
 }

@@ -45,6 +45,10 @@ public class Manager {
     @Builder.Default
     private Integer teamChangeCount = 0;
 
+    @Column(name = "is_spielleiter", nullable = false)
+    @Builder.Default
+    private boolean spielleiter = false;
+
     @ManyToMany
     @JoinTable(
         name = "manager_2_player",

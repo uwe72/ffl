@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
 import { trackEvent } from '../hooks/useMatomo'
-import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePreviewSeasonSetup, useGeneratePlayersPdf, useDeposits, useUpdateDeposit, useSyncDeposits } from '../hooks/useSeasons'
+import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePreviewSeasonSetup, useGeneratePlayersPdf, useDeposits, useUpdateDeposit, useSyncDeposits, useSetSpielleiter } from '../hooks/useSeasons'
 import { useSystemConfig, useUpdateSystemConfig } from '../hooks/useSystemConfig'
 import { useManagersBySeason } from '../hooks/useManagers'
 import { useAuth } from '../context/AuthContext'
@@ -157,6 +157,7 @@ export default function Season() {
   const { data: deposits, isLoading: isLoadingDeposits } = useDeposits(season?.id ?? 0)
   const updateDeposit = useUpdateDeposit(season?.id ?? 0)
   const syncDeposits = useSyncDeposits(season?.id ?? 0)
+  const setSpielleiter = useSetSpielleiter(season?.id ?? 0)
   const { data: managersBySeason } = useManagersBySeason(season?.id ?? 0)
   const managersCount = managersBySeason?.length ?? 0
   const [activeTab, setActiveTab] = useState<'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'einzahlungen' | 'neue-saison'>('saisondaten')
@@ -964,6 +965,7 @@ export default function Season() {
                           Nachname<SortIcon column="lastName" activeKey={depositSortKey} order={depositSortOrder} />
                         </ThSortable>
                         <Th className="whitespace-nowrap">E-Mail</Th>
+                        <Th align="center" className="whitespace-nowrap">Spielleiter</Th>
                         <ThSortable align="center" className="whitespace-nowrap" onClick={() => handleDepositSort('paymentMethod')}>
                           Zahlungsart<SortIcon column="paymentMethod" activeKey={depositSortKey} order={depositSortOrder} />
                         </ThSortable>
@@ -986,19 +988,29 @@ export default function Season() {
                           <td className="px-3 py-2 text-muted">{deposit.managerLastName || '-'}</td>
                           <td className="px-3 py-2 text-muted">{deposit.managerEmail || '-'}</td>
                           <td className="px-3 py-2 text-center">
+                            <input
+                              type="checkbox"
+                              checked={!!deposit.spielleiter}
+                              onChange={(e) => setSpielleiter.mutate({ managerId: deposit.managerId, spielleiter: e.target.checked })}
+                              className="h-4 w-4 cursor-pointer accent-accent"
+                              title={deposit.spielleiter ? 'Spielleiter (spielt kostenlos)' : 'Kein Spielleiter'}
+                            />
+                          </td>
+                          <td className="px-3 py-2 text-center">
                             <select
                               value={deposit.paymentMethod || ''}
+                              disabled={!!deposit.spielleiter}
                               onChange={(e) => {
                                 updateDeposit.mutate({
                                   managerId: deposit.managerId,
                                   data: { paymentMethod: e.target.value as PaymentMethod | '' }
                                 })
                               }}
-                              className={`px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer ${
-                                !deposit.paymentMethod && deposit.depositStatus === 'RECEIVED'
+                              className={`px-3 py-1.5 rounded-control text-sm font-medium ${
+                                !deposit.paymentMethod && deposit.depositStatus === 'RECEIVED' && !deposit.spielleiter
                                   ? 'bg-danger text-danger-foreground'
                                   : 'bg-default text-foreground'
-                              }`}
+                              } ${deposit.spielleiter ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                             >
                               <option value="">-</option>
                               <option value="UEBERWEISUNG">Überweisung</option>
@@ -1008,19 +1020,22 @@ export default function Season() {
                           <td className="px-3 py-2 text-center">
                             <select
                               value={deposit.depositStatus || 'OPEN'}
+                              disabled={!!deposit.spielleiter}
                               onChange={(e) => {
                                 updateDeposit.mutate({
                                   managerId: deposit.managerId,
                                   data: { depositStatus: e.target.value as DepositStatus }
                                 })
                               }}
-                              className={`px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer ${
-                                deposit.depositStatus === 'RECEIVED'
+                              className={`px-3 py-1.5 rounded-control text-sm font-medium ${
+                                deposit.spielleiter
                                   ? 'bg-success text-success-foreground'
-                                  : deposit.paymentMethod
-                                    ? 'bg-danger text-danger-foreground'
-                                    : 'bg-default text-foreground'
-                              }`}
+                                  : deposit.depositStatus === 'RECEIVED'
+                                    ? 'bg-success text-success-foreground'
+                                    : deposit.paymentMethod
+                                      ? 'bg-danger text-danger-foreground'
+                                      : 'bg-default text-foreground'
+                              } ${deposit.spielleiter ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                             >
                               <option value="OPEN">Offen</option>
                               <option value="RECEIVED">Eingegangen</option>
@@ -1046,7 +1061,7 @@ export default function Season() {
                       ))
                       ) : (
                         <tr>
-                          <td colSpan={7} className="text-center text-subtle py-8">
+                          <td colSpan={8} className="text-center text-subtle py-8">
                             Keine Einzahlungen entsprechen den Filterkriterien
                           </td>
                         </tr>

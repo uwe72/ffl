@@ -163,6 +163,7 @@ export interface Deposit {
   paymentMethod?: PaymentMethod
   depositStatus: DepositStatus
   receivedAt?: string
+  spielleiter?: boolean
 }
 
 export interface DepositSyncResult {

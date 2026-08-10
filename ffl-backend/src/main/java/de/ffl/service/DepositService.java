@@ -79,6 +79,42 @@ public class DepositService {
     }
 
     @Transactional
+    public DepositDto setSpielleiter(Long seasonId, Long managerId, boolean spielleiter) {
+        Season season = seasonRepository.findById(seasonId)
+            .orElseThrow(() -> new IllegalArgumentException("Saison nicht gefunden: " + seasonId));
+        Manager manager = managerRepository.findById(managerId)
+            .orElseThrow(() -> new IllegalArgumentException("Manager nicht gefunden: " + managerId));
+        if (manager.getSeason() == null || !season.getId().equals(manager.getSeason().getId())) {
+            throw new IllegalArgumentException("Manager " + managerId + " gehört nicht zur Saison " + seasonId);
+        }
+
+        Deposit deposit = depositRepository.findBySeasonIdAndManagerId(seasonId, managerId)
+            .orElseGet(() -> Deposit.builder()
+                .manager(manager)
+                .season(season)
+                .amount(resolveSpieleinsatz(season))
+                .depositStatus(DepositStatus.OPEN)
+                .build());
+
+        manager.setSpielleiter(spielleiter);
+        if (spielleiter) {
+            deposit.setDepositStatus(DepositStatus.RECEIVED);
+            deposit.setAmount(BigDecimal.ZERO);
+            deposit.setPaymentMethod(null);
+            deposit.setReceivedAt(LocalDateTime.now());
+        } else {
+            deposit.setDepositStatus(DepositStatus.OPEN);
+            deposit.setAmount(resolveSpieleinsatz(season));
+            deposit.setPaymentMethod(null);
+            deposit.setReceivedAt(null);
+        }
+
+        managerRepository.save(manager);
+        Deposit saved = depositRepository.save(deposit);
+        return convertToDto(saved);
+    }
+
+    @Transactional
     public DepositSyncResult syncDeposits(Long seasonId) {
         Season season = seasonRepository.findById(seasonId)
             .orElseThrow(() -> new IllegalArgumentException("Saison nicht gefunden: " + seasonId));
@@ -104,8 +140,9 @@ public class DepositService {
                 Deposit newDeposit = Deposit.builder()
                     .manager(manager)
                     .season(season)
-                    .amount(resolveSpieleinsatz(season))
-                    .depositStatus(DepositStatus.OPEN)
+                    .amount(manager.isSpielleiter() ? BigDecimal.ZERO : resolveSpieleinsatz(season))
+                    .depositStatus(manager.isSpielleiter() ? DepositStatus.RECEIVED : DepositStatus.OPEN)
+                    .receivedAt(manager.isSpielleiter() ? LocalDateTime.now() : null)
                     .build();
                 depositRepository.save(newDeposit);
                 created.add(manager.getName());
@@ -147,6 +184,7 @@ public class DepositService {
             .paymentMethod(deposit.getPaymentMethod())
             .depositStatus(deposit.getDepositStatus())
             .receivedAt(deposit.getReceivedAt())
+            .spielleiter(manager.isSpielleiter())
             .build();
     }
 }

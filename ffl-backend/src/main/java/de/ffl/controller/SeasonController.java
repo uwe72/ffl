@@ -8,6 +8,7 @@ import de.ffl.dto.DepositSyncResult;
 import de.ffl.dto.DocumentDto;
 import de.ffl.dto.PrizeDistributionLogDto;
 import de.ffl.dto.PrizePayoutDto;
+import de.ffl.dto.SetSpielleiterRequest;
 import de.ffl.dto.UpdateDepositRequest;
 import de.ffl.dto.UpdatePayoutRequest;
 import de.ffl.repository.SeasonRepository;
@@ -292,6 +293,26 @@ public class SeasonController {
         try {
             DepositSyncResult result = depositService.syncDeposits(id);
             return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}/managers/{managerId}/spielleiter")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DepositDto> setSpielleiter(
+            @PathVariable Long id,
+            @PathVariable Long managerId,
+            @RequestBody SetSpielleiterRequest request) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        if (request.getSpielleiter() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            DepositDto updated = depositService.setSpielleiter(id, managerId, request.getSpielleiter());
+            return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }

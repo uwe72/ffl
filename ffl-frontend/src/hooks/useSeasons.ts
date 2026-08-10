@@ -168,3 +168,14 @@ export function useSyncDeposits(seasonId: number) {
     },
   })
 }
+
+export function useSetSpielleiter(seasonId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ managerId, spielleiter }: { managerId: number; spielleiter: boolean }) =>
+      seasonApi.setSpielleiter(seasonId, managerId, spielleiter).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seasons', seasonId, 'deposits'] })
+    },
+  })
+}
