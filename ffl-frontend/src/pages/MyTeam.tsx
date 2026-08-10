@@ -847,10 +847,13 @@ export default function MyTeam() {
             <div className="flex-1 min-w-0">
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground truncate">
                 {manager?.firstName && manager?.lastName
-                  ? `${manager.firstName} ${manager.lastName} (${manager.login ?? '-'})`
+                  ? `${manager.firstName} ${manager.lastName}`
                   : manager?.login || '-'}
               </h2>
-              <p className="text-xs text-muted mt-2 truncate">
+              <p className="text-sm text-muted mt-1 truncate">
+                {manager?.login ?? '-'}
+              </p>
+              <p className="text-xs text-muted mt-1 truncate">
                 {profileEmail || manager?.email || '-'}
               </p>
             </div>
