@@ -45,7 +45,7 @@ public class Manager {
     @Builder.Default
     private Integer teamChangeCount = 0;
 
-    @Column(name = "is_spielleiter", nullable = false)
+    @Column(name = "is_spielleiter", nullable = false, columnDefinition = "boolean default false")
     @Builder.Default
     private boolean spielleiter = false;
 
