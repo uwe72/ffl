@@ -126,7 +126,7 @@ export default function PlayerSelect({
           {!disabled && (
             <button
               onClick={handleClear}
-              className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
               aria-label={`${selectedPlayer.nameKicker} entfernen`}
               title="Entfernen"
             >
