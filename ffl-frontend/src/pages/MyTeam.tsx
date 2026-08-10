@@ -806,64 +806,68 @@ export default function MyTeam() {
       )}
 
       <div className="p-4 bg-elevated border border-border rounded-card mb-6">
-        <div className="flex items-start gap-4">
-          <div className="relative group w-12 h-12 shrink-0">
-            <button
-              onClick={() => avatarInputRef.current?.click()}
-              className="w-12 h-12 p-0 rounded-full overflow-hidden cursor-pointer"
-              disabled={uploadAvatar.isPending || deleteAvatar.isPending}
-              aria-label="Profilbild ändern"
-              title="Profilbild ändern"
-            >
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center text-base font-bold">
-                  {avatarInitials}
-                </div>
-              )}
-            </button>
-            {avatarUrl && (
+        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+          <div className="flex items-start gap-4">
+            <div className="relative group w-12 h-12 shrink-0">
               <button
-                type="button"
-                onClick={handleAvatarDelete}
-                disabled={deleteAvatar.isPending || uploadAvatar.isPending}
-                className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                aria-label="Profilbild löschen"
-                title="Profilbild löschen"
+                onClick={() => avatarInputRef.current?.click()}
+                className="w-12 h-12 p-0 rounded-full overflow-hidden cursor-pointer"
+                disabled={uploadAvatar.isPending || deleteAvatar.isPending}
+                aria-label="Profilbild ändern"
+                title="Profilbild ändern"
               >
-                <i className="sap-icon sap-icon-delete text-xs" />
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center text-base font-bold">
+                    {avatarInitials}
+                  </div>
+                )}
               </button>
-            )}
-            <input
-              ref={avatarInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handleAvatarChange}
-            />
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={handleAvatarDelete}
+                  disabled={deleteAvatar.isPending || uploadAvatar.isPending}
+                  className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                  aria-label="Profilbild löschen"
+                  title="Profilbild löschen"
+                >
+                  <i className="sap-icon sap-icon-delete text-xs" />
+                </button>
+              )}
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground truncate">
+                {manager?.firstName && manager?.lastName
+                  ? `${manager.firstName} ${manager.lastName} (${manager.login ?? '-'})`
+                  : manager?.login || '-'}
+              </h2>
+              <p className="text-xs text-muted mt-2 truncate">
+                {profileEmail || manager?.email || '-'}
+              </p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-3xl font-bold text-foreground truncate">
-              {manager?.firstName && manager?.lastName
-                ? `${manager.firstName} ${manager.lastName} (${manager.login ?? '-'})`
-                : manager?.login || '-'}
-            </h2>
-            <p className="text-xs uppercase tracking-wide text-subtle mt-2 truncate">
-              {profileEmail || manager?.email || '-'}
-            </p>
+          <div className="w-full sm:w-auto sm:ml-auto">
+            <Button
+              variant={profileOpen ? 'ghost' : 'emphasized'}
+              size="sm"
+              onClick={() => setProfileOpen(o => !o)}
+              aria-expanded={profileOpen}
+              aria-controls="profile-form"
+              className="w-full sm:w-auto"
+            >
+              <i className={`sap-icon sap-icon-slim-arrow-${profileOpen ? 'up' : 'down'} text-xs mr-1`} />
+              {profileOpen ? 'Schließen' : 'Bearbeiten'}
+            </Button>
           </div>
-          <Button
-            variant={profileOpen ? 'ghost' : 'emphasized'}
-            size="sm"
-            onClick={() => setProfileOpen(o => !o)}
-            aria-expanded={profileOpen}
-            aria-controls="profile-form"
-            className="shrink-0 self-start"
-          >
-            <i className={`sap-icon sap-icon-slim-arrow-${profileOpen ? 'up' : 'down'} text-xs mr-1`} />
-            {profileOpen ? 'Schließen' : 'Bearbeiten'}
-          </Button>
         </div>
 
         {profileOpen && (
