@@ -168,6 +168,8 @@ export default function Season() {
   const [showDepositSyncConfirm, setShowDepositSyncConfirm] = useState(false)
   const [depositSyncResult, setDepositSyncResult] = useState<DepositSyncResult | null>(null)
   const [depositSyncError, setDepositSyncError] = useState<string | null>(null)
+  const [depositSearch, setDepositSearch] = useState('')
+  const [depositStatusFilter, setDepositStatusFilter] = useState<'ALL' | 'OPEN' | 'RECEIVED'>('ALL')
   const [setupSeasonName, setSetupSeasonName] = useState('')
   const [setupPreview, setSetupPreview] = useState<SetupPreviewDto | null>(null)
   const [showSetupConfirm, setShowSetupConfirm] = useState(false)
@@ -218,6 +220,22 @@ export default function Season() {
   }, [systemConfig])
 
   const effectiveSourceUrl = systemConfig?.autoUpdateSourceUrl || DEFAULT_SOURCE_URL
+
+  const filteredDeposits = useMemo(() => {
+    if (!deposits) return []
+    const term = depositSearch.trim().toLowerCase()
+    return deposits.filter(d => {
+      const matchesSearch = !term ||
+        (d.managerLogin || '').toLowerCase().includes(term) ||
+        (d.managerFirstName || '').toLowerCase().includes(term) ||
+        (d.managerLastName || '').toLowerCase().includes(term) ||
+        (d.managerEmail || '').toLowerCase().includes(term)
+      const matchesStatus = depositStatusFilter === 'ALL' || d.depositStatus === depositStatusFilter
+      return matchesSearch && matchesStatus
+    })
+  }, [deposits, depositSearch, depositStatusFilter])
+
+  const hasDepositFilter = depositSearch.trim() !== '' || depositStatusFilter !== 'ALL'
 
   const handleChange = (field: keyof Season, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -741,14 +759,47 @@ export default function Season() {
       {activeTab === 'einzahlungen' && (
         <>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-foreground">Einzahlungen</h2>
-            <Button
-              variant="emphasized"
-              onClick={() => setShowDepositSyncConfirm(true)}
-              disabled={syncDeposits.isPending}
+            <h2 className="text-xl font-bold text-foreground">Einzahlungen ({filteredDeposits.length})</h2>
+            <div className="flex items-center gap-3">
+              <div className="relative w-64">
+                <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+                <input
+                  type="text"
+                  value={depositSearch}
+                  onChange={e => setDepositSearch(e.target.value)}
+                  placeholder="Name oder Login suchen..."
+                  className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
+                />
+              </div>
+              <Button
+                variant="emphasized"
+                onClick={() => setShowDepositSyncConfirm(true)}
+                disabled={syncDeposits.isPending}
+              >
+                {syncDeposits.isPending ? 'Wird synchronisiert...' : 'Einzahlungen synchronisieren'}
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 flex-wrap mb-4">
+            <select
+              value={depositStatusFilter}
+              onChange={e => setDepositStatusFilter(e.target.value as 'ALL' | 'OPEN' | 'RECEIVED')}
+              className="input-field control px-2 py-1.5 rounded-control text-xs cursor-pointer min-w-40"
             >
-              {syncDeposits.isPending ? 'Wird synchronisiert...' : 'Einzahlungen synchronisieren'}
-            </Button>
+              <option value="ALL">Alle Status</option>
+              <option value="OPEN">Offen</option>
+              <option value="RECEIVED">Eingegangen</option>
+            </select>
+            {hasDepositFilter && (
+              <button
+                onClick={() => { setDepositSearch(''); setDepositStatusFilter('ALL') }}
+                className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
+                title="Filter zurücksetzen"
+              >
+                <i className="sap-icon sap-icon-decline text-[14px]" />
+              </button>
+            )}
           </div>
 
           {depositSyncError && (
@@ -859,7 +910,8 @@ export default function Season() {
                     </tr>
                   </TableHead>
                   <TableBody>
-                    {deposits.map((deposit) => (
+                    {filteredDeposits.length > 0 ? (
+                    filteredDeposits.map((deposit) => (
                       <tr
                         key={deposit.managerId}
                         className="border-b border-border last:border-b-0 hover:bg-card-hover"
@@ -927,9 +979,19 @@ export default function Season() {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    ))
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="text-center text-subtle py-8">
+                          Keine Einzahlungen entsprechen den Filterkriterien
+                        </td>
+                      </tr>
+                    )}
                   </TableBody>
                 </table>
+              </div>
+              <div className="mt-4 text-sm text-subtle">
+                {filteredDeposits.length} von {deposits.length} Einzahlungen
               </div>
             </>
           )}
