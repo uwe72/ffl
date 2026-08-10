@@ -960,6 +960,14 @@ export default function MyTeam() {
           )}
 
           <div className="space-y-8">
+            {isBeforeSeason && (
+              <div className="sm:hidden flex items-start gap-2 p-2 bg-accent-muted border border-accent/30 rounded-card">
+                <i className="sap-icon sap-icon-hint text-[16px] text-accent shrink-0 mt-0.5" />
+                <p className="text-xs text-foreground">
+                  Tipp: Tippe auf den farbigen linken Rand einer Spielerkarte, um den Spieler zu entfernen.
+                </p>
+              </div>
+            )}
             {POSITION_GROUPS.map(group => {
               const slots = getVisibleSlots(group)
               const filled = slots.filter(s => selectedPlayers[s.key] !== null).length

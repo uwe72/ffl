@@ -114,7 +114,19 @@ export default function PlayerSelect({
     const priceLabel = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(selectedPlayer.prize)
     return (
       <div className={`group relative overflow-hidden bg-surface border border-border rounded-none p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover ${highlightClass || ''}`}>
-        <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[selectedPlayer.position]}`} />
+        {!disabled ? (
+          <button
+            type="button"
+            onClick={handleClear}
+            aria-label={`${selectedPlayer.nameKicker} entfernen`}
+            title="Entfernen"
+            className="group/bar absolute left-0 top-0 bottom-0 w-4 flex items-center justify-start cursor-pointer hover:bg-accent-soft/40 transition-colors"
+          >
+            <span className={`w-[3px] h-full ${positionBarColor[selectedPlayer.position]} group-hover/bar:w-[5px] transition-all`} />
+          </button>
+        ) : (
+          <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[selectedPlayer.position]}`} />
+        )}
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
             <img src={selectedPlayer.pictureUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
@@ -122,16 +134,6 @@ export default function PlayerSelect({
             <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center">
               <span className="text-[10px] text-muted">{POSITION_LABELS[selectedPlayer.position]}</span>
             </div>
-          )}
-          {!disabled && (
-            <button
-              onClick={handleClear}
-              className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
-              aria-label={`${selectedPlayer.nameKicker} entfernen`}
-              title="Entfernen"
-            >
-              <i className="sap-icon sap-icon-decline text-[11px] text-danger-foreground" />
-            </button>
           )}
         </div>
         <div className="flex-1 min-w-0">
