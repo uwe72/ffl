@@ -31,6 +31,10 @@ public class SchemaMigrationRunner implements CommandLineRunner {
         try (Connection conn = dataSource.getConnection()) {
             List<String> migrations = new ArrayList<>();
 
+            migrations.add("ALTER TABLE ffl_deposit DROP CONSTRAINT IF EXISTS ffl_deposit_payment_method_check");
+            migrations.add("ALTER TABLE ffl_deposit ADD CONSTRAINT ffl_deposit_payment_method_check " +
+                    "CHECK (payment_method IN ('PAYPAL','UEBERWEISUNG','OTHER') OR payment_method IS NULL)");
+
             if (columnExists(conn, "ffl_manager", "name")) {
                 migrations.add("ALTER TABLE ffl_manager DROP COLUMN IF EXISTS name");
             }
@@ -39,17 +43,13 @@ public class SchemaMigrationRunner implements CommandLineRunner {
                 migrations.add("ALTER TABLE ffl_manager DROP COLUMN IF EXISTS short_name");
             }
 
-            if (migrations.isEmpty()) {
-                return;
-            }
-
             try (Statement stmt = conn.createStatement()) {
                 for (String sql : migrations) {
                     stmt.execute(sql);
                 }
             }
 
-            log.info("Schema migration: removed name/short_name from ffl_manager");
+            log.info("Schema migration: ffl_deposit_payment_method_check erneuert (PAYPAL/UEBERWEISUNG/OTHER), name/short_name aus ffl_manager entfernt");
         } catch (SQLException e) {
             log.warn("Schema migration skipped: {}", e.getMessage());
         }
