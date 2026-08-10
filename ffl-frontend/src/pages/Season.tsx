@@ -9,7 +9,9 @@ import SetupProgressDialog from '../components/SetupProgressDialog'
 import Button from '../components/Button'
 import Tabs from '../components/Tabs'
 import FormCard from '../components/FormCard'
-import { TableHead, Th, TableBody } from '../components/Table'
+import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
+import SortIcon from '../components/SortIcon'
+import StatTile from '../components/StatTile'
 import { seasonStateLabel } from '../utils/season'
 import { getChartColors } from '../utils/chartColors'
 import type { Season, SeasonState, PrizeDistributionLog, PrizePayout, PayoutStatus, SetupPreviewDto, Deposit, DepositSyncResult, DepositStatus, PaymentMethod } from '../types'
@@ -170,6 +172,9 @@ export default function Season() {
   const [depositSyncError, setDepositSyncError] = useState<string | null>(null)
   const [depositSearch, setDepositSearch] = useState('')
   const [depositStatusFilter, setDepositStatusFilter] = useState<'ALL' | 'OPEN' | 'RECEIVED'>('ALL')
+  const [depositPaymentFilter, setDepositPaymentFilter] = useState<'ALL' | 'PAYPAL' | 'UEBERWEISUNG'>('ALL')
+  const [depositSortKey, setDepositSortKey] = useState<'login' | 'firstName' | 'lastName' | 'paymentMethod' | 'depositStatus'>('login')
+  const [depositSortOrder, setDepositSortOrder] = useState<'asc' | 'desc'>('asc')
   const [setupSeasonName, setSetupSeasonName] = useState('')
   const [setupPreview, setSetupPreview] = useState<SetupPreviewDto | null>(null)
   const [showSetupConfirm, setShowSetupConfirm] = useState(false)
@@ -224,18 +229,55 @@ export default function Season() {
   const filteredDeposits = useMemo(() => {
     if (!deposits) return []
     const term = depositSearch.trim().toLowerCase()
-    return deposits.filter(d => {
+    const filtered = deposits.filter(d => {
       const matchesSearch = !term ||
         (d.managerLogin || '').toLowerCase().includes(term) ||
         (d.managerFirstName || '').toLowerCase().includes(term) ||
         (d.managerLastName || '').toLowerCase().includes(term) ||
         (d.managerEmail || '').toLowerCase().includes(term)
       const matchesStatus = depositStatusFilter === 'ALL' || d.depositStatus === depositStatusFilter
-      return matchesSearch && matchesStatus
+      const matchesPayment = depositPaymentFilter === 'ALL' || d.paymentMethod === depositPaymentFilter
+      return matchesSearch && matchesStatus && matchesPayment
     })
-  }, [deposits, depositSearch, depositStatusFilter])
+    const depositField = (d: Deposit, key: typeof depositSortKey): string => {
+      switch (key) {
+        case 'login': return (d.managerLogin || '').toLowerCase()
+        case 'firstName': return (d.managerFirstName || '').toLowerCase()
+        case 'lastName': return (d.managerLastName || '').toLowerCase()
+        case 'paymentMethod': return d.paymentMethod || ''
+        case 'depositStatus': return d.depositStatus || ''
+      }
+    }
+    return filtered.sort((a, b) => {
+      const av = depositField(a, depositSortKey)
+      const bv = depositField(b, depositSortKey)
+      const comparison = av.localeCompare(bv, 'de', { numeric: true })
+      return depositSortOrder === 'asc' ? comparison : -comparison
+    })
+  }, [deposits, depositSearch, depositStatusFilter, depositPaymentFilter, depositSortKey, depositSortOrder])
 
-  const hasDepositFilter = depositSearch.trim() !== '' || depositStatusFilter !== 'ALL'
+  const hasDepositFilter = depositSearch.trim() !== '' || depositStatusFilter !== 'ALL' || depositPaymentFilter !== 'ALL'
+
+  const depositStats = useMemo(() => {
+    if (!deposits || deposits.length === 0) return null
+    const receivedCount = deposits.filter(d => d.depositStatus === 'RECEIVED').length
+    const openCount = deposits.length - receivedCount
+    const receivedPct = Math.round((receivedCount / deposits.length) * 100)
+    const paypalSum = deposits.filter(d => d.paymentMethod === 'PAYPAL' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
+    const ueberweisungSum = deposits.filter(d => d.paymentMethod === 'UEBERWEISUNG' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
+    const openSum = deposits.filter(d => d.depositStatus !== 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
+    const fmt = (v: number) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    return { receivedCount, openCount, receivedPct, paypalSum, ueberweisungSum, openSum, fmt }
+  }, [deposits])
+
+  const handleDepositSort = (key: typeof depositSortKey) => {
+    if (depositSortKey === key) {
+      setDepositSortOrder(depositSortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setDepositSortKey(key)
+      setDepositSortOrder('asc')
+    }
+  }
 
   const handleChange = (field: keyof Season, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -758,8 +800,23 @@ export default function Season() {
 
       {activeTab === 'einzahlungen' && (
         <>
+          {depositStats && (
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold text-foreground mb-4">Statistik</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                <StatTile label="Gesamt" value={String(deposits?.length ?? 0)} />
+                <StatTile label="Eingegangen" value={String(depositStats.receivedCount)} tone="warning" />
+                <StatTile label="Offen" value={String(depositStats.openCount)} tone="danger" />
+                <StatTile label="Eingangsquote" value={`${depositStats.receivedPct}%`} />
+                <StatTile label="PayPal" value={`${depositStats.fmt(depositStats.paypalSum)} €`} />
+                <StatTile label="Überweisung" value={`${depositStats.fmt(depositStats.ueberweisungSum)} €`} />
+                <StatTile label="Offen (Summe)" value={`${depositStats.fmt(depositStats.openSum)} €`} tone="danger" />
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-foreground">Einzahlungen ({filteredDeposits.length})</h2>
+            <h2 className="text-xl font-semibold text-foreground">Einzahlungen ({filteredDeposits.length})</h2>
             <div className="flex items-center gap-3">
               <div className="relative w-64">
                 <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
@@ -782,18 +839,48 @@ export default function Season() {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap mb-4">
-            <select
-              value={depositStatusFilter}
-              onChange={e => setDepositStatusFilter(e.target.value as 'ALL' | 'OPEN' | 'RECEIVED')}
-              className="input-field control px-2 py-1.5 rounded-control text-xs cursor-pointer min-w-40"
-            >
-              <option value="ALL">Alle Status</option>
-              <option value="OPEN">Offen</option>
-              <option value="RECEIVED">Eingegangen</option>
-            </select>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {(['ALL', 'OPEN', 'RECEIVED'] as const).map(status => {
+                const active = depositStatusFilter === status
+                const label = status === 'ALL' ? 'Alle' : status === 'OPEN' ? 'Offen' : 'Eingegangen'
+                const activeClass = status === 'RECEIVED'
+                  ? 'bg-success-bg text-success border-success'
+                  : status === 'OPEN'
+                  ? 'bg-danger-bg text-danger border-danger'
+                  : 'bg-foreground text-surface border-foreground'
+                return (
+                  <button
+                    key={status}
+                    onClick={() => setDepositStatusFilter(status)}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${active ? activeClass : 'bg-elevated text-muted border-border'} cursor-pointer`}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="h-5 w-px bg-border" />
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {(['ALL', 'PAYPAL', 'UEBERWEISUNG'] as const).map(method => {
+                const active = depositPaymentFilter === method
+                const label = method === 'ALL' ? 'Alle' : method === 'PAYPAL' ? 'PayPal' : 'Überweisung'
+                return (
+                  <button
+                    key={method}
+                    onClick={() => setDepositPaymentFilter(method)}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${active ? 'bg-foreground text-surface border-foreground' : 'bg-elevated text-muted border-border'} cursor-pointer`}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+
             {hasDepositFilter && (
               <button
-                onClick={() => { setDepositSearch(''); setDepositStatusFilter('ALL') }}
+                onClick={() => { setDepositSearch(''); setDepositStatusFilter('ALL'); setDepositPaymentFilter('ALL') }}
                 className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
                 title="Filter zurücksetzen"
               >
@@ -836,162 +923,114 @@ export default function Season() {
 
           {deposits && deposits.length > 0 && (
             <>
-              <div className="bg-surface border border-border rounded-card p-3 mb-4">
-                <div className="flex items-center gap-6 text-sm flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted">Gesamt:</span>
-                    <span className="text-foreground font-medium">{deposits.length}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted">Eingegangen:</span>
-                    <span className="text-success font-medium">
-                      {deposits.filter(d => d.depositStatus === 'RECEIVED').length}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted">Offen:</span>
-                    <span className="text-danger font-medium">
-                      {deposits.filter(d => d.depositStatus !== 'RECEIVED').length}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 h-2 bg-default rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-success"
-                        style={{ width: `${deposits.length > 0 ? (deposits.filter(d => d.depositStatus === 'RECEIVED').length / deposits.length) * 100 : 0}%` }}
-                      />
-                    </div>
-                    <span className="text-foreground font-medium">
-                      {deposits.length > 0 ? Math.round((deposits.filter(d => d.depositStatus === 'RECEIVED').length / deposits.length) * 100) : 0}%
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-6 text-sm flex-wrap mt-3 pt-3 border-t border-border">
-                  {(() => {
-                    const total = deposits.reduce((sum, d) => sum + d.amount, 0)
-                    const paypalSum = deposits.filter(d => d.paymentMethod === 'PAYPAL' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
-                    const ueberweisungSum = deposits.filter(d => d.paymentMethod === 'UEBERWEISUNG' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
-                    const openSum = deposits.filter(d => d.depositStatus !== 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
-                    const pct = (v: number) => total > 0 ? Math.round((v / total) * 100) : 0
-                    const fmt = (v: number) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                    return (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted">PayPal:</span>
-                          <span className="text-foreground font-medium">{fmt(paypalSum)} €</span>
-                          <span className="text-muted">({pct(paypalSum)}%)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted">Überweisung:</span>
-                          <span className="text-foreground font-medium">{fmt(ueberweisungSum)} €</span>
-                          <span className="text-muted">({pct(ueberweisungSum)}%)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted">Offen:</span>
-                          <span className="text-danger font-medium">{fmt(openSum)} €</span>
-                          <span className="text-muted">({pct(openSum)}%)</span>
-                        </div>
-                      </>
-                    )
-                  })()}
-                </div>
-              </div>
-              <div className="rounded-card border border-border overflow-x-auto">
-                <table className="w-full min-w-[900px]">
-                  <TableHead>
-                    <tr>
-                      <Th className="whitespace-nowrap">Login</Th>
-                      <Th className="whitespace-nowrap">Vorname</Th>
-                      <Th className="whitespace-nowrap">Nachname</Th>
-                      <Th className="whitespace-nowrap">E-Mail</Th>
-                      <Th align="center" className="whitespace-nowrap">Zahlungsart</Th>
-                      <Th align="center" className="whitespace-nowrap">Status</Th>
-                      <Th align="center" className="whitespace-nowrap">Kommentar</Th>
-                    </tr>
-                  </TableHead>
-                  <TableBody>
-                    {filteredDeposits.length > 0 ? (
-                    filteredDeposits.map((deposit) => (
-                      <tr
-                        key={deposit.managerId}
-                        className="border-b border-border last:border-b-0 hover:bg-card-hover"
-                        style={{ borderLeftWidth: '4px', borderLeftColor: deposit.depositStatus === 'RECEIVED' ? 'var(--color-success)' : 'var(--color-border-neutral)' }}
-                      >
-                        <td className="px-3 py-2 text-foreground">{deposit.managerLogin || '-'}</td>
-                        <td className="px-3 py-2 text-muted">{deposit.managerFirstName || '-'}</td>
-                        <td className="px-3 py-2 text-muted">{deposit.managerLastName || '-'}</td>
-                        <td className="px-3 py-2 text-muted">{deposit.managerEmail || '-'}</td>
-                        <td className="px-3 py-2 text-center">
-                          <select
-                            value={deposit.paymentMethod || ''}
-                            onChange={(e) => {
-                              updateDeposit.mutate({
-                                managerId: deposit.managerId,
-                                data: { paymentMethod: e.target.value as PaymentMethod | '' }
-                              })
-                            }}
-                            className={`px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer ${
-                              !deposit.paymentMethod && deposit.depositStatus === 'RECEIVED'
-                                ? 'bg-danger text-danger-foreground'
-                                : 'bg-default text-foreground'
-                            }`}
-                          >
-                            <option value="">-</option>
-                            <option value="UEBERWEISUNG">Überweisung</option>
-                            <option value="PAYPAL">PayPal</option>
-                          </select>
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <select
-                            value={deposit.depositStatus || 'OPEN'}
-                            onChange={(e) => {
-                              updateDeposit.mutate({
-                                managerId: deposit.managerId,
-                                data: { depositStatus: e.target.value as DepositStatus }
-                              })
-                            }}
-                            className={`px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer ${
-                              deposit.depositStatus === 'RECEIVED'
-                                ? 'bg-success text-success-foreground'
-                                : deposit.paymentMethod
+              <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
+                <div className="overflow-x-auto rounded-card border border-border">
+                  <table className="w-full min-w-[900px]">
+                    <TableHead>
+                      <tr>
+                        <ThSortable align="left" className="whitespace-nowrap" onClick={() => handleDepositSort('login')}>
+                          Login<SortIcon column="login" activeKey={depositSortKey} order={depositSortOrder} />
+                        </ThSortable>
+                        <ThSortable align="left" className="whitespace-nowrap" onClick={() => handleDepositSort('firstName')}>
+                          Vorname<SortIcon column="firstName" activeKey={depositSortKey} order={depositSortOrder} />
+                        </ThSortable>
+                        <ThSortable align="left" className="whitespace-nowrap" onClick={() => handleDepositSort('lastName')}>
+                          Nachname<SortIcon column="lastName" activeKey={depositSortKey} order={depositSortOrder} />
+                        </ThSortable>
+                        <Th className="whitespace-nowrap">E-Mail</Th>
+                        <ThSortable align="center" className="whitespace-nowrap" onClick={() => handleDepositSort('paymentMethod')}>
+                          Zahlungsart<SortIcon column="paymentMethod" activeKey={depositSortKey} order={depositSortOrder} />
+                        </ThSortable>
+                        <ThSortable align="center" className="whitespace-nowrap" onClick={() => handleDepositSort('depositStatus')}>
+                          Status<SortIcon column="depositStatus" activeKey={depositSortKey} order={depositSortOrder} />
+                        </ThSortable>
+                        <Th align="center" className="whitespace-nowrap">Kommentar</Th>
+                      </tr>
+                    </TableHead>
+                    <TableBody>
+                      {filteredDeposits.length > 0 ? (
+                      filteredDeposits.map((deposit, index) => (
+                        <tr
+                          key={deposit.managerId}
+                          className={`border-b border-border last:border-b-0 hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}
+                          style={{ borderLeftWidth: '4px', borderLeftColor: deposit.depositStatus === 'RECEIVED' ? 'var(--color-success)' : 'var(--color-border-neutral)' }}
+                        >
+                          <td className="px-3 py-2 text-foreground">{deposit.managerLogin || '-'}</td>
+                          <td className="px-3 py-2 text-muted">{deposit.managerFirstName || '-'}</td>
+                          <td className="px-3 py-2 text-muted">{deposit.managerLastName || '-'}</td>
+                          <td className="px-3 py-2 text-muted">{deposit.managerEmail || '-'}</td>
+                          <td className="px-3 py-2 text-center">
+                            <select
+                              value={deposit.paymentMethod || ''}
+                              onChange={(e) => {
+                                updateDeposit.mutate({
+                                  managerId: deposit.managerId,
+                                  data: { paymentMethod: e.target.value as PaymentMethod | '' }
+                                })
+                              }}
+                              className={`px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer ${
+                                !deposit.paymentMethod && deposit.depositStatus === 'RECEIVED'
                                   ? 'bg-danger text-danger-foreground'
                                   : 'bg-default text-foreground'
-                            }`}
-                          >
-                            <option value="OPEN">Offen</option>
-                            <option value="RECEIVED">Eingegangen</option>
-                          </select>
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <button
-                            onClick={() => {
-                              setDepositCommentDialog(deposit)
-                              setDepositCommentDraft(deposit.comment || '')
-                            }}
-                            className={`text-lg p-1 rounded-control transition-colors ${
-                              deposit.comment
-                                ? 'bg-success hover:bg-success'
-                                : 'bg-default hover:bg-elevated'
-                            }`}
-                            title={deposit.comment || 'Kommentar hinzufügen'}
-                          >
-                            📝
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                    ) : (
-                      <tr>
-                        <td colSpan={7} className="text-center text-subtle py-8">
-                          Keine Einzahlungen entsprechen den Filterkriterien
-                        </td>
-                      </tr>
-                    )}
-                  </TableBody>
-                </table>
-              </div>
-              <div className="mt-4 text-sm text-subtle">
-                {filteredDeposits.length} von {deposits.length} Einzahlungen
+                              }`}
+                            >
+                              <option value="">-</option>
+                              <option value="UEBERWEISUNG">Überweisung</option>
+                              <option value="PAYPAL">PayPal</option>
+                            </select>
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            <select
+                              value={deposit.depositStatus || 'OPEN'}
+                              onChange={(e) => {
+                                updateDeposit.mutate({
+                                  managerId: deposit.managerId,
+                                  data: { depositStatus: e.target.value as DepositStatus }
+                                })
+                              }}
+                              className={`px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer ${
+                                deposit.depositStatus === 'RECEIVED'
+                                  ? 'bg-success text-success-foreground'
+                                  : deposit.paymentMethod
+                                    ? 'bg-danger text-danger-foreground'
+                                    : 'bg-default text-foreground'
+                              }`}
+                            >
+                              <option value="OPEN">Offen</option>
+                              <option value="RECEIVED">Eingegangen</option>
+                            </select>
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            <button
+                              onClick={() => {
+                                setDepositCommentDialog(deposit)
+                                setDepositCommentDraft(deposit.comment || '')
+                              }}
+                              className={`text-lg p-1 rounded-control transition-colors ${
+                                deposit.comment
+                                  ? 'bg-success hover:bg-success'
+                                  : 'bg-default hover:bg-elevated'
+                              }`}
+                              title={deposit.comment || 'Kommentar hinzufügen'}
+                            >
+                              📝
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                      ) : (
+                        <tr>
+                          <td colSpan={7} className="text-center text-subtle py-8">
+                            Keine Einzahlungen entsprechen den Filterkriterien
+                          </td>
+                        </tr>
+                      )}
+                    </TableBody>
+                  </table>
+                </div>
+                <div className="mt-4 text-sm text-subtle">
+                  {filteredDeposits.length} von {deposits.length} Einzahlungen
+                </div>
               </div>
             </>
           )}
