@@ -34,8 +34,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
     location.pathname.startsWith('/users') ||
     location.pathname.startsWith('/mailing') ||
     location.pathname.startsWith('/emails') ||
-    location.pathname.startsWith('/system') ||
-    location.pathname.startsWith('/statistik')
+    location.pathname.startsWith('/system')
   const effectiveVerwaltungExpanded = verwaltungExpanded || isOnVerwaltung
 
   const handleLogout = () => {
@@ -80,9 +79,6 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           <SidebarItem to="/games" label="Spiele" icon="sap-icon-calendar" collapsed={collapsed} />
         )}
         <SidebarItem to="/documents" label="Dokumente" icon="sap-icon-documents" collapsed={collapsed} />
-        {isAuthenticated && user?.role === 'ADMIN' && (
-          <SidebarItem to="/statistik" label="Statistik" icon="sap-icon-bar-chart" collapsed={collapsed} />
-        )}
         <button
           onClick={openFeedback}
           title={collapsed ? 'Feedback' : undefined}
