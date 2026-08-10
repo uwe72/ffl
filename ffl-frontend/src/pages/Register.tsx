@@ -10,6 +10,7 @@ import StatTile from '../components/StatTile'
 import PlayerSelect from '../components/PlayerSelect'
 import type { PlayerSlot } from '../components/PlayerSelect'
 import { TableHead, Th, TableBody, Td } from '../components/Table'
+import useIsMobile from '../hooks/useIsMobile'
 import { positionLabels, positionColors } from './Players'
 import { positionTextColor } from '../utils/positions'
 import type { Player, Season, Position } from '../types'
@@ -56,18 +57,23 @@ const POSITION_GROUPS: { label: string; position: Position; slots: PlayerSlot[] 
   { label: 'Sturm', position: 'STRIKER', slots: PLAYER_SLOTS.filter(s => s.position === 'STRIKER') },
 ]
 
-const STEP_LABELS = ['Deine Daten', 'Dein Avatar', 'Dein Team', 'Deine Aufstellung']
+const STEP_LABELS = [
+  { short: 'Daten', long: 'Deine Daten' },
+  { short: 'Avatar', long: 'Dein Avatar' },
+  { short: 'Team', long: 'Dein Team' },
+  { short: 'Aufstellung', long: 'Deine Aufstellung' },
+]
 
 
 function WizardStepper({ currentStep }: { currentStep: number }) {
   return (
-    <div className="flex items-center justify-center gap-0 px-8 py-5">
+    <div className="flex items-center justify-center gap-0 px-2 py-4 md:px-8 md:py-5">
       {STEP_LABELS.map((label, idx) => {
         const stepNum = idx + 1
         const isCompleted = stepNum < currentStep
         const isActive = stepNum === currentStep
         return (
-          <div key={label} className="flex items-center">
+          <div key={label.long} className="flex items-center">
             <div className="flex flex-col items-center">
               <div
                 className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
@@ -89,12 +95,13 @@ function WizardStepper({ currentStep }: { currentStep: number }) {
                   isActive ? 'text-accent' : isCompleted ? 'text-accent/70' : 'text-muted'
                 }`}
               >
-                {label}
+                <span className="md:hidden">{label.short}</span>
+                <span className="hidden md:inline">{label.long}</span>
               </span>
             </div>
             {idx < STEP_LABELS.length - 1 && (
               <div
-                className={`w-16 md:w-24 h-[2px] mx-3 mt-[-18px] transition-all duration-300 ${
+                className={`w-6 md:w-24 h-[2px] mx-1 md:mx-3 mt-[-18px] transition-all duration-300 ${
                   stepNum < currentStep ? 'bg-accent' : 'bg-border'
                 }`}
               />
@@ -108,6 +115,7 @@ function WizardStepper({ currentStep }: { currentStep: number }) {
 
 export default function Register() {
   const [step, setStep] = useState(1)
+  const isMobile = useIsMobile()
   const [login, setLogin] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -827,7 +835,10 @@ export default function Register() {
                   </button>
                 </div>
               ) : (
-                <p className="mt-4 text-xs text-subtle">JPG, PNG oder WebP, max. 2 MB</p>
+                <div className="mt-4 text-center">
+                  <p className="text-xs text-subtle">JPG, PNG oder WebP, max. 2 MB</p>
+                  <p className="mt-1 text-xs text-subtle">Für andere Manager sichtbar</p>
+                </div>
               )}
 
             </div>
@@ -870,6 +881,12 @@ export default function Register() {
                 </div>
               ) : (
                 <div className="space-y-8">
+                  <div className="sm:hidden flex items-start gap-2 p-2 bg-accent-muted border border-accent/30 rounded-card">
+                    <i className="sap-icon sap-icon-hint text-[16px] text-accent shrink-0 mt-0.5" />
+                    <p className="text-xs text-foreground">
+                      Tipp: Linken Farbrand antippen, um Spieler zu entfernen.
+                    </p>
+                  </div>
                   {POSITION_GROUPS.map(group => {
                     const slots = getVisibleSlots(group)
                     const filled = slots.filter(s => selectedPlayers[s.key] !== null).length
@@ -880,10 +897,15 @@ export default function Register() {
                           <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[group.position]}`}>
                             {group.label}
                           </h3>
-                          <span className="text-xs text-subtle tabular-nums">{filled} / {slots.length}</span>
+                          <span className={`text-xs text-subtle tabular-nums ${isFreeGroup ? 'hidden sm:inline' : ''}`}>{filled} / {slots.length}</span>
                           {isFreeGroup && (
-                            <span className="text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
+                            <span className="hidden sm:inline-block text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
                               +1 Freie Wahl
+                            </span>
+                          )}
+                          {isFreeGroup && (
+                            <span className="sm:hidden inline-flex items-center p-1.5 bg-accent-muted border border-accent/30 rounded-card text-[10px] font-semibold text-accent-hover">
+                              Freie Wahl
                             </span>
                           )}
                           {isFreeGroup && (
@@ -961,77 +983,118 @@ export default function Register() {
               </div>
 
               <div className="bg-elevated/40 rounded-card p-4 border border-border/50">
-                <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <i className="sap-icon sap-icon-group text-[14px]" />
-                  Kader ({selectedIds.size}/11)
-                </h3>
-                <div className="overflow-x-auto rounded-card border border-border">
-                  <table className="w-full">
-                    <TableHead>
-                      <tr>
-                        <Th>Name</Th>
-                        <Th align="right">Preis</Th>
-                        <Th>Position</Th>
-                        <Th>Team</Th>
-                      </tr>
-                    </TableHead>
-                    <TableBody>
-                      {(() => {
-                        const posOrder: Record<string, number> = { GOALKEEPER: 0, DEFENDER: 1, MIDFIELD: 2, STRIKER: 3 }
-                        const squadPlayers = PLAYER_SLOTS
-                          .map(slot => {
-                            const id = selectedPlayers[slot.key]
-                            return id ? allPlayers.find(p => p.id === id) ?? null : null
-                          })
-                          .filter((p): p is Player => p !== null)
-                          .sort((a, b) => (posOrder[a.position] ?? 999) - (posOrder[b.position] ?? 999))
-                        return squadPlayers.length > 0 ? squadPlayers.map((player, index) => {
-                          const team = player.teams?.length > 0 ? player.teams[player.teams.length - 1] : null
-                          return (
-                            <tr key={player.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                              <Td>
-                                <div className="flex items-center">
-                                  {player.pictureUrl ? (
-                                    <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
-                                  ) : (
-                                    <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center mr-3">
-                                      <span className="text-[10px] text-muted">{POSITION_LABELS[player.position]}</span>
-                                    </div>
-                                  )}
-                                  <span className="font-medium text-foreground">{player.nameKicker}</span>
-                                </div>
-                              </Td>
-                              <Td align="right" className="text-foreground">
-                                {player.prize.toLocaleString('de-DE')} €
-                              </Td>
-                              <Td>
-                                <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
-                                  {positionLabels[player.position]}
-                                </span>
-                              </Td>
-                              <Td className="text-muted">
-                                {team ? (
-                                  <span className="flex items-center gap-2">
-                                    {team.logoSUrl && (
-                                      <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain flex-shrink-0" />
-                                    )}
-                                    <span className="text-foreground">{team.name}</span>
-                                  </span>
-                                ) : '-'}
-                              </Td>
-                            </tr>
-                          )
-                        }) : (
+                {!isMobile ? (
+                  <>
+                    <h3 className="text-xs font-semibold text-accent uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <i className="sap-icon sap-icon-group text-[14px]" />
+                      Kader ({selectedIds.size}/11)
+                    </h3>
+                    <div className="overflow-x-auto rounded-card border border-border">
+                      <table className="w-full">
+                        <TableHead>
                           <tr>
-                            <td colSpan={4} className="text-center text-subtle py-8">
-                              Keine Spieler ausgewählt
-                            </td>
+                            <Th>Name</Th>
+                            <Th align="right">Preis</Th>
+                            <Th>Position</Th>
+                            <Th>Team</Th>
                           </tr>
-                        )
-                      })()}
-                    </TableBody>
-                  </table>
-                </div>
+                        </TableHead>
+                        <TableBody>
+                          {(() => {
+                            const posOrder: Record<string, number> = { GOALKEEPER: 0, DEFENDER: 1, MIDFIELD: 2, STRIKER: 3 }
+                            const squadPlayers = PLAYER_SLOTS
+                              .map(slot => {
+                                const id = selectedPlayers[slot.key]
+                                return id ? allPlayers.find(p => p.id === id) ?? null : null
+                              })
+                              .filter((p): p is Player => p !== null)
+                              .sort((a, b) => (posOrder[a.position] ?? 999) - (posOrder[b.position] ?? 999))
+                            return squadPlayers.length > 0 ? squadPlayers.map((player, index) => {
+                              const team = player.teams?.length > 0 ? player.teams[player.teams.length - 1] : null
+                              return (
+                                <tr key={player.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                                  <Td>
+                                    <div className="flex items-center">
+                                      {player.pictureUrl ? (
+                                        <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
+                                      ) : (
+                                        <div className="w-10 h-10 rounded-full bg-elevated flex items-center justify-center mr-3">
+                                          <span className="text-[10px] text-muted">{POSITION_LABELS[player.position]}</span>
+                                        </div>
+                                      )}
+                                      <span className="font-medium text-foreground">{player.nameKicker}</span>
+                                    </div>
+                                  </Td>
+                                  <Td align="right" className="text-foreground">
+                                    {player.prize.toLocaleString('de-DE')} €
+                                  </Td>
+                                  <Td>
+                                    <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
+                                      {positionLabels[player.position]}
+                                    </span>
+                                  </Td>
+                                  <Td className="text-muted">
+                                    {team ? (
+                                      <span className="flex items-center gap-2">
+                                        {team.logoSUrl && (
+                                          <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain flex-shrink-0" />
+                                        )}
+                                        <span className="text-foreground">{team.name}</span>
+                                      </span>
+                                    ) : '-'}
+                                  </Td>
+                                </tr>
+                              )
+                            }) : (
+                              <tr>
+                                <td colSpan={4} className="text-center text-subtle py-8">
+                                  Keine Spieler ausgewählt
+                                </td>
+                              </tr>
+                            )
+                          })()}
+                        </TableBody>
+                      </table>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-8">
+                    {POSITION_GROUPS.map(group => {
+                      const slots = getVisibleSlots(group)
+                      const filled = slots.filter(s => selectedPlayers[s.key] !== null).length
+                      const isFreeGroup = group.position === freePosition
+                      return (
+                        <div key={group.label}>
+                          <div className="mb-2 flex items-center gap-3">
+                            <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[group.position]}`}>
+                              {group.label}
+                            </h3>
+                            <span className={`text-xs text-subtle tabular-nums ${isFreeGroup ? 'hidden sm:inline' : ''}`}>{filled} / {slots.length}</span>
+                            {isFreeGroup && (
+                              <span className="sm:hidden inline-flex items-center p-1.5 bg-accent-muted border border-accent/30 rounded-card text-[10px] font-semibold text-accent-hover">
+                                Freie Wahl
+                              </span>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                            {slots.map(slot => (
+                              <PlayerSelect
+                                key={slot.key}
+                                slot={slot}
+                                players={allPlayers}
+                                selectedIds={selectedIds}
+                                value={selectedPlayers[slot.key]}
+                                onChange={() => {}}
+                                disabled
+                                modal
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
             </div>
@@ -1084,7 +1147,7 @@ export default function Register() {
                 onClick={handleAutoLineup}
                 disabled={isLoading || allPlayers.length === 0}
               >
-                <i className="sap-icon sap-icon-synchronize text-[14px]" />
+                <i className="sap-icon sap-icon-synchronize text-[14px] !hidden sm:!inline-block" />
                 Auto-Aufstellung
               </Button>
               <div className="flex gap-3">
@@ -1125,7 +1188,7 @@ export default function Register() {
                 onClick={handleSubmit}
                 disabled={isLoading}
               >
-                {isLoading ? 'Wird registriert …' : 'Team verbindlich anmelden'}
+                {isLoading ? 'Wird registriert …' : <><span className="sm:hidden">Verbindlich anmelden</span><span className="hidden sm:inline">Team verbindlich anmelden</span></>}
               </Button>
             </>
           )}
