@@ -78,7 +78,7 @@ function PlayerCard({ player, hideManager, hideStats, onSelect }: { player: Play
         {player.pictureUrl ? (
           <img
             src={player.pictureUrl}
-            alt={fullName(player)}
+            alt={player.nameKicker}
             className="w-12 h-12 rounded-full object-cover flex-shrink-0"
           />
         ) : (
@@ -87,7 +87,7 @@ function PlayerCard({ player, hideManager, hideStats, onSelect }: { player: Play
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-foreground truncate">{fullName(player)}</div>
+          <div className="font-semibold text-foreground truncate">{player.nameKicker}</div>
           <div className="mt-1 flex items-center gap-1.5 flex-wrap">
             <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5`}>
               {positionShortLabels[player.position]}
