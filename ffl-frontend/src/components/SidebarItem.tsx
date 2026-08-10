@@ -12,7 +12,11 @@ interface SidebarItemProps {
 
 export default function SidebarItem({ to, label, icon, collapsed, subItems, expanded, onToggle }: SidebarItemProps) {
   const location = useLocation()
-  const isActive = location.pathname === to || (subItems && location.pathname.startsWith(to))
+  const isActive =
+    location.pathname === to ||
+    (subItems
+      ? subItems.some((sub) => !sub.external && (location.pathname === sub.to || location.pathname.startsWith(sub.to + '/')))
+      : location.pathname.startsWith(to))
   const hasSubItems = subItems && subItems.length > 0
 
   if (hasSubItems) {
