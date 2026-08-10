@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { trackEvent } from '../hooks/useMatomo'
 import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePreviewSeasonSetup, useGeneratePlayersPdf, useDeposits, useUpdateDeposit, useSyncDeposits } from '../hooks/useSeasons'
 import { useSystemConfig, useUpdateSystemConfig } from '../hooks/useSystemConfig'
+import { useManagersBySeason } from '../hooks/useManagers'
 import { useAuth } from '../context/AuthContext'
 import CalculationDialog from '../components/CalculationDialog'
 import SetupProgressDialog from '../components/SetupProgressDialog'
@@ -156,6 +157,8 @@ export default function Season() {
   const { data: deposits, isLoading: isLoadingDeposits } = useDeposits(season?.id ?? 0)
   const updateDeposit = useUpdateDeposit(season?.id ?? 0)
   const syncDeposits = useSyncDeposits(season?.id ?? 0)
+  const { data: managersBySeason } = useManagersBySeason(season?.id ?? 0)
+  const managersCount = managersBySeason?.length ?? 0
   const [activeTab, setActiveTab] = useState<'saisondaten' | 'bankverbindung' | 'gewinnausschuettung' | 'einzahlungen' | 'neue-saison'>('saisondaten')
   const [formData, setFormData] = useState<Partial<Season>>({})
   const [hasChanges, setHasChanges] = useState(false)
@@ -273,6 +276,8 @@ export default function Season() {
     const fmt = (v: number) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     return { receivedCount, openCount, receivedPct, paypalSum, paypalPct, ueberweisungSum, ueberweisungPct, openSum, fmt }
   }, [deposits])
+
+  const depositManagerMismatch = deposits !== undefined && managersCount > 0 && deposits.length !== managersCount
 
   const handleDepositSort = (key: typeof depositSortKey) => {
     if (depositSortKey === key) {
@@ -831,7 +836,12 @@ export default function Season() {
           )}
 
           <div className="p-6 bg-surface border border-border rounded-card mb-6">
-          <h2 className="text-xl font-semibold text-foreground mb-4">Einzahlungen ({filteredDeposits.length})</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-4">
+            Einzahlungen ({filteredDeposits.length})
+            {depositManagerMismatch && (
+              <span className="text-danger text-sm font-normal ml-2">(Sync nötig: Manager-Anzahl ungleich Einzahlungen)</span>
+            )}
+          </h2>
 
           <div className="flex items-center justify-between flex-wrap mb-4">
             <div className="flex items-center gap-3 flex-wrap">
