@@ -16,7 +16,7 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
     location.pathname === to ||
     (subItems
       ? subItems.some((sub) => !sub.external && (location.pathname === sub.to || location.pathname.startsWith(sub.to + '/')))
-      : location.pathname.startsWith(to))
+      : to !== '/' && location.pathname.startsWith(to + '/'))
   const hasSubItems = subItems && subItems.length > 0
 
   if (hasSubItems) {
