@@ -978,10 +978,15 @@ export default function MyTeam() {
                     <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[group.position]}`}>
                       {group.label}
                     </h3>
-                    <span className="text-xs text-subtle tabular-nums">{filled} / {slots.length}</span>
+                    <span className={`text-xs text-subtle tabular-nums ${isFreeGroup ? 'hidden sm:inline' : ''}`}>{filled} / {slots.length}</span>
                     {isFreeGroup && (
-                      <span className="text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
+                      <span className="hidden sm:inline-block text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
                         +1 Freie Wahl
+                      </span>
+                    )}
+                    {isFreeGroup && isBeforeSeason && (
+                      <span className="sm:hidden inline-flex items-center p-1.5 bg-accent-muted border border-accent/30 rounded-card text-[10px] font-semibold text-accent-hover">
+                        Freie Wahl
                       </span>
                     )}
                     {isFreeGroup && isBeforeSeason && (
