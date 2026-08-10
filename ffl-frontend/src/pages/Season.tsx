@@ -800,11 +800,11 @@ export default function Season() {
 
       {activeTab === 'einzahlungen' && (
         <>
+        <div className="w-fit max-w-full">
           {depositStats && (
-            <div className="mb-6">
+            <div className="p-6 bg-surface border border-border rounded-card mb-6">
               <h3 className="text-xl font-semibold text-foreground mb-4">Statistik</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                <StatTile label="Gesamt" value={String(deposits?.length ?? 0)} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                 <StatTile label="Eingegangen" value={String(depositStats.receivedCount)} tone="warning" />
                 <StatTile label="Offen" value={String(depositStats.openCount)} tone="danger" />
                 <StatTile label="Eingangsquote" value={`${depositStats.receivedPct}%`} />
@@ -815,8 +815,60 @@ export default function Season() {
             </div>
           )}
 
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-foreground">Einzahlungen ({filteredDeposits.length})</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Einzahlungen ({filteredDeposits.length})</h2>
+
+          <div className="flex items-center justify-between flex-wrap mb-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {(['ALL', 'OPEN', 'RECEIVED'] as const).map(status => {
+                  const active = depositStatusFilter === status
+                  const label = status === 'ALL' ? 'Alle' : status === 'OPEN' ? 'Offen' : 'Eingegangen'
+                  const activeClass = status === 'RECEIVED'
+                    ? 'bg-success-bg text-success border-success'
+                    : status === 'OPEN'
+                    ? 'bg-danger-bg text-danger border-danger'
+                    : 'bg-foreground text-surface border-foreground'
+                  return (
+                    <button
+                      key={status}
+                      onClick={() => setDepositStatusFilter(status)}
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${active ? activeClass : 'bg-elevated text-muted border-border'} cursor-pointer`}
+                    >
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="h-5 w-px bg-border" />
+
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {(['ALL', 'PAYPAL', 'UEBERWEISUNG'] as const).map(method => {
+                  const active = depositPaymentFilter === method
+                  const label = method === 'ALL' ? 'Alle' : method === 'PAYPAL' ? 'PayPal' : 'Überweisung'
+                  return (
+                    <button
+                      key={method}
+                      onClick={() => setDepositPaymentFilter(method)}
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${active ? 'bg-foreground text-surface border-foreground' : 'bg-elevated text-muted border-border'} cursor-pointer`}
+                    >
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {hasDepositFilter && (
+                <button
+                  onClick={() => { setDepositSearch(''); setDepositStatusFilter('ALL'); setDepositPaymentFilter('ALL') }}
+                  className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
+                  title="Filter zurücksetzen"
+                >
+                  <i className="sap-icon sap-icon-decline text-[14px]" />
+                </button>
+              )}
+            </div>
+
             <div className="flex items-center gap-3">
               <div className="relative w-64">
                 <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
@@ -836,57 +888,6 @@ export default function Season() {
                 {syncDeposits.isPending ? 'Wird synchronisiert...' : 'Einzahlungen synchronisieren'}
               </Button>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3 flex-wrap mb-4">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {(['ALL', 'OPEN', 'RECEIVED'] as const).map(status => {
-                const active = depositStatusFilter === status
-                const label = status === 'ALL' ? 'Alle' : status === 'OPEN' ? 'Offen' : 'Eingegangen'
-                const activeClass = status === 'RECEIVED'
-                  ? 'bg-success-bg text-success border-success'
-                  : status === 'OPEN'
-                  ? 'bg-danger-bg text-danger border-danger'
-                  : 'bg-foreground text-surface border-foreground'
-                return (
-                  <button
-                    key={status}
-                    onClick={() => setDepositStatusFilter(status)}
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${active ? activeClass : 'bg-elevated text-muted border-border'} cursor-pointer`}
-                  >
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="h-5 w-px bg-border" />
-
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {(['ALL', 'PAYPAL', 'UEBERWEISUNG'] as const).map(method => {
-                const active = depositPaymentFilter === method
-                const label = method === 'ALL' ? 'Alle' : method === 'PAYPAL' ? 'PayPal' : 'Überweisung'
-                return (
-                  <button
-                    key={method}
-                    onClick={() => setDepositPaymentFilter(method)}
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${active ? 'bg-foreground text-surface border-foreground' : 'bg-elevated text-muted border-border'} cursor-pointer`}
-                  >
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
-
-            {hasDepositFilter && (
-              <button
-                onClick={() => { setDepositSearch(''); setDepositStatusFilter('ALL'); setDepositPaymentFilter('ALL') }}
-                className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
-                title="Filter zurücksetzen"
-              >
-                <i className="sap-icon sap-icon-decline text-[14px]" />
-              </button>
-            )}
           </div>
 
           {depositSyncError && (
@@ -923,7 +924,7 @@ export default function Season() {
 
           {deposits && deposits.length > 0 && (
             <>
-              <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
+              <div className="p-6 bg-surface border border-border rounded-card mb-6">
                 <div className="overflow-x-auto rounded-card border border-border">
                   <table className="w-full min-w-[900px]">
                     <TableHead>
@@ -1040,6 +1041,7 @@ export default function Season() {
               Noch keine Einzahlungen erfasst. Klicken Sie auf „Einzahlungen synchronisieren“, um für alle Manager Einzahlungsobjekte anzulegen.
             </div>
           )}
+        </div>
         </>
       )}
 
