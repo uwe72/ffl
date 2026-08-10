@@ -853,9 +853,6 @@ export default function MyTeam() {
               <p className="text-sm text-muted mt-1 truncate">
                 {manager?.login ?? '-'}
               </p>
-              <p className="text-xs text-muted mt-1 truncate">
-                {profileEmail || manager?.email || '-'}
-              </p>
             </div>
           </div>
           <div className="w-full sm:w-auto sm:ml-auto">
