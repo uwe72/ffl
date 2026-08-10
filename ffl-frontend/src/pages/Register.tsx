@@ -1132,7 +1132,7 @@ export default function Register() {
           {step === 2 && (
             <>
               <Button
-                variant="transparent"
+                variant="ghost"
                 onClick={() => {
                   setStep(1)
                   setError('')
@@ -1156,11 +1156,12 @@ export default function Register() {
                 disabled={isLoading || allPlayers.length === 0}
               >
                 <i className="sap-icon sap-icon-synchronize text-[14px] !hidden sm:!inline-block" />
-                Auto-Aufstellung
+                <span className="sm:hidden">Auto</span>
+                <span className="hidden sm:inline">Auto-Aufstellung</span>
               </Button>
               <div className="flex gap-3">
                 <Button
-                  variant="transparent"
+                  variant="ghost"
                   onClick={() => {
                     setStep(2)
                     setError('')
@@ -1182,7 +1183,7 @@ export default function Register() {
           {step === 4 && (
             <>
               <Button
-                variant="transparent"
+                variant="ghost"
                 onClick={() => {
                   setStep(3)
                   setError('')
