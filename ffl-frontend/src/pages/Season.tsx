@@ -176,7 +176,7 @@ export default function Season() {
   const [depositSyncError, setDepositSyncError] = useState<string | null>(null)
   const [depositSearch, setDepositSearch] = useState('')
   const [depositStatusFilter, setDepositStatusFilter] = useState<'ALL' | 'OPEN' | 'RECEIVED'>('OPEN')
-  const [depositPaymentFilter, setDepositPaymentFilter] = useState<'ALL' | 'PAYPAL' | 'UEBERWEISUNG'>('ALL')
+  const [depositPaymentFilter, setDepositPaymentFilter] = useState<'ALL' | 'PAYPAL' | 'UEBERWEISUNG' | 'OTHER'>('ALL')
   const [depositSortKey, setDepositSortKey] = useState<'login' | 'firstName' | 'lastName' | 'paymentMethod' | 'depositStatus'>('login')
   const [depositSortOrder, setDepositSortOrder] = useState<'asc' | 'desc'>('asc')
   const [depositStatsOpen, setDepositStatsOpen] = useState(false)
@@ -270,12 +270,13 @@ export default function Season() {
     const receivedPct = Math.round((receivedCount / deposits.length) * 100)
     const paypalSum = deposits.filter(d => d.paymentMethod === 'PAYPAL' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
     const ueberweisungSum = deposits.filter(d => d.paymentMethod === 'UEBERWEISUNG' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
-    const openSum = deposits.filter(d => d.depositStatus !== 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
-    const receivedSum = paypalSum + ueberweisungSum
+    const otherSum = deposits.filter(d => d.paymentMethod === 'OTHER' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
+    const receivedSum = paypalSum + ueberweisungSum + otherSum
     const paypalPct = receivedSum > 0 ? Math.round((paypalSum / receivedSum) * 100) : 0
     const ueberweisungPct = receivedSum > 0 ? Math.round((ueberweisungSum / receivedSum) * 100) : 0
+    const otherPct = receivedSum > 0 ? Math.round((otherSum / receivedSum) * 100) : 0
     const fmt = (v: number) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    return { receivedCount, openCount, receivedPct, paypalSum, paypalPct, ueberweisungSum, ueberweisungPct, openSum, fmt }
+    return { receivedCount, openCount, receivedPct, paypalSum, paypalPct, ueberweisungSum, ueberweisungPct, otherSum, otherPct, fmt }
   }, [deposits])
 
   const depositManagerMismatch = deposits !== undefined && managersCount > 0 && deposits.length !== managersCount
@@ -830,7 +831,7 @@ export default function Season() {
                   <StatTile label="Eingangsquote" value={`${depositStats.receivedPct}%`} />
                   <StatTile label="PayPal" value={`${depositStats.fmt(depositStats.paypalSum)} €`} note={`${depositStats.paypalPct}%`} />
                   <StatTile label="Überweisung" value={`${depositStats.fmt(depositStats.ueberweisungSum)} €`} note={`${depositStats.ueberweisungPct}%`} />
-                  <StatTile label="Offen (Summe)" value={`${depositStats.fmt(depositStats.openSum)} €`} tone="danger" />
+                  <StatTile label="Sonstiges" value={`${depositStats.fmt(depositStats.otherSum)} €`} note={`${depositStats.otherPct}%`} />
                 </div>
               )}
             </div>
@@ -870,9 +871,9 @@ export default function Season() {
               <div className="h-5 w-px bg-border" />
 
               <div className="flex items-center gap-1.5 flex-wrap">
-                {(['ALL', 'PAYPAL', 'UEBERWEISUNG'] as const).map(method => {
+                {(['ALL', 'PAYPAL', 'UEBERWEISUNG', 'OTHER'] as const).map(method => {
                   const active = depositPaymentFilter === method
-                  const label = method === 'ALL' ? 'Alle' : method === 'PAYPAL' ? 'PayPal' : 'Überweisung'
+                  const label = method === 'ALL' ? 'Alle' : method === 'PAYPAL' ? 'PayPal' : method === 'UEBERWEISUNG' ? 'Überweisung' : 'Sonstiges'
                   return (
                     <button
                       key={method}
@@ -1015,6 +1016,7 @@ export default function Season() {
                               <option value="">-</option>
                               <option value="UEBERWEISUNG">Überweisung</option>
                               <option value="PAYPAL">PayPal</option>
+                              <option value="OTHER">Sonstiges</option>
                             </select>
                           </td>
                           <td className="px-3 py-2 text-center">

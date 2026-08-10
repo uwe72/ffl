@@ -2,5 +2,6 @@ package de.ffl.domain;
 
 public enum PaymentMethod {
     PAYPAL,
-    UEBERWEISUNG
+    UEBERWEISUNG,
+    OTHER
 }

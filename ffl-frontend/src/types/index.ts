@@ -147,7 +147,7 @@ export interface ManagerInfo {
 
 export type PayoutStatus = 'PAID' | 'UNPAID'
 
-export type PaymentMethod = 'PAYPAL' | 'UEBERWEISUNG'
+export type PaymentMethod = 'PAYPAL' | 'UEBERWEISUNG' | 'OTHER'
 
 export type DepositStatus = 'RECEIVED' | 'OPEN'
 
