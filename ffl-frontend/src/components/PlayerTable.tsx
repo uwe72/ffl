@@ -22,6 +22,13 @@ export const positionColors: Record<string, string> = {
   STRIKER: 'pos-striker'
 }
 
+const positionShortLabels: Record<string, string> = {
+  GOALKEEPER: 'TW',
+  DEFENDER: 'VT',
+  MIDFIELD: 'MF',
+  STRIKER: 'ST'
+}
+
 const positionChipClass: Record<string, string> = {
   GOALKEEPER: 'pos-goalkeeper',
   DEFENDER: 'pos-defender',
@@ -72,32 +79,29 @@ function PlayerCard({ player, hideManager, hideStats, onSelect }: { player: Play
           <img
             src={player.pictureUrl}
             alt={fullName(player)}
-            className="w-14 h-14 rounded-full object-cover flex-shrink-0"
+            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
           />
         ) : (
-          <div className="w-14 h-14 rounded-full bg-elevated flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 rounded-full bg-elevated flex items-center justify-center flex-shrink-0">
             <span className="text-xl text-subtle">👤</span>
           </div>
         )}
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-foreground truncate">{fullName(player)}</div>
-          <div className="mt-1">
-            {hideStats ? (
-              <span className="text-xs font-medium px-2 py-0.5 bg-elevated text-foreground">
-                {formatPrice(player.prize)}
-              </span>
-            ) : (
-              <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5`}>
-                {positionLabels[player.position]}
-              </span>
-            )}
+          <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+            <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5`}>
+              {positionShortLabels[player.position]}
+            </span>
+            <span className="text-xs font-medium px-2 py-0.5 bg-elevated text-foreground">
+              {formatPrice(player.prize)}
+            </span>
           </div>
         </div>
         {player.teams.length > 0 && player.teams[0].logoSUrl && (
           <img
             src={player.teams[0].logoSUrl}
             alt={player.teams[0].name}
-            className="w-14 h-14 object-contain flex-shrink-0"
+            className="w-10 h-10 object-contain flex-shrink-0"
           />
         )}
       </div>
@@ -214,12 +218,10 @@ function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeam
         </button>
       </div>
 
-      <div className="h-5 w-px bg-border" />
-
       <select
         value={selectedTeamId}
         onChange={e => setSelectedTeamId(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
-        className="input-field control px-2 py-1.5 rounded-control text-xs cursor-pointer min-w-40"
+        className="input-field control px-2 py-1.5 rounded-control text-xs cursor-pointer w-full sm:w-auto sm:min-w-40"
       >
         <option value="ALL">Alle Vereine</option>
         {teams.map(team => (
@@ -227,9 +229,7 @@ function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeam
         ))}
       </select>
 
-      <div className="h-5 w-px bg-border" />
-
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 w-full sm:w-auto">
         <input
           type="text"
           inputMode="numeric"
@@ -238,7 +238,7 @@ function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeam
           onBlur={() => setMinFocused(false)}
           onChange={e => setPriceMin(e.target.value.replace(/[^\d]/g, ''))}
           placeholder="Min €"
-          className="input-field control w-40 px-2 py-1.5 text-xs"
+          className="input-field control flex-1 min-w-0 sm:w-40 px-2 py-1.5 text-xs"
         />
         <span className="text-subtle text-xs">–</span>
         <input
@@ -249,7 +249,7 @@ function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeam
           onBlur={() => setMaxFocused(false)}
           onChange={e => setPriceMax(e.target.value.replace(/[^\d]/g, ''))}
           placeholder="Max €"
-          className="input-field control w-40 px-2 py-1.5 text-xs"
+          className="input-field control flex-1 min-w-0 sm:w-40 px-2 py-1.5 text-xs"
         />
       </div>
 
@@ -369,8 +369,8 @@ export default function PlayerTable({
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
-        <div className="relative w-64">
+        <h2 className="hidden sm:block text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
+        <div className="relative w-full sm:w-64">
           <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
           <input
             type="text"
