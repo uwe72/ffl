@@ -799,7 +799,8 @@ export default function Register() {
 
           {step === 2 && (
             <div className="mt-5 flex flex-col items-center">
-              <p className="text-sm text-muted mb-6">Wähle ein Profilbild aus (optional)</p>
+              <p className="text-sm text-muted">Wähle ein Profilbild aus (optional)</p>
+              <p className="mt-1 mb-6 text-sm text-foreground font-medium">Für andere Manager sichtbar</p>
 
               <button
                 type="button"
@@ -835,10 +836,7 @@ export default function Register() {
                   </button>
                 </div>
               ) : (
-                <div className="mt-4 text-center">
-                  <p className="text-xs text-subtle">JPG, PNG oder WebP, max. 2 MB</p>
-                  <p className="mt-1 text-xs text-subtle">Für andere Manager sichtbar</p>
-                </div>
+                <p className="mt-4 text-xs text-subtle">JPG, PNG oder WebP, max. 2 MB</p>
               )}
 
             </div>
@@ -963,14 +961,24 @@ export default function Register() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-3xl font-bold text-foreground truncate">
-                      {firstName && lastName ? `${firstName} ${lastName} (${login})` : (login || '-')}
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground truncate">
+                      {firstName && lastName ? (
+                        <>
+                          <span className="sm:hidden">{firstName} {lastName}</span>
+                          <span className="hidden sm:inline">{firstName} {lastName} ({login})</span>
+                        </>
+                      ) : (
+                        login || '-'
+                      )}
                     </h2>
-                    <p className="text-xs uppercase tracking-wide text-subtle mt-2 truncate">{email || '-'}</p>
+                    {firstName && lastName && (
+                      <p className="text-sm text-muted sm:hidden mt-1 truncate">{login || '-'}</p>
+                    )}
+                    <p className="text-sm text-muted sm:text-xs sm:uppercase sm:tracking-wide sm:text-subtle mt-1 sm:mt-2 truncate">{email || '-'}</p>
                   </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-border" />
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="min-w-0">
                     <span className="text-xs text-muted">Ausgegebenes Budget</span>
                     <p className="text-foreground font-medium mt-1">{totalCost.toLocaleString('de-DE')} €</p>
