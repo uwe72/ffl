@@ -627,12 +627,12 @@ export default function Home() {
                     <p className="text-2xl font-bold text-foreground tabular-nums">{formatPoints(displayManager.pointsTotal ?? 0)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted">Spieltag</p>
+                    <p className="text-xs text-muted">Spieltag (Punkte)</p>
                     <p className="text-2xl font-bold text-foreground tabular-nums">{formatPoints(displayManager.pointsLastRound ?? 0)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted">Teamwert</p>
-                    <p className="text-2xl font-bold text-foreground tabular-nums">{formatMillions(displayManager.teamValue ?? 0)}</p>
+                    <p className="text-xs text-muted">Spieltag (Position)</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{displayManager.positionLastRound ? `${displayManager.positionLastRound}.` : '-'}</p>
                   </div>
                 </div>
               </CardContainer>
