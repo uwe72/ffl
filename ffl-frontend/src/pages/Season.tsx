@@ -816,6 +816,35 @@ export default function Season() {
                     </span>
                   </div>
                 </div>
+                <div className="flex items-center gap-6 text-sm flex-wrap mt-3 pt-3 border-t border-border">
+                  {(() => {
+                    const total = deposits.reduce((sum, d) => sum + d.amount, 0)
+                    const paypalSum = deposits.filter(d => d.paymentMethod === 'PAYPAL' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
+                    const ueberweisungSum = deposits.filter(d => d.paymentMethod === 'UEBERWEISUNG' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
+                    const openSum = deposits.filter(d => d.depositStatus !== 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
+                    const pct = (v: number) => total > 0 ? Math.round((v / total) * 100) : 0
+                    const fmt = (v: number) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    return (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted">PayPal:</span>
+                          <span className="text-foreground font-medium">{fmt(paypalSum)} €</span>
+                          <span className="text-muted">({pct(paypalSum)}%)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted">Überweisung:</span>
+                          <span className="text-foreground font-medium">{fmt(ueberweisungSum)} €</span>
+                          <span className="text-muted">({pct(ueberweisungSum)}%)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted">Offen:</span>
+                          <span className="text-danger font-medium">{fmt(openSum)} €</span>
+                          <span className="text-muted">({pct(openSum)}%)</span>
+                        </div>
+                      </>
+                    )
+                  })()}
+                </div>
               </div>
               <div className="rounded-card border border-border overflow-x-auto">
                 <table className="w-full min-w-[900px]">
@@ -847,12 +876,16 @@ export default function Season() {
                             onChange={(e) => {
                               updateDeposit.mutate({
                                 managerId: deposit.managerId,
-                                data: { paymentMethod: e.target.value as PaymentMethod }
+                                data: { paymentMethod: e.target.value as PaymentMethod | '' }
                               })
                             }}
-                            className="px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer bg-default text-foreground"
+                            className={`px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer ${
+                              !deposit.paymentMethod && deposit.depositStatus === 'RECEIVED'
+                                ? 'bg-danger text-danger-foreground'
+                                : 'bg-default text-foreground'
+                            }`}
                           >
-                            <option value="" disabled>Bitte wählen</option>
+                            <option value="">-</option>
                             <option value="UEBERWEISUNG">Überweisung</option>
                             <option value="PAYPAL">PayPal</option>
                           </select>
@@ -869,7 +902,9 @@ export default function Season() {
                             className={`px-3 py-1.5 rounded-control text-sm font-medium cursor-pointer ${
                               deposit.depositStatus === 'RECEIVED'
                                 ? 'bg-success text-success-foreground'
-                                : 'bg-default text-foreground'
+                                : deposit.paymentMethod
+                                  ? 'bg-danger text-danger-foreground'
+                                  : 'bg-default text-foreground'
                             }`}
                           >
                             <option value="OPEN">Offen</option>

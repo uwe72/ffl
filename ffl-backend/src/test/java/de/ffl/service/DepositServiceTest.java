@@ -147,7 +147,7 @@ class DepositServiceTest extends AbstractSeasonTestBase {
         depositService.updateDeposit(season.getId(), managerId,
             UpdateDepositRequest.builder()
                 .depositStatus(DepositStatus.RECEIVED)
-                .paymentMethod(PaymentMethod.PAYPAL)
+                .paymentMethod(PaymentMethod.PAYPAL.name())
                 .comment("Erste Zahlung")
                 .build());
 

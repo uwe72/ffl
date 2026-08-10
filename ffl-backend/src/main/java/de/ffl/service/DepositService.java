@@ -3,6 +3,7 @@ package de.ffl.service;
 import de.ffl.domain.Deposit;
 import de.ffl.domain.DepositStatus;
 import de.ffl.domain.Manager;
+import de.ffl.domain.PaymentMethod;
 import de.ffl.domain.Season;
 import de.ffl.domain.User;
 import de.ffl.dto.DepositDto;
@@ -56,7 +57,11 @@ public class DepositService {
             deposit.setComment(request.getComment());
         }
         if (request.getPaymentMethod() != null) {
-            deposit.setPaymentMethod(request.getPaymentMethod());
+            if (request.getPaymentMethod().isEmpty()) {
+                deposit.setPaymentMethod(null);
+            } else {
+                deposit.setPaymentMethod(PaymentMethod.valueOf(request.getPaymentMethod()));
+            }
         }
         if (request.getDepositStatus() != null) {
             DepositStatus newStatus = request.getDepositStatus();

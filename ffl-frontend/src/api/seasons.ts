@@ -15,7 +15,7 @@ export interface UpdatePayoutRequest {
 export interface UpdateDepositRequest {
   comment?: string
   depositStatus?: DepositStatus
-  paymentMethod?: PaymentMethod
+  paymentMethod?: PaymentMethod | ''
 }
 
 export interface MailPreviewResponse {
