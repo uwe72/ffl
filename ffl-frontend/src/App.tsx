@@ -30,6 +30,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Profile from './pages/Profile'
 import MyTeam from './pages/MyTeam'
+import Statistics from './pages/Statistics'
 import ProtectedRoute from './components/ProtectedRoute'
 import SeasonRestrictedRoute from './components/SeasonRestrictedRoute'
 import { useMatomoPageView } from './hooks/useMatomo'
@@ -99,6 +100,11 @@ function App() {
             <Route path="system" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <System />
+              </ProtectedRoute>
+            } />
+            <Route path="statistik" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <Statistics />
               </ProtectedRoute>
             } />
             <Route path="emails" element={
