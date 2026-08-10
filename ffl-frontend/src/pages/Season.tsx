@@ -171,10 +171,11 @@ export default function Season() {
   const [depositSyncResult, setDepositSyncResult] = useState<DepositSyncResult | null>(null)
   const [depositSyncError, setDepositSyncError] = useState<string | null>(null)
   const [depositSearch, setDepositSearch] = useState('')
-  const [depositStatusFilter, setDepositStatusFilter] = useState<'ALL' | 'OPEN' | 'RECEIVED'>('ALL')
+  const [depositStatusFilter, setDepositStatusFilter] = useState<'ALL' | 'OPEN' | 'RECEIVED'>('OPEN')
   const [depositPaymentFilter, setDepositPaymentFilter] = useState<'ALL' | 'PAYPAL' | 'UEBERWEISUNG'>('ALL')
   const [depositSortKey, setDepositSortKey] = useState<'login' | 'firstName' | 'lastName' | 'paymentMethod' | 'depositStatus'>('login')
   const [depositSortOrder, setDepositSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [depositStatsOpen, setDepositStatsOpen] = useState(false)
   const [setupSeasonName, setSetupSeasonName] = useState('')
   const [setupPreview, setSetupPreview] = useState<SetupPreviewDto | null>(null)
   const [showSetupConfirm, setShowSetupConfirm] = useState(false)
@@ -806,15 +807,26 @@ export default function Season() {
         <div className="w-fit max-w-full">
           {depositStats && (
             <div className="p-6 bg-surface border border-border rounded-card mb-6">
-              <h3 className="text-xl font-semibold text-foreground mb-4">Statistik</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                <StatTile label="Eingegangen" value={String(depositStats.receivedCount)} tone="warning" />
-                <StatTile label="Offen" value={String(depositStats.openCount)} tone="danger" />
-                <StatTile label="Eingangsquote" value={`${depositStats.receivedPct}%`} />
-                <StatTile label="PayPal" value={`${depositStats.fmt(depositStats.paypalSum)} €`} note={`${depositStats.paypalPct}%`} />
-                <StatTile label="Überweisung" value={`${depositStats.fmt(depositStats.ueberweisungSum)} €`} note={`${depositStats.ueberweisungPct}%`} />
-                <StatTile label="Offen (Summe)" value={`${depositStats.fmt(depositStats.openSum)} €`} tone="danger" />
-              </div>
+              <button
+                type="button"
+                onClick={() => setDepositStatsOpen(o => !o)}
+                aria-expanded={depositStatsOpen}
+                aria-controls="deposit-statistics"
+                className="flex items-center gap-2 text-xl font-semibold text-foreground w-full text-left"
+              >
+                <i className={`sap-icon sap-icon-slim-arrow-${depositStatsOpen ? 'up' : 'down'} text-base`} />
+                Statistik
+              </button>
+              {depositStatsOpen && (
+                <div id="deposit-statistics" className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-4">
+                  <StatTile label="Eingegangen" value={String(depositStats.receivedCount)} tone="success" />
+                  <StatTile label="Offen" value={String(depositStats.openCount)} tone="danger" />
+                  <StatTile label="Eingangsquote" value={`${depositStats.receivedPct}%`} />
+                  <StatTile label="PayPal" value={`${depositStats.fmt(depositStats.paypalSum)} €`} note={`${depositStats.paypalPct}%`} />
+                  <StatTile label="Überweisung" value={`${depositStats.fmt(depositStats.ueberweisungSum)} €`} note={`${depositStats.ueberweisungPct}%`} />
+                  <StatTile label="Offen (Summe)" value={`${depositStats.fmt(depositStats.openSum)} €`} tone="danger" />
+                </div>
+              )}
             </div>
           )}
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-type StatTileTone = 'default' | 'warning' | 'danger'
+type StatTileTone = 'default' | 'warning' | 'danger' | 'success'
 
 interface StatTileProps {
   label: string
@@ -15,6 +15,7 @@ const toneValueClass: Record<StatTileTone, string> = {
   default: 'text-foreground',
   warning: 'text-warning',
   danger: 'text-danger',
+  success: 'text-success',
 }
 
 export default function StatTile({
