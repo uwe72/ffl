@@ -127,6 +127,17 @@ export default function PlayerSelect({
         ) : (
           <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[selectedPlayer.position]}`} />
         )}
+        {!disabled && (
+          <button
+            type="button"
+            onClick={handleClear}
+            aria-label={`${selectedPlayer.nameKicker} entfernen`}
+            title="Entfernen"
+            className="hidden sm:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-10"
+          >
+            <i className="sap-icon sap-icon-decline text-base" />
+          </button>
+        )}
         <div className="relative shrink-0">
           {selectedPlayer.pictureUrl ? (
             <img src={selectedPlayer.pictureUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
