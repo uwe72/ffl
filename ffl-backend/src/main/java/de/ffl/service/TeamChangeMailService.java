@@ -75,7 +75,7 @@ public class TeamChangeMailService {
                 helper.setBcc(config.getGmailSenderEmail());
             }
 
-            helper.setSubject("FFL | " + seasonName + " | " + userLogin + " | " + teamChangeCount + ". Änderung");
+            helper.setSubject("FFL | " + userLogin + " | " + teamChangeCount + ". Änderung | " + seasonName);
 
             String html = buildTeamChangeHtml(greeting, seasonName, changeTypeLabel, exchanges, positionGroups, budget, webUrl, teamChangeCount);
             helper.setText(html, true);
