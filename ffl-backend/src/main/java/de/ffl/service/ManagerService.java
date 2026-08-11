@@ -647,16 +647,6 @@ public class ManagerService {
         if (totalValue > manager.getBudget()) {
             throw new IllegalArgumentException("Team value exceeds budget");
         }
-
-        Map<Long, Long> teamCount = players.stream()
-            .filter(p -> p.getTeams() != null && !p.getTeams().isEmpty())
-            .collect(Collectors.groupingBy(p -> p.getTeams().get(p.getTeams().size() - 1).getId(), Collectors.counting()));
-
-        for (Long count : teamCount.values()) {
-            if (count > 5) {
-                throw new IllegalArgumentException("Maximum 5 players from the same team allowed");
-            }
-        }
     }
 
     @Transactional

@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class BestTeamService {
 
     private static final Logger log = LoggerFactory.getLogger(BestTeamService.class);
-    private static final int MAX_PLAYERS_PER_CLUB = 5;
 
     private final PlayerRepository playerRepository;
     private final PlayerRankRepository playerRankRepository;
@@ -214,8 +213,6 @@ public class BestTeamService {
                 List<ScoredPlayer> allPlayers = new ArrayList<>(fieldPlayers);
                 allPlayers.add(gk);
 
-                if (hasMoreThanMaxFromSameClub(allPlayers)) continue;
-
                 int totalPoints = smdCombo.totalPoints + gk.points;
                 long totalCost = smdCombo.totalCost + gk.player.getPrize();
 
@@ -318,19 +315,6 @@ public class BestTeamService {
             sum += prices.get(i);
         }
         return sum;
-    }
-
-    private boolean hasMoreThanMaxFromSameClub(List<ScoredPlayer> players) {
-        Map<Long, Integer> clubCount = new HashMap<>();
-        for (ScoredPlayer sp : players) {
-            List<Team> teams = sp.player.getTeams();
-            if (teams != null && !teams.isEmpty()) {
-                Long teamId = teams.get(teams.size() - 1).getId();
-                int count = clubCount.merge(teamId, 1, Integer::sum);
-                if (count > MAX_PLAYERS_PER_CLUB) return true;
-            }
-        }
-        return false;
     }
 
     private BestTeamResult buildResult(CandidateTeam team, String formation, long budget) {

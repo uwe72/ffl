@@ -64,19 +64,6 @@ class BestTeamServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
-    void bestTeam_shouldRespectMaxFivePlayersPerClub() {
-        Map<String, Long> clubCounts = bestTeam.getPlayers().stream()
-            .filter(p -> p.getTeamName() != null && !p.getTeamName().isEmpty())
-            .collect(Collectors.groupingBy(BestTeamPlayer::getTeamName, Collectors.counting()));
-
-        for (Map.Entry<String, Long> entry : clubCounts.entrySet()) {
-            assertThat(entry.getValue())
-                .as("Club %s should have at most 5 players", entry.getKey())
-                .isLessThanOrEqualTo(5);
-        }
-    }
-
-    @Test
     void bestTeam_shouldHaveAllUniquePlayers() {
         List<Long> ids = bestTeam.getPlayers().stream()
             .map(BestTeamPlayer::getId)
