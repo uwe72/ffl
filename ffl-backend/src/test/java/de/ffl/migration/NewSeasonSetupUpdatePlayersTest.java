@@ -254,4 +254,17 @@ class NewSeasonSetupUpdatePlayersTest {
         assertThat(gk01.getAktiv()).isTrue();
         assertThat(log.get()).contains("Spieler reaktiviert: Mustermann");
     }
+
+    @Test
+    void updatePlayers_skipsPlayersWithUnknownMarketValue() {
+        AtomicReference<String> log = new AtomicReference<>("");
+        NewSeasonSetupService.UpdateResult result = setupService.updatePlayers("test-url", msg -> log.set(log.get() + msg + "\n"));
+
+        assertThat(playerRepository.findBySeasonId(season.getId()))
+                .filteredOn(p -> "pl-test-df-sentinel".equals(p.getKickerId()))
+                .isEmpty();
+        assertThat(log.get()).contains("Spieler übersprungen (Marktwert unbekannt): Sentinel (Testverein Alpha)");
+        assertThat(log.get()).contains("Spieler mit unbekanntem Marktwert übersprungen: 1");
+        assertThat(result.playersCreated()).isEqualTo(8);
+    }
 }

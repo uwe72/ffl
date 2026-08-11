@@ -173,4 +173,17 @@ class NewSeasonSetupServiceTest extends AbstractSeasonTestBase {
         assertThat(preview.playersPerPosition().get("STRIKER")).isEqualTo(3);
         assertThat(preview.teamBreakdown()).hasSize(3);
     }
+
+    @Test
+    void setup_skipsPlayersWithUnknownMarketValue() {
+        AtomicReference<String> log = new AtomicReference<>("");
+        Season newSeason = setupService.setup("test-url", "2026/27", msg ->
+                log.set(log.get() + msg + "\n"));
+
+        assertThat(playerRepository.findBySeasonId(newSeason.getId()))
+                .filteredOn(p -> "pl-test-df-sentinel".equals(p.getKickerId()))
+                .isEmpty();
+        assertThat(log.get()).contains("Spieler übersprungen (Marktwert unbekannt): Sentinel (Testverein Alpha)");
+        assertThat(log.get()).contains("Spieler mit unbekanntem Marktwert übersprungen: 1");
+    }
 }

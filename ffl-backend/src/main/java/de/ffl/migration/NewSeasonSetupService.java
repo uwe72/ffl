@@ -42,10 +42,15 @@ import java.util.function.Consumer;
 public class NewSeasonSetupService {
 
     private static final int ROUND_COUNT = 34;
+    private static final int MARKET_VALUE_UNKNOWN = 999_000_000;
     private static final java.util.regex.Pattern LOGO_TEAM_ID_PATTERN =
             java.util.regex.Pattern.compile("teamId=(\\d+)");
     public static final String DEFAULT_SOURCE_URL =
             "https://classic.kicker-libero.de/api/gameloop/v1/state/current/se-k00012026.json";
+
+    private boolean hasValidMarketValue(KickerPlayer kp) {
+        return kp.marketValue() != null && kp.marketValue() != MARKET_VALUE_UNKNOWN;
+    }
 
     private final KickerClientDatabaseClient databaseClient;
     private final SeasonRepository seasonRepository;
@@ -111,7 +116,9 @@ public class NewSeasonSetupService {
             }
         }
 
-        List<KickerPlayer> players = activePlayers(db);
+        List<KickerPlayer> players = activePlayers(db).stream()
+                .filter(this::hasValidMarketValue)
+                .toList();
 
         Map<String, Integer> playersPerPosition = new LinkedHashMap<>();
         playersPerPosition.put("GOALKEEPER", 0);
@@ -283,9 +290,16 @@ public class NewSeasonSetupService {
         log.accept("");
         log.accept("Erstelle Spieler ...");
         int playerCount = 0;
+        int playersSkipped = 0;
         for (KickerPlayer kp : players) {
             Team team = teamsByKickerId.get(kp.teamId());
             if (team == null) {
+                continue;
+            }
+            if (!hasValidMarketValue(kp)) {
+                playersSkipped++;
+                log.accept("Spieler übersprungen (Marktwert unbekannt): "
+                        + kickerDisplayName(kp) + " (" + team.getName() + ")");
                 continue;
             }
             List<Team> teamList = new ArrayList<>();
@@ -296,7 +310,7 @@ public class NewSeasonSetupService {
                     .firstName(kp.firstName())
                     .lastName(kp.lastName())
                     .position(Position.valueOf(mapPosition(kp.position())))
-                    .prize(kp.marketValue() != null ? kp.marketValue() : 0)
+                    .prize(kp.marketValue())
                     .pictureUrl(resolvePictureUrl(kp))
                     .season(newSeason)
                     .teams(teamList)
@@ -305,6 +319,9 @@ public class NewSeasonSetupService {
             playerCount++;
         }
         log.accept("Spieler erstellt: " + playerCount);
+        if (playersSkipped > 0) {
+            log.accept("Spieler mit unbekanntem Marktwert übersprungen: " + playersSkipped);
+        }
 
         log.accept("");
         log.accept("Erstelle Spiele ...");
@@ -409,6 +426,7 @@ public class NewSeasonSetupService {
         log.accept("");
         log.accept("Aktualisiere Spieler ...");
         int playersCreated = 0;
+        int playersSkipped = 0;
         int teamChanges = 0;
         Set<String> activeKickerIds = new HashSet<>();
         for (KickerPlayer kp : players) {
@@ -421,6 +439,12 @@ public class NewSeasonSetupService {
             }
             Player existing = existingByKickerId.get(kp.id());
             if (existing == null) {
+                if (!hasValidMarketValue(kp)) {
+                    playersSkipped++;
+                    log.accept("Spieler übersprungen (Marktwert unbekannt): "
+                            + kickerDisplayName(kp) + " (" + targetTeam.getName() + ")");
+                    continue;
+                }
                 List<Team> teamList = new ArrayList<>();
                 teamList.add(targetTeam);
                 Player player = Player.builder()
@@ -429,7 +453,7 @@ public class NewSeasonSetupService {
                         .firstName(kp.firstName())
                         .lastName(kp.lastName())
                         .position(Position.valueOf(mapPosition(kp.position())))
-                        .prize(kp.marketValue() != null ? kp.marketValue() : 0)
+                        .prize(kp.marketValue())
                         .pictureUrl(resolvePictureUrl(kp))
                         .season(season)
                         .teams(teamList)
@@ -487,6 +511,9 @@ public class NewSeasonSetupService {
         log.accept("Spieler deaktiviert: " + playersDeactivated);
         if (playersReactivated > 0) {
             log.accept("Spieler reaktiviert: " + playersReactivated);
+        }
+        if (playersSkipped > 0) {
+            log.accept("Spieler mit unbekanntem Marktwert übersprungen: " + playersSkipped);
         }
 
         return new UpdateResult(playersCreated, teamChanges, playersDeactivated);
