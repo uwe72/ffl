@@ -831,6 +831,7 @@ export default function Season() {
               {depositStatsOpen && (
                 <div id="deposit-statistics" className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-4">
                   <StatTile label="Manager" value={String(managersCount)} />
+                  <StatTile label="Nicht-Spielleiter" value={String(managersCount - depositStats.spielleiterCount)} />
                   <StatTile label="Eingegangen" value={String(depositStats.receivedCount)} tone="success" />
                   <StatTile label="Offen" value={String(depositStats.openCount)} tone="danger" />
                   <StatTile label="PayPal" value={`${depositStats.fmt(depositStats.paypalSum)} €`} note={`${depositStats.paypalPct}%`} />
