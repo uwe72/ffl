@@ -154,12 +154,9 @@
                             <td style="background:#3f3a34;border-radius:6px;">
                               <a th:href="${payment.paypalLink}" style="display:inline-block;padding:12px 22px;color:#fafaf9;font-size:14px;font-weight:700;text-decoration:none;"><span th:text="${payment.spieleinsatz + ',00 &euro;'}">10,00 &euro;</span> mit PayPal senden</a>
                             </td>
-                            <td style="padding-left:10px;vertical-align:middle;">
-                              <span style="display:inline-block;padding:4px 10px;border-radius:4px;background:#e7e5e4;color:#57534e;font-size:12px;font-weight:600;">Bevorzugt</span>
-                            </td>
                           </tr>
                         </table>
-                        <p style="margin:0 0 18px 0;color:#a8a29e;font-size:13px;line-height:1.5;">Bitte als &bdquo;Freunde und Familie&ldquo;, dann fallen keine Geb&uuml;hren an.</p>
+                        <p style="margin:0 0 18px 0;color:#a8a29e;font-size:13px;line-height:1.5;">Bitte Option &bdquo;Freunde und Familie&ldquo;, nutzen.</p>
                       </th:block>
                       <th:block th:if="${payment.paypalLink == null or payment.paypalLink.isEmpty()}">
                         <p style="margin:0 0 16px 0;color:#dc2626;font-size:13px;font-weight:700;">[PayPal-Link nicht in Datenbank hinterlegt]</p>
@@ -182,7 +179,6 @@
                         <p style="margin:0 0 16px 0;color:#dc2626;font-size:13px;font-weight:700;">[Bankverbindung nicht in Datenbank hinterlegt]</p>
                       </th:block>
 
-                      <p style="margin:18px 0 0 0;color:#a8a29e;font-size:13px;line-height:1.5;">Danke dir.</p>
                     </td>
                   </tr>
                 </table>
