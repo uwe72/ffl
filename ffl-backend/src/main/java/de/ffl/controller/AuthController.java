@@ -8,6 +8,7 @@ import de.ffl.domain.Season;
 import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.AuthResponse;
+import de.ffl.dto.ForgotLoginRequest;
 import de.ffl.dto.ForgotPasswordRequest;
 import de.ffl.dto.LoginRequest;
 import de.ffl.dto.RefreshRequest;
@@ -348,6 +349,13 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(Map.of("message", "Falls ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen gesendet."));
+    }
+
+    @PostMapping("/forgot-login")
+    public ResponseEntity<?> forgotLogin(@Valid @RequestBody ForgotLoginRequest request) {
+        passwordResetService.requestLoginReminder(request.getEmail());
+
+        return ResponseEntity.ok(Map.of("message", "Falls ein Konto mit dieser E-Mail-Adresse existiert, wurden die Login-Namen an diese Adresse gesendet."));
     }
 
     @PostMapping("/reset-password")

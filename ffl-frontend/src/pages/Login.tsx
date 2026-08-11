@@ -178,13 +178,22 @@ export default function Login() {
               {fieldErrors.password && (
                 <p className="text-xs text-danger mt-1">{fieldErrors.password}</p>
               )}
-              <button
-                type="button"
-                onClick={() => navigate('/forgot-password')}
-                className="text-xs link mt-1.5 inline-block"
-              >
-                Passwort vergessen?
-              </button>
+              <div className="flex gap-3 mt-1.5">
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  className="text-xs link inline-block"
+                >
+                  Passwort vergessen?
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-login')}
+                  className="text-xs link inline-block"
+                >
+                  Login vergessen?
+                </button>
+              </div>
             </div>
 
             <div className="border-t border-border pt-4 flex gap-3 justify-between items-center">

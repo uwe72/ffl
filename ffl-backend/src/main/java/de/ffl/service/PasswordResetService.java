@@ -74,6 +74,25 @@ public class PasswordResetService {
             .toList();
     }
 
+    @Transactional
+    public boolean requestLoginReminder(String email) {
+        List<User> users = userRepository.findAllByEmail(email);
+
+        if (users.isEmpty()) {
+            log.info("Login-Erinnerung angefordert für unbekannte E-Mail: {}", email);
+            return false;
+        }
+
+        List<String> logins = users.stream()
+            .map(User::getLogin)
+            .toList();
+
+        User recipient = users.get(0);
+        mailService.sendLoginReminderMail(recipient, logins);
+        log.info("Login-Erinnerungs-Mail gesendet für E-Mail: {} ({} Login(s))", email, logins.size());
+        return true;
+    }
+
     private void createTokenAndSendMail(User user) {
         tokenRepository.deleteByUserId(user.getId());
 

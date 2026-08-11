@@ -27,6 +27,7 @@ import MailingAdminReport from './pages/MailingAdminReport'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
+import ForgotLogin from './pages/ForgotLogin'
 import ResetPassword from './pages/ResetPassword'
 import Profile from './pages/Profile'
 import MyTeam from './pages/MyTeam'
@@ -49,6 +50,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/forgot-login" element={<ForgotLogin />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<SeasonRestrictedRoute><Home /></SeasonRestrictedRoute>} />
