@@ -264,22 +264,6 @@ export default function MyTeam() {
     ? `${profileFirstName.charAt(0)}${profileLastName.charAt(0)}`.toUpperCase()
     : user?.login?.charAt(0).toUpperCase() || 'U'
 
-  const teamCounts = useMemo(() => {
-    const counts: Record<string, number> = {}
-    Object.values(selectedPlayers).forEach(id => {
-      if (id !== null) {
-        const player = allPlayers.find(p => p.id === id)
-        if (player && player.teams && player.teams.length > 0) {
-          const teamName = player.teams[player.teams.length - 1].name
-          counts[teamName] = (counts[teamName] || 0) + 1
-        }
-      }
-    })
-    return counts
-  }, [selectedPlayers, allPlayers])
-
-  const hasTeamViolation = Object.values(teamCounts).some(c => c > 5)
-
   const visibleSlots = useMemo(() => {
     return POSITION_GROUPS.flatMap(group => getVisibleSlots(group))
   }, [freePosition])
@@ -321,19 +305,6 @@ export default function MyTeam() {
 
   const transferRemaining = budget - transferTotalCost
   const isTransferBudgetExceeded = transferRemaining < 0
-
-  const transferTeamCounts = useMemo(() => {
-    const counts: Record<string, number> = {}
-    for (const player of resultingTeamAfterTransfers) {
-      if (player.teams && player.teams.length > 0) {
-        const teamName = player.teams[player.teams.length - 1].name
-        counts[teamName] = (counts[teamName] || 0) + 1
-      }
-    }
-    return counts
-  }, [resultingTeamAfterTransfers])
-
-  const hasTransferTeamViolation = Object.values(transferTeamCounts).some(c => c > 5)
 
   const transferPositionCounts = useMemo(() => {
     const counts: Record<Position, number> = { GOALKEEPER: 0, DEFENDER: 0, MIDFIELD: 0, STRIKER: 0 }
@@ -518,10 +489,6 @@ export default function MyTeam() {
     }
     if (isBudgetExceeded) {
       setError('Budget überschritten.')
-      return
-    }
-    if (hasTeamViolation) {
-      setError('Maximal 5 Spieler pro Verein erlaubt.')
       return
     }
 
@@ -967,13 +934,6 @@ export default function MyTeam() {
 
         <div className="mt-6 pt-6 border-t border-border">
 
-          {hasTeamViolation && (
-            <div className="flex items-center gap-3 p-3 bg-warning-bg border border-warning/30 rounded-card mb-4">
-              <i className="sap-icon sap-icon-alert text-[18px] text-warning shrink-0" />
-              <p className="text-warning text-sm">Maximal 5 Spieler pro Verein erlaubt.</p>
-            </div>
-          )}
-
           <div className="space-y-8">
             {isBeforeSeason && (
               <div className="sm:hidden flex items-start gap-2 p-2 bg-accent-muted border border-accent/30 rounded-card">
@@ -1037,12 +997,6 @@ export default function MyTeam() {
               )
             })}
           </div>
-
-          {Object.entries(teamCounts).filter(([, c]) => c > 5).map(([team, count]) => (
-            <div key={team} className="text-xs text-danger mt-2">
-              {team}: {count} Spieler (max. 5)
-            </div>
-          ))}
 
         </div>
       </div>
@@ -1154,18 +1108,6 @@ export default function MyTeam() {
                 </div>
               )}
 
-              {hasTransferTeamViolation && (
-                <div className="flex items-center gap-3 p-3 bg-warning-bg border border-warning/30 rounded-card">
-                  <i className="sap-icon sap-icon-alert text-[18px] text-warning shrink-0" />
-                  <div>
-                    <p className="text-warning text-sm">Maximal 5 Spieler pro Verein erlaubt.</p>
-                    {Object.entries(transferTeamCounts).filter(([, c]) => c > 5).map(([team, count]) => (
-                      <p key={team} className="text-warning text-xs mt-1">{team}: {count} Spieler</p>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {hasTransferPositionViolation && (
                 <div className="flex items-center gap-3 p-3 bg-warning-bg border border-warning/30 rounded-card">
                   <i className="sap-icon sap-icon-alert text-[18px] text-warning shrink-0" />
@@ -1188,7 +1130,7 @@ export default function MyTeam() {
                   <Button
                     variant="emphasized"
                     onClick={handleSaveTransfers}
-                    disabled={savingTransfers || !transfersComplete || isTransferBudgetExceeded || hasTransferTeamViolation || hasTransferPositionViolation}
+                    disabled={savingTransfers || !transfersComplete || isTransferBudgetExceeded || hasTransferPositionViolation}
                   >
                     {savingTransfers ? 'Wird gespeichert...' : 'Winterwechsel speichern'}
                   </Button>
@@ -1300,7 +1242,7 @@ export default function MyTeam() {
                   variant="emphasized"
                   size="sm"
                   onClick={handleSave}
-                  disabled={saving || isBudgetExceeded || hasTeamViolation || !allSlotsFilled}
+                  disabled={saving || isBudgetExceeded || !allSlotsFilled}
                 >
                   {saving ? 'Wird gespeichert...' : 'Aufstellung speichern'}
                 </Button>
@@ -1320,7 +1262,7 @@ export default function MyTeam() {
                   variant="emphasized"
                   size="sm"
                   onClick={handleSaveTransfers}
-                  disabled={savingTransfers || !transfersComplete || isTransferBudgetExceeded || hasTransferTeamViolation || hasTransferPositionViolation}
+                  disabled={savingTransfers || !transfersComplete || isTransferBudgetExceeded || hasTransferPositionViolation}
                 >
                   {savingTransfers ? 'Wird gespeichert...' : 'Winterwechsel speichern'}
                 </Button>

@@ -207,22 +207,6 @@ export default function Register() {
       ? 'warning'
       : 'default'
 
-  const teamCounts = useMemo(() => {
-    const counts: Record<string, number> = {}
-    Object.values(selectedPlayers).forEach(id => {
-      if (id !== null) {
-        const player = allPlayers.find(p => p.id === id)
-        if (player && player.teams && player.teams.length > 0) {
-          const teamName = player.teams[player.teams.length - 1].name
-          counts[teamName] = (counts[teamName] || 0) + 1
-        }
-      }
-    })
-    return counts
-  }, [selectedPlayers, allPlayers])
-
-  const hasTeamViolation = Object.values(teamCounts).some(c => c > 5)
-
   const visibleSlots = useMemo(() => {
     return POSITION_GROUPS.flatMap(group => getVisibleSlots(group))
   }, [freePosition])
@@ -334,10 +318,6 @@ export default function Register() {
       setError('Budget überschritten.')
       return
     }
-    if (hasTeamViolation) {
-      setError('Maximal 5 Spieler pro Verein erlaubt.')
-      return
-    }
     setStep(4)
   }
 
@@ -375,7 +355,6 @@ export default function Register() {
       }
 
       const picked: Player[] = []
-      const teamCountsLocal: Record<string, number> = {}
       let totalPrice = 0
       let valid = true
 
@@ -383,13 +362,9 @@ export default function Register() {
         let filled = 0
         for (const player of byPosition[position]) {
           if (filled >= count) break
-          const teamName = player.teams?.length > 0 ? player.teams[player.teams.length - 1].name : ''
-          const currentTeamCount = teamName ? (teamCountsLocal[teamName] || 0) : 0
-          if (currentTeamCount >= 5) continue
           if (totalPrice + player.prize > budget) continue
           picked.push(player)
           totalPrice += player.prize
-          if (teamName) teamCountsLocal[teamName] = currentTeamCount + 1
           filled++
         }
         if (filled < count) { valid = false; break }
@@ -868,13 +843,6 @@ export default function Register() {
                 </div>
               </div>
 
-              {hasTeamViolation && (
-                <div className="flex items-center gap-3 p-3 bg-warning-bg border border-warning/30 rounded-card">
-                  <i className="sap-icon sap-icon-alert text-[18px] text-warning shrink-0" />
-                  <p className="text-warning text-sm">Maximal 5 Spieler pro Verein erlaubt.</p>
-                </div>
-              )}
-
               {playersLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin mr-3" />
@@ -940,12 +908,6 @@ export default function Register() {
                   })}
                 </div>
               )}
-
-              {Object.entries(teamCounts).filter(([, c]) => c > 5).map(([team, count]) => (
-                <div key={team} className="text-xs text-danger mt-2">
-                  {team}: {count} Spieler (max. 5)
-                </div>
-              ))}
 
             </div>
           )}
@@ -1182,7 +1144,7 @@ export default function Register() {
                 <Button
                   variant="emphasized"
                   onClick={handleStep3Next}
-                  disabled={!allSlotsFilled || isBudgetExceeded || hasTeamViolation}
+                  disabled={!allSlotsFilled || isBudgetExceeded}
                 >
                   Weiter
                 </Button>
