@@ -89,12 +89,6 @@ export default function ForgotPassword() {
               <p className="text-muted text-sm">
                 Bitte überprüfe dein E-Mail-Postfach (auch den Spam-Ordner). Der Link ist 30 Minuten gültig.
               </p>
-              <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-control">
-                <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
-                <p className="text-info text-sm">
-                  <strong>Wichtig:</strong> Die Anmeldung erfolgt mit deinem <strong>Login-Namen</strong> und deinem Passwort, nicht mit deiner E-Mail-Adresse.
-                </p>
-              </div>
               <div className="border-t border-border pt-4">
                 <Button
                   variant="emphasized"
@@ -174,15 +168,6 @@ export default function ForgotPassword() {
                       <option key={login} value={login}>{login}</option>
                     ))}
                   </select>
-                </div>
-              )}
-
-              {logins.length > 0 && (
-                <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-control">
-                  <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
-                  <p className="text-info text-sm">
-                    <strong>Wichtig:</strong> Die Anmeldung erfolgt mit deinem <strong>Login-Namen</strong> und deinem Passwort, nicht mit deiner E-Mail-Adresse.
-                  </p>
                 </div>
               )}
 
