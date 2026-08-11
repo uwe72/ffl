@@ -265,9 +265,12 @@ export default function Season() {
 
   const depositStats = useMemo(() => {
     if (!deposits || deposits.length === 0) return null
-    const receivedCount = deposits.filter(d => d.depositStatus === 'RECEIVED').length
-    const openCount = deposits.length - receivedCount
-    const receivedPct = Math.round((receivedCount / deposits.length) * 100)
+    const spielleiterCount = deposits.filter(d => d.spielleiter).length
+    const nonSpielleiter = deposits.filter(d => !d.spielleiter)
+    const nonSpielleiterCount = nonSpielleiter.length
+    const receivedCount = nonSpielleiter.filter(d => d.depositStatus === 'RECEIVED').length
+    const openCount = nonSpielleiterCount - receivedCount
+    const receivedPct = nonSpielleiterCount > 0 ? Math.round((receivedCount / nonSpielleiterCount) * 100) : 0
     const paypalSum = deposits.filter(d => d.paymentMethod === 'PAYPAL' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
     const ueberweisungSum = deposits.filter(d => d.paymentMethod === 'UEBERWEISUNG' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
     const otherSum = deposits.filter(d => d.paymentMethod === 'OTHER' && d.depositStatus === 'RECEIVED').reduce((sum, d) => sum + d.amount, 0)
@@ -276,7 +279,7 @@ export default function Season() {
     const ueberweisungPct = receivedSum > 0 ? Math.round((ueberweisungSum / receivedSum) * 100) : 0
     const otherPct = receivedSum > 0 ? Math.round((otherSum / receivedSum) * 100) : 0
     const fmt = (v: number) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    return { receivedCount, openCount, receivedPct, paypalSum, paypalPct, ueberweisungSum, ueberweisungPct, otherSum, otherPct, fmt }
+    return { spielleiterCount, nonSpielleiterCount, receivedCount, openCount, receivedPct, paypalSum, paypalPct, ueberweisungSum, ueberweisungPct, otherSum, otherPct, receivedSum, fmt }
   }, [deposits])
 
   const depositManagerMismatch = deposits !== undefined && managersCount > 0 && deposits.length !== managersCount
@@ -822,16 +825,18 @@ export default function Season() {
                 className="flex items-center gap-2 text-xl font-semibold text-foreground w-full text-left"
               >
                 <i className={`sap-icon sap-icon-slim-arrow-${depositStatsOpen ? 'up' : 'down'} text-base`} />
-                Statistik
+                Statistik ({managersCount} Manager)
               </button>
               {depositStatsOpen && (
-                <div id="deposit-statistics" className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-4">
+                <div id="deposit-statistics" className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-4">
+                  <StatTile label="Nicht-Spielleiter" value={String(managersCount - depositStats.spielleiterCount)} />
                   <StatTile label="Eingegangen" value={String(depositStats.receivedCount)} tone="success" />
                   <StatTile label="Offen" value={String(depositStats.openCount)} tone="danger" />
                   <StatTile label="Eingangsquote" value={`${depositStats.receivedPct}%`} />
                   <StatTile label="PayPal" value={`${depositStats.fmt(depositStats.paypalSum)} €`} note={`${depositStats.paypalPct}%`} />
                   <StatTile label="Überweisung" value={`${depositStats.fmt(depositStats.ueberweisungSum)} €`} note={`${depositStats.ueberweisungPct}%`} />
                   <StatTile label="Sonstiges" value={`${depositStats.fmt(depositStats.otherSum)} €`} note={`${depositStats.otherPct}%`} />
+                  <StatTile label="Gesamt-Einzahlungen" value={`${depositStats.fmt(depositStats.receivedSum)} €`} />
                 </div>
               )}
             </div>
