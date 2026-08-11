@@ -123,7 +123,7 @@ public class PasswordResetMailService {
 
         if (webUrl != null && !webUrl.isBlank()) {
             sb.append("<div style=\"margin-top:24px;color:").append(textTertiary).append(";font-size:12px;text-align:center;\">");
-            sb.append("<div style=\"font-size:10px;font-weight:700;color:").append(textSecondary).append(";margin-bottom:2px;\">Webseite</div>");
+            sb.append("<div style=\"font-size:10px;font-weight:700;color:").append(textSecondary).append(";margin-bottom:2px;\">Webseite:</div>");
             sb.append("<a href=\"").append(escape(webUrl)).append("\" style=\"color:").append(linkColor).append(";font-weight:700;text-decoration:none;\">FFL - Fantasy Football League</a>");
             sb.append("</div>");
         }
@@ -230,7 +230,7 @@ public class PasswordResetMailService {
 
         if (webUrl != null && !webUrl.isBlank()) {
             sb.append("<div style=\"margin-top:24px;color:").append(textTertiary).append(";font-size:12px;text-align:center;\">");
-            sb.append("<div style=\"font-size:10px;font-weight:700;color:").append(textSecondary).append(";margin-bottom:2px;\">Webseite</div>");
+            sb.append("<div style=\"font-size:10px;font-weight:700;color:").append(textSecondary).append(";margin-bottom:2px;\">Webseite:</div>");
             sb.append("<a href=\"").append(escape(webUrl)).append("\" style=\"color:").append(linkColor).append(";font-weight:700;text-decoration:none;\">FFL - Fantasy Football League</a>");
             sb.append("</div>");
         }
