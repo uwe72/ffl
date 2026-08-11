@@ -110,9 +110,16 @@ export default function Login() {
             )}
 
             {error && (
-              <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-control">
-                <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
-                <p className="text-danger text-sm">{error}</p>
+              <div className="flex items-start gap-3 p-3 bg-danger-bg border border-danger/30 rounded-control">
+                <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-danger text-sm">{error}</p>
+                  {season?.seasonState === 'BEFORE_SEASON' && (
+                    <p className="text-danger text-xs mt-1">
+                      Zur neuen Saison wurde alles zurückgesetzt. Bitte registriere dich erneut mit einem neuen Account.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
