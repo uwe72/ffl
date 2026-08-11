@@ -133,7 +133,7 @@ export default function Login() {
                   ref={firstInputRef}
                   type="text"
                   required
-                  placeholder="Login"
+                  placeholder="Login (nicht E-Mail-Adresse)"
                   value={login}
                   onChange={(e) => {
                     setLogin(e.target.value)
