@@ -185,6 +185,7 @@ export default function Login() {
                 variant="transparent"
                 type="button"
                 onClick={openFeedback}
+                className="hidden sm:inline-flex"
               >
                 Feedback
               </Button>
