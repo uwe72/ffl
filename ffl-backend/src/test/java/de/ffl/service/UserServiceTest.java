@@ -147,6 +147,21 @@ class UserServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    void loginWithAtSignRejected() {
+        authenticateAsAdmin();
+        Long userId = managerUwe72.getUser().getId();
+        String originalLogin = managerUwe72.getUser().getLogin();
+
+        UserDto update = loginUpdateDto("uwe@b.de");
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> userService.updateUser(userId, update));
+        assertTrue(ex.getMessage().toLowerCase().contains("e-mail"));
+
+        String loginAfter = userRepository.findById(userId).orElseThrow().getLogin();
+        assertEquals(originalLogin, loginAfter);
+    }
+
+    @Test
     void deleteUser_withDeposit_removesUserManagerAndDeposit() {
         Long userId = managerUwe72.getUser().getId();
         Long managerId = managerUwe72.getId();

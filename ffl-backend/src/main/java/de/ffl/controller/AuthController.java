@@ -104,6 +104,9 @@ public class AuthController {
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> register(@Valid @RequestPart("data") RegisterRequest request,
                                        @RequestPart(value = "avatar", required = false) MultipartFile avatar) {
+        if (request.getLogin().contains("@")) {
+            return ResponseEntity.badRequest().body("Login darf keine E-Mail-Adresse sein");
+        }
         if (userRepository.existsByLogin(request.getLogin())) {
             return ResponseEntity.badRequest().body("Login bereits vergeben");
         }

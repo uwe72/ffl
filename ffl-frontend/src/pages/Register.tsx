@@ -233,6 +233,10 @@ export default function Register() {
       setFieldErrors(prev => ({ ...prev, [field]: 'Dieses Feld ist erforderlich.' }))
       return false
     }
+    if (field === 'login' && value.includes('@')) {
+      setFieldErrors(prev => ({ ...prev, [field]: 'Login darf kein @ enthalten.' }))
+      return false
+    }
     if (field === 'login' && value.trim().length < 3) {
       setFieldErrors(prev => ({ ...prev, [field]: 'Login muss mindestens 3 Zeichen lang sein.' }))
       return false
@@ -271,6 +275,7 @@ export default function Register() {
 
     const errors: FieldErrors = {}
     if (!login.trim()) errors.login = 'Dieses Feld ist erforderlich.'
+    else if (login.includes('@')) errors.login = 'Login darf kein @ enthalten.'
     else if (login.trim().length < 3) errors.login = 'Login muss mindestens 3 Zeichen lang sein.'
     else if (login.trim().length > 25) errors.login = 'Login darf maximal 25 Zeichen lang sein.'
     if (!email.trim()) errors.email = 'Dieses Feld ist erforderlich.'
@@ -628,7 +633,7 @@ export default function Register() {
                       type="text"
                       required
                       maxLength={25}
-                      placeholder="Login"
+                      placeholder="Login (keine E-Mail-Adresse)"
                       value={login}
                       onChange={(e) => {
                         setLogin(e.target.value)

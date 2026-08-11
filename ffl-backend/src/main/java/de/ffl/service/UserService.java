@@ -70,6 +70,9 @@ public class UserService {
                 if (!isAdmin) {
                     throw new IllegalArgumentException("Nur Admins dürfen den Login-Namen ändern");
                 }
+                if (newLogin.contains("@")) {
+                    throw new IllegalArgumentException("Login darf keine E-Mail-Adresse sein");
+                }
                 if (newLogin.length() > 25) {
                     throw new IllegalArgumentException("Login darf maximal 25 Zeichen lang sein");
                 }
