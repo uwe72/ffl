@@ -159,6 +159,12 @@ export default function ResetPassword() {
                   Dein Passwort wurde erfolgreich zurückgesetzt.
                 </p>
               </div>
+              <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-control">
+                <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
+                <p className="text-info text-sm">
+                  <strong>Wichtig:</strong> Die Anmeldung erfolgt mit deinem <strong>Login-Namen</strong> und deinem neuen Passwort, nicht mit deiner E-Mail-Adresse.
+                </p>
+              </div>
               <div className="border-t border-border pt-4">
                 <Button
                   variant="emphasized"
