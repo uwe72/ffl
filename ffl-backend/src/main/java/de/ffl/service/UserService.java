@@ -3,6 +3,7 @@ package de.ffl.service;
 import de.ffl.domain.Manager;
 import de.ffl.domain.User;
 import de.ffl.dto.UserDto;
+import de.ffl.repository.DepositRepository;
 import de.ffl.repository.ManagerGroupRepository;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.ManagerRepository;
@@ -22,15 +23,18 @@ public class UserService {
     private final ManagerRepository managerRepository;
     private final ManagerRankRepository managerRankRepository;
     private final ManagerGroupRepository managerGroupRepository;
+    private final DepositRepository depositRepository;
 
     public UserService(UserRepository userRepository,
                        ManagerRepository managerRepository,
                        ManagerRankRepository managerRankRepository,
-                       ManagerGroupRepository managerGroupRepository) {
+                       ManagerGroupRepository managerGroupRepository,
+                       DepositRepository depositRepository) {
         this.userRepository = userRepository;
         this.managerRepository = managerRepository;
         this.managerRankRepository = managerRankRepository;
         this.managerGroupRepository = managerGroupRepository;
+        this.depositRepository = depositRepository;
     }
 
     @Transactional(readOnly = true)
@@ -115,6 +119,7 @@ public class UserService {
 
         List<Manager> managers = managerRepository.findAllByUserId(id);
         for (Manager manager : managers) {
+            depositRepository.deleteByManagerId(manager.getId());
             managerRankRepository.deleteByManagerId(manager.getId());
             managerRepository.deletePlayerRelationsByManagerId(manager.getId());
             managerRepository.deleteGroupRelationsByManagerId(manager.getId());

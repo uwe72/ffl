@@ -20,4 +20,8 @@ public interface DepositRepository extends JpaRepository<Deposit, Long> {
     @Modifying
     @Query("DELETE FROM Deposit d WHERE d.season.id = :seasonId")
     void deleteBySeasonId(@Param("seasonId") Long seasonId);
+
+    @Modifying
+    @Query("DELETE FROM Deposit d WHERE d.manager.id = :managerId")
+    void deleteByManagerId(@Param("managerId") Long managerId);
 }

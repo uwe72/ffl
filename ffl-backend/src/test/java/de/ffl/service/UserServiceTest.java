@@ -1,8 +1,12 @@
 package de.ffl.service;
 
+import de.ffl.domain.Deposit;
+import de.ffl.domain.DepositStatus;
+import de.ffl.domain.PaymentMethod;
 import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.UserDto;
+import de.ffl.repository.DepositRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,6 +29,9 @@ class UserServiceTest extends AbstractSeasonTestBase {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private DepositRepository depositRepository;
 
     @AfterEach
     void clearSecurityContext() {
@@ -136,5 +144,33 @@ class UserServiceTest extends AbstractSeasonTestBase {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
             () -> userService.updateUser(userId, update));
         assertTrue(ex.getMessage().contains("25"));
+    }
+
+    @Test
+    void deleteUser_withDeposit_removesUserManagerAndDeposit() {
+        Long userId = managerUwe72.getUser().getId();
+        Long managerId = managerUwe72.getId();
+
+        Deposit deposit = Deposit.builder()
+            .manager(managerUwe72)
+            .season(season)
+            .amount(new BigDecimal("10.00"))
+            .depositStatus(DepositStatus.OPEN)
+            .paymentMethod(PaymentMethod.UEBERWEISUNG)
+            .build();
+        deposit = depositRepository.save(deposit);
+        Long depositId = deposit.getId();
+
+        assertDoesNotThrow(() -> userService.deleteUser(userId));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        assertTrue(userRepository.findById(userId).isEmpty(),
+            "User soll nach dem Löschen nicht mehr existieren");
+        assertTrue(managerRepository.findById(managerId).isEmpty(),
+            "Manager soll nach dem Löschen nicht mehr existieren");
+        assertTrue(depositRepository.findById(depositId).isEmpty(),
+            "Deposit soll nach dem Löschen nicht mehr existieren");
     }
 }
