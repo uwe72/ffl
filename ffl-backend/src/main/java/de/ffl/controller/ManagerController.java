@@ -172,7 +172,7 @@ public class ManagerController {
         try {
             ManagerDto manager = managerService.findByUserId(userId);
             if (manager == null) {
-                log.info("getCurrentManager: no manager for userId={}", userId);
+                log.debug("getCurrentManager: no manager for userId={}", userId);
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(manager);
