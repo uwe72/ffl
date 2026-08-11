@@ -6,11 +6,11 @@ import { useFeedback } from '../context/FeedbackContext'
 import { useAvatar, useUploadAvatar } from '../hooks/useAvatar'
 import { useCurrentSeason } from '../hooks/useSeasons'
 
-const env = import.meta.env.VITE_APP_ENV
 const buildDate = import.meta.env.VITE_BUILD_DATE
-const isProd = env === 'PROD'
-const dateParts = buildDate.split('-')
-const formattedDate = dateParts[2] + '.' + dateParts[1] + '.' + dateParts[0].slice(-2)
+const buildDateTime = new Date(buildDate)
+const formattedDate = buildDateTime.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })
+const formattedTime = buildDateTime.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+const formattedDateTime = `V${formattedDate} - ${formattedTime}`
 
 interface SidebarProps {
   collapsed: boolean
@@ -194,9 +194,11 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
       </div>
 
       <div className={`px-2 py-2 border-t border-border ${collapsed ? 'flex flex-col items-center gap-1' : 'flex items-center justify-between gap-2'}`}>
-        <span className={`${collapsed ? 'text-[9px]' : 'text-[10px] pl-1'} text-muted`}>
-          V{formattedDate}{isProd ? '' : ' (Test)'}
-        </span>
+        {!collapsed && (
+          <span className="text-sm text-muted">
+            {formattedDateTime}
+          </span>
+        )}
         <button
           onClick={() => onToggleCollapse(!collapsed)}
           className="p-2 rounded-control text-subtle hover:text-muted hover:bg-card-hover transition-colors"
