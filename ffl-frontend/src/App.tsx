@@ -53,7 +53,11 @@ function App() {
           <Route path="/forgot-login" element={<ForgotLogin />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<Layout />}>
-            <Route index element={<SeasonRestrictedRoute><Home /></SeasonRestrictedRoute>} />
+            <Route index element={
+              <ProtectedRoute>
+                <SeasonRestrictedRoute><Home /></SeasonRestrictedRoute>
+              </ProtectedRoute>
+            } />
             <Route path="profile" element={
               <ProtectedRoute>
                 <Profile />
@@ -69,15 +73,41 @@ function App() {
                 <Season />
               </ProtectedRoute>
             } />
-            <Route path="teams" element={<SeasonRestrictedRoute><Teams /></SeasonRestrictedRoute>} />
-            <Route path="teams/:id" element={<SeasonRestrictedRoute><TeamDetail /></SeasonRestrictedRoute>} />
-            <Route path="players" element={<Players />} />
-            <Route path="players/:id" element={<PlayerDetail />} />
-            <Route path="managers" element={<SeasonRestrictedRoute><Managers /></SeasonRestrictedRoute>} />
-            <Route path="managers/:id" element={<SeasonRestrictedRoute><ManagerDetail /></SeasonRestrictedRoute>} />
-            <Route path="manager-groups" element={<ManagerGroups />} />
-            <Route path="manager-groups/:id" element={<ManagerGroupDetail />} />
-            <Route path="documents" element={<Documents />} />
+            <Route path="teams" element={
+              <ProtectedRoute>
+                <SeasonRestrictedRoute><Teams /></SeasonRestrictedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="teams/:id" element={
+              <ProtectedRoute>
+                <SeasonRestrictedRoute><TeamDetail /></SeasonRestrictedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="players" element={
+              <ProtectedRoute><Players /></ProtectedRoute>
+            } />
+            <Route path="players/:id" element={
+              <ProtectedRoute><PlayerDetail /></ProtectedRoute>
+            } />
+            <Route path="managers" element={
+              <ProtectedRoute>
+                <SeasonRestrictedRoute><Managers /></SeasonRestrictedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="managers/:id" element={
+              <ProtectedRoute>
+                <SeasonRestrictedRoute><ManagerDetail /></SeasonRestrictedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="manager-groups" element={
+              <ProtectedRoute><ManagerGroups /></ProtectedRoute>
+            } />
+            <Route path="manager-groups/:id" element={
+              <ProtectedRoute><ManagerGroupDetail /></ProtectedRoute>
+            } />
+            <Route path="documents" element={
+              <ProtectedRoute><Documents /></ProtectedRoute>
+            } />
             <Route path="users" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Users />

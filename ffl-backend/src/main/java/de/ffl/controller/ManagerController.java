@@ -95,6 +95,7 @@ public class ManagerController {
     }
 
     @GetMapping("/debug/points-count")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Long> getPointsCount() {
         return ResponseEntity.ok(pointsRepository.count());
     }
@@ -106,6 +107,7 @@ public class ManagerController {
     }
 
     @GetMapping("/debug/manager-groups")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Object>> debugManagerGroups() {
         String sql = "SELECT mg.id, mg.name, mgm.manager_id FROM ffl_manager_group mg " +
                      "LEFT JOIN manager_group_2_manager mgm ON mg.id = mgm.manager_group_id " +
@@ -117,6 +119,7 @@ public class ManagerController {
     }
 
     @GetMapping("/debug/raw-members")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Object>> debugRawMembers() {
         String sql = "SELECT manager_group_id, manager_id FROM manager_group_2_manager ORDER BY manager_group_id, manager_id";
         List<Object> result = jdbcTemplate.query(sql, (rs, rowNum) -> {
@@ -126,6 +129,7 @@ public class ManagerController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createManager(@Valid @RequestBody Manager manager) {
         try {
             return ResponseEntity.ok(managerService.createManager(manager));
@@ -135,6 +139,7 @@ public class ManagerController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateManager(@PathVariable Long id, @Valid @RequestBody Manager manager) {
         manager.setId(id);
         try {
