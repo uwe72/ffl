@@ -462,13 +462,24 @@ export default function Register() {
       setShowSuccessDialog(true)
     } catch (err: unknown) {
       trackEvent('auth', 'register', 'failure')
-      const axiosError = err as { response?: { data?: string } }
-      if (axiosError.response?.data && typeof axiosError.response.data === 'string') {
-        if (axiosError.response.data.includes('Login bereits vergeben')) {
+      const axiosError = err as { response?: { data?: unknown } }
+      const data = axiosError.response?.data
+      let message = ''
+      if (typeof data === 'string') {
+        message = data
+      } else if (data && typeof data === 'object') {
+        const obj = data as { message?: string; error?: string; errors?: Array<{ defaultMessage?: string }>; defaultMessage?: string }
+        message = obj.message ?? obj.error ?? obj.defaultMessage ?? ''
+        if (!message && Array.isArray(obj.errors) && obj.errors.length > 0) {
+          message = obj.errors.map(e => e.defaultMessage).filter(Boolean).join('; ')
+        }
+      }
+      if (message) {
+        if (message.includes('Login bereits vergeben')) {
           setFieldErrors({ login: 'Login bereits vergeben.' })
           setStep(1)
         } else {
-          setError(axiosError.response.data)
+          setError(message)
         }
       } else {
         setError('Registrierung fehlgeschlagen. Bitte versuche es erneut.')
