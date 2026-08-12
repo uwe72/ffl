@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useFeedback } from '../context/FeedbackContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { trackEvent } from '../hooks/useMatomo'
 import Button from '../components/Button'
@@ -21,7 +20,6 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [showRules, setShowRules] = useState(false)
   const { login: authLogin } = useAuth()
-  const { open: openFeedback } = useFeedback()
   const { data: season } = useCurrentSeason()
   const navigate = useNavigate()
   const location = useLocation()
@@ -205,25 +203,16 @@ export default function Login() {
               </button>
             </div>
 
-            <div className="border-t border-border pt-4 flex gap-3 justify-between items-center">
-              <Button
-                variant="transparent"
-                type="button"
-                onClick={() => setShowRules(true)}
-              >
-                <i className="sap-icon sap-icon-information text-[18px]" />
-                <span className="hidden sm:inline">Spielregeln und Einführung</span>
-                <span className="sm:hidden">Infos</span>
-              </Button>
-              <Button
-                variant="transparent"
-                type="button"
-                onClick={openFeedback}
-                className="hidden sm:inline-flex"
-              >
-                Feedback
-              </Button>
+            <div className="border-t border-border pt-4 flex gap-3 justify-end items-center">
               <div className="flex gap-3">
+                <Button
+                  variant="transparent"
+                  type="button"
+                  onClick={() => setShowRules(true)}
+                >
+                  <i className="sap-icon sap-icon-information text-[18px]" />
+                  Infos
+                </Button>
                 <Button
                   variant="ghost"
                   type="button"
