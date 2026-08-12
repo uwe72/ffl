@@ -1,5 +1,5 @@
 import api from './client'
-import type { LoginRequest, RegisterRequest, AuthResponse, User } from '../types'
+import type { LoginRequest, RegisterRequest, AuthResponse, RegisterResponse, User } from '../types'
 
 export const authApi = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -7,13 +7,13 @@ export const authApi = {
     return response.data
   },
 
-  register: async (data: RegisterRequest, avatar?: File): Promise<{ message: string }> => {
+  register: async (data: RegisterRequest, avatar?: File): Promise<RegisterResponse> => {
     const formData = new FormData()
     formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }))
     if (avatar) {
       formData.append('avatar', avatar)
     }
-    const response = await api.post<{ message: string }>('/auth/register', formData)
+    const response = await api.post<RegisterResponse>('/auth/register', formData)
     return response.data
   },
 

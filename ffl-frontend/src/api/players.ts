@@ -5,6 +5,7 @@ export const playerApi = {
   getAll: () => api.get<Player[]>('/players'),
   getById: (id: number) => api.get<Player>(`/players/${id}`),
   getBySeason: (seasonId: number) => api.get<Player[]>(`/players/season/${seasonId}`),
+  getPublicBySeason: (seasonId: number) => api.get<Player[]>(`/public/players/season/${seasonId}`),
   getByTeamAndSeason: (teamId: number, seasonId: number) => 
     api.get<PlayerSearchDto[]>(`/players/team/${teamId}/season/${seasonId}`),
   getAllBySeason: (seasonId: number) =>

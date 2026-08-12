@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useCurrentSeason } from '../hooks/useSeasons'
+import { usePublicCurrentSeason } from '../hooks/useSeasons'
 import { trackEvent } from '../hooks/useMatomo'
 import Button from '../components/Button'
 import RulesDialog from '../components/RulesDialog'
@@ -20,7 +20,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [showRules, setShowRules] = useState(false)
   const { login: authLogin } = useAuth()
-  const { data: season } = useCurrentSeason()
+  const { data: season } = usePublicCurrentSeason()
   const navigate = useNavigate()
   const location = useLocation()
   const firstInputRef = useRef<HTMLInputElement>(null)

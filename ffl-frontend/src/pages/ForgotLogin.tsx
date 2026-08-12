@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from '../api/auth'
-import { useCurrentSeason } from '../hooks/useSeasons'
+import { usePublicCurrentSeason } from '../hooks/useSeasons'
 import Button from '../components/Button'
 
 export default function ForgotLogin() {
@@ -11,7 +11,7 @@ export default function ForgotLogin() {
   const [isLoading, setIsLoading] = useState(false)
   const [fieldError, setFieldError] = useState('')
   const navigate = useNavigate()
-  const { data: season } = useCurrentSeason()
+  const { data: season } = usePublicCurrentSeason()
   const inputRef = useRef<HTMLInputElement>(null)
 
   const validateEmail = (value: string) => {

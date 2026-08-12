@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { authApi } from '../api/auth'
 import { setMatomoUserId, resetMatomoUserId, setMatomoCustomDimension } from '../hooks/useMatomo'
-import type { LoginRequest, RegisterRequest, AuthContextType } from '../types'
+import type { LoginRequest, RegisterRequest, RegisterResponse, AuthContextType } from '../types'
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
@@ -47,8 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).catch(() => {})
   }
 
-  const register = async (data: RegisterRequest, avatar?: File) => {
-    await authApi.register(data, avatar)
+  const register = async (data: RegisterRequest, avatar?: File): Promise<RegisterResponse> => {
+    return await authApi.register(data, avatar)
   }
 
   const logout = () => {

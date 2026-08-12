@@ -13,7 +13,7 @@ import { TableHead, Th, TableBody, Td } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 import { positionLabels, positionColors } from './Players'
 import { positionTextColor } from '../utils/positions'
-import type { Player, Season, Position } from '../types'
+import type { Player, PublicSeasonInfo, RegisterPaymentInfo, Position } from '../types'
 
 interface FieldErrors {
   login?: string
@@ -129,6 +129,7 @@ export default function Register() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [paymentInfo, setPaymentInfo] = useState<RegisterPaymentInfo | null>(null)
   const [showBankDetails, setShowBankDetails] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const { register } = useAuth()
@@ -137,7 +138,7 @@ export default function Register() {
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const successDialogRef = useRef<HTMLDivElement>(null)
 
-  const [season, setSeason] = useState<Season | null>(null)
+  const [season, setSeason] = useState<PublicSeasonInfo | null>(null)
   const [allPlayers, setAllPlayers] = useState<Player[]>([])
   const [playersLoading, setPlayersLoading] = useState(false)
   const [selectedPlayers, setSelectedPlayers] = useState<Record<string, number | null>>(() => {
@@ -163,16 +164,16 @@ export default function Register() {
   }
 
   useEffect(() => {
-    seasonApi.getAll().then(res => {
-      if (res.data && res.data.length > 0) {
-        setSeason(res.data[0])
+    seasonApi.getPublicCurrent().then(res => {
+      if (res.data) {
+        setSeason(res.data)
       }
     }).catch(() => {})
   }, [])
 
   const loadPlayers = (seasonId: number) => {
     setPlayersLoading(true)
-    playerApi.getBySeason(seasonId)
+    playerApi.getPublicBySeason(seasonId)
       .then(res => setAllPlayers(res.data))
       .catch(() => {})
       .finally(() => setPlayersLoading(false))
@@ -438,7 +439,7 @@ export default function Register() {
         return
       }
 
-      await register({
+      const result = await register({
         login,
         email,
         password,
@@ -457,6 +458,7 @@ export default function Register() {
         playerFreeChoiceId: freeChoiceId,
       }, avatarFile ?? undefined)
       trackEvent('auth', 'register', 'success')
+      setPaymentInfo(result?.paymentInfo ?? null)
       setShowSuccessDialog(true)
     } catch (err: unknown) {
       trackEvent('auth', 'register', 'failure')
@@ -1213,15 +1215,15 @@ export default function Register() {
               <p className="text-foreground text-center mb-6">
                 {firstName}, bitte bezahle die Startgebühr von{' '}
                 <span className="font-semibold">
-                  {season?.spieleinsatzEuro != null
-                    ? `${Number(season.spieleinsatzEuro).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
+                  {paymentInfo?.spieleinsatzEuro != null
+                    ? `${Number(paymentInfo.spieleinsatzEuro).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
                     : '–'}
                 </span>.
               </p>
 
-              {season?.paypalLink && (
+              {paymentInfo?.paypalLink && (
                 <a
-                  href={season.paypalLink}
+                  href={paymentInfo.paypalLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-3 w-full border border-success rounded-card px-6 py-4 mb-6 hover:bg-success/10 transition-colors"
@@ -1232,7 +1234,7 @@ export default function Register() {
                 </a>
               )}
 
-              {(season?.iban || season?.bankName) && (
+              {(paymentInfo?.iban || paymentInfo?.bankName) && (
                 <div className="mb-6">
                   <button
                     type="button"
@@ -1247,34 +1249,34 @@ export default function Register() {
                   {showBankDetails && (
                   <div className="bg-card-muted rounded-card px-5 py-4 mt-2">
                     <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
-                      {season.kontoinhaber && (
+                      {paymentInfo.kontoinhaber && (
                         <>
                           <span className="text-muted">Kontoinhaber</span>
-                          <span className="text-foreground">{season.kontoinhaber}</span>
+                          <span className="text-foreground">{paymentInfo.kontoinhaber}</span>
                         </>
                       )}
-                      {season.iban && (
+                      {paymentInfo.iban && (
                         <>
                           <span className="text-muted">IBAN</span>
-                          <span className="text-foreground font-mono text-xs tracking-wide">{season.iban}</span>
+                          <span className="text-foreground font-mono text-xs tracking-wide">{paymentInfo.iban}</span>
                         </>
                       )}
-                      {season.bic && (
+                      {paymentInfo.bic && (
                         <>
                           <span className="text-muted">BIC</span>
-                          <span className="text-foreground font-mono text-xs tracking-wide">{season.bic}</span>
+                          <span className="text-foreground font-mono text-xs tracking-wide">{paymentInfo.bic}</span>
                         </>
                       )}
-                      {season.bankName && (
+                      {paymentInfo.bankName && (
                         <>
                           <span className="text-muted">Bank</span>
-                          <span className="text-foreground text-xs">{season.bankName}</span>
+                          <span className="text-foreground text-xs">{paymentInfo.bankName}</span>
                         </>
                       )}
-                      {season.name && (
+                      {paymentInfo.seasonName && (
                         <>
                           <span className="text-muted">Verwendungszweck</span>
-                          <span className="text-foreground text-xs">FFL {season.name.replace(/^Saison\s*/i, '')} {login}</span>
+                          <span className="text-foreground text-xs">FFL {paymentInfo.seasonName.replace(/^Saison\s*/i, '')} {login}</span>
                         </>
                       )}
                     </div>

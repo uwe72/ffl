@@ -13,6 +13,7 @@ import de.ffl.dto.ForgotPasswordRequest;
 import de.ffl.dto.LoginRequest;
 import de.ffl.dto.RefreshRequest;
 import de.ffl.dto.RegisterRequest;
+import de.ffl.dto.RegisterResponseDto;
 import de.ffl.dto.ResetPasswordRequest;
 import de.ffl.dto.UserDto;
 import de.ffl.repository.ManagerRepository;
@@ -206,7 +207,16 @@ public class AuthController {
         long registrationNumber = managerRepository.count();
         registrationMailService.sendRegistrationConfirmation(user, manager, registrationNumber);
 
-        return ResponseEntity.status(201).body(Map.of("message", "Registrierung erfolgreich"));
+        RegisterResponseDto.PaymentInfo paymentInfo = new RegisterResponseDto.PaymentInfo();
+        paymentInfo.setSpieleinsatzEuro(season.getSpieleinsatzEuro());
+        paymentInfo.setPaypalLink(season.getPaypalLink());
+        paymentInfo.setIban(season.getIban());
+        paymentInfo.setBic(season.getBic());
+        paymentInfo.setBankName(season.getBankName());
+        paymentInfo.setKontoinhaber(season.getKontoinhaber());
+        paymentInfo.setSeasonName(season.getName());
+
+        return ResponseEntity.status(201).body(new RegisterResponseDto("Registrierung erfolgreich", paymentInfo));
     }
 
     @Transactional(readOnly = true)
