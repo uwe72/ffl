@@ -43,13 +43,17 @@ public class SchemaMigrationRunner implements CommandLineRunner {
                 migrations.add("ALTER TABLE ffl_manager DROP COLUMN IF EXISTS short_name");
             }
 
+            if (columnExists(conn, "ffl_manager", "payment_state")) {
+                migrations.add("ALTER TABLE ffl_manager DROP COLUMN IF EXISTS payment_state");
+            }
+
             try (Statement stmt = conn.createStatement()) {
                 for (String sql : migrations) {
                     stmt.execute(sql);
                 }
             }
 
-            log.info("Schema migration: ffl_deposit_payment_method_check erneuert (PAYPAL/UEBERWEISUNG/OTHER), name/short_name aus ffl_manager entfernt");
+            log.info("Schema migration: ffl_deposit_payment_method_check erneuert (PAYPAL/UEBERWEISUNG/OTHER), name/short_name/payment_state aus ffl_manager entfernt");
         } catch (SQLException e) {
             log.warn("Schema migration skipped: {}", e.getMessage());
         }
