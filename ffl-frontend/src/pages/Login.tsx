@@ -5,6 +5,7 @@ import { useFeedback } from '../context/FeedbackContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { trackEvent } from '../hooks/useMatomo'
 import Button from '../components/Button'
+import RulesDialog from '../components/RulesDialog'
 
 interface FieldErrors {
   login?: string
@@ -18,6 +19,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [showPassword, setShowPassword] = useState(false)
+  const [showRules, setShowRules] = useState(false)
   const { login: authLogin } = useAuth()
   const { open: openFeedback } = useFeedback()
   const { data: season } = useCurrentSeason()
@@ -207,6 +209,15 @@ export default function Login() {
               <Button
                 variant="transparent"
                 type="button"
+                onClick={() => setShowRules(true)}
+              >
+                <i className="sap-icon sap-icon-information text-[18px]" />
+                <span className="hidden sm:inline">Spielregeln und Einführung</span>
+                <span className="sm:hidden">Infos</span>
+              </Button>
+              <Button
+                variant="transparent"
+                type="button"
                 onClick={openFeedback}
                 className="hidden sm:inline-flex"
               >
@@ -236,6 +247,8 @@ export default function Login() {
           </form>
         </div>
       </div>
+
+      <RulesDialog isOpen={showRules} onClose={() => setShowRules(false)} />
     </div>
   )
 }
