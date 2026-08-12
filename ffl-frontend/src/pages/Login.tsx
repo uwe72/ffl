@@ -19,6 +19,7 @@ export default function Login() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [showPassword, setShowPassword] = useState(false)
   const [showRules, setShowRules] = useState(false)
+  const [showEmailHint, setShowEmailHint] = useState(false)
   const { login: authLogin } = useAuth()
   const { data: season } = usePublicCurrentSeason()
   const navigate = useNavigate()
@@ -59,6 +60,7 @@ export default function Login() {
 
     setFieldErrors({})
     setIsLoading(true)
+    setShowEmailHint(false)
 
     try {
       await authLogin({ login, password })
@@ -67,6 +69,9 @@ export default function Login() {
     } catch (err) {
       trackEvent('auth', 'login', 'failure')
       setError('Ungültiger Login oder Passwort')
+      if (login.includes('@')) {
+        setShowEmailHint(true)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -125,12 +130,14 @@ export default function Login() {
               </div>
             )}
 
-            <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-control">
-              <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
-              <p className="text-info text-sm">
-                Bitte melde dich mit deinem Login-Namen an, nicht mit deiner E-Mail-Adresse.
-              </p>
-            </div>
+            {showEmailHint && (
+              <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-control">
+                <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
+                <p className="text-info text-sm">
+                  Bitte melde dich mit deinem Login-Namen an, nicht mit deiner E-Mail-Adresse.
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-[13px] text-muted mb-2">
