@@ -55,6 +55,31 @@ export interface Season {
 
 export type SeasonState = 'BEFORE_SEASON' | 'RUNNING_HINRUNDE' | 'RUNNING_RUECKRUNDE'
 
+export interface PublicSeasonInfo {
+  id: number
+  name: string
+  budget: number
+  seasonState: SeasonState
+  finalRegistrationDate?: string
+}
+
+export interface InvitationPreview {
+  seasonName: string
+  startDateLong: string
+  deadlineDate: string
+  deadlineTime: string
+  startRoundRueckrunde: string
+  spieleinsatz: string
+  serverkosten: string
+  gewinnProzent: string
+  gewinnLetzter: string
+  anzahlSpielleiter: string
+  budget: string
+  webUrl?: string | null
+  playersUrl?: string | null
+  documentsUrl?: string | null
+}
+
 export interface PrizePayout {
   managerId: number
   managerName: string
@@ -362,12 +387,27 @@ export interface AuthResponse {
   role: string
 }
 
+export interface RegisterPaymentInfo {
+  spieleinsatzEuro?: number
+  paypalLink?: string
+  iban?: string
+  bic?: string
+  bankName?: string
+  kontoinhaber?: string
+  seasonName?: string
+}
+
+export interface RegisterResponse {
+  message: string
+  paymentInfo?: RegisterPaymentInfo
+}
+
 export interface AuthContextType {
   user: { id?: number; login: string; role: string; firstName?: string; lastName?: string; avatarUrl?: string } | null
   isAuthenticated: boolean
   isLoading: boolean
   login: (credentials: LoginRequest) => Promise<void>
-  register: (data: RegisterRequest, avatar?: File) => Promise<void>
+  register: (data: RegisterRequest, avatar?: File) => Promise<RegisterResponse>
   logout: () => void
   refreshAccessToken: () => Promise<boolean>
   updateAvatarUrl: (url: string | null) => void

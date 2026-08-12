@@ -1,5 +1,5 @@
 import api from './client'
-import type { Season, PrizePayout, PrizeDistributionLog, MinP1ValidationResult, PayoutStatus, BestTeamResult, SetupPreviewDto, Document, Deposit, DepositSyncResult, DepositStatus, PaymentMethod } from '../types'
+import type { Season, PrizePayout, PrizeDistributionLog, MinP1ValidationResult, PayoutStatus, BestTeamResult, SetupPreviewDto, Document, Deposit, DepositSyncResult, DepositStatus, PaymentMethod, PublicSeasonInfo, InvitationPreview } from '../types'
 
 export interface CalculationResult {
   success: boolean
@@ -31,6 +31,8 @@ export const seasonApi = {
   getAll: () => api.get<Season[]>('/seasons'),
   getById: (id: number) => api.get<Season>(`/seasons/${id}`),
   getCurrent: () => api.get<Season>('/seasons/current'),
+  getPublicCurrent: () => api.get<PublicSeasonInfo>('/public/season-info'),
+  getInvitationPreview: () => api.get<InvitationPreview>('/public/invitation-preview'),
   create: (season: Partial<Season>) => api.post<Season>('/seasons', season),
   update: (id: number, season: Partial<Season>) => api.put<Season>(`/seasons/${id}`, season),
   delete: (id: number) => api.delete(`/seasons/${id}`),

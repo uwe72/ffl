@@ -3,6 +3,7 @@ package de.ffl.service;
 import de.ffl.domain.EmailAddress;
 import de.ffl.domain.Season;
 import de.ffl.domain.SystemConfig;
+import de.ffl.dto.InvitationPreviewDto;
 import de.ffl.repository.EmailAddressRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.SystemConfigRepository;
@@ -200,6 +201,29 @@ public class InvitationMailService {
     private String buildHtml(Season season, String webUrl) {
         Context context = buildContext(season, webUrl);
         return templateEngine.process("mail/invitation", context);
+    }
+
+    public InvitationPreviewDto buildPreviewDto(Season season, String webUrl) {
+        String normalizedWebUrl = normalizeWebUrl(webUrl);
+        InvitationPreviewDto dto = new InvitationPreviewDto();
+        dto.setSeasonName(season.getName() != null ? season.getName() : "Aktuelle Saison");
+        dto.setStartDateLong(formatOrDefault(season.getSeasonStartDate(), DATE_LONG, "siehe Webseite"));
+        LocalDate deadline = season.getFinalRegistrationDate() != null
+            ? season.getFinalRegistrationDate()
+            : season.getSeasonStartDate();
+        dto.setDeadlineDate(formatOrDefault(deadline, DATE_LONG, "siehe Webseite"));
+        dto.setDeadlineTime(formatOrDefault(season.getSeasonStartTime(), TIME_FMT, "20:30"));
+        dto.setStartRoundRueckrunde(season.getStartRoundRueckrunde() != null ? String.valueOf(season.getStartRoundRueckrunde()) : "--");
+        dto.setSpieleinsatz(formatCurrency(season.getSpieleinsatzEuro(), "10"));
+        dto.setServerkosten(formatCurrency(season.getServerkostenEuro(), "60"));
+        dto.setGewinnProzent(season.getGewinnErsterPlatzProzent() != null ? String.valueOf(season.getGewinnErsterPlatzProzent()) : "10");
+        dto.setGewinnLetzter(formatCurrency(season.getGewinnLetzterPlatzEuro(), "15"));
+        dto.setAnzahlSpielleiter(season.getAnzahlSpielleiter() != null ? String.valueOf(season.getAnzahlSpielleiter()) : "2");
+        dto.setBudget(formatBudget(season.getBudget()));
+        dto.setWebUrl(normalizedWebUrl);
+        dto.setPlayersUrl(normalizedWebUrl != null ? normalizedWebUrl + "/players" : null);
+        dto.setDocumentsUrl(normalizedWebUrl != null ? normalizedWebUrl + "/documents" : null);
+        return dto;
     }
 
     private String buildPlainText(Season season, String webUrl) {

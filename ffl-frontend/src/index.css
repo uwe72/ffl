@@ -87,6 +87,8 @@
   --color-subtle: var(--ffl-text-faint);
   --color-text-disabled: var(--ffl-text-disabled);
   --color-placeholder: var(--ffl-text-faint);
+  --color-on-dark: var(--ffl-text-on-dark);
+  --color-on-dark-muted: var(--ffl-text-on-dark-muted);
 
   --color-border: var(--ffl-border);
   --color-border-subtle: var(--ffl-border-subtle);

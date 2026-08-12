@@ -23,6 +23,20 @@ export function useCurrentSeason() {
   })
 }
 
+export function usePublicCurrentSeason() {
+  return useQuery({
+    queryKey: ['seasons', 'public', 'current'],
+    queryFn: () => seasonApi.getPublicCurrent().then(res => res.data),
+  })
+}
+
+export function useInvitationPreview() {
+  return useQuery({
+    queryKey: ['seasons', 'public', 'invitation-preview'],
+    queryFn: () => seasonApi.getInvitationPreview().then(res => res.data),
+  })
+}
+
 export function useCreateSeason() {
   const queryClient = useQueryClient()
   return useMutation({

@@ -1,92 +1,146 @@
-const positions = [
-  { key: 'GOALKEEPER', label: 'Torwart', edge: 'border-l-goalkeeper', tore: '10', toreNote: 'per Elfmeter 3 Punkte', zuNull: '5' },
-  { key: 'DEFENDER', label: 'Abwehr', edge: 'border-l-defender', tore: '7', toreNote: '', zuNull: '2' },
-  { key: 'MIDFIELD', label: 'Mittelfeld', edge: 'border-l-midfield', tore: '5', toreNote: '', zuNull: '–' },
-  { key: 'STRIKER', label: 'Sturm', edge: 'border-l-striker', tore: '3', toreNote: '', zuNull: '–' },
-]
+import { useInvitationPreview } from '../hooks/useSeasons'
 
-function SectionTitle({ icon, children }: { icon: string; children: React.ReactNode }) {
+function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mb-3">
-      <i className={`sap-icon ${icon} text-[18px] text-accent-light`} />
+    <p className="mb-2.5 text-xs font-bold text-subtle uppercase tracking-wider">
       {children}
-    </h3>
+    </p>
+  )
+}
+
+function Card({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="bg-surface border border-border rounded-card">
+      <div className="px-5 py-4 text-foreground text-sm leading-relaxed">
+        {children}
+      </div>
+    </div>
   )
 }
 
 export default function RulesContent() {
+  const { data: preview, isLoading, isError } = useInvitationPreview()
+
+  if (isLoading) {
+    return (
+      <div className="py-10 text-center text-muted text-sm">
+        Laden …
+      </div>
+    )
+  }
+
+  if (isError || !preview) {
+    return (
+      <div className="py-10 text-center text-muted text-sm">
+        Die Spielinformationen sind momentan nicht verfügbar.
+      </div>
+    )
+  }
+
   return (
-    <div className="divide-y divide-border-subtle">
-      <p className="text-[15px] text-foreground leading-relaxed pb-5">
-        Du stellst aus dem Kader der Bundesliga dein eigenes Team zusammen und sammelst über alle{' '}
-        <strong className="font-semibold">34 Spieltage</strong> Punkte.
-        Gewertet wird ausschließlich, was deine Spieler auf dem Platz tatsächlich leisten.
-        Bewusst einfach gehalten: keine Spielernoten, keine wöchentlichen Wechsel, kein tägliches Nachjustieren.
-        Einmal aufstellen, dann mitfiebern.
-      </p>
-
-      <section className="py-5">
-        <SectionTitle icon="sap-icon-group">Dein Kader</SectionTitle>
-        <ul className="space-y-2 text-sm text-muted list-disc pl-5 marker:text-subtle">
-          <li>Budget: <strong className="font-semibold text-foreground">30 Millionen Euro</strong></li>
-          <li>Aufstellung: <strong className="font-semibold text-foreground">1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm</strong></li>
-          <li>Dazu <strong className="font-semibold text-foreground">1 Joker</strong> auf einer frei wählbaren Feldposition</li>
-          <li>Keine Begrenzung, wie viele Spieler du von einem Verein nimmst</li>
-          <li>Bis zum Anmeldeschluss kannst du dein Team <strong className="font-semibold text-foreground">beliebig oft umbauen</strong></li>
-        </ul>
-      </section>
-
-      <section className="py-5">
-        <SectionTitle icon="sap-icon-goal">Punkte gibt es nur für zwei Dinge: Tore und Zu Null</SectionTitle>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {positions.map((p) => (
-            <div
-              key={p.key}
-              className={`border-l-4 ${p.edge} bg-card-muted border border-border rounded-control px-3 py-2.5`}
-            >
-              <div className="text-sm font-semibold text-foreground">{p.label}</div>
-              <div className="mt-2 flex items-center gap-4 text-sm">
-                <div className="flex flex-col">
-                  <span className="text-[11px] text-subtle">Tore</span>
-                  <span className="text-lg font-semibold text-foreground tnum leading-tight">
-                    {p.tore}
-                  </span>
-                  {p.toreNote && <span className="text-xs text-subtle">({p.toreNote})</span>}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[11px] text-subtle">Zu Null</span>
-                  <span className="text-lg font-semibold text-foreground tnum leading-tight">{p.zuNull}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+    <div className="space-y-6">
+      <div className="bg-foreground rounded-card px-6 py-7">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="m-0 mb-2 text-on-dark-muted text-[11px] font-bold uppercase tracking-[1.5px]">
+              FFL &middot; Fantasy Football League
+            </p>
+            <h2 className="m-0 mb-1 text-surface text-2xl font-bold leading-tight">
+              Einladung
+            </h2>
+            <p className="m-0 text-on-dark-muted text-sm font-medium">
+              Saison <strong className="font-bold text-on-dark">{preview.seasonName}</strong>
+            </p>
+          </div>
+          <span
+            className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full bg-success text-success-foreground text-lg font-bold"
+            aria-hidden="true"
+          >
+            &#9993;
+          </span>
         </div>
-        <div className="mt-3 flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-control">
-          <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
-          <p className="text-info text-sm">
-            <strong className="font-semibold">Alles andere</strong>, also Vorlagen, Einsatzminuten, Karten oder Noten, zählt nicht.
+      </div>
+
+      <section>
+        <SectionEyebrow>Die neue Saison ruft!</SectionEyebrow>
+        <Card>
+          <p className="m-0 mb-3 text-muted">
+            Ab <strong className="font-semibold text-foreground">{preview.startDateLong}</strong> rollt der Ball wieder, und damit geht auch unsere <strong className="font-semibold text-foreground">Fantasy Football League</strong> in die nächste Saison. Wir freuen uns, wenn Du dabei bist.
           </p>
-        </div>
+          <p className="m-0 mb-3 text-muted">
+            Wir betreuen das Spiel seit <strong className="font-semibold text-foreground">2011/2012</strong>, mittlerweile spielen <strong className="font-semibold text-foreground">200 bis 260 Fußballfans</strong> mit, von Deutschland bis Irland, Kanada und Kuba.
+          </p>
+          <p className="m-0 text-muted">
+            Die FFL ist ein einfaches Managerspiel: Du stellst <strong className="font-semibold text-foreground">einmalig</strong> ein Team aus echten Bundesligaspielern zusammen und sammelst <strong className="font-semibold text-foreground">34 Spieltage</strong> lang Punkte für deren Tore und Leistungen.
+          </p>
+        </Card>
       </section>
 
-      <section className="py-5">
-        <SectionTitle icon="sap-icon-hint">Gut zu wissen</SectionTitle>
-        <ul className="space-y-2 text-sm text-muted list-disc pl-5 marker:text-subtle">
-          <li>Der Joker ist ein ganz normaler Spieler und hat <strong className="font-semibold text-foreground">keinen Zusatzeffekt</strong>, du bist bei ihm nur in der Position frei</li>
-          <li>Zu Null Punkte gibt es, sobald der Spieler eingesetzt wurde, auch bei nur <strong className="font-semibold text-foreground">einer Sekunde Spielzeit</strong></li>
-          <li>Wechselt ein Spieler innerhalb der Bundesliga den Verein, sammelt er <strong className="font-semibold text-foreground">weiter Punkte</strong> für dich. Nur wer die Liga verlässt, bringt keine Punkte mehr</li>
-          <li>In der Winterpause darfst du bis zu <strong className="font-semibold text-foreground">drei Spieler tauschen</strong></li>
-        </ul>
+      <section>
+        <SectionEyebrow>Jetzt anmelden</SectionEyebrow>
+        <Card>
+          <p className="m-0 mb-3 text-muted">Registriere Dich und stelle Dein Team auf:</p>
+          <ul className="m-0 mb-3 pl-5 text-muted space-y-1.5 list-disc marker:text-subtle">
+            <li>
+              <strong className="font-semibold text-foreground">
+                Anmeldeschluss: {preview.deadlineDate} um {preview.deadlineTime} Uhr
+              </strong>
+            </li>
+            <li>Bis dahin kannst Du Dein Team <strong className="font-semibold text-foreground">beliebig oft umbauen</strong></li>
+          </ul>
+        </Card>
       </section>
 
-      <section className="pt-5">
-        <SectionTitle icon="sap-icon-money-bills">Mitmachen</SectionTitle>
-        <ul className="space-y-2 text-sm text-muted list-disc pl-5 marker:text-subtle">
-          <li>Startgebühr: <strong className="font-semibold text-foreground">10 Euro</strong> pro Team</li>
-          <li>Anmeldeschluss: <strong className="font-semibold text-foreground">Freitag, 28. August 2026, 20:30 Uhr</strong></li>
-          <li>Die Spielerliste findest du online und im <strong className="font-semibold text-foreground">kicker Sonderheft</strong></li>
-          <li>Ausgeschüttet wird an die <strong className="font-semibold text-foreground">besten 10 Prozent</strong> aller Teilnehmer</li>
-        </ul>
+      <section>
+        <SectionEyebrow>Spielregeln</SectionEyebrow>
+        <Card>
+          <ul className="m-0 pl-5 text-muted space-y-1.5 list-disc marker:text-subtle">
+            <li><strong className="font-semibold text-foreground">Elf Spieler:</strong> 1 Torwart, 3 Abwehr, 3 Mittelfeld, 3 Sturm, dazu 1 Joker auf einer frei wählbaren Feldposition</li>
+            <li><strong className="font-semibold text-foreground">Budget: {preview.budget} Euro</strong>, keine Begrenzung der Spieler pro Verein</li>
+            <li><strong className="font-semibold text-foreground">Tore:</strong> Stürmer 3 Punkte, Mittelfeld 5, Abwehr 7, Torwart 10 (Torwart per Elfmeter 3)</li>
+            <li><strong className="font-semibold text-foreground">Zu Null:</strong> Torwart 5 Punkte, Abwehr 2</li>
+          </ul>
+        </Card>
+      </section>
+
+      <section>
+        <SectionEyebrow>Einsatz: {preview.spieleinsatz} Euro pro Manager</SectionEyebrow>
+        <Card>
+          <ul className="m-0 pl-5 text-muted space-y-1.5 list-disc marker:text-subtle">
+            <li>Die <strong className="font-semibold text-foreground">{preview.anzahlSpielleiter}</strong> Spielleiter spielen mit je einem Team kostenlos mit.</li>
+            <li>Vom Einsatz gehen <strong className="font-semibold text-foreground">{preview.serverkosten}</strong> Euro für <strong className="font-semibold text-foreground">Serverbetrieb und KI Nutzung</strong> ab.</li>
+            <li>Ausgeschüttet wird an die <strong className="font-semibold text-foreground">besten 10 Prozent</strong>, bei 200 Managern also an die <strong className="font-semibold text-foreground">ersten 20</strong>.</li>
+            <li>Der Erste Gewinner bekommt <strong className="font-semibold text-foreground">{preview.gewinnProzent}</strong> Prozent der Ausschüttung, der letzte Gewinner <strong className="font-semibold text-foreground">{preview.gewinnLetzter}</strong> Euro.</li>
+          </ul>
+        </Card>
+      </section>
+
+      <section>
+        <SectionEyebrow>Spielerliste und Saisonverlauf</SectionEyebrow>
+        <Card>
+          <ul className="m-0 pl-5 text-muted space-y-1.5 list-disc marker:text-subtle">
+            {preview.playersUrl ? (
+              <li><a className="link font-semibold" href={preview.playersUrl}>Spielerliste online öffnen</a> oder im <strong className="font-semibold text-foreground">kicker Sonderheft</strong></li>
+            ) : (
+              <li>Die Spielerliste findest du online und im <strong className="font-semibold text-foreground">kicker Sonderheft</strong></li>
+            )}
+            {preview.documentsUrl ? (
+              <li>Die erfolgreichsten Spieler der letzten Saison: in den <a className="link font-semibold" href={preview.documentsUrl}>Dokumenten</a></li>
+            ) : (
+              <li>Die erfolgreichsten Spieler der letzten Saison: in den <strong className="font-semibold text-foreground">Dokumenten</strong></li>
+            )}
+            <li>In der <strong className="font-semibold text-foreground">Winterpause</strong> dürfen <strong className="font-semibold text-foreground">bis zu drei Spieler</strong> getauscht werden</li>
+          </ul>
+        </Card>
+      </section>
+
+      <section>
+        <SectionEyebrow>Viel Erfolg!</SectionEyebrow>
+        <Card>
+          <p className="m-0 text-muted">
+            Wir wünschen allen Managerinnen und Managern eine gute Hand beim Aufstellen, viele Punkte und vor allem viel Spaß. <strong className="font-semibold text-foreground">Möge das beste Team gewinnen!</strong>
+          </p>
+        </Card>
       </section>
     </div>
   )
