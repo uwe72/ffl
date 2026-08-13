@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 @Service
 public class RegistrationMailService {
@@ -151,7 +153,7 @@ public class RegistrationMailService {
             String verwendungszweck = "FFL " + seasonName + " " + user.getLogin();
             String firstName = user.getFirstName() != null && !user.getFirstName().isBlank() ? user.getFirstName() : "bitte";
 
-            String paypalLink = season.getPaypalLink();
+            String paypalLink = buildPaypalLinkWithAmount(season.getPaypalLink(), season.getSpieleinsatzEuro());
             context.setVariable("payment", new PaymentDto(
                 firstName,
                 spieleinsatz,
@@ -376,6 +378,30 @@ public class RegistrationMailService {
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;");
+    }
+
+    private static final Pattern PAYPAL_AMOUNT_SUFFIX = Pattern.compile("/\\d+(\\.\\d+)?$");
+
+    static String buildPaypalLinkWithAmount(String paypalLink, BigDecimal spieleinsatz) {
+        if (paypalLink == null || paypalLink.isBlank()) {
+            return paypalLink;
+        }
+        String trimmed = paypalLink.strip();
+        while (trimmed.endsWith("/")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1);
+        }
+        if (PAYPAL_AMOUNT_SUFFIX.matcher(trimmed).find()) {
+            return trimmed;
+        }
+        BigDecimal amount = spieleinsatz != null ? spieleinsatz : new BigDecimal("10");
+        String amountStr;
+        BigDecimal stripped = amount.stripTrailingZeros();
+        if (stripped.scale() <= 0) {
+            amountStr = stripped.toBigInteger().toString();
+        } else {
+            amountStr = stripped.setScale(2).toPlainString();
+        }
+        return trimmed + "/" + amountStr;
     }
 
     public record PlayerRowDto(String posLabel, String posColorHex, String posBgHex, String nameKicker, String teamName, String prizeFormatted) {}
