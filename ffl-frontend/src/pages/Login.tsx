@@ -210,8 +210,8 @@ export default function Login() {
               </button>
             </div>
 
-            <div className="border-t border-border pt-4 flex gap-3 justify-end items-center">
-              <div className="flex gap-3">
+            <div className="border-t border-border pt-4 flex justify-between items-center">
+              <div>
                 <Button
                   variant="transparent"
                   type="button"
@@ -220,6 +220,8 @@ export default function Login() {
                   <i className="sap-icon sap-icon-information text-[18px]" />
                   Infos
                 </Button>
+              </div>
+              <div className="flex gap-3">
                 <Button
                   variant="ghost"
                   type="button"
