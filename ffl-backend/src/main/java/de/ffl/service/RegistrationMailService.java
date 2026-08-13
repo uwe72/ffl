@@ -382,7 +382,7 @@ public class RegistrationMailService {
 
     private static final Pattern PAYPAL_AMOUNT_SUFFIX = Pattern.compile("/\\d+(\\.\\d+)?$");
 
-    static String buildPaypalLinkWithAmount(String paypalLink, BigDecimal spieleinsatz) {
+    public static String buildPaypalLinkWithAmount(String paypalLink, BigDecimal spieleinsatz) {
         if (paypalLink == null || paypalLink.isBlank()) {
             return paypalLink;
         }

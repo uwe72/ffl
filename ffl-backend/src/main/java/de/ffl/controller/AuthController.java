@@ -209,7 +209,9 @@ public class AuthController {
 
         RegisterResponseDto.PaymentInfo paymentInfo = new RegisterResponseDto.PaymentInfo();
         paymentInfo.setSpieleinsatzEuro(season.getSpieleinsatzEuro());
-        paymentInfo.setPaypalLink(season.getPaypalLink());
+        paymentInfo.setPaypalLink(
+            RegistrationMailService.buildPaypalLinkWithAmount(
+                season.getPaypalLink(), season.getSpieleinsatzEuro()));
         paymentInfo.setIban(season.getIban());
         paymentInfo.setBic(season.getBic());
         paymentInfo.setBankName(season.getBankName());
