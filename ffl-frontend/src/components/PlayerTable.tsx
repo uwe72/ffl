@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useCurrentSeason } from '../hooks/useSeasons'
+import { useCurrentSeason, usePublicCurrentSeason } from '../hooks/useSeasons'
 import useIsMobile from '../hooks/useIsMobile'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
@@ -284,8 +284,10 @@ export default function PlayerTable({
   const isMobile = useIsMobile()
   const { user } = useAuth()
   const { data: currentSeason } = useCurrentSeason()
+  const { data: publicSeason } = usePublicCurrentSeason()
+  const effectiveSeason = currentSeason ?? publicSeason
   const isAdmin = user?.role === 'ADMIN'
-  const isBeforeSeason = currentSeason?.seasonState === 'BEFORE_SEASON'
+  const isBeforeSeason = effectiveSeason?.seasonState === 'BEFORE_SEASON'
   const isBeforeSeasonNonAdmin = isBeforeSeason && !isAdmin
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(() => fixedPosition ? new Set([fixedPosition]) : new Set())
   const [selectedTeamId, setSelectedTeamId] = useState<number | 'ALL'>('ALL')
