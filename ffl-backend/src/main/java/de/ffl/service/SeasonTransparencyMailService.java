@@ -218,7 +218,7 @@ public class SeasonTransparencyMailService {
         context.setVariable("seasonName", season.getName() != null ? season.getName() : "Aktuelle Saison");
 
         List<Manager> managers = managerRepository.findBySeasonIdWithPlayers(season.getId());
-        managers.sort(Comparator.comparing(m -> m.getName() != null ? m.getName() : "", String.CASE_INSENSITIVE_ORDER));
+        sortManagersByName(managers);
 
         List<ManagerSquadDto> managerSquads = new ArrayList<>();
         int number = 1;
@@ -248,6 +248,14 @@ public class SeasonTransparencyMailService {
         return buildAllPlayersTable(seasonPlayers, countById);
     }
 
+    static void sortManagersByName(List<Manager> managers) {
+        managers.sort(Comparator
+            .comparing((Manager m) -> m.getUser() != null ? m.getUser().getFirstName() : null,
+                       Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+            .thenComparing(m -> m.getUser() != null ? m.getUser().getLastName() : null,
+                           Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
+    }
+
     static ManagerSquadDto buildManagerSquadDto(Manager manager, int number) {
         return new ManagerSquadDto(
             number,
@@ -271,8 +279,7 @@ public class SeasonTransparencyMailService {
                 count.intValue()
             ));
         }
-        rows.sort(Comparator.comparingInt(AllPlayerRowDto::managerCount).reversed()
-            .thenComparing(AllPlayerRowDto::name, String.CASE_INSENSITIVE_ORDER));
+        rows.sort(Comparator.comparing(AllPlayerRowDto::name, String.CASE_INSENSITIVE_ORDER));
         return rows;
     }
 
