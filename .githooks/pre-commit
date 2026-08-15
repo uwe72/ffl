@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# Auto-bump patch version on every commit.
+# Single source of truth: ffl-frontend/package.json
+# The same version is mirrored into ffl-backend/pom.xml (project version only).
+#
+set -e
+
+PKG="ffl-frontend/package.json"
+POM="ffl-backend/pom.xml"
+
+# Read current version from package.json (top-level "version" field).
+current=$(grep -m1 '"version"' "$PKG" | sed -E 's/.*"version"[[:space:]]*:[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
+
+if ! echo "$current" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  echo "pre-commit: could not detect a valid version in $PKG - skipping version bump." >&2
+  exit 0
+fi
+
+IFS='.' read -r major minor patch <<< "$current"
+new="$major.$minor.$((patch + 1))"
+
+# Update package.json (only the first/top-level "version" line, preserve CRLF).
+sed -i -E "0,/\"version\"[[:space:]]*:[[:space:]]*\"[0-9]+\.[0-9]+\.[0-9]+\"/s//\"version\": \"$new\"/" "$PKG"
+
+# Update pom.xml: replace ONLY the project <version> that directly follows
+# <artifactId>ffl-backend</artifactId> (not parent/dependency versions).
+awk -v newver="$new" '
+  /<artifactId>ffl-backend<\/artifactId>/ { seen = 1 }
+  seen && /<version>[0-9]+\.[0-9]+\.[0-9]+<\/version>/ {
+    sub(/<version>[0-9]+\.[0-9]+\.[0-9]+<\/version>/, "<version>" newver "</version>")
+    seen = 0
+  }
+  { print }
+' "$POM" > "$POM.tmp" && mv "$POM.tmp" "$POM"
+
+git add "$PKG" "$POM"
+
+echo "pre-commit: version bumped $current -> $new"

@@ -321,6 +321,17 @@ export interface Player {
 - **Database tables** use `ffl_` prefix
 - **JWT authentication** is required for most API endpoints (except `/api/auth/**`, `/api/public/**`, `/api/migration/**`)
 
+## Versioning
+
+- **Automatic patch bump** - A versioned Git `pre-commit` hook in `.githooks/pre-commit` increments the patch version (e.g. `1.2.0` → `1.2.1`) on **every** commit and stages the changed files, so both stay in sync automatically.
+- **Two files kept in sync** - `ffl-frontend/package.json` (source of truth) and `ffl-backend/pom.xml` (project `<version>` only, parent/dependency versions are untouched).
+- **One-time setup per clone** - Git does not store hook paths in the repo, so after a fresh clone run once:
+  ```bash
+  git config core.hooksPath .githooks
+  ```
+- **Manual minor/major bumps** - For larger releases, bump the minor/major segment manually in `ffl-frontend/package.json`; the hook continues incrementing the patch from there.
+- The displayed version in the frontend is read from `package.json` via `ffl-frontend/src/version.ts`.
+
 ## Workflow Preferences
 
 - **Always commit and push** - After every change, always commit and push to the remote repository. This applies across all sessions.
