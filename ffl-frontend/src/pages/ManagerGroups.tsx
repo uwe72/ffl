@@ -46,7 +46,7 @@ function ManagerGroupCard({ group }: { group: any }) {
         </div>
         <div>
           <span className="text-subtle">E-Mail an: </span>
-          <span className="text-muted">
+          <span className="font-medium text-foreground">
             {group.emailTo === 'CREATOR_ONLY' ? 'Nur Ersteller' : 'Alle Manager'}
           </span>
         </div>
