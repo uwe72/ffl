@@ -16,10 +16,11 @@ export function useSeason(id: number) {
   })
 }
 
-export function useCurrentSeason() {
+export function useCurrentSeason(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['seasons', 'current'],
     queryFn: () => seasonApi.getCurrent().then(res => res.data),
+    enabled: options?.enabled ?? true,
   })
 }
 

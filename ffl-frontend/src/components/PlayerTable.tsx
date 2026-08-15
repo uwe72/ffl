@@ -273,6 +273,7 @@ export default function PlayerTable({
   onSelect,
   defaultSortKey = 'position',
   defaultSortOrder = 'asc',
+  isPublic = false,
 }: {
   players: Player[]
   fixedPosition?: Position
@@ -280,15 +281,16 @@ export default function PlayerTable({
   onSelect?: (player: Player) => void
   defaultSortKey?: SortKey
   defaultSortOrder?: 'asc' | 'desc'
+  isPublic?: boolean
 }) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
-  const { data: currentSeason } = useCurrentSeason()
+  const { data: currentSeason } = useCurrentSeason({ enabled: !isPublic })
   const { data: publicSeason } = usePublicCurrentSeason()
   const effectiveSeason = currentSeason ?? publicSeason
   const isAdmin = user?.role === 'ADMIN'
-  const isBeforeSeason = effectiveSeason?.seasonState === 'BEFORE_SEASON'
-  const isBeforeSeasonNonAdmin = isBeforeSeason && !isAdmin
+  const isBeforeSeason = isPublic || effectiveSeason?.seasonState === 'BEFORE_SEASON'
+  const isBeforeSeasonNonAdmin = (isBeforeSeason && !isAdmin) || isPublic
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(() => fixedPosition ? new Set([fixedPosition]) : new Set())
   const [selectedTeamId, setSelectedTeamId] = useState<number | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')

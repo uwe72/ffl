@@ -2,10 +2,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { playerApi } from '../api/players'
 import type { Player } from '../types'
 
-export const usePlayers = () => {
+export const usePlayers = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['players'],
     queryFn: () => playerApi.getAll().then(res => res.data),
+    enabled: options?.enabled ?? true,
+  })
+}
+
+export const usePublicPlayers = (seasonId: number | undefined, enabled: boolean) => {
+  return useQuery({
+    queryKey: ['players', 'public', seasonId],
+    queryFn: () => playerApi.getPublicBySeason(seasonId as number).then(res => res.data),
+    enabled: enabled && !!seasonId,
   })
 }
 
