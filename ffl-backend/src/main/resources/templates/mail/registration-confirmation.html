@@ -145,7 +145,7 @@
                         Fast geschafft, <span th:text="${payment.firstName}">bitte</span>
                       </p>
                       <p style="margin:0 0 18px 0;color:#1c1917;font-size:14px;line-height:1.6;">
-                        Es fehlt nur noch dein Startgeld von <strong th:text="${payment.spieleinsatz + ',00 &euro;'}">10,00 &euro;</strong>.
+                        Es fehlt nur noch dein Startgeld.
                       </p>
 
                       <th:block th:if="${payment.paypalLink != null and !payment.paypalLink.isEmpty()}">
