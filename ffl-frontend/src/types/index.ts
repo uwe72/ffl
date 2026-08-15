@@ -452,6 +452,7 @@ export interface ManagerGroupListDto {
   createdByFirstName?: string
   createdByLastName?: string
   hasLogo?: boolean
+  emailTo?: string
 }
 
 export interface PositionStats {

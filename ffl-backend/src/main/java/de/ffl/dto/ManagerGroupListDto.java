@@ -11,6 +11,7 @@ public class ManagerGroupListDto {
     private String createdByFirstName;
     private String createdByLastName;
     private boolean hasLogo;
+    private String emailTo;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -32,4 +33,6 @@ public class ManagerGroupListDto {
     public void setCreatedByLastName(String createdByLastName) { this.createdByLastName = createdByLastName; }
     public boolean isHasLogo() { return hasLogo; }
     public void setHasLogo(boolean hasLogo) { this.hasLogo = hasLogo; }
+    public String getEmailTo() { return emailTo; }
+    public void setEmailTo(String emailTo) { this.emailTo = emailTo; }
 }

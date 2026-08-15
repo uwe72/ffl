@@ -29,9 +29,6 @@ function ManagerGroupCard({ group }: { group: any }) {
           >
             {group.name}
           </RouterLink>
-          {group.description && (
-            <p className="text-sm text-muted mt-1 truncate">{group.description}</p>
-          )}
         </div>
       </div>
       <div className="flex flex-col gap-1 mt-4 text-sm">
@@ -41,13 +38,22 @@ function ManagerGroupCard({ group }: { group: any }) {
         </div>
         <div>
           <span className="text-subtle">Erstellt von: </span>
-          <span className="text-muted">
+          <span className="font-medium text-foreground">
             {group.createdByFirstName && group.createdByLastName
               ? `${group.createdByFirstName} ${group.createdByLastName}`
               : group.createdByLogin || '-'}
           </span>
         </div>
+        <div>
+          <span className="text-subtle">E-Mail an: </span>
+          <span className="text-muted">
+            {group.emailTo === 'CREATOR_ONLY' ? 'Nur Ersteller' : 'Alle Manager'}
+          </span>
+        </div>
       </div>
+      {group.description && (
+        <p className="text-sm text-muted mt-3 truncate">{group.description}</p>
+      )}
     </div>
   )
 }

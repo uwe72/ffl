@@ -411,6 +411,7 @@ public class ManagerGroupService {
         }
         dto.setManagerCount(group.getManagers() != null ? group.getManagers().size() : 0);
         dto.setHasLogo(group.getLogo() != null && group.getLogo().length > 0);
+        dto.setEmailTo(group.getEmailTo() != null ? group.getEmailTo().name() : null);
         if (group.getCreatedBy() != null) {
             dto.setCreatedById(group.getCreatedBy().getId());
             dto.setCreatedByLogin(group.getCreatedBy().getLogin());
