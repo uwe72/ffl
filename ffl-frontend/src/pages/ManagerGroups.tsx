@@ -119,19 +119,12 @@ export default function ManagerGroups() {
               className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
             />
           </div>
-          <Button
-            onClick={() => navigate('/manager-groups/create')}
-            size="compact"
-            className="hidden sm:inline-flex"
-          >
-            + Neue Gruppe
-          </Button>
         </div>
 
         <Button
           onClick={() => navigate('/manager-groups/create')}
           size="compact"
-          className="w-full sm:hidden mb-4"
+          className="w-full sm:w-auto sm:inline-flex mb-4"
         >
           + Neue Gruppe
         </Button>
