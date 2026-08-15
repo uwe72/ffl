@@ -279,7 +279,8 @@ public class SeasonTransparencyMailService {
                 count.intValue()
             ));
         }
-        rows.sort(Comparator.comparing(AllPlayerRowDto::name, String.CASE_INSENSITIVE_ORDER));
+        rows.sort(Comparator.comparingInt(AllPlayerRowDto::managerCount).reversed()
+            .thenComparing(AllPlayerRowDto::name, String.CASE_INSENSITIVE_ORDER));
         return rows;
     }
 

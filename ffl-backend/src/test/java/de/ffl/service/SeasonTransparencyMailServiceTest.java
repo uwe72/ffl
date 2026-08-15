@@ -54,7 +54,7 @@ class SeasonTransparencyMailServiceTest {
     }
 
     @Test
-    void buildAllPlayersTable_filtersUnusedAndSortsByNameAscending() {
+    void buildAllPlayersTable_filtersUnusedAndSortsByManagerCountDesc() {
         Player p1 = player(1L, "Harry", "Kane", Position.STRIKER, 12_000_000);
         Player p2 = player(2L, "Manuel", "Neuer", Position.GOALKEEPER, 5_000_000);
         Player p3 = player(3L, "Nicht", "Gewaehlt", Position.MIDFIELD, 3_000_000);
@@ -67,10 +67,11 @@ class SeasonTransparencyMailServiceTest {
             SeasonTransparencyMailService.buildAllPlayersTable(List.of(p1, p2, p3), counts);
 
         assertThat(rows).hasSize(2);
-        assertThat(rows.get(0).name()).isEqualTo("Harry Kane");
-        assertThat(rows.get(1).name()).isEqualTo("Manuel Neuer");
-        assertThat(rows.get(0).positionLabel()).isEqualTo("ST");
-        assertThat(rows.get(1).positionLabel()).isEqualTo("TW");
+        assertThat(rows.get(0).name()).isEqualTo("Manuel Neuer");
+        assertThat(rows.get(0).managerCount()).isEqualTo(42);
+        assertThat(rows.get(1).name()).isEqualTo("Harry Kane");
+        assertThat(rows.get(1).managerCount()).isEqualTo(7);
+        assertThat(rows.get(0).positionLabel()).isEqualTo("TW");
     }
 
     @Test
