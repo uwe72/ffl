@@ -1,0 +1,129 @@
+import { useState, useMemo } from 'react'
+import { Link as RouterLink } from 'react-router-dom'
+import { useManagers } from '../hooks/useManagers'
+import { useAvatar } from '../hooks/useAvatar'
+import type { Manager } from '../types'
+
+function ManagerGalleryCard({ manager }: { manager: Manager }) {
+  const { data: avatarUrl, isLoading } = useAvatar(manager.userId)
+  const [imgLoaded, setImgLoaded] = useState(false)
+
+  const showSkeleton = isLoading || !imgLoaded
+  const fullName = `${manager.firstName ?? ''} ${manager.lastName ?? ''}`.trim() || manager.name
+  const positionLabel = manager.positionTotal ? `${manager.positionTotal}.` : '-'
+
+  return (
+    <RouterLink
+      to={`/managers/${manager.id}`}
+      className="relative block aspect-square rounded-card overflow-hidden border border-border bg-elevated group hover:border-border-hover transition-colors"
+    >
+      {showSkeleton && (
+        <div className="absolute inset-0 bg-elevated animate-pulse" />
+      )}
+      {avatarUrl && (
+        <img
+          src={avatarUrl}
+          alt={fullName}
+          loading="lazy"
+          onLoad={() => setImgLoaded(true)}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+        />
+      )}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'linear-gradient(to top, rgba(10,14,20,0.85) 0%, rgba(10,14,20,0.45) 35%, rgba(10,14,20,0) 60%)' }}
+      />
+      <div className="absolute top-2 left-2">
+        <span className="inline-flex items-center justify-center min-w-8 h-8 px-2 rounded-control bg-accent text-on-dark text-sm font-bold tnum">
+          {positionLabel}
+        </span>
+      </div>
+      <div className="absolute inset-x-0 bottom-0 p-3 text-on-dark">
+        <div className="font-bold leading-tight truncate drop-shadow-sm">{fullName}</div>
+        {manager.login && (
+          <div className="text-xs text-on-dark-muted truncate mt-0.5">({manager.login})</div>
+        )}
+        <div className="flex items-center gap-3 mt-2 text-xs">
+          <span className="inline-flex items-center gap-1">
+            <span className="text-on-dark-muted">Pkt</span>
+            <span className="font-semibold tnum">{manager.pointsTotal ?? '-'}</span>
+          </span>
+          {manager.positionChange != null && manager.positionChange !== 0 ? (
+            <span className={`inline-flex items-center gap-0.5 font-semibold tnum ${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+              {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
+            </span>
+          ) : (
+            <span className="text-on-dark-muted tnum">·</span>
+          )}
+        </div>
+      </div>
+    </RouterLink>
+  )
+}
+
+export default function ManagerGallery() {
+  const { data: managers, isLoading, error } = useManagers()
+
+  const galleryManagers = useMemo(() => {
+    if (!managers) return []
+    return managers
+      .filter(m => m.avatarUrl && m.userId)
+      .sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999))
+  }, [managers])
+
+  return (
+    <div>
+      <div className="relative h-[140px] md:h-[180px] rounded-card overflow-hidden mb-6 border border-border">
+        <div
+          className="absolute inset-0 bg-cover bg-no-repeat"
+          style={{
+            backgroundImage: 'url(/hero-banner.png)',
+            backgroundPosition: 'center 10%',
+            filter: 'brightness(0.65) contrast(1.05)',
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to right, rgba(10,14,20,0.65) 0%, rgba(10,14,20,0.35) 60%, rgba(10,14,20,0.15) 100%)' }}
+        />
+        <div className="relative h-full flex items-center px-6 md:px-8">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-on-dark leading-tight">Manager-Galerie</h1>
+            <p className="text-sm text-on-dark-muted mt-1">
+              Alle Manager der aktuellen Saison mit Profilbild
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {isLoading && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="aspect-square rounded-card bg-elevated animate-pulse" />
+          ))}
+        </div>
+      )}
+      {error && (
+        <div className="text-center py-8 text-danger">Fehler beim Laden</div>
+      )}
+      {!isLoading && !error && galleryManagers.length === 0 && (
+        <div className="card p-8 text-center">
+          <i className="sap-icon sap-icon-employee text-[32px] text-subtle mb-3" />
+          <p className="text-muted">Noch kein Manager hat ein Bild hinterlegt</p>
+        </div>
+      )}
+      {!isLoading && !error && galleryManagers.length > 0 && (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {galleryManagers.map(manager => (
+              <ManagerGalleryCard key={manager.id} manager={manager} />
+            ))}
+          </div>
+          <div className="mt-4 text-sm text-subtle">
+            {galleryManagers.length} Manager mit Bild
+          </div>
+        </>
+      )}
+    </div>
+  )
+}

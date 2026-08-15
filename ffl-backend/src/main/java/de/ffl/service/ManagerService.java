@@ -311,6 +311,9 @@ public class ManagerService {
             dto.setEmail(manager.getUser().getEmail());
             dto.setLogin(manager.getUser().getLogin());
             dto.setUserId(manager.getUser().getId());
+            if (manager.getUser().getAvatar() != null && manager.getUser().getAvatar().length > 0) {
+                dto.setAvatarUrl("/api/users/" + manager.getUser().getId() + "/avatar");
+            }
         }
 
         dto.setDescription(manager.getDescription());
