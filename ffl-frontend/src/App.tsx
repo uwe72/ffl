@@ -24,6 +24,7 @@ import MailingInvitation from './pages/MailingInvitation'
 import MailingMatchday from './pages/MailingMatchday'
 import MailingPrizeDistribution from './pages/MailingPrizeDistribution'
 import MailingAdminReport from './pages/MailingAdminReport'
+import MailingTransparency from './pages/MailingTransparency'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
@@ -161,6 +162,11 @@ function App() {
             <Route path="mailing/saisonabschluss" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <MailingAdminReport />
+              </ProtectedRoute>
+            } />
+            <Route path="mailing/transparenz" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <MailingTransparency />
               </ProtectedRoute>
             } />
           </Route>

@@ -19,6 +19,13 @@ const sections: { label: string; cards: MailCard[] }[] = [
         recipients: 'Adressbuch',
         route: '/mailing/einladung',
         icon: 'sap-icon-letter'
+      },
+      {
+        title: 'Transparenz-Report',
+        description: 'Sendet zu Beginn der Saison einmalig eine Übersicht an alle Manager: jeder Manager mit seinem kompletten Kader sowie eine Tabelle aller verwendeten Spieler. Erhöht die Transparenz in der Liga.',
+        recipients: 'Manager (auswählbar)',
+        route: '/mailing/transparenz',
+        icon: 'sap-icon-manager-insight'
       }
     ]
   },

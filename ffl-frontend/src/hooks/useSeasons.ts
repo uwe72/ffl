@@ -128,6 +128,21 @@ export function useSendSeasonReport() {
   })
 }
 
+export function useSendTransparencyTestMail() {
+  return useMutation({
+    mutationFn: (seasonId: number) =>
+      seasonApi.sendTransparencyTestMail(seasonId).then(res => res.data),
+  })
+}
+
+export function useTransparencyMailPreview(seasonId: number) {
+  return useQuery({
+    queryKey: ['seasons', seasonId, 'transparency-mail-preview'],
+    queryFn: () => seasonApi.getTransparencyMailPreview(seasonId).then(res => res.data),
+    enabled: false,
+  })
+}
+
 export function useBestTeam(seasonId: number) {
   return useQuery({
     queryKey: ['seasons', seasonId, 'best-team'],

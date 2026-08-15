@@ -20,6 +20,7 @@ import de.ffl.service.PrizeDistributionMailService;
 import de.ffl.service.PrizeDistributionService;
 import de.ffl.service.InvitationMailService;
 import de.ffl.service.SeasonReportMailService;
+import de.ffl.service.SeasonTransparencyMailService;
 import de.ffl.service.SeasonService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,11 +43,12 @@ public class SeasonController {
     private final PrizeDistributionMailService prizeDistributionMailService;
     private final InvitationMailService invitationMailService;
     private final SeasonReportMailService seasonReportMailService;
+    private final SeasonTransparencyMailService seasonTransparencyMailService;
     private final DocumentService documentService;
     private final PlayerPdfService playerPdfService;
     private final DepositService depositService;
 
-    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, BestTeamService bestTeamService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, SeasonReportMailService seasonReportMailService, DocumentService documentService, PlayerPdfService playerPdfService, DepositService depositService) {
+    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, BestTeamService bestTeamService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, SeasonReportMailService seasonReportMailService, SeasonTransparencyMailService seasonTransparencyMailService, DocumentService documentService, PlayerPdfService playerPdfService, DepositService depositService) {
         this.seasonRepository = seasonRepository;
         this.seasonService = seasonService;
         this.bestTeamService = bestTeamService;
@@ -54,6 +56,7 @@ public class SeasonController {
         this.prizeDistributionMailService = prizeDistributionMailService;
         this.invitationMailService = invitationMailService;
         this.seasonReportMailService = seasonReportMailService;
+        this.seasonTransparencyMailService = seasonTransparencyMailService;
         this.documentService = documentService;
         this.playerPdfService = playerPdfService;
         this.depositService = depositService;
@@ -360,6 +363,51 @@ public class SeasonController {
             return emitter;
         }
         return invitationMailService.streamInvitationMail(id, emailIds, testMode);
+    }
+
+    @PostMapping("/{id}/transparency-mail/test")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> sendTransparencyTestMail(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            seasonTransparencyMailService.sendTestMail(id);
+            return ResponseEntity.ok(new MessageResponse("Test-Transparenz-Report wurde an die Admin-Adresse versendet."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/transparency-mail/preview")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getTransparencyMailPreview(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            String html = seasonTransparencyMailService.generatePreviewHtml(id);
+            return ResponseEntity.ok(new MailPreviewResponse(html));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/{id}/transparency-mail/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public SseEmitter streamTransparencyMail(
+            @PathVariable Long id,
+            @RequestParam List<Long> managerIds,
+            @RequestParam(required = false, defaultValue = "false") boolean testMode) {
+        if (!seasonRepository.existsById(id)) {
+            SseEmitter emitter = new SseEmitter();
+            try {
+                emitter.send(SseEmitter.event().name("error").data("Saison nicht gefunden"));
+                emitter.complete();
+            } catch (Exception ignored) {}
+            return emitter;
+        }
+        return seasonTransparencyMailService.streamTransparencyMail(id, managerIds, testMode);
     }
 
     @PostMapping("/{id}/players-pdf")
