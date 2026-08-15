@@ -84,9 +84,7 @@ function App() {
                 <SeasonRestrictedRoute><TeamDetail /></SeasonRestrictedRoute>
               </ProtectedRoute>
             } />
-            <Route path="players" element={
-              <ProtectedRoute><Players /></ProtectedRoute>
-            } />
+            <Route path="players" element={<Players />} />
             <Route path="players/:id" element={
               <ProtectedRoute><PlayerDetail /></ProtectedRoute>
             } />
@@ -106,9 +104,7 @@ function App() {
             <Route path="manager-groups/:id" element={
               <ProtectedRoute><ManagerGroupDetail /></ProtectedRoute>
             } />
-            <Route path="documents" element={
-              <ProtectedRoute><Documents /></ProtectedRoute>
-            } />
+            <Route path="documents" element={<Documents />} />
             <Route path="users" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Users />

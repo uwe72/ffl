@@ -1,6 +1,8 @@
 import { useState, useMemo, useRef } from 'react'
+import { Navigate, Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useDocuments, useUploadDocument, useDeleteDocument } from '../hooks/useDocuments'
+import { usePublicCurrentSeason } from '../hooks/useSeasons'
 import type { Document } from '../types'
 import Button from '../components/Button'
 import SortIcon from '../components/SortIcon'
@@ -85,14 +87,18 @@ function DocumentCard({ doc, isAdmin, onDelete }: { doc: Document; isAdmin: bool
 
 export default function Documents() {
   const isMobile = useIsMobile()
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const isAdmin = user?.role === 'ADMIN'
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('uploadedAt')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { data: documents, isLoading, error } = useDocuments()
+  const { data: publicSeason, isLoading: isLoadingSeason } = usePublicCurrentSeason()
+  const guestAccessAllowed = publicSeason?.seasonState === 'BEFORE_SEASON'
+  const accessAllowed = isAuthenticated || guestAccessAllowed
+
+  const { data: documents, isLoading, error } = useDocuments(accessAllowed)
   const uploadMutation = useUploadDocument()
   const deleteMutation = useDeleteDocument()
 
@@ -160,11 +166,34 @@ export default function Documents() {
     }
   }
 
+  if (!isAuthenticated && isLoadingSeason) {
+    return <div className="text-center py-8 text-muted">Laden...</div>
+  }
+
+  if (!isAuthenticated && !guestAccessAllowed) {
+    return <Navigate to="/login" replace />
+  }
+
   if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
     <div>
+      {!isAuthenticated && (
+        <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-border">
+          <div className="flex items-center gap-3 min-w-0">
+            <i className="sap-icon sap-icon-documents text-[28px] text-foreground shrink-0" />
+            <div className="min-w-0">
+              <p className="text-lg font-bold text-foreground leading-tight">FFL &ndash; Dokumente</p>
+              <p className="text-sm text-muted">Fantasy Football League{publicSeason?.name ? ` \u2013 ${publicSeason.name}` : ''}</p>
+            </div>
+          </div>
+          <RouterLink to="/login" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold shrink-0">
+            <i className="sap-icon sap-icon-log text-base" />
+            Zum Login
+          </RouterLink>
+        </div>
+      )}
       <div className="p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
         <div className="flex items-center justify-between gap-4 mb-4">
           {!isMobile && (

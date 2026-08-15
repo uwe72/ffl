@@ -97,4 +97,18 @@ public class DocumentController {
         }
         return auth.getName();
     }
+
+    private boolean isAnonymous() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal());
+    }
+
+    private boolean isDocumentsAccessDenied() {
+        if (!isAnonymous()) {
+            return false;
+        }
+        return seasonService.findCurrentSeason()
+            .map(season -> season.getSeasonState() != SeasonState.BEFORE_SEASON)
+            .orElse(true);
+    }
 }
