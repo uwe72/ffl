@@ -26,9 +26,15 @@ import de.ffl.repository.RoundRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.TeamRepository;
 import de.ffl.repository.UserRepository;
+import de.ffl.service.PlayerDeactivationMailService;
+import de.ffl.service.PlayerDeactivationMailService.ManagerNotificationDto;
+import de.ffl.service.PlayerDeactivationMailService.PlayerRowDto;
+import de.ffl.service.TeamChangeMailService;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -69,6 +75,7 @@ public class NewSeasonSetupService {
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EntityManager entityManager;
+    private final PlayerDeactivationMailService playerDeactivationMailService;
 
     public NewSeasonSetupService(KickerClientDatabaseClient databaseClient,
                                   SeasonRepository seasonRepository,
@@ -85,7 +92,8 @@ public class NewSeasonSetupService {
                                   PrizeDistributionLogRepository prizeDistributionLogRepository,
                                   UserRepository userRepository,
                                   PasswordResetTokenRepository passwordResetTokenRepository,
-                                  EntityManager entityManager) {
+                                  EntityManager entityManager,
+                                  PlayerDeactivationMailService playerDeactivationMailService) {
         this.databaseClient = databaseClient;
         this.seasonRepository = seasonRepository;
         this.teamRepository = teamRepository;
@@ -102,6 +110,7 @@ public class NewSeasonSetupService {
         this.userRepository = userRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.entityManager = entityManager;
+        this.playerDeactivationMailService = playerDeactivationMailService;
     }
 
     public SetupPreviewDto preview(String sourceUrl) {
@@ -481,6 +490,7 @@ public class NewSeasonSetupService {
         log.accept("Prüfe Aktiv-Status ...");
         int playersDeactivated = 0;
         int playersReactivated = 0;
+        Map<Long, ManagerNotificationAccumulator> notificationsByManager = new LinkedHashMap<>();
         for (Map.Entry<String, Player> entry : existingByKickerId.entrySet()) {
             Player existing = entry.getValue();
             boolean inActiveKicker = activeKickerIds.contains(entry.getKey());
@@ -489,7 +499,9 @@ public class NewSeasonSetupService {
                     existing.setAktiv(false);
                     playerRepository.save(existing);
                     playersDeactivated++;
-                    log.accept("Spieler deaktiviert: " + formatDeactivatedPlayer(existing));
+                    List<Manager> affectedManagers = managerRepository.findManagersByPlayerId(existing.getId());
+                    log.accept("Spieler deaktiviert: " + formatDeactivatedPlayer(existing, affectedManagers));
+                    collectDeactivationNotifications(notificationsByManager, existing, affectedManagers);
                 }
             } else {
                 if (Boolean.FALSE.equals(existing.getAktiv())) {
@@ -500,6 +512,7 @@ public class NewSeasonSetupService {
                 }
             }
         }
+        dispatchDeactivationNotifications(notificationsByManager, season.getName(), season.getSeasonState());
 
         log.accept("");
         log.accept("=== Spieler-Update abgeschlossen ===");
@@ -544,31 +557,16 @@ public class NewSeasonSetupService {
         return kp.displayName() != null ? kp.displayName() : kp.displayLongName();
     }
 
-    private String formatDeactivatedPlayer(Player player) {
+    private String formatDeactivatedPlayer(Player player, List<Manager> managers) {
         StringBuilder sb = new StringBuilder();
 
-        String first = player.getFirstName();
-        String last = player.getLastName();
-        String fullName = null;
-        if (first != null && !first.isBlank() && last != null && !last.isBlank()) {
-            fullName = first.trim() + " " + last.trim();
-        } else if (first != null && !first.isBlank()) {
-            fullName = first.trim();
-        } else if (last != null && !last.isBlank()) {
-            fullName = last.trim();
-        }
-        if (fullName == null || fullName.isBlank()) {
-            fullName = player.getNameKicker();
-        }
-        sb.append(fullName);
+        sb.append(fullName(player));
 
-        Team team = (player.getTeams() == null || player.getTeams().isEmpty())
-                ? null : player.getTeams().get(0);
+        Team team = firstTeam(player);
         if (team != null && team.getName() != null && !team.getName().isBlank()) {
             sb.append(" (").append(team.getName()).append(")");
         }
 
-        List<Manager> managers = managerRepository.findManagersByPlayerId(player.getId());
         if (managers.isEmpty()) {
             sb.append(" — in keinem Team");
         } else {
@@ -582,6 +580,89 @@ public class NewSeasonSetupService {
 
         return sb.toString();
     }
+
+    private String fullName(Player player) {
+        String first = player.getFirstName();
+        String last = player.getLastName();
+        if (first != null && !first.isBlank() && last != null && !last.isBlank()) {
+            return first.trim() + " " + last.trim();
+        }
+        if (first != null && !first.isBlank()) {
+            return first.trim();
+        }
+        if (last != null && !last.isBlank()) {
+            return last.trim();
+        }
+        return player.getNameKicker();
+    }
+
+    private Team firstTeam(Player player) {
+        return (player.getTeams() == null || player.getTeams().isEmpty())
+                ? null : player.getTeams().get(0);
+    }
+
+    private void collectDeactivationNotifications(Map<Long, ManagerNotificationAccumulator> notificationsByManager,
+                                                  Player player, List<Manager> managers) {
+        Team team = firstTeam(player);
+        String teamName = team != null && team.getName() != null ? team.getName() : "";
+        String posLabel = TeamChangeMailService.positionLabel(player.getPosition());
+        PlayerRowDto row = new PlayerRowDto(
+                posLabel,
+                TeamChangeMailService.positionColor(posLabel),
+                TeamChangeMailService.positionBg(posLabel),
+                fullName(player),
+                teamName);
+        for (Manager manager : managers) {
+            if (manager.getUser() == null) {
+                continue;
+            }
+            String email = manager.getUser().getEmail();
+            if (email == null || email.isBlank()) {
+                continue;
+            }
+            ManagerNotificationAccumulator acc = notificationsByManager.computeIfAbsent(
+                    manager.getId(),
+                    id -> new ManagerNotificationAccumulator(email, deriveGreeting(manager)));
+            acc.players().add(row);
+        }
+    }
+
+    private String deriveGreeting(Manager manager) {
+        String name = manager.getName();
+        if (name != null && !name.isBlank()) {
+            return name;
+        }
+        String shortName = manager.getShortName();
+        return shortName != null ? shortName : "Manager";
+    }
+
+    private void dispatchDeactivationNotifications(Map<Long, ManagerNotificationAccumulator> notificationsByManager,
+                                                   String seasonName, SeasonState seasonState) {
+        if (notificationsByManager.isEmpty()) {
+            return;
+        }
+        List<ManagerNotificationDto> notifications = new ArrayList<>();
+        for (ManagerNotificationAccumulator acc : notificationsByManager.values()) {
+            notifications.add(new ManagerNotificationDto(acc.email(), acc.greeting(), acc.players()));
+        }
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    playerDeactivationMailService.sendDeactivationNotifications(notifications, seasonName, seasonState);
+                }
+            });
+        } else {
+            playerDeactivationMailService.sendDeactivationNotifications(notifications, seasonName, seasonState);
+        }
+    }
+
+    private record ManagerNotificationAccumulator(String email, String greeting, List<PlayerRowDto> players) {
+        ManagerNotificationAccumulator(String email, String greeting) {
+            this(email, greeting, new ArrayList<>());
+        }
+    }
+
 
     private List<KickerPlayer> activePlayers(KickerClientDatabase db) {
         List<KickerPlayer> result = new ArrayList<>();

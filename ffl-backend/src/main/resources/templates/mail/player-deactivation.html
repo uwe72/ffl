@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
+  <title>FFL | Spieler nicht mehr verfügbar</title>
+</head>
+<body style="margin:0;padding:0;background:#e7e5e4;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1c1917;-webkit-font-smoothing:antialiased;">
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#e7e5e4;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+          <!-- Hero-Banner -->
+          <tr>
+            <td style="background:#1c1917;border-radius:6px;padding:32px 28px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="vertical-align:top;">
+                    <p style="margin:0 0 10px 0;color:#ede9e3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">FFL &middot; Fantasy Football League</p>
+                    <h1 style="margin:0 0 6px 0;color:#fafaf9;font-size:26px;font-weight:700;line-height:1.2;">Spieler nicht mehr verf&uuml;gbar</h1>
+                    <p style="margin:0;color:#a8a29e;font-size:15px;font-weight:500;line-height:1.4;">Saison <span th:text="${seasonName}">Aktuelle Saison</span></p>
+                  </td>
+                  <td width="44" style="vertical-align:top;text-align:right;">
+                    <span style="display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;background:#b45309;color:#ffffff;border-radius:9999px;font-size:22px;font-weight:700;">&#9888;</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="20" style="line-height:20px;font-size:20px;">&nbsp;</td></tr>
+
+          <!-- Begrüßung + Intro -->
+          <tr>
+            <td style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;padding:20px 22px;">
+              <p style="margin:0 0 12px 0;color:#1c1917;font-size:16px;font-weight:700;">Hallo <span th:text="${greeting}">Manager</span>!</p>
+              <p style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">Ein oder mehrere Spieler aus Deinem Team stehen in der kicker-Datenbank nicht mehr zur Verf&uuml;gung und wurden daher deaktiviert. Hier ist die &Uuml;bersicht der betroffenen Spieler:</p>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Sektion: Betroffene Spieler -->
+          <tr>
+            <td>
+              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Betroffene Spieler</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
+                <th:block th:each="p,pIter : ${players}">
+                  <tr>
+                    <td th:style="${pIter.last ? 'padding:11px 16px;' : 'padding:11px 16px;border-bottom:1px solid #e7e5e4;'}">
+                      <span th:style="${'display:inline-block;background:' + p.posColorHex + ';color:#ffffff;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;margin-bottom:6px;'}" th:text="${p.posLabel}">POS</span>
+                      <p style="margin:0 0 2px 0;color:#b91c1c;font-size:14px;font-weight:600;line-height:1.3;" th:text="${p.name}">Spielername</p>
+                      <p style="margin:0;color:#78716c;font-size:12px;" th:text="${p.teamName}">Verein</p>
+                    </td>
+                  </tr>
+                </th:block>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+
+          <!-- Sektion: Hinweis -->
+          <tr>
+            <td style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;padding:20px 22px;">
+              <p style="margin:0 0 8px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Was Du tun kannst</p>
+              <p th:if="${beforeSeason}" style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">Da die Saison noch nicht gestartet ist, kannst Du Deine Aufstellung jederzeit anpassen und den betroffenen Spieler ersetzen.</p>
+              <p th:unless="${beforeSeason}" style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">Im Winter-Wechselfenster kannst Du den betroffenen Spieler austauschen. Achte darauf, Deine Aufstellung rechtzeitig anzupassen.</p>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="28" style="line-height:28px;font-size:28px;">&nbsp;</td></tr>
+
+          <!-- Webseite -->
+          <th:block th:if="${webUrl != null and !webUrl.isEmpty()}">
+            <tr>
+              <td align="center" style="padding-bottom:14px;">
+                <p style="margin:0 0 6px 0;color:#a8a29e;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Webseite:</p>
+                <a th:href="${webUrl}" style="color:#1d4ed8;font-size:13px;font-weight:700;text-decoration:none;">FFL &mdash; Fantasy Football League</a>
+              </td>
+            </tr>
+          </th:block>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding-top:16px;border-top:1px solid #d6d3d1;text-align:center;">
+              <p style="margin:0;color:#78716c;font-size:12px;line-height:1.6;">Fragen? Antworte einfach direkt auf diese E-Mail.</p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
