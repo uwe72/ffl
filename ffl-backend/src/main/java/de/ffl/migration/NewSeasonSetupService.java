@@ -1,6 +1,7 @@
 package de.ffl.migration;
 
 import de.ffl.domain.Game;
+import de.ffl.domain.Manager;
 import de.ffl.domain.Player;
 import de.ffl.domain.Position;
 import de.ffl.domain.Round;
@@ -488,7 +489,7 @@ public class NewSeasonSetupService {
                     existing.setAktiv(false);
                     playerRepository.save(existing);
                     playersDeactivated++;
-                    log.accept("Spieler deaktiviert: " + existing.getNameKicker());
+                    log.accept("Spieler deaktiviert: " + formatDeactivatedPlayer(existing));
                 }
             } else {
                 if (Boolean.FALSE.equals(existing.getAktiv())) {
@@ -541,6 +542,45 @@ public class NewSeasonSetupService {
 
     private String kickerDisplayName(KickerPlayer kp) {
         return kp.displayName() != null ? kp.displayName() : kp.displayLongName();
+    }
+
+    private String formatDeactivatedPlayer(Player player) {
+        StringBuilder sb = new StringBuilder();
+
+        String first = player.getFirstName();
+        String last = player.getLastName();
+        String fullName = null;
+        if (first != null && !first.isBlank() && last != null && !last.isBlank()) {
+            fullName = first.trim() + " " + last.trim();
+        } else if (first != null && !first.isBlank()) {
+            fullName = first.trim();
+        } else if (last != null && !last.isBlank()) {
+            fullName = last.trim();
+        }
+        if (fullName == null || fullName.isBlank()) {
+            fullName = player.getNameKicker();
+        }
+        sb.append(fullName);
+
+        Team team = (player.getTeams() == null || player.getTeams().isEmpty())
+                ? null : player.getTeams().get(0);
+        if (team != null && team.getName() != null && !team.getName().isBlank()) {
+            sb.append(" (").append(team.getName()).append(")");
+        }
+
+        List<Manager> managers = managerRepository.findManagersByPlayerId(player.getId());
+        if (managers.isEmpty()) {
+            sb.append(" — in keinem Team");
+        } else {
+            String names = managers.stream()
+                    .map(Manager::getName)
+                    .collect(java.util.stream.Collectors.joining(", "));
+            sb.append(" — im Team bei ").append(managers.size())
+                    .append(managers.size() == 1 ? " Manager: " : " Managern: ")
+                    .append(names);
+        }
+
+        return sb.toString();
     }
 
     private List<KickerPlayer> activePlayers(KickerClientDatabase db) {

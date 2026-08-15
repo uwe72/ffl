@@ -1,13 +1,18 @@
 package de.ffl.migration;
 
+import de.ffl.domain.Manager;
 import de.ffl.domain.Player;
 import de.ffl.domain.Position;
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
 import de.ffl.domain.Team;
+import de.ffl.domain.User;
+import de.ffl.domain.UserRole;
+import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.PlayerRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.TeamRepository;
+import de.ffl.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +53,12 @@ class NewSeasonSetupUpdatePlayersTest {
 
     @Autowired
     private PlayerRepository playerRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ManagerRepository managerRepository;
 
     @Autowired
     private EntityManager entityManager;
@@ -225,6 +236,48 @@ class NewSeasonSetupUpdatePlayersTest {
         assertThat(gone.getAktiv()).isFalse();
         assertThat(log.get()).contains("Spieler deaktiviert: Wegfallender Spieler");
         assertThat(log.get()).contains("Spieler deaktiviert: 1");
+    }
+
+    @Test
+    void updatePlayers_deactivationLogIncludesNameClubAndManagers() {
+        List<Team> alphaTeams = new ArrayList<>();
+        alphaTeams.add(alpha);
+        Player gone = playerRepository.save(Player.builder()
+                .kickerId("pl-test-gone-02")
+                .nameKicker("Baldé")
+                .firstName("Keita")
+                .lastName("Baldé")
+                .position(Position.STRIKER)
+                .prize(500000)
+                .season(season)
+                .teams(alphaTeams)
+                .aktiv(true)
+                .build());
+
+        User user = userRepository.save(User.builder()
+                .login("maxm")
+                .password("$2a$10$test")
+                .email("max@test.de")
+                .firstName("Max")
+                .lastName("Mustermann")
+                .role(UserRole.NORMAL)
+                .build());
+        Manager manager = Manager.builder()
+                .user(user)
+                .season(season)
+                .budget(30000000)
+                .build();
+        manager.setPlayerStriker1(gone);
+        managerRepository.save(manager);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        AtomicReference<String> log = new AtomicReference<>("");
+        setupService.updatePlayers("test-url", msg -> log.set(log.get() + msg + "\n"));
+
+        assertThat(log.get()).contains("Spieler deaktiviert: Keita Baldé (Testverein Alpha)");
+        assertThat(log.get()).contains("im Team bei 1 Manager: Max Mustermann");
     }
 
     @Test
