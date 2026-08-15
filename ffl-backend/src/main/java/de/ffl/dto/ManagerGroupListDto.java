@@ -10,6 +10,7 @@ public class ManagerGroupListDto {
     private String createdByLogin;
     private String createdByFirstName;
     private String createdByLastName;
+    private boolean hasLogo;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -29,4 +30,6 @@ public class ManagerGroupListDto {
     public void setCreatedByFirstName(String createdByFirstName) { this.createdByFirstName = createdByFirstName; }
     public String getCreatedByLastName() { return createdByLastName; }
     public void setCreatedByLastName(String createdByLastName) { this.createdByLastName = createdByLastName; }
+    public boolean isHasLogo() { return hasLogo; }
+    public void setHasLogo(boolean hasLogo) { this.hasLogo = hasLogo; }
 }

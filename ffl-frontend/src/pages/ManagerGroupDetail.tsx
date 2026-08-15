@@ -1,6 +1,6 @@
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator, useCreateManagerGroup, useGroupLogo, useUploadGroupLogo, useDeleteGroupLogo } from '../hooks/useManagerGroups'
+import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator, useCreateManagerGroup, useGroupLogo, useUploadGroupLogo, useDeleteGroupLogo, useDeleteManagerGroup } from '../hooks/useManagerGroups'
 import { useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useUsers } from '../hooks/useUsers'
@@ -36,6 +36,7 @@ export default function ManagerGroupDetail() {
   const removeManagerMutation = useRemoveManagerFromGroup(groupId)
   const updateMutation = useUpdateManagerGroup(groupId)
   const changeCreatorMutation = useChangeCreator(groupId)
+  const deleteMutation = useDeleteManagerGroup()
   
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
@@ -240,6 +241,18 @@ export default function ManagerGroupDetail() {
     }
     setHasChanges(false)
     setErrorMessage('')
+  }
+
+  const handleDeleteGroup = async () => {
+    if (!group) return
+    if (window.confirm('Möchten Sie diese Gruppe wirklich löschen?')) {
+      try {
+        await deleteMutation.mutateAsync(group.id)
+        navigate('/manager-groups')
+      } catch {
+        setErrorMessage('Fehler beim Löschen der Gruppe.')
+      }
+    }
   }
 
   const handleLogoClick = () => {
@@ -546,17 +559,27 @@ export default function ManagerGroupDetail() {
           </div>
 
           {canEdit && !isNewMode && (
-            <Button
-              variant={stammdatenOpen ? 'ghost' : 'emphasized'}
-              size="sm"
-              onClick={() => setStammdatenOpen(o => !o)}
-              aria-expanded={stammdatenOpen}
-              aria-controls="stammdaten-form"
-              className="shrink-0 self-start"
-            >
-              <i className={`sap-icon sap-icon-slim-arrow-${stammdatenOpen ? 'up' : 'down'} text-xs mr-1`} />
-              {stammdatenOpen ? 'Schließen' : 'Bearbeiten'}
-            </Button>
+            <div className="flex gap-2 shrink-0 self-start">
+              <Button
+                variant={stammdatenOpen ? 'ghost' : 'emphasized'}
+                size="sm"
+                onClick={() => setStammdatenOpen(o => !o)}
+                aria-expanded={stammdatenOpen}
+                aria-controls="stammdaten-form"
+              >
+                <i className={`sap-icon sap-icon-slim-arrow-${stammdatenOpen ? 'up' : 'down'} text-xs mr-1`} />
+                {stammdatenOpen ? 'Schließen' : 'Bearbeiten'}
+              </Button>
+              <Button
+                variant="negative"
+                size="sm"
+                onClick={handleDeleteGroup}
+                disabled={deleteMutation.isPending}
+              >
+                <i className="sap-icon sap-icon-delete text-xs mr-1" />
+                Löschen
+              </Button>
+            </div>
           )}
         </div>
       </div>

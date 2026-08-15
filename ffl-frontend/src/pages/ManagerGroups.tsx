@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import { useManagerGroups, useDeleteManagerGroup } from '../hooks/useManagerGroups'
+import { useManagerGroups, useGroupLogo } from '../hooks/useManagerGroups'
 import Button from '../components/Button'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
@@ -9,10 +9,19 @@ import useIsMobile from '../hooks/useIsMobile'
 type SortKey = 'name' | 'managerCount' | 'createdByLogin'
 type SortOrder = 'asc' | 'desc'
 
-function ManagerGroupCard({ group, onDelete }: { group: any; onDelete: (id: number) => void }) {
+function ManagerGroupCard({ group }: { group: any }) {
+  const { data: logoUrl } = useGroupLogo(group.hasLogo ? group.id : null)
   return (
-    <div className="p-4 bg-surface border border-border rounded-card">
+    <div className="relative overflow-hidden p-4 pl-5 bg-surface border border-border rounded-card">
+      <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
       <div className="flex gap-4 items-center">
+        {logoUrl ? (
+          <img src={logoUrl} alt={group.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-elevated flex items-center justify-center flex-shrink-0">
+            <i className="sap-icon sap-icon-group-2 text-xl text-accent" />
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <RouterLink
             to={`/manager-groups/${group.id}`}
@@ -23,28 +32,21 @@ function ManagerGroupCard({ group, onDelete }: { group: any; onDelete: (id: numb
           {group.description && (
             <p className="text-sm text-muted mt-1 truncate">{group.description}</p>
           )}
-          <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
-            <div>
-              <span className="text-subtle">Manager: </span>
-              <span className="font-medium text-foreground">{group.managerCount}</span>
-            </div>
-            <div>
-              <span className="text-subtle">Erstellt von: </span>
-              <span className="text-muted">
-                {group.createdByFirstName && group.createdByLastName
-                  ? `${group.createdByFirstName} ${group.createdByLastName}`
-                  : group.createdByLogin || '-'}
-              </span>
-            </div>
-          </div>
         </div>
-        <Button
-          variant="negative"
-          size="sm"
-          onClick={() => onDelete(group.id)}
-        >
-          Löschen
-        </Button>
+      </div>
+      <div className="flex flex-col gap-1 mt-4 text-sm">
+        <div>
+          <span className="text-subtle">Manager: </span>
+          <span className="font-medium text-foreground">{group.managerCount}</span>
+        </div>
+        <div>
+          <span className="text-subtle">Erstellt von: </span>
+          <span className="text-muted">
+            {group.createdByFirstName && group.createdByLastName
+              ? `${group.createdByFirstName} ${group.createdByLastName}`
+              : group.createdByLogin || '-'}
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -58,7 +60,6 @@ export default function ManagerGroups() {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
 
   const { data: groups, isLoading, error } = useManagerGroups()
-  const deleteMutation = useDeleteManagerGroup()
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -94,12 +95,6 @@ export default function ManagerGroups() {
       return sortOrder === 'asc' ? comparison : -comparison
     })
   }, [groups, searchTerm, sortKey, sortOrder])
-
-  const handleDeleteGroup = async (id: number) => {
-    if (window.confirm('Möchten Sie diese Gruppe wirklich löschen?')) {
-      await deleteMutation.mutateAsync(id)
-    }
-  }
 
   if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
@@ -166,9 +161,6 @@ export default function ManagerGroups() {
                     >
                       Erstellt von<SortIcon column="createdByLogin" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
-                    <Th align="right">
-                      Aktionen
-                    </Th>
                   </tr>
                 </TableHead>
                 <TableBody>
@@ -194,20 +186,11 @@ export default function ManagerGroups() {
                             ? `${group.createdByFirstName} ${group.createdByLastName} (${group.createdByLogin})`
                             : group.createdByLogin || '-'}
                         </td>
-                        <td className="px-3 py-2 text-right">
-                          <Button
-                            variant="negative"
-                            size="sm"
-                            onClick={() => handleDeleteGroup(group.id)}
-                          >
-                            Löschen
-                          </Button>
-                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="text-center text-subtle py-8">
+                      <td colSpan={4} className="text-center text-subtle py-8">
                         Keine Gruppen gefunden
                       </td>
                     </tr>
@@ -226,7 +209,7 @@ export default function ManagerGroups() {
             <div className="grid gap-4">
               {filteredGroups.length > 0 ? (
                 filteredGroups.map((group) => (
-                  <ManagerGroupCard key={group.id} group={group} onDelete={handleDeleteGroup} />
+                  <ManagerGroupCard key={group.id} group={group} />
                 ))
               ) : (
                 <div className="text-center text-subtle py-8">

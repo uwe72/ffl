@@ -410,6 +410,7 @@ public class ManagerGroupService {
             dto.setSeasonId(group.getSeason().getId());
         }
         dto.setManagerCount(group.getManagers() != null ? group.getManagers().size() : 0);
+        dto.setHasLogo(group.getLogo() != null && group.getLogo().length > 0);
         if (group.getCreatedBy() != null) {
             dto.setCreatedById(group.getCreatedBy().getId());
             dto.setCreatedByLogin(group.getCreatedBy().getLogin());
