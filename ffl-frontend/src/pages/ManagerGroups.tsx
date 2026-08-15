@@ -11,8 +11,8 @@ type SortOrder = 'asc' | 'desc'
 
 function ManagerGroupCard({ group, onDelete }: { group: any; onDelete: (id: number) => void }) {
   return (
-    <div className="card p-4 bg-surface border border-border">
-      <div className="flex gap-4 items-start">
+    <div className="p-4 bg-surface border border-border rounded-card">
+      <div className="flex gap-4 items-center">
         <div className="flex-1 min-w-0">
           <RouterLink
             to={`/manager-groups/${group.id}`}
@@ -23,7 +23,7 @@ function ManagerGroupCard({ group, onDelete }: { group: any; onDelete: (id: numb
           {group.description && (
             <p className="text-sm text-muted mt-1 truncate">{group.description}</p>
           )}
-          <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
+          <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
             <div>
               <span className="text-subtle">Manager: </span>
               <span className="font-medium text-foreground">{group.managerCount}</span>
@@ -108,26 +108,33 @@ export default function ManagerGroups() {
     <div>
       <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
         <div className="flex items-center justify-between gap-4 mb-4">
-          <h2 className="text-xl font-semibold text-foreground">Manager-Gruppen ({filteredGroups.length})</h2>
-          <div className="flex items-center gap-3">
-            <div className="relative w-64">
-              <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Gruppe suchen..."
-                className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
-              />
-            </div>
-            <Button
-              onClick={() => navigate('/manager-groups/create')}
-              size="compact"
-            >
-              + Neue Gruppe
-            </Button>
+          <h2 className="hidden sm:block text-xl font-semibold text-foreground">Manager-Gruppen ({filteredGroups.length})</h2>
+          <div className="relative w-full sm:w-64">
+            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Gruppe suchen..."
+              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
+            />
           </div>
+          <Button
+            onClick={() => navigate('/manager-groups/create')}
+            size="compact"
+            className="hidden sm:inline-flex"
+          >
+            + Neue Gruppe
+          </Button>
         </div>
+
+        <Button
+          onClick={() => navigate('/manager-groups/create')}
+          size="compact"
+          className="w-full sm:hidden mb-4"
+        >
+          + Neue Gruppe
+        </Button>
 
         {searchTerm !== '' && (
           <div className="flex items-center gap-3 flex-wrap mb-4">
