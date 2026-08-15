@@ -1,8 +1,11 @@
 package de.ffl.controller;
 
+import de.ffl.domain.SeasonState;
 import de.ffl.dto.DocumentDto;
 import de.ffl.service.DocumentService;
+import de.ffl.service.SeasonService;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,18 +23,26 @@ import java.util.List;
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final SeasonService seasonService;
 
-    public DocumentController(DocumentService documentService) {
+    public DocumentController(DocumentService documentService, SeasonService seasonService) {
         this.documentService = documentService;
+        this.seasonService = seasonService;
     }
 
     @GetMapping
-    public List<DocumentDto> getAllDocuments() {
-        return documentService.findAll();
+    public ResponseEntity<List<DocumentDto>> getAllDocuments() {
+        if (isDocumentsAccessDenied()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(documentService.findAll());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<DocumentDto> getDocumentById(@PathVariable Long id) {
+        if (isDocumentsAccessDenied()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         DocumentDto doc = documentService.findById(id);
         if (doc == null) {
             return ResponseEntity.notFound().build();
@@ -41,6 +52,9 @@ public class DocumentController {
 
     @GetMapping("/{id}/content")
     public ResponseEntity<byte[]> getDocumentContent(@PathVariable Long id) {
+        if (isDocumentsAccessDenied()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         return documentService.findFileData(id)
             .map(doc -> ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(doc.getContentType()))

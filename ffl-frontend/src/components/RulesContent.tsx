@@ -120,14 +120,14 @@ export default function RulesContent() {
         <Card>
           <ul className="m-0 pl-5 text-muted space-y-1.5 list-disc marker:text-subtle">
             {preview.playersUrl ? (
-              <li><a className="link font-semibold" href={preview.playersUrl}>Spielerliste online öffnen</a> oder im <strong className="font-semibold text-foreground">kicker Sonderheft</strong> <span className="text-muted">(nur nach Registrierung)</span></li>
+              <li><a className="link font-semibold" href={preview.playersUrl}>Spielerliste online öffnen</a> oder im <strong className="font-semibold text-foreground">kicker Sonderheft</strong></li>
             ) : (
-              <li>Die Spielerliste findest du online und im <strong className="font-semibold text-foreground">kicker Sonderheft</strong> <span className="text-muted">(nur nach Registrierung)</span></li>
+              <li>Die Spielerliste findest du online und im <strong className="font-semibold text-foreground">kicker Sonderheft</strong></li>
             )}
             {preview.documentsUrl ? (
-              <li>Die erfolgreichsten Spieler der letzten Saison: in den <a className="link font-semibold" href={preview.documentsUrl}>Dokumenten</a> <span className="text-muted">(nur nach Registrierung)</span></li>
+              <li>Die erfolgreichsten Spieler der letzten Saison: in den <a className="link font-semibold" href={preview.documentsUrl}>Dokumenten</a></li>
             ) : (
-              <li>Die erfolgreichsten Spieler der letzten Saison: in den <strong className="font-semibold text-foreground">Dokumenten</strong> <span className="text-muted">(nur nach Registrierung)</span></li>
+              <li>Die erfolgreichsten Spieler der letzten Saison: in den <strong className="font-semibold text-foreground">Dokumenten</strong></li>
             )}
             <li>In der <strong className="font-semibold text-foreground">Winterpause</strong> dürfen <strong className="font-semibold text-foreground">bis zu drei Spieler</strong> getauscht werden</li>
           </ul>

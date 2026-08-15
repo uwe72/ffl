@@ -244,6 +244,13 @@ public class PlayerService {
         return convertToDtos(players);
     }
 
+    public List<PlayerDto> findPublicBySeasonId(Long seasonId) {
+        List<Player> players = playerRepository.findBySeasonIdWithTeams(seasonId);
+        return players.stream()
+            .map(PlayerDto::fromEntity)
+            .collect(Collectors.toList());
+    }
+
     public List<PlayerDto> findBySeasonAndPosition(Long seasonId, Position position) {
         List<Player> players = playerRepository.findBySeasonIdWithTeams(seasonId).stream()
             .filter(p -> p.getPosition() == position)

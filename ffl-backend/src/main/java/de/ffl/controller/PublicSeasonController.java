@@ -5,10 +5,12 @@ import de.ffl.dto.InvitationPreviewDto;
 import de.ffl.dto.PlayerDto;
 import de.ffl.dto.PublicSeasonInfoDto;
 import de.ffl.domain.Season;
+import de.ffl.domain.SeasonState;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.SystemConfigRepository;
 import de.ffl.service.InvitationMailService;
 import de.ffl.service.PlayerService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,7 +60,10 @@ public class PublicSeasonController {
     }
 
     @GetMapping("/players/season/{seasonId}")
-    public List<PlayerDto> getPublicPlayersBySeason(@PathVariable Long seasonId) {
-        return playerService.findBySeasonId(seasonId);
+    public ResponseEntity<List<PlayerDto>> getPublicPlayersBySeason(@PathVariable Long seasonId) {
+        return seasonRepository.findById(seasonId)
+            .filter(season -> season.getSeasonState() == SeasonState.BEFORE_SEASON)
+            .map(season -> ResponseEntity.ok(playerService.findPublicBySeasonId(seasonId)))
+            .orElseGet(() -> ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
 }

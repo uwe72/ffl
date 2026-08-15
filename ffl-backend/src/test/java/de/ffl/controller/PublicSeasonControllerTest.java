@@ -121,26 +121,52 @@ class PublicSeasonControllerTest {
     }
 
     @Test
-    void getPublicPlayersBySeason_delegatesToPlayerService() {
+    void getPublicPlayersBySeason_beforeSeason_delegatesToPlayerService() {
+        Season season = Season.builder().id(7L).name("S").budget(1).seasonState(SeasonState.BEFORE_SEASON).build();
+        when(seasonRepository.findById(7L)).thenReturn(Optional.of(season));
         PlayerDto player = new PlayerDto();
         player.setId(42L);
         player.setNameKicker("Testspieler");
-        when(playerService.findBySeasonId(7L)).thenReturn(List.of(player));
+        when(playerService.findPublicBySeasonId(7L)).thenReturn(List.of(player));
 
-        List<PlayerDto> result = publicSeasonController.getPublicPlayersBySeason(7L);
+        ResponseEntity<List<PlayerDto>> response = publicSeasonController.getPublicPlayersBySeason(7L);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getId()).isEqualTo(42L);
-        assertThat(result.get(0).getNameKicker()).isEqualTo("Testspieler");
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).getId()).isEqualTo(42L);
+        assertThat(response.getBody().get(0).getNameKicker()).isEqualTo("Testspieler");
     }
 
     @Test
-    void getPublicPlayersBySeason_emptySeason_returnsEmptyList() {
-        when(playerService.findBySeasonId(99L)).thenReturn(List.of());
+    void getPublicPlayersBySeason_beforeSeason_emptySeason_returnsEmptyList() {
+        Season season = Season.builder().id(99L).name("S").budget(1).seasonState(SeasonState.BEFORE_SEASON).build();
+        when(seasonRepository.findById(99L)).thenReturn(Optional.of(season));
+        when(playerService.findPublicBySeasonId(99L)).thenReturn(List.of());
 
-        List<PlayerDto> result = publicSeasonController.getPublicPlayersBySeason(99L);
+        ResponseEntity<List<PlayerDto>> response = publicSeasonController.getPublicPlayersBySeason(99L);
 
-        assertThat(result).isEmpty();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEmpty();
+    }
+
+    @Test
+    void getPublicPlayersBySeason_runningSeason_returnsForbidden() {
+        Season season = Season.builder().id(7L).name("S").budget(1).seasonState(SeasonState.RUNNING_HINRUNDE).build();
+        when(seasonRepository.findById(7L)).thenReturn(Optional.of(season));
+
+        ResponseEntity<List<PlayerDto>> response = publicSeasonController.getPublicPlayersBySeason(7L);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    void getPublicPlayersBySeason_unknownSeason_returnsForbidden() {
+        when(seasonRepository.findById(123L)).thenReturn(Optional.empty());
+
+        ResponseEntity<List<PlayerDto>> response = publicSeasonController.getPublicPlayersBySeason(123L);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test

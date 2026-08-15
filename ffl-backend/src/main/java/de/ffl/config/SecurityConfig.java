@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/api/feedback/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/documents", "/api/documents/*", "/api/documents/*/content").permitAll()
                 .requestMatchers("/api/games/**").authenticated()
                 .requestMatchers("/", "/index.html", "/assets/**", "/*.js", "/*.css", "/*.png", "/*.jpg", "/*.svg", "/*.ico", "/*.webmanifest", "/sw.js").permitAll()
                 .requestMatchers("/login", "/players", "/teams", "/seasons", "/managers", "/users", "/games", "/feedback", "/documents").permitAll()
