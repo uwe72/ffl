@@ -968,6 +968,9 @@ export default function Register() {
                     {firstName && lastName && (
                       <p className="text-sm text-muted sm:hidden mt-1 truncate">{login || '-'}</p>
                     )}
+                    {slogan.trim() && (
+                      <p className="text-sm text-muted italic mt-1 truncate">„{slogan.trim()}"</p>
+                    )}
                     <p className="text-sm text-muted sm:text-xs sm:uppercase sm:tracking-wide sm:text-subtle mt-1 sm:mt-2 truncate">{email || '-'}</p>
                   </div>
                 </div>
