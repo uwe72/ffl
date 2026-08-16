@@ -17,6 +17,10 @@ export const authApi = {
     return response.data
   },
 
+  logRegisterStep: async (event: string, step: number): Promise<void> => {
+    await api.post('/auth/register-step-log', { event, step })
+  },
+
   checkLogin: async (login: string): Promise<boolean> => {
     const response = await api.get<boolean>('/auth/check-login', { params: { login } })
     return response.data

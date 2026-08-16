@@ -164,6 +164,20 @@ export default function Register() {
     return group.slots.slice(0, 3)
   }
 
+  const firstStepRender = useRef(true)
+
+  useEffect(() => {
+    authApi.logRegisterStep('wizard-opened', 1).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (firstStepRender.current) {
+      firstStepRender.current = false
+      return
+    }
+    authApi.logRegisterStep('step', step).catch(() => {})
+  }, [step])
+
   useEffect(() => {
     seasonApi.getPublicCurrent().then(res => {
       if (res.data) {

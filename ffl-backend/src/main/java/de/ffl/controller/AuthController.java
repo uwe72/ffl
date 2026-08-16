@@ -25,7 +25,10 @@ import de.ffl.service.PasswordResetService;
 import de.ffl.service.RegistrationMailService;
 import de.ffl.service.UserService;
 import de.ffl.service.EmailAddressService;
+import de.ffl.dto.RegisterStepLogRequest;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -45,6 +48,8 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
@@ -98,7 +103,14 @@ public class AuthController {
             userRepository.findByLogin(request.getLogin()).orElseThrow().getRole().name());
 
         User user = userRepository.findByLogin(request.getLogin()).orElseThrow();
+        log.info("login successful: {} {} ({})", user.getFirstName(), user.getLastName(), user.getLogin());
         return ResponseEntity.ok(new AuthResponse(jwt, refreshToken, user.getLogin(), user.getRole().name()));
+    }
+
+    @PostMapping("/register-step-log")
+    public ResponseEntity<Void> registerStepLog(@RequestBody RegisterStepLogRequest request) {
+        log.info("register wizard event={} step={}", request.getEvent(), request.getStep());
+        return ResponseEntity.ok().build();
     }
 
     @Transactional
