@@ -39,10 +39,12 @@ function ManagerGalleryCard({ manager, canClick }: { manager: Manager; canClick:
         </span>
       </div>
       <div className="absolute inset-x-0 bottom-0 p-3 text-on-dark">
-        <div className="font-bold leading-tight truncate drop-shadow-sm">{fullName}</div>
-        {manager.login && (
-          <div className="text-xs text-on-dark-muted truncate mt-0.5">({manager.login})</div>
-        )}
+        <div className="flex items-baseline gap-1.5 leading-tight truncate drop-shadow-sm">
+          <span className="font-bold">{fullName}</span>
+          {manager.login && (
+            <span className="text-xs text-on-dark-muted">({manager.login})</span>
+          )}
+        </div>
         {manager.description && (
           <div className="text-xs text-on-dark-muted italic mt-0.5 drop-shadow-sm">„{manager.description}“</div>
         )}
