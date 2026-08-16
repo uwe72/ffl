@@ -97,6 +97,10 @@ export default function ManagerGallery() {
       .sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999))
   }, [managers])
 
+  const withPicture = galleryManagers.length
+  const totalManagers = managers?.length ?? 0
+  const percent = totalManagers > 0 ? Math.round((withPicture / totalManagers) * 100) : 0
+
   return (
     <div>
       <div className="relative h-[140px] md:h-[180px] rounded-card overflow-hidden mb-6 border border-border">
@@ -116,7 +120,7 @@ export default function ManagerGallery() {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-on-dark leading-tight">Manager-Galerie</h1>
             <p className="text-sm text-on-dark-muted mt-1">
-              Alle Manager der aktuellen Saison mit Profilbild
+              Alle {withPicture} Manager ({percent}%) der aktuellen Saison mit Profilbild
             </p>
           </div>
         </div>
@@ -144,9 +148,6 @@ export default function ManagerGallery() {
             {galleryManagers.map(manager => (
               <ManagerGalleryCard key={manager.id} manager={manager} canClick={canClick} showRanking={showRanking} />
             ))}
-          </div>
-          <div className="mt-4 text-sm text-subtle">
-            {galleryManagers.length} Manager mit Bild
           </div>
         </>
       )}
