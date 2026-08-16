@@ -1,5 +1,6 @@
 package de.ffl.config;
 
+import org.apache.catalina.connector.ClientAbortException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,5 +20,10 @@ class GlobalExceptionHandlerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getBody()).isEqualTo("Ungültiger Login oder Passwort");
+    }
+
+    @Test
+    void clientAbort_handledWithoutException() {
+        handler.handleClientAbortException(new ClientAbortException("Connection reset by peer"));
     }
 }

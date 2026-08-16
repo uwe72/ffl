@@ -2,6 +2,7 @@ package de.ffl.config;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import org.apache.catalina.connector.ClientAbortException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -88,6 +89,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleNoResourceFoundException(NoResourceFoundException ex) {
         log.debug("Statische Ressource nicht gefunden: {}", ex.getResourcePath());
         return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(ClientAbortException.class)
+    public void handleClientAbortException(ClientAbortException ex) {
+        log.debug("Client hat die Verbindung abgebrochen");
     }
 
     @ExceptionHandler(Exception.class)
