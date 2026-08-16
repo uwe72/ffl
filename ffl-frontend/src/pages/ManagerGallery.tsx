@@ -45,8 +45,8 @@ function ManagerGalleryCard({ manager, canClick }: { manager: Manager; canClick:
             <span className="text-xs text-on-dark-muted">({manager.login})</span>
           )}
         </div>
-        {manager.description && (
-          <div className="text-xs text-on-dark-muted italic mt-0.5 drop-shadow-sm">„{manager.description}“</div>
+        {manager.description && manager.description.trim() && manager.description.trim() !== '-' && (
+          <div className="text-xs text-on-dark-muted italic mt-0.5 drop-shadow-sm">„{manager.description.trim()}“</div>
         )}
         <div className="flex items-center mt-2 text-xs">
           {manager.positionChange != null && manager.positionChange !== 0 ? (
