@@ -129,6 +129,10 @@ public class RegistrationMailService {
         String name = Optional.ofNullable(user.getFirstName()).orElse("") + " " + Optional.ofNullable(user.getLastName()).orElse("");
         context.setVariable("userName", name.trim().isEmpty() ? "-" : name.trim());
 
+        context.setVariable("hasProfilePicture", user.getAvatar() != null);
+        String slogan = manager.getDescription();
+        context.setVariable("hasSlogan", slogan != null && !slogan.isBlank());
+
         context.setVariable("positionGroups", buildPositionGroups(manager));
 
         if (manager.getBudget() != null) {

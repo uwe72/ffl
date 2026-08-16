@@ -64,6 +64,14 @@
                   <td style="padding:11px 16px;color:#57534e;font-size:13px;font-weight:500;">Name</td>
                   <td align="right" style="padding:11px 16px;color:#1c1917;font-size:13px;font-weight:600;" th:text="${userName}">-</td>
                 </tr>
+                <tr style="background:#f5f5f4;">
+                  <td style="padding:11px 16px;border-bottom:1px solid #d6d3d1;color:#57534e;font-size:13px;font-weight:500;">Profilbild</td>
+                  <td align="right" style="padding:11px 16px;border-bottom:1px solid #d6d3d1;color:#1c1917;font-size:13px;font-weight:600;" th:text="${hasProfilePicture ? 'Ja' : 'Nein'}">-</td>
+                </tr>
+                <tr>
+                  <td style="padding:11px 16px;color:#57534e;font-size:13px;font-weight:500;">Slogan</td>
+                  <td align="right" style="padding:11px 16px;color:#1c1917;font-size:13px;font-weight:600;" th:text="${hasSlogan ? 'Ja' : 'Nein'}">-</td>
+                </tr>
               </table>
             </td>
           </tr>
