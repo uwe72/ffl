@@ -772,7 +772,7 @@ export default function Register() {
                     <input
                       type="text"
                       required
-                      maxLength={15}
+                      maxLength={25}
                       placeholder="Nachname"
                       value={lastName}
                       onChange={(e) => {
