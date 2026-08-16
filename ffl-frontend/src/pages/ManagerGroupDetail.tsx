@@ -46,7 +46,6 @@ export default function ManagerGroupDetail() {
   const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false)
   const [creatorSearch, setCreatorSearch] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-  const [managerFilter, setManagerFilter] = useState('')
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [editEmailTo, setEditEmailTo] = useState<string>('ALL_MANAGERS')
@@ -105,16 +104,7 @@ export default function ManagerGroupDetail() {
 
   const filteredAndSortedManagers = useMemo(() => {
     const managerList = isNewMode ? selectedManagers : (group?.managers || [])
-    
-    if (managerFilter.trim()) {
-      const filter = managerFilter.toLowerCase()
-      return managerList.filter(m => 
-        (m.shortName || m.name).toLowerCase().includes(filter) ||
-        (m.firstName || '').toLowerCase().includes(filter) ||
-        (m.lastName || '').toLowerCase().includes(filter)
-      )
-    }
-    
+
     return managerList.sort((a, b) => {
       let comparison = 0
       switch (sortKey) {
@@ -139,7 +129,7 @@ export default function ManagerGroupDetail() {
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-  }, [isNewMode, selectedManagers, group?.managers, sortKey, sortOrder, managerFilter])
+  }, [isNewMode, selectedManagers, group?.managers, sortKey, sortOrder])
 
   const availableManagers = useMemo(() => {
     if (!allManagers) return []
@@ -456,10 +446,18 @@ export default function ManagerGroupDetail() {
               {!stammdatenOpen && !isNewMode && (
                 <div>
                   <h2 className="text-2xl sm:text-3xl font-bold text-foreground truncate">{group?.name || '-'}</h2>
-                  <p className="text-xs uppercase tracking-wide text-subtle mt-2">
-                    Erstellt von {getCreatorDisplayName()}
-                    {' · '}{group?.emailTo === 'CREATOR_ONLY' ? 'E-Mail nur an Ersteller' : 'E-Mail an alle Manager'}
-                  </p>
+                  <div className="mt-2 space-y-2">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-subtle">Erstellt von:</p>
+                      <p className="text-sm font-semibold text-foreground">{getCreatorDisplayName()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-subtle">E-Mail:</p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {group?.emailTo === 'CREATOR_ONLY' ? 'Nur an Ersteller' : 'An alle Manager'}
+                      </p>
+                    </div>
+                  </div>
                   {group?.description && (
                     <>
                       <div className="mt-3 pt-3 border-t border-border" />
@@ -620,13 +618,6 @@ export default function ManagerGroupDetail() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h2 className="text-xl font-semibold text-foreground">Manager ({filteredAndSortedManagers.length})</h2>
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-            <input
-              type="text"
-              placeholder="Manager suchen..."
-              value={managerFilter}
-              onChange={(e) => setManagerFilter(e.target.value)}
-              className="input-field control w-full sm:w-64 px-3 py-2 rounded-control text-sm focus:outline-none"
-            />
             {canEdit && (
               <Button
                 variant="emphasized"
@@ -722,48 +713,66 @@ export default function ManagerGroupDetail() {
         )}
 
         {isMobile && (
-          <div className="grid gap-4">
-            {filteredAndSortedManagers.length > 0 ? (
-              filteredAndSortedManagers.map((manager) => (
-                <div key={manager.id} className="card p-4 bg-surface border border-border">
-                  <RouterLink to={`/managers/${manager.id}`} className="font-semibold link truncate block">
-                    {manager.shortName || manager.name}
-                  </RouterLink>
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="text-subtle">Pos: </span>
-                      <span className="font-medium text-foreground">
-                        {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-subtle">Pkt: </span>
-                      <span className="font-medium text-foreground">{manager.pointsTotal ?? '-'}</span>
-                    </div>
-                    <div>
-                      <span className="text-subtle">Letzter Spieltag: </span>
-                      <span className="font-medium text-foreground">{manager.pointsLastRound ?? '-'}</span>
-                    </div>
-                  </div>
-                  {canEdit && (
-                    <div className="mt-3">
-                      <Button
-                        variant="negative"
-                        size="compact"
-                        className="w-full"
-                        onClick={() => handleRemoveManager(manager.id)}
-                      >
-                        Entfernen
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="text-center text-subtle py-8">
-                Keine Manager in dieser Gruppe
+          <div>
+            {canEdit && filteredAndSortedManagers.length > 0 && (
+              <div className="flex items-start gap-2 p-2 mb-4 bg-accent-muted border border-accent/30 rounded-card">
+                <i className="sap-icon sap-icon-hint text-[16px] text-accent shrink-0 mt-0.5" />
+                <p className="text-xs text-foreground">
+                  Tipp: Linken Farbrand antippen, um den Manager zu entfernen.
+                </p>
               </div>
             )}
+            <div className="grid gap-3">
+              {filteredAndSortedManagers.length > 0 ? (
+                filteredAndSortedManagers.map((manager) => {
+                  const fullName = [manager.firstName, manager.lastName].filter(Boolean).join(' ') || '-'
+                  return (
+                    <div
+                      key={manager.id}
+                      className="group relative overflow-hidden bg-surface border border-border rounded-none p-3 pl-4 flex items-center gap-2 transition-colors hover:border-border-hover"
+                    >
+                      {canEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveManager(manager.id)}
+                          aria-label={`${manager.shortName || manager.name} entfernen`}
+                          title="Entfernen"
+                          className="group/bar absolute left-0 top-0 bottom-0 w-4 flex items-center justify-start cursor-pointer hover:bg-accent-soft/40 transition-colors"
+                        >
+                          <span className="w-[3px] h-full bg-accent group-hover/bar:w-[5px] transition-all" />
+                        </button>
+                      ) : (
+                        <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
+                      )}
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveManager(manager.id)}
+                          aria-label={`${manager.shortName || manager.name} entfernen`}
+                          title="Entfernen"
+                          className="hidden sm:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-10"
+                        >
+                          <i className="sap-icon sap-icon-decline text-base" />
+                        </button>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <RouterLink
+                          to={`/managers/${manager.id}`}
+                          className="link text-base font-semibold leading-6 truncate block"
+                        >
+                          {manager.shortName || manager.name}
+                        </RouterLink>
+                        <p className="text-sm text-muted leading-5 truncate">{fullName}</p>
+                      </div>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="text-center text-subtle py-8">
+                  Keine Manager in dieser Gruppe
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
