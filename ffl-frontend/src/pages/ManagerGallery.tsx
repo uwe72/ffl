@@ -13,6 +13,7 @@ function ManagerGalleryCard({ manager, canClick }: { manager: Manager; canClick:
   const showSkeleton = isLoading || !imgLoaded
   const fullName = `${manager.firstName ?? ''} ${manager.lastName ?? ''}`.trim() || manager.name
   const positionLabel = manager.positionTotal ? `${manager.positionTotal}.` : '-'
+  const badgeLabel = manager.pointsTotal != null ? `${positionLabel} · ${manager.pointsTotal} Pkt` : positionLabel
 
   const cardInner = (
     <>
@@ -33,8 +34,8 @@ function ManagerGalleryCard({ manager, canClick }: { manager: Manager; canClick:
         style={{ background: 'linear-gradient(to top, rgba(10,14,20,0.85) 0%, rgba(10,14,20,0.45) 35%, rgba(10,14,20,0) 60%)' }}
       />
       <div className="absolute top-2 left-2">
-        <span className="inline-flex items-center justify-center min-w-8 h-8 px-2 rounded-control bg-accent text-on-dark text-sm font-bold tnum">
-          {positionLabel}
+        <span className="inline-flex items-center justify-center h-8 px-2 rounded-control bg-accent text-on-dark text-sm font-bold tnum">
+          {badgeLabel}
         </span>
       </div>
       <div className="absolute inset-x-0 bottom-0 p-3 text-on-dark">
@@ -42,11 +43,7 @@ function ManagerGalleryCard({ manager, canClick }: { manager: Manager; canClick:
         {manager.login && (
           <div className="text-xs text-on-dark-muted truncate mt-0.5">({manager.login})</div>
         )}
-        <div className="flex items-center gap-3 mt-2 text-xs">
-          <span className="inline-flex items-center gap-1">
-            <span className="text-on-dark-muted">Pkt</span>
-            <span className="font-semibold tnum">{manager.pointsTotal ?? '-'}</span>
-          </span>
+        <div className="flex items-center mt-2 text-xs">
           {manager.positionChange != null && manager.positionChange !== 0 ? (
             <span className={`inline-flex items-center gap-0.5 font-semibold tnum ${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
               {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
