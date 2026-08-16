@@ -60,6 +60,7 @@ export default function ManagerGroupDetail() {
   const { data: groupLogoUrl } = useGroupLogo(group?.hasLogo ? groupId : null)
 
   const isAdmin = user?.role === 'ADMIN'
+  const canNavigateToManager = isAdmin || currentSeason?.seasonState !== 'BEFORE_SEASON'
 
   useEffect(() => {
     if (isNewMode) {
@@ -668,12 +669,18 @@ export default function ManagerGroupDetail() {
                       {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
                     </td>
                     <td className="px-3 py-2">
-                      <RouterLink
-                        to={`/managers/${manager.id}`}
-                        className="link font-medium"
-                      >
-                        {manager.shortName || manager.name}
-                      </RouterLink>
+                      {canNavigateToManager ? (
+                        <RouterLink
+                          to={`/managers/${manager.id}`}
+                          className="link font-medium"
+                        >
+                          {manager.shortName || manager.name}
+                        </RouterLink>
+                      ) : (
+                        <span className="font-medium text-foreground">
+                          {manager.shortName || manager.name}
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-2 text-muted">
                       {manager.firstName || '-'}
@@ -756,12 +763,18 @@ export default function ManagerGroupDetail() {
                         </button>
                       )}
                       <div className="flex-1 min-w-0">
-                        <RouterLink
-                          to={`/managers/${manager.id}`}
-                          className="link text-base font-semibold leading-6 truncate block"
-                        >
-                          {manager.shortName || manager.name}
-                        </RouterLink>
+                        {canNavigateToManager ? (
+                          <RouterLink
+                            to={`/managers/${manager.id}`}
+                            className="link text-base font-semibold leading-6 truncate block"
+                          >
+                            {manager.shortName || manager.name}
+                          </RouterLink>
+                        ) : (
+                          <p className="text-base font-semibold text-foreground leading-6 truncate">
+                            {manager.shortName || manager.name}
+                          </p>
+                        )}
                         <p className="text-sm text-muted leading-5 truncate">{fullName}</p>
                       </div>
                     </div>
