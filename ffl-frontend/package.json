@@ -1,7 +1,7 @@
 {
   "name": "ffl-frontend",
   "private": true,
-  "version": "1.2.36",
+  "version": "1.2.37",
   "type": "module",
   "scripts": {
     "predev": "npx -y kill-port 5173",

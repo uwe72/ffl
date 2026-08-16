@@ -59,7 +59,7 @@ const POSITION_GROUPS: { label: string; position: Position; slots: PlayerSlot[] 
 
 const STEP_LABELS = [
   { short: 'Daten', long: 'Deine Daten' },
-  { short: 'Avatar', long: 'Dein Avatar' },
+  { short: 'Profilbild', long: 'Dein Profilbild' },
   { short: 'Team', long: 'Dein Team' },
   { short: 'Aufstellung', long: 'Deine Aufstellung' },
 ]
