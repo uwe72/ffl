@@ -74,7 +74,6 @@
           <!-- Sektion: Dein Team -->
           <tr>
             <td>
-              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Dein Team</p>
               <th:block th:each="grp,gIter : ${positionGroups}">
                 <p th:style="${'margin:' + (gIter.first ? '0 0 8px 0' : '12px 0 8px 0') + ';color:' + grp.colorHex + ';font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;'}" th:text="${grp.label}">Position</p>
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" th:style="${'background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;margin-bottom:' + (gIter.last ? '0' : '12px') + ';'}">
