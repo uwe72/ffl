@@ -324,6 +324,7 @@ export interface User {
   managers?: ManagerInfo[]
   mailTheme?: MailTheme
   avatarUrl?: string
+  slogan?: string
 }
 
 export type MailTheme = 'DARKMODE' | 'LIGHTMODE'
@@ -341,6 +342,7 @@ export interface RegisterRequest {
   password: string
   firstName: string
   lastName: string
+  slogan?: string
   playerGoalkeeperId: number
   playerDefender1Id: number
   playerDefender2Id: number

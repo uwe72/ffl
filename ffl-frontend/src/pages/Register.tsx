@@ -126,6 +126,7 @@ export default function Register() {
   const [lastName, setLastName] = useState('')
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [slogan, setSlogan] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
@@ -445,6 +446,7 @@ export default function Register() {
         password,
         firstName,
         lastName,
+        slogan: slogan.trim() || undefined,
         playerGoalkeeperId: gkId,
         playerDefender1Id: def1,
         playerDefender2Id: def2,
@@ -793,7 +795,7 @@ export default function Register() {
           {step === 2 && (
             <div className="mt-5 flex flex-col items-center">
               <p className="text-sm text-muted">Wähle ein Profilbild aus (optional)</p>
-              <p className="mt-1 mb-6 text-sm text-foreground font-medium">Für andere Manager sichtbar</p>
+              <p className="mt-1 mb-6 text-sm text-foreground font-medium">Für andere Manager, die auch ein Profilbild hinterlegt haben, sichtbar</p>
 
               <button
                 type="button"
@@ -831,6 +833,20 @@ export default function Register() {
               ) : (
                 <p className="mt-4 text-xs text-subtle">JPG, PNG oder WebP, max. 2 MB</p>
               )}
+
+              <div className="w-full max-w-sm mt-8">
+                <label htmlFor="register-slogan" className="block text-sm text-muted mb-1">Slogan (optional)</label>
+                <input
+                  id="register-slogan"
+                  type="text"
+                  value={slogan}
+                  onChange={(e) => setSlogan(e.target.value)}
+                  maxLength={60}
+                  placeholder="30 Millionen, null Plan, volles Risiko."
+                  className="input-field control w-full px-3 py-2 rounded-control text-sm"
+                />
+                <p className="mt-1 text-xs text-subtle text-right">{slogan.length}/60</p>
+              </div>
 
             </div>
           )}

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import SidebarItem from './SidebarItem'
 import InfoDialog from './InfoDialog'
@@ -32,6 +32,10 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
   const { data: currentSeason } = useCurrentSeason()
   const isRestricted = isAuthenticated && currentSeason?.seasonState === 'BEFORE_SEASON' && user?.role !== 'ADMIN'
   const canAccessGallery = user?.role === 'ADMIN' || !!user?.avatarUrl
+
+  useEffect(() => {
+    onCloseMobile()
+  }, [location.pathname, onCloseMobile])
 
   const isOnVerwaltung = location.pathname.startsWith('/season') ||
     location.pathname.startsWith('/users') ||

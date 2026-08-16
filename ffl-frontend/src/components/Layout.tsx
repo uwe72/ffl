@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Outlet, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Sidebar from './Sidebar'
@@ -18,6 +18,8 @@ export default function Layout() {
     setCollapsed(next)
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next))
   }
+
+  const handleCloseMobile = useCallback(() => setMobileOpen(false), [])
 
   if (!isAuthenticated) {
     return (
@@ -56,7 +58,7 @@ export default function Layout() {
           collapsed={collapsed}
           onToggleCollapse={handleToggleCollapse}
           mobileOpen={mobileOpen}
-          onCloseMobile={() => setMobileOpen(false)}
+          onCloseMobile={handleCloseMobile}
         />
 
         <main className="flex-1 min-w-0 overflow-y-auto bg-page pt-[30px] pb-4 md:pb-6">

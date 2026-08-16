@@ -26,6 +26,9 @@ public class RegisterRequest {
     @Size(max = 25)
     private String lastName;
 
+    @Size(max = 60)
+    private String slogan;
+
     @NotNull
     private Long playerGoalkeeperId;
 
@@ -69,6 +72,8 @@ public class RegisterRequest {
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getSlogan() { return slogan; }
+    public void setSlogan(String slogan) { this.slogan = slogan; }
     public Long getPlayerGoalkeeperId() { return playerGoalkeeperId; }
     public void setPlayerGoalkeeperId(Long playerGoalkeeperId) { this.playerGoalkeeperId = playerGoalkeeperId; }
     public Long getPlayerDefender1Id() { return playerDefender1Id; }

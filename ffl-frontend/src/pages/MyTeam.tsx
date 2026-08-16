@@ -139,7 +139,8 @@ export default function MyTeam() {
   const [profileFirstName, setProfileFirstName] = useState('')
   const [profileLastName, setProfileLastName] = useState('')
   const [profileEmail, setProfileEmail] = useState('')
-  const [originalProfile, setOriginalProfile] = useState({ firstName: '', lastName: '', email: '' })
+  const [profileSlogan, setProfileSlogan] = useState('')
+  const [originalProfile, setOriginalProfile] = useState({ firstName: '', lastName: '', email: '', slogan: '' })
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileSuccess, setProfileSuccess] = useState('')
   const [profileOpen, setProfileOpen] = useState(false)
@@ -181,7 +182,8 @@ export default function MyTeam() {
         setProfileFirstName(mgr.firstName || '')
         setProfileLastName(mgr.lastName || '')
         setProfileEmail(mgr.email || '')
-        setOriginalProfile({ firstName: mgr.firstName || '', lastName: mgr.lastName || '', email: mgr.email || '' })
+        setProfileSlogan(mgr.description || '')
+        setOriginalProfile({ firstName: mgr.firstName || '', lastName: mgr.lastName || '', email: mgr.email || '', slogan: mgr.description || '' })
 
         const seasonRes = await seasonApi.getAll()
         const s = seasonRes.data?.[0] ?? null
@@ -573,6 +575,7 @@ export default function MyTeam() {
   const hasProfileChanges = profileFirstName !== originalProfile.firstName
     || profileLastName !== originalProfile.lastName
     || profileEmail !== originalProfile.email
+    || profileSlogan !== originalProfile.slogan
 
   const handleSaveProfile = async () => {
     setProfileSuccess('')
@@ -591,16 +594,18 @@ export default function MyTeam() {
     setSavingProfile(true)
     setError('')
     try {
-      const data: { email: string; firstName?: string; lastName?: string } = { email: profileEmail.trim() }
+      const data: { email: string; firstName?: string; lastName?: string; slogan?: string } = { email: profileEmail.trim() }
       if (isBeforeSeason) {
         data.firstName = profileFirstName.trim()
         data.lastName = profileLastName.trim()
       }
+      data.slogan = profileSlogan.trim()
       await authApi.updateProfile(data)
       if (isBeforeSeason) {
         updateProfileInfo({ firstName: profileFirstName.trim(), lastName: profileLastName.trim() })
       }
-      setOriginalProfile({ firstName: profileFirstName.trim(), lastName: profileLastName.trim(), email: profileEmail.trim() })
+      setManager(prev => prev ? { ...prev, description: profileSlogan.trim() } : prev)
+      setOriginalProfile({ firstName: profileFirstName.trim(), lastName: profileLastName.trim(), email: profileEmail.trim(), slogan: profileSlogan.trim() })
       setProfileSuccess('Profildaten gespeichert.')
       setTimeout(() => setProfileSuccess(''), 4000)
     } catch {
@@ -614,6 +619,7 @@ export default function MyTeam() {
     setProfileFirstName(originalProfile.firstName)
     setProfileLastName(originalProfile.lastName)
     setProfileEmail(originalProfile.email)
+    setProfileSlogan(originalProfile.slogan)
   }
 
   const hasUnsavedChanges = hasChanges || hasTransferChanges
@@ -882,6 +888,18 @@ export default function MyTeam() {
                   className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
                 />
               </div>
+            </div>
+            <div className="mt-4 min-w-0">
+              <span className="text-xs text-muted">Slogan (optional)</span>
+              <input
+                type="text"
+                value={profileSlogan}
+                onChange={(e) => setProfileSlogan(e.target.value)}
+                maxLength={60}
+                placeholder="30 Millionen, null Plan, volles Risiko."
+                className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+              />
+              <p className="mt-1 text-xs text-subtle text-right">{profileSlogan.length}/60</p>
             </div>
             {hasProfileChanges && (
               <div className="mt-3 flex gap-2">

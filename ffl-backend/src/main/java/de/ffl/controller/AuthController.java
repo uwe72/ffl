@@ -184,10 +184,16 @@ public class AuthController {
             }
         }
 
+        String slogan = request.getSlogan();
+        if (slogan != null) {
+            slogan = slogan.isBlank() ? null : (slogan.length() > 60 ? slogan.substring(0, 60) : slogan);
+        }
+
         Manager manager = Manager.builder()
             .user(user)
             .season(season)
             .budget(season.getBudget())
+            .description(slogan)
             .playerGoalkeeper(playerMap.get(request.getPlayerGoalkeeperId()))
             .playerDefender1(playerMap.get(request.getPlayerDefender1Id()))
             .playerDefender2(playerMap.get(request.getPlayerDefender2Id()))
@@ -245,6 +251,7 @@ public class AuthController {
             .orElse(null);
         if (manager != null) {
             body.put("mailTheme", manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
+            body.put("slogan", manager.getDescription());
         }
         
         if (user.getAvatar() != null && user.getAvatar().length > 0) {
@@ -295,6 +302,20 @@ public class AuthController {
             }
         }
         
+        if (updates.containsKey("slogan")) {
+            Manager manager = managerRepository.findAllByUserId(user.getId()).stream()
+                .max(java.util.Comparator.comparing(Manager::getId))
+                .orElse(null);
+            if (manager != null) {
+                String slogan = updates.get("slogan");
+                if (slogan != null) {
+                    slogan = slogan.isBlank() ? null : (slogan.length() > 60 ? slogan.substring(0, 60) : slogan);
+                }
+                manager.setDescription(slogan);
+                managerRepository.save(manager);
+            }
+        }
+        
         Map<String, Object> body = new java.util.HashMap<>();
         body.put("id", user.getId());
         body.put("login", user.getLogin());
@@ -308,6 +329,7 @@ public class AuthController {
             .orElse(null);
         if (manager != null) {
             body.put("mailTheme", manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
+            body.put("slogan", manager.getDescription());
         }
         
         if (user.getAvatar() != null && user.getAvatar().length > 0) {
