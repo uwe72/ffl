@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import Button from '../components/Button'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
+import useIsMobile from '../hooks/useIsMobile'
 import type { ManagerInGroup } from '../types'
 
 type SortKey = 'positionTotal' | 'shortName' | 'firstName' | 'lastName' | 'pointsTotal' | 'pointsLastRound'
@@ -23,6 +24,7 @@ export default function ManagerGroupDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
   
+  const isMobile = useIsMobile()
   const isNewMode = id === 'create'
   const groupId = isNewMode ? 0 : Number(id)
   
@@ -399,167 +401,92 @@ export default function ManagerGroupDetail() {
       )}
 
       <div className="p-4 bg-elevated border border-border rounded-card mb-6">
-        <div className="flex items-start gap-4">
-          <div className="relative group w-12 h-12 shrink-0">
-            <button
-              onClick={handleLogoClick}
-              className={`w-12 h-12 p-0 rounded-full overflow-hidden ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
-              disabled={!canEdit || isNewMode || uploadGroupLogo.isPending || deleteGroupLogo.isPending}
-              title={canEdit && !isNewMode ? 'Logo ändern' : undefined}
-            >
-              {groupLogoUrl ? (
-                <img
-                  src={groupLogoUrl}
-                  alt={pageTitle}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center">
-                  <i className="sap-icon sap-icon-group-2 text-xl" />
+        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+          <div className="flex items-center gap-4 sm:items-start">
+            <div className="relative group w-12 h-12 shrink-0">
+              <button
+                onClick={handleLogoClick}
+                className={`w-12 h-12 p-0 rounded-full overflow-hidden ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
+                disabled={!canEdit || isNewMode || uploadGroupLogo.isPending || deleteGroupLogo.isPending}
+                title={canEdit && !isNewMode ? 'Logo ändern' : undefined}
+              >
+                {groupLogoUrl ? (
+                  <img
+                    src={groupLogoUrl}
+                    alt={pageTitle}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center">
+                    <i className="sap-icon sap-icon-group-2 text-xl" />
+                  </div>
+                )}
+              </button>
+              {canEdit && !isNewMode && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
+                  <i className="sap-icon sap-icon-camera text-white text-sm" />
                 </div>
               )}
-            </button>
+              {canEdit && !isNewMode && groupLogoUrl && (
+                <button
+                  type="button"
+                  onClick={handleLogoDelete}
+                  disabled={deleteGroupLogo.isPending || uploadGroupLogo.isPending}
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
+                  title="Logo löschen"
+                >
+                  <i className="sap-icon sap-icon-delete text-[10px]" />
+                </button>
+              )}
+              {(uploadGroupLogo.isPending || deleteGroupLogo.isPending) && (
+                <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
+                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleLogoChange}
+              />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              {!stammdatenOpen && !isNewMode && (
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground truncate">{group?.name || '-'}</h2>
+                  <p className="text-xs uppercase tracking-wide text-subtle mt-2">
+                    Erstellt von {getCreatorDisplayName()}
+                    {' · '}{group?.emailTo === 'CREATOR_ONLY' ? 'E-Mail nur an Ersteller' : 'E-Mail an alle Manager'}
+                  </p>
+                  {group?.description && (
+                    <>
+                      <div className="mt-3 pt-3 border-t border-border" />
+                      <p className="text-base italic text-muted whitespace-pre-wrap">{group.description}</p>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
             {canEdit && !isNewMode && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
-                <i className="sap-icon sap-icon-camera text-white text-sm" />
-              </div>
-            )}
-            {canEdit && !isNewMode && groupLogoUrl && (
               <button
                 type="button"
-                onClick={handleLogoDelete}
-                disabled={deleteGroupLogo.isPending || uploadGroupLogo.isPending}
-                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
-                title="Logo löschen"
+                onClick={() => setStammdatenOpen(o => !o)}
+                aria-expanded={stammdatenOpen}
+                aria-controls="stammdaten-form"
+                aria-label={stammdatenOpen ? 'Bearbeitung schließen' : 'Gruppe bearbeiten'}
+                title={stammdatenOpen ? 'Schließen' : 'Bearbeiten'}
+                className="sm:hidden shrink-0 ml-auto w-9 h-9 rounded-full bg-accent-muted text-accent hover:bg-accent hover:text-accent-foreground flex items-center justify-center transition-colors shadow-sm"
               >
-                <i className="sap-icon sap-icon-delete text-[10px]" />
+                <i className={`sap-icon ${stammdatenOpen ? 'sap-icon-decline' : 'sap-icon-edit'} text-sm`} />
               </button>
-            )}
-            {(uploadGroupLogo.isPending || deleteGroupLogo.isPending) && (
-              <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
-                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handleLogoChange}
-            />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            {!stammdatenOpen && !isNewMode && (
-              <div>
-                <h2 className="text-3xl font-bold text-foreground truncate">{group?.name || '-'}</h2>
-                <p className="text-xs uppercase tracking-wide text-subtle mt-2">
-                  Erstellt von {getCreatorDisplayName()}
-                  {' · '}{group?.emailTo === 'CREATOR_ONLY' ? 'E-Mail nur an Ersteller' : 'E-Mail an alle Manager'}
-                </p>
-                {group?.description && (
-                  <>
-                    <div className="mt-3 pt-3 border-t border-border" />
-                    <p className="text-base italic text-muted whitespace-pre-wrap">{group.description}</p>
-                  </>
-                )}
-              </div>
-            )}
-
-            {(stammdatenOpen || isNewMode) && (
-              <div id="stammdaten-form" className={isNewMode ? '' : 'mt-0 pt-0'}>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="min-w-0">
-                    <span className="text-xs text-muted">Name <span className="text-muted">*</span></span>
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={canEdit ? (e) => handleChange('name', e.target.value) : undefined}
-                      readOnly={!canEdit}
-                      disabled={!canEdit}
-                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-xs text-muted">Email an <span className="text-muted">*</span></span>
-                    <select
-                      value={editEmailTo}
-                      onChange={canEdit ? (e) => handleChange('emailTo', e.target.value) : undefined}
-                      disabled={!canEdit}
-                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
-                    >
-                      {emailToOptions.map((option) => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-xs text-muted">Ersteller</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <input
-                        type="text"
-                        value={getCreatorDisplayName()}
-                        readOnly
-                        className="input-field control w-full px-2 py-1 rounded-control text-sm"
-                      />
-                      {isAdmin && !isNewMode && (
-                        <Button
-                          variant="transparent"
-                          size="compact"
-                          onClick={() => setIsCreatorModalOpen(true)}
-                        >
-                          Ändern
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  <div className="col-span-3 min-w-0">
-                    <span className="text-xs text-muted">Beschreibung <span className="text-muted">*</span></span>
-                    <textarea
-                      value={editDescription}
-                      onChange={canEdit ? (e) => handleChange('description', e.target.value) : undefined}
-                      readOnly={!canEdit}
-                      disabled={!canEdit}
-                      className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 resize-y"
-                    />
-                  </div>
-                </div>
-                {canEdit && hasChanges && (
-                  <div className="mt-3 flex gap-2">
-                    {isNewMode ? (
-                      <Button
-                        variant="emphasized"
-                        size="sm"
-                        onClick={handleCreate}
-                        disabled={!editName.trim() || !editDescription.trim() || !currentSeason || createMutation.isPending}
-                      >
-                        {createMutation.isPending ? 'Wird erstellt...' : 'Erstellen'}
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="emphasized"
-                        size="sm"
-                        onClick={handleSaveChanges}
-                        disabled={updateMutation.isPending || !editDescription.trim()}
-                      >
-                        {updateMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={isNewMode ? () => navigate('/manager-groups') : handleReset}
-                    >
-                      Abbrechen
-                    </Button>
-                  </div>
-                )}
-              </div>
             )}
           </div>
 
           {canEdit && !isNewMode && (
-            <div className="flex gap-2 shrink-0 self-start">
+            <div className="hidden sm:flex gap-2 shrink-0 self-start sm:ml-auto">
               <Button
                 variant={stammdatenOpen ? 'ghost' : 'emphasized'}
                 size="sm"
@@ -582,22 +509,128 @@ export default function ManagerGroupDetail() {
             </div>
           )}
         </div>
+
+        {(stammdatenOpen || isNewMode) && (
+          <div id="stammdaten-form" className={isNewMode ? '' : 'mt-4 pt-4 border-t border-border'}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="min-w-0">
+                <span className="text-xs text-muted">Name <span className="text-danger">*</span></span>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={canEdit ? (e) => handleChange('name', e.target.value) : undefined}
+                  readOnly={!canEdit}
+                  disabled={!canEdit}
+                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs text-muted">Email an <span className="text-danger">*</span></span>
+                <select
+                  value={editEmailTo}
+                  onChange={canEdit ? (e) => handleChange('emailTo', e.target.value) : undefined}
+                  disabled={!canEdit}
+                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
+                >
+                  {emailToOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs text-muted">Ersteller</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <input
+                    type="text"
+                    value={getCreatorDisplayName()}
+                    readOnly
+                    className="input-field control w-full px-2 py-1 rounded-control text-sm"
+                  />
+                  {isAdmin && !isNewMode && (
+                    <Button
+                      variant="transparent"
+                      size="compact"
+                      onClick={() => setIsCreatorModalOpen(true)}
+                    >
+                      Ändern
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <div className="col-span-1 sm:col-span-3 min-w-0">
+                <span className="text-xs text-muted">Beschreibung <span className="text-danger">*</span></span>
+                <textarea
+                  value={editDescription}
+                  onChange={canEdit ? (e) => handleChange('description', e.target.value) : undefined}
+                  readOnly={!canEdit}
+                  disabled={!canEdit}
+                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 resize-y"
+                />
+              </div>
+            </div>
+            {canEdit && hasChanges && (
+              <div className="mt-3 flex gap-2">
+                {isNewMode ? (
+                  <Button
+                    variant="emphasized"
+                    size="sm"
+                    onClick={handleCreate}
+                    disabled={!editName.trim() || !editDescription.trim() || !currentSeason || createMutation.isPending}
+                  >
+                    {createMutation.isPending ? 'Wird erstellt...' : 'Erstellen'}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="emphasized"
+                    size="sm"
+                    onClick={handleSaveChanges}
+                    disabled={updateMutation.isPending || !editDescription.trim()}
+                  >
+                    {updateMutation.isPending ? 'Wird gespeichert...' : 'Speichern'}
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={isNewMode ? () => navigate('/manager-groups') : handleReset}
+                >
+                  Abbrechen
+                </Button>
+              </div>
+            )}
+            {canEdit && !isNewMode && (
+              <div className="mt-3 sm:hidden">
+                <Button
+                  variant="negative"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleDeleteGroup}
+                  disabled={deleteMutation.isPending}
+                >
+                  <i className="sap-icon sap-icon-delete text-xs mr-1" />
+                  Gruppe löschen
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="p-6 bg-surface border border-border rounded-card mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h2 className="text-xl font-semibold text-foreground">Manager ({filteredAndSortedManagers.length})</h2>
-          <div className="flex gap-3 items-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
             <input
               type="text"
               placeholder="Manager suchen..."
               value={managerFilter}
               onChange={(e) => setManagerFilter(e.target.value)}
-              className="input-field control w-64 px-3 py-2 rounded-control text-sm focus:outline-none"
+              className="input-field control w-full sm:w-64 px-3 py-2 rounded-control text-sm focus:outline-none"
             />
             {canEdit && (
               <Button
                 variant="emphasized"
+                className="w-full sm:w-auto"
                 onClick={() => setIsAddModalOpen(true)}
               >
                 Manager hinzufügen
@@ -606,8 +639,9 @@ export default function ManagerGroupDetail() {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-card border border-border">
-          <table className="w-full">
+        {!isMobile && (
+          <div className="overflow-x-auto rounded-card border border-border">
+            <table className="w-full">
             <TableHead>
               <tr>
                 <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
@@ -684,7 +718,54 @@ export default function ManagerGroupDetail() {
               )}
             </TableBody>
           </table>
-        </div>
+          </div>
+        )}
+
+        {isMobile && (
+          <div className="grid gap-4">
+            {filteredAndSortedManagers.length > 0 ? (
+              filteredAndSortedManagers.map((manager) => (
+                <div key={manager.id} className="card p-4 bg-surface border border-border">
+                  <RouterLink to={`/managers/${manager.id}`} className="font-semibold link truncate block">
+                    {manager.shortName || manager.name}
+                  </RouterLink>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-subtle">Pos: </span>
+                      <span className="font-medium text-foreground">
+                        {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-subtle">Pkt: </span>
+                      <span className="font-medium text-foreground">{manager.pointsTotal ?? '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-subtle">Letzter Spieltag: </span>
+                      <span className="font-medium text-foreground">{manager.pointsLastRound ?? '-'}</span>
+                    </div>
+                  </div>
+                  {canEdit && (
+                    <div className="mt-3">
+                      <Button
+                        variant="negative"
+                        size="compact"
+                        className="w-full"
+                        onClick={() => handleRemoveManager(manager.id)}
+                      >
+                        Entfernen
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-subtle py-8">
+                Keine Manager in dieser Gruppe
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {isAddModalOpen && (
