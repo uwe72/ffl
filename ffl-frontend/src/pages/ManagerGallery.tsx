@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import type { Manager } from '../types'
 
-function ManagerGalleryCard({ manager, canClick }: { manager: Manager; canClick: boolean }) {
+function ManagerGalleryCard({ manager, canClick, showRanking }: { manager: Manager; canClick: boolean; showRanking: boolean }) {
   const { data: avatarUrl, isLoading } = useAvatar(manager.userId)
   const [imgLoaded, setImgLoaded] = useState(false)
 
@@ -33,11 +33,13 @@ function ManagerGalleryCard({ manager, canClick }: { manager: Manager; canClick:
         className="absolute inset-0 pointer-events-none"
         style={{ background: 'linear-gradient(to top, rgba(10,14,20,0.85) 0%, rgba(10,14,20,0.45) 35%, rgba(10,14,20,0) 60%)' }}
       />
-      <div className="absolute top-2 left-2">
-        <span className="inline-flex items-center justify-center h-8 px-2 rounded-control bg-accent text-on-dark text-sm font-bold tnum">
-          {badgeLabel}
-        </span>
-      </div>
+      {showRanking && (
+        <div className="absolute top-2 left-2">
+          <span className="inline-flex items-center justify-center h-8 px-2 rounded-control bg-accent text-on-dark text-sm font-bold tnum">
+            {badgeLabel}
+          </span>
+        </div>
+      )}
       <div className="absolute inset-x-0 bottom-0 p-3 text-on-dark">
         <div className="flex items-baseline gap-1.5 leading-tight truncate drop-shadow-sm">
           <span className="font-bold">{fullName}</span>
@@ -48,15 +50,17 @@ function ManagerGalleryCard({ manager, canClick }: { manager: Manager; canClick:
         {manager.description && manager.description.trim() && manager.description.trim() !== '-' && (
           <div className="text-xs text-on-dark-muted italic mt-0.5 drop-shadow-sm">„{manager.description.trim()}“</div>
         )}
-        <div className="flex items-center mt-2 text-xs">
-          {manager.positionChange != null && manager.positionChange !== 0 ? (
-            <span className={`inline-flex items-center gap-0.5 font-semibold tnum ${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
-              {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
-            </span>
-          ) : (
-            <span className="text-on-dark-muted tnum">·</span>
-          )}
-        </div>
+        {showRanking && (
+          <div className="flex items-center mt-2 text-xs">
+            {manager.positionChange != null && manager.positionChange !== 0 ? (
+              <span className={`inline-flex items-center gap-0.5 font-semibold tnum ${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
+              </span>
+            ) : (
+              <span className="text-on-dark-muted tnum">·</span>
+            )}
+          </div>
+        )}
       </div>
     </>
   )
@@ -84,6 +88,7 @@ export default function ManagerGallery() {
   const { user } = useAuth()
   const { data: currentSeason } = useCurrentSeason()
   const canClick = user?.role === 'ADMIN' || currentSeason?.seasonState !== 'BEFORE_SEASON'
+  const showRanking = currentSeason?.seasonState !== 'BEFORE_SEASON'
 
   const galleryManagers = useMemo(() => {
     if (!managers) return []
@@ -137,7 +142,7 @@ export default function ManagerGallery() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {galleryManagers.map(manager => (
-              <ManagerGalleryCard key={manager.id} manager={manager} canClick={canClick} />
+              <ManagerGalleryCard key={manager.id} manager={manager} canClick={canClick} showRanking={showRanking} />
             ))}
           </div>
           <div className="mt-4 text-sm text-subtle">
