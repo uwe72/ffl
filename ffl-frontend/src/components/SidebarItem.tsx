@@ -8,9 +8,10 @@ interface SidebarItemProps {
   subItems?: { to: string; label: string; external?: boolean }[]
   expanded?: boolean
   onToggle?: () => void
+  onBlockedClick?: () => void
 }
 
-export default function SidebarItem({ to, label, icon, collapsed, subItems, expanded, onToggle }: SidebarItemProps) {
+export default function SidebarItem({ to, label, icon, collapsed, subItems, expanded, onToggle, onBlockedClick }: SidebarItemProps) {
   const location = useLocation()
   const isActive =
     location.pathname === to ||
@@ -76,6 +77,21 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
           </div>
         )}
       </div>
+    )
+  }
+
+  if (onBlockedClick) {
+    return (
+      <button
+        onClick={onBlockedClick}
+        title={collapsed ? label : undefined}
+        className={`relative flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors w-full
+          text-sidebar-muted font-medium hover:bg-sidebar-hover hover:text-sidebar-foreground
+          ${collapsed ? 'justify-center' : ''}`}
+      >
+        <i className={`sap-icon ${icon} text-[18px] shrink-0`} />
+        {!collapsed && <span className="text-sm">{label}</span>}
+      </button>
     )
   }
 

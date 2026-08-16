@@ -2,9 +2,11 @@ import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useManagers } from '../hooks/useManagers'
 import { useAvatar } from '../hooks/useAvatar'
+import { useAuth } from '../context/AuthContext'
+import { useCurrentSeason } from '../hooks/useSeasons'
 import type { Manager } from '../types'
 
-function ManagerGalleryCard({ manager }: { manager: Manager }) {
+function ManagerGalleryCard({ manager, canClick }: { manager: Manager; canClick: boolean }) {
   const { data: avatarUrl, isLoading } = useAvatar(manager.userId)
   const [imgLoaded, setImgLoaded] = useState(false)
 
@@ -12,11 +14,8 @@ function ManagerGalleryCard({ manager }: { manager: Manager }) {
   const fullName = `${manager.firstName ?? ''} ${manager.lastName ?? ''}`.trim() || manager.name
   const positionLabel = manager.positionTotal ? `${manager.positionTotal}.` : '-'
 
-  return (
-    <RouterLink
-      to={`/managers/${manager.id}`}
-      className="relative block aspect-square rounded-card overflow-hidden border border-border bg-elevated group hover:border-border-hover transition-colors"
-    >
+  const cardInner = (
+    <>
       {showSkeleton && (
         <div className="absolute inset-0 bg-elevated animate-pulse" />
       )}
@@ -57,12 +56,32 @@ function ManagerGalleryCard({ manager }: { manager: Manager }) {
           )}
         </div>
       </div>
-    </RouterLink>
+    </>
+  )
+
+  if (canClick) {
+    return (
+      <RouterLink
+        to={`/managers/${manager.id}`}
+        className="relative block aspect-square rounded-card overflow-hidden border border-border bg-elevated group hover:border-border-hover transition-colors"
+      >
+        {cardInner}
+      </RouterLink>
+    )
+  }
+
+  return (
+    <div className="relative block aspect-square rounded-card overflow-hidden border border-border bg-elevated cursor-default">
+      {cardInner}
+    </div>
   )
 }
 
 export default function ManagerGallery() {
   const { data: managers, isLoading, error } = useManagers()
+  const { user } = useAuth()
+  const { data: currentSeason } = useCurrentSeason()
+  const canClick = user?.role === 'ADMIN' || currentSeason?.seasonState !== 'BEFORE_SEASON'
 
   const galleryManagers = useMemo(() => {
     if (!managers) return []
@@ -116,7 +135,7 @@ export default function ManagerGallery() {
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {galleryManagers.map(manager => (
-              <ManagerGalleryCard key={manager.id} manager={manager} />
+              <ManagerGalleryCard key={manager.id} manager={manager} canClick={canClick} />
             ))}
           </div>
           <div className="mt-4 text-sm text-subtle">

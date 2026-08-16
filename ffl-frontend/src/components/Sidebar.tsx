@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import SidebarItem from './SidebarItem'
+import InfoDialog from './InfoDialog'
 import { useAuth } from '../context/AuthContext'
 import { useFeedback } from '../context/FeedbackContext'
 import { useAvatar, useUploadAvatar } from '../hooks/useAvatar'
@@ -21,6 +22,7 @@ interface SidebarProps {
 
 export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: SidebarProps) {
   const [verwaltungExpanded, setVerwaltungExpanded] = useState(false)
+  const [showGalleryHint, setShowGalleryHint] = useState(false)
   const { user, isAuthenticated, logout } = useAuth()
   const location = useLocation()
   const { open: openFeedback } = useFeedback()
@@ -29,6 +31,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
   const { data: avatarUrl } = useAvatar(user?.id ?? null)
   const { data: currentSeason } = useCurrentSeason()
   const isRestricted = isAuthenticated && currentSeason?.seasonState === 'BEFORE_SEASON' && user?.role !== 'ADMIN'
+  const canAccessGallery = user?.role === 'ADMIN' || !!user?.avatarUrl
 
   const isOnVerwaltung = location.pathname.startsWith('/season') ||
     location.pathname.startsWith('/users') ||
@@ -75,7 +78,17 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
         )}
         {!isRestricted && (
-          <SidebarItem to="/manager-galerie" label="Galerie" icon="sap-icon-picture" collapsed={collapsed} />
+          canAccessGallery ? (
+            <SidebarItem to="/manager-galerie" label="Galerie" icon="sap-icon-picture" collapsed={collapsed} />
+          ) : (
+            <SidebarItem
+              to="/manager-galerie"
+              label="Galerie"
+              icon="sap-icon-picture"
+              collapsed={collapsed}
+              onBlockedClick={() => setShowGalleryHint(true)}
+            />
+          )
         )}
         <SidebarItem to="/manager-groups" label="Gruppen" icon="sap-icon-group-2" collapsed={collapsed} />
         {!isRestricted && (
@@ -238,6 +251,14 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           </aside>
         </div>
       )}
+
+      <InfoDialog
+        isOpen={showGalleryHint}
+        onClose={() => setShowGalleryHint(false)}
+        title="Galerie nicht verfügbar"
+        message="Die Manager-Galerie ist nur für Manager sichtbar, die selbst ein Profilbild hinterlegt haben. Lade zuerst ein Bild hoch, um Zugriff zu erhalten."
+        icon="sap-icon-picture"
+      />
     </>
   )
 }

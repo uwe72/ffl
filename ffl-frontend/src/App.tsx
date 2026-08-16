@@ -35,6 +35,7 @@ import Profile from './pages/Profile'
 import MyTeam from './pages/MyTeam'
 import ProtectedRoute from './components/ProtectedRoute'
 import SeasonRestrictedRoute from './components/SeasonRestrictedRoute'
+import ManagerGalleryRoute from './components/ManagerGalleryRoute'
 import { useMatomoPageView } from './hooks/useMatomo'
 
 function MatomoTracker() {
@@ -101,7 +102,9 @@ function App() {
             } />
             <Route path="manager-galerie" element={
               <ProtectedRoute>
-                <SeasonRestrictedRoute><ManagerGallery /></SeasonRestrictedRoute>
+                <SeasonRestrictedRoute>
+                  <ManagerGalleryRoute><ManagerGallery /></ManagerGalleryRoute>
+                </SeasonRestrictedRoute>
               </ProtectedRoute>
             } />
             <Route path="manager-groups" element={
