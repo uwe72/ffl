@@ -375,6 +375,15 @@ export default function ManagerGroupDetail() {
         Zurück zur Übersicht
       </RouterLink>
 
+      {!isNewMode && !canEdit && (
+        <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card mb-6">
+          <i className="sap-icon sap-icon-information text-[18px] text-muted shrink-0" />
+          <p className="text-sm text-muted">
+            Nur Lesezugriff – nur der Ersteller kann diese Gruppe bearbeiten.
+          </p>
+        </div>
+      )}
+
       {!currentSeason && isNewMode && (
         <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card mb-6">
           <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />

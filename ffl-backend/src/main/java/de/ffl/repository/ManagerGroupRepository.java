@@ -42,6 +42,12 @@ public interface ManagerGroupRepository extends JpaRepository<ManagerGroup, Long
     @Query("SELECT mg FROM ManagerGroup mg WHERE mg.season.id = :seasonId AND mg.name <> 'Alle'")
     List<ManagerGroup> findBySeasonIdFiltered(@Param("seasonId") Long seasonId);
 
+    @Query("SELECT DISTINCT mg FROM ManagerGroup mg LEFT JOIN FETCH mg.managers " +
+           "WHERE mg.season.id = :seasonId AND mg.name <> 'Alle' " +
+           "AND (mg.createdBy.id = :userId " +
+           "OR EXISTS (SELECT m FROM mg.managers m WHERE m.user.id = :userId))")
+    List<ManagerGroup> findVisibleGroupsForUser(@Param("seasonId") Long seasonId, @Param("userId") Long userId);
+
     @Query("SELECT DISTINCT mg FROM ManagerGroup mg LEFT JOIN FETCH mg.managers WHERE mg.id = :id")
     java.util.Optional<ManagerGroup> findByIdWithManagers(@Param("id") Long id);
 

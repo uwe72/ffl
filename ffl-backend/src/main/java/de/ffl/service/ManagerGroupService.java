@@ -53,15 +53,16 @@ public class ManagerGroupService {
             return Collections.emptyList();
         }
 
+        Long seasonId = getCurrentSeasonId();
+        if (seasonId == null) {
+            return Collections.emptyList();
+        }
+
         List<ManagerGroup> groups;
         if (currentUser.getRole().name().equals("ADMIN")) {
-            Long seasonId = getCurrentSeasonId();
-            if (seasonId == null) {
-                return Collections.emptyList();
-            }
             groups = managerGroupRepository.findBySeasonIdFiltered(seasonId);
         } else {
-            groups = managerGroupRepository.findByCreatedById(currentUser.getId());
+            groups = managerGroupRepository.findVisibleGroupsForUser(seasonId, currentUser.getId());
         }
 
         return groups.stream()
@@ -375,7 +376,17 @@ public class ManagerGroupService {
         if (user.getRole().name().equals("ADMIN")) {
             return true;
         }
-        return group.getCreatedBy() != null && group.getCreatedBy().getId().equals(user.getId());
+        if (group.getCreatedBy() != null && group.getCreatedBy().getId().equals(user.getId())) {
+            return true;
+        }
+        if (group.getManagers() != null) {
+            for (Manager manager : group.getManagers()) {
+                if (manager.getUser() != null && manager.getUser().getId().equals(user.getId())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean canEditGroup(ManagerGroup group, User user) {
