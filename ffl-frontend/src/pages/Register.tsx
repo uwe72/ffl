@@ -794,7 +794,7 @@ export default function Register() {
 
           {step === 2 && (
             <div className="mt-5 flex flex-col items-center">
-              <p className="text-sm text-muted">Wähle ein Profilbild aus (optional)</p>
+              <p className="text-sm text-muted">Wähle ein Profilbild aus (optional, aber empfohlen)</p>
               <p className="mt-1 mb-6 text-sm text-foreground font-medium">Für andere Manager, die auch ein Profilbild hinterlegt haben, sichtbar</p>
 
               <button
@@ -835,7 +835,7 @@ export default function Register() {
               )}
 
               <div className="w-full max-w-sm mt-8">
-                <label htmlFor="register-slogan" className="block text-sm text-muted mb-1">Slogan (optional)</label>
+                <label htmlFor="register-slogan" className="block text-sm text-muted mb-1">Slogan (optional, aber empfohlen)</label>
                 <input
                   id="register-slogan"
                   type="text"
