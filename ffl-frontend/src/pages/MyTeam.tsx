@@ -826,6 +826,9 @@ export default function MyTeam() {
               <p className="text-sm text-muted mt-1 truncate">
                 {manager?.login ?? '-'}
               </p>
+              {manager?.description?.trim() && (
+                <p className="text-sm text-muted italic mt-1 truncate">„{manager.description.trim()}"</p>
+              )}
             </div>
             <button
               type="button"
