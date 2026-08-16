@@ -77,18 +77,16 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         {!isRestricted && (
           <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
         )}
-        {!isRestricted && (
-          canAccessGallery ? (
-            <SidebarItem to="/manager-galerie" label="Galerie" icon="sap-icon-picture" collapsed={collapsed} />
-          ) : (
-            <SidebarItem
-              to="/manager-galerie"
-              label="Galerie"
-              icon="sap-icon-picture"
-              collapsed={collapsed}
-              onBlockedClick={() => setShowGalleryHint(true)}
-            />
-          )
+        {canAccessGallery ? (
+          <SidebarItem to="/manager-galerie" label="Galerie" icon="sap-icon-picture" collapsed={collapsed} />
+        ) : (
+          <SidebarItem
+            to="/manager-galerie"
+            label="Galerie"
+            icon="sap-icon-picture"
+            collapsed={collapsed}
+            onBlockedClick={() => setShowGalleryHint(true)}
+          />
         )}
         <SidebarItem to="/manager-groups" label="Gruppen" icon="sap-icon-group-2" collapsed={collapsed} />
         {!isRestricted && (

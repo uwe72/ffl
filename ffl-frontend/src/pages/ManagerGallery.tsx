@@ -116,7 +116,7 @@ export default function ManagerGallery() {
       </div>
 
       {isLoading && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="aspect-square rounded-card bg-elevated animate-pulse" />
           ))}
@@ -133,7 +133,7 @@ export default function ManagerGallery() {
       )}
       {!isLoading && !error && galleryManagers.length > 0 && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {galleryManagers.map(manager => (
               <ManagerGalleryCard key={manager.id} manager={manager} canClick={canClick} />
             ))}

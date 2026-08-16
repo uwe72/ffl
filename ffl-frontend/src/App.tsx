@@ -102,9 +102,7 @@ function App() {
             } />
             <Route path="manager-galerie" element={
               <ProtectedRoute>
-                <SeasonRestrictedRoute>
-                  <ManagerGalleryRoute><ManagerGallery /></ManagerGalleryRoute>
-                </SeasonRestrictedRoute>
+                <ManagerGalleryRoute><ManagerGallery /></ManagerGalleryRoute>
               </ProtectedRoute>
             } />
             <Route path="manager-groups" element={
