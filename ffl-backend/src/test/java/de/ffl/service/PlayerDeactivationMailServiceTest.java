@@ -1,6 +1,5 @@
 package de.ffl.service;
 
-import de.ffl.config.EnvironmentProvider;
 import de.ffl.domain.SeasonState;
 import de.ffl.domain.SystemConfig;
 import de.ffl.repository.SystemConfigRepository;
@@ -32,9 +31,8 @@ class PlayerDeactivationMailServiceTest {
     @Mock
     private SpringTemplateEngine templateEngine;
 
-    private PlayerDeactivationMailService service(String activeProfile) {
-        return new PlayerDeactivationMailService(
-                systemConfigRepository, templateEngine, new EnvironmentProvider(activeProfile));
+    private PlayerDeactivationMailService service() {
+        return new PlayerDeactivationMailService(systemConfigRepository, templateEngine);
     }
 
     private SystemConfig config() {
@@ -54,16 +52,20 @@ class PlayerDeactivationMailServiceTest {
     }
 
     @Test
-    void doesNotSendInTestEnvironment() {
-        service("test").sendDeactivationNotifications(
+    void sendsRegardlessOfEnvironment() {
+        lenient().when(systemConfigRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(config()));
+        when(templateEngine.process(eq("mail/player-deactivation"), any(Context.class)))
+                .thenReturn("<html>mail</html>");
+
+        service().sendDeactivationNotifications(
                 List.of(notification()), "2026/27", SeasonState.BEFORE_SEASON);
 
-        verify(systemConfigRepository, never()).findFirstByOrderByIdAsc();
+        verify(templateEngine).process(eq("mail/player-deactivation"), any(Context.class));
     }
 
     @Test
     void doesNotSendInRueckrunde() {
-        service("docker").sendDeactivationNotifications(
+        service().sendDeactivationNotifications(
                 List.of(notification()), "2026/27", SeasonState.RUNNING_RUECKRUNDE);
 
         verify(systemConfigRepository, never()).findFirstByOrderByIdAsc();
@@ -71,7 +73,7 @@ class PlayerDeactivationMailServiceTest {
 
     @Test
     void doesNotSendWhenNoNotifications() {
-        service("docker").sendDeactivationNotifications(
+        service().sendDeactivationNotifications(
                 List.of(), "2026/27", SeasonState.BEFORE_SEASON);
 
         verify(systemConfigRepository, never()).findFirstByOrderByIdAsc();
@@ -81,7 +83,7 @@ class PlayerDeactivationMailServiceTest {
     void doesNotSendWhenConfigMissing() {
         when(systemConfigRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.empty());
 
-        service("docker").sendDeactivationNotifications(
+        service().sendDeactivationNotifications(
                 List.of(notification()), "2026/27", SeasonState.RUNNING_HINRUNDE);
 
         verify(templateEngine, never()).process(eq("mail/player-deactivation"), any(Context.class));
@@ -99,7 +101,7 @@ class PlayerDeactivationMailServiceTest {
                             + "|web=" + ctx.getVariable("webUrl");
                 });
 
-        String html = service("docker").buildHtml(notification(), "2026/27", true, "https://ffl.app");
+        String html = service().buildHtml(notification(), "2026/27", true, "https://ffl.app");
 
         assertThat(html).contains("greeting=Max Mustermann");
         assertThat(html).contains("season=2026/27");
@@ -116,20 +118,8 @@ class PlayerDeactivationMailServiceTest {
                     return "beforeSeason=" + ctx.getVariable("beforeSeason");
                 });
 
-        String html = service("docker").buildHtml(notification(), "2026/27", false, "https://ffl.app");
+        String html = service().buildHtml(notification(), "2026/27", false, "https://ffl.app");
 
         assertThat(html).contains("beforeSeason=false");
-    }
-
-    @Test
-    void sendsMailWhenProdAndValidData() {
-        lenient().when(systemConfigRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.of(config()));
-        when(templateEngine.process(eq("mail/player-deactivation"), any(Context.class)))
-                .thenReturn("<html>mail</html>");
-
-        service("docker").sendDeactivationNotifications(
-                List.of(notification()), "2026/27", SeasonState.BEFORE_SEASON);
-
-        verify(templateEngine).process(eq("mail/player-deactivation"), any(Context.class));
     }
 }

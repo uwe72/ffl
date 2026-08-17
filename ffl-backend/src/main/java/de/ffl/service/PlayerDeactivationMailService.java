@@ -1,6 +1,5 @@
 package de.ffl.service;
 
-import de.ffl.config.EnvironmentProvider;
 import de.ffl.domain.SeasonState;
 import de.ffl.domain.SystemConfig;
 import de.ffl.repository.SystemConfigRepository;
@@ -22,27 +21,19 @@ import java.util.Properties;
 public class PlayerDeactivationMailService {
 
     private static final Logger log = LoggerFactory.getLogger(PlayerDeactivationMailService.class);
-    private static final String PROD = "PROD";
 
     private final SystemConfigRepository systemConfigRepository;
     private final SpringTemplateEngine templateEngine;
-    private final EnvironmentProvider environmentProvider;
 
     public PlayerDeactivationMailService(SystemConfigRepository systemConfigRepository,
-                                         SpringTemplateEngine templateEngine,
-                                         EnvironmentProvider environmentProvider) {
+                                         SpringTemplateEngine templateEngine) {
         this.systemConfigRepository = systemConfigRepository;
         this.templateEngine = templateEngine;
-        this.environmentProvider = environmentProvider;
     }
 
     @Async
     public void sendDeactivationNotifications(List<ManagerNotificationDto> notifications,
                                               String seasonName, SeasonState state) {
-        if (!PROD.equals(environmentProvider.getEnvironment())) {
-            log.info("Spieler-Deaktivierungs-Mails werden nur in PROD versendet (aktuell TEST), übersprungen");
-            return;
-        }
         if (state != SeasonState.BEFORE_SEASON && state != SeasonState.RUNNING_HINRUNDE) {
             log.info("Spieler-Deaktivierungs-Mails nur im Status 'Vor Saison' oder 'Hinrunde', aktuell {}, übersprungen", state);
             return;
