@@ -366,7 +366,16 @@ public class NewSeasonSetupService {
         return newSeason;
     }
 
-    public record UpdateResult(int playersCreated, int teamChanges, int playersDeactivated) {}
+    public record PlayerChange(String name, String club, Integer prize, String fromClub, String managers) {}
+
+    public record UpdateResult(int playersCreated, int teamChanges, int playersDeactivated,
+                               List<PlayerChange> newPlayers, List<PlayerChange> teamChangeList,
+                               List<PlayerChange> deactivatedPlayers, List<PlayerChange> skippedPlayers) {
+        public UpdateResult(int playersCreated, int teamChanges, int playersDeactivated) {
+            this(playersCreated, teamChanges, playersDeactivated,
+                    List.of(), List.of(), List.of(), List.of());
+        }
+    }
 
     @Transactional
     public UpdateResult updatePlayers(String sourceUrl, Consumer<String> log) {
@@ -438,6 +447,10 @@ public class NewSeasonSetupService {
         int playersCreated = 0;
         int playersSkipped = 0;
         int teamChanges = 0;
+        List<PlayerChange> newPlayers = new ArrayList<>();
+        List<PlayerChange> teamChangeList = new ArrayList<>();
+        List<PlayerChange> deactivatedPlayers = new ArrayList<>();
+        List<PlayerChange> skippedPlayers = new ArrayList<>();
         Set<String> activeKickerIds = new HashSet<>();
         for (KickerPlayer kp : players) {
             activeKickerIds.add(kp.id());
@@ -451,6 +464,8 @@ public class NewSeasonSetupService {
             if (existing == null) {
                 if (!hasValidMarketValue(kp)) {
                     playersSkipped++;
+                    skippedPlayers.add(new PlayerChange(kickerFullName(kp), targetTeam.getName(),
+                            null, null, null));
                     log.accept("Spieler übersprungen (Marktwert unbekannt): "
                             + kickerDisplayName(kp) + " (" + targetTeam.getName() + ")");
                     continue;
@@ -470,7 +485,10 @@ public class NewSeasonSetupService {
                         .build();
                 playerRepository.save(player);
                 playersCreated++;
-                log.accept("Neuer Spieler: " + kickerDisplayName(kp) + " (" + targetTeam.getName() + ")");
+                newPlayers.add(new PlayerChange(kickerFullName(kp), targetTeam.getName(),
+                        kp.marketValue(), null, null));
+                log.accept("Neuer Spieler: " + kickerFullName(kp) + " (" + targetTeam.getName()
+                        + ") · " + formatPrize(kp.marketValue()));
             } else if (beforeSeason) {
                 Team currentTeam = (existing.getTeams() == null || existing.getTeams().isEmpty())
                         ? null : existing.getTeams().get(0);
@@ -480,6 +498,8 @@ public class NewSeasonSetupService {
                     existing.getTeams().add(targetTeam);
                     playerRepository.save(existing);
                     teamChanges++;
+                    teamChangeList.add(new PlayerChange(fullName(existing), targetTeam.getName(),
+                            existing.getPrize(), oldName, null));
                     log.accept("Vereinswechsel: " + existing.getNameKicker()
                             + " (" + oldName + " -> " + targetTeam.getName() + ")");
                 }
@@ -500,6 +520,10 @@ public class NewSeasonSetupService {
                     playerRepository.save(existing);
                     playersDeactivated++;
                     List<Manager> affectedManagers = managerRepository.findManagersByPlayerId(existing.getId());
+                    Team deactivatedTeam = firstTeam(existing);
+                    deactivatedPlayers.add(new PlayerChange(fullName(existing),
+                            deactivatedTeam != null ? deactivatedTeam.getName() : null,
+                            existing.getPrize(), null, managerNames(affectedManagers)));
                     log.accept("Spieler deaktiviert: " + formatDeactivatedPlayer(existing, affectedManagers));
                     collectDeactivationNotifications(notificationsByManager, existing, affectedManagers);
                 }
@@ -530,7 +554,8 @@ public class NewSeasonSetupService {
             log.accept("Spieler mit unbekanntem Marktwert übersprungen: " + playersSkipped);
         }
 
-        return new UpdateResult(playersCreated, teamChanges, playersDeactivated);
+        return new UpdateResult(playersCreated, teamChanges, playersDeactivated,
+                newPlayers, teamChangeList, deactivatedPlayers, skippedPlayers);
     }
 
     private String backfillTeamKickerId(Team team, Map<String, KickerTeam> kickerTeamsByNumericId,
@@ -555,6 +580,37 @@ public class NewSeasonSetupService {
 
     private String kickerDisplayName(KickerPlayer kp) {
         return kp.displayName() != null ? kp.displayName() : kp.displayLongName();
+    }
+
+    private String kickerFullName(KickerPlayer kp) {
+        String first = kp.firstName();
+        String last = kp.lastName();
+        if (first != null && !first.isBlank() && last != null && !last.isBlank()) {
+            return first.trim() + " " + last.trim();
+        }
+        if (first != null && !first.isBlank()) {
+            return first.trim();
+        }
+        if (last != null && !last.isBlank()) {
+            return last.trim();
+        }
+        return kickerDisplayName(kp);
+    }
+
+    private String formatPrize(Integer prize) {
+        if (prize == null) {
+            return "–";
+        }
+        return String.format(java.util.Locale.GERMANY, "%,d €", prize);
+    }
+
+    private String managerNames(List<Manager> managers) {
+        if (managers == null || managers.isEmpty()) {
+            return null;
+        }
+        return managers.stream()
+                .map(Manager::getName)
+                .collect(java.util.stream.Collectors.joining(", "));
     }
 
     private String formatDeactivatedPlayer(Player player, List<Manager> managers) {

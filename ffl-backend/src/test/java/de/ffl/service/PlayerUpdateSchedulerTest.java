@@ -217,6 +217,33 @@ class PlayerUpdateSchedulerTest {
     }
 
     @Test
+    void buildHtml_passesStructuredListsToTemplate() {
+        List<String> lines = List.of("=== Spieler-Update abgeschlossen ===");
+        NewSeasonSetupService.UpdateResult result = new NewSeasonSetupService.UpdateResult(
+                2, 1, 1,
+                List.of(new NewSeasonSetupService.PlayerChange("Max Neuer", "FC Alpha", 1234567, null, null),
+                        new NewSeasonSetupService.PlayerChange("Tim Zwei", "FC Beta", 500000, null, null)),
+                List.of(new NewSeasonSetupService.PlayerChange("Leon Wechsel", "FC Beta", 800000, "FC Alpha", null)),
+                List.of(new NewSeasonSetupService.PlayerChange("Alt Weg", "FC Alpha", 700000, null, "Manager X")),
+                List.of(new NewSeasonSetupService.PlayerChange("Ohne Wert", "FC Beta", null, null, null)));
+        when(templateEngine.process(eq("mail/player-update"), any(Context.class)))
+                .thenAnswer(invocation -> {
+                    Context ctx = invocation.getArgument(1);
+                    return "new=" + ((List<?>) ctx.getVariable("newPlayers")).size()
+                            + "|changes=" + ((List<?>) ctx.getVariable("teamChangeList")).size()
+                            + "|deact=" + ((List<?>) ctx.getVariable("deactivatedPlayers")).size()
+                            + "|skip=" + ((List<?>) ctx.getVariable("skippedPlayers")).size();
+                });
+
+        String html = scheduler().buildHtml("2026/27", true, result, "08.08.2026 08:00", lines, "https://ffl.app", "TEST");
+
+        assertThat(html).contains("new=2");
+        assertThat(html).contains("changes=1");
+        assertThat(html).contains("deact=1");
+        assertThat(html).contains("skip=1");
+    }
+
+    @Test
     void buildHtml_errorPassesSuccessFalseAndZeroCounts() {
         List<String> lines = List.of("FEHLER: kicker down");
         when(templateEngine.process(eq("mail/player-update"), any(Context.class)))

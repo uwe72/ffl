@@ -162,6 +162,10 @@ public class PlayerUpdateScheduler {
         context.setVariable("playersDeactivated", result != null ? result.playersDeactivated() : 0);
         context.setVariable("runTime", runTime);
         context.setVariable("logLines", logLines);
+        context.setVariable("newPlayers", result != null ? result.newPlayers() : List.of());
+        context.setVariable("teamChangeList", result != null ? result.teamChangeList() : List.of());
+        context.setVariable("deactivatedPlayers", result != null ? result.deactivatedPlayers() : List.of());
+        context.setVariable("skippedPlayers", result != null ? result.skippedPlayers() : List.of());
         context.setVariable("webUrl", webUrl);
         context.setVariable("environment", environment);
         return templateEngine.process("mail/player-update", context);

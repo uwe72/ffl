@@ -88,22 +88,110 @@
           <!-- Spacer -->
           <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
 
-          <!-- Sektion: Protokoll -->
-          <tr>
-            <td>
-              <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Protokoll</p>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
-                <th:block th:each="line,iter : ${logLines}">
-                  <tr th:style="${iter.last ? '' : 'border-bottom:1px solid #e7e5e4;'}">
-                    <td th:style="${line.startsWith('=== ') ? 'padding:9px 16px;color:#3f3a34;font-size:13px;font-weight:600;' : (line.startsWith('FEHLER') ? 'padding:9px 16px;color:#b91c1c;font-size:13px;font-weight:600;' : 'padding:9px 16px;color:#1c1917;font-size:13px;font-weight:400;')}" th:text="${line}">Protokollzeile</td>
-                  </tr>
-                </th:block>
-              </table>
-            </td>
-          </tr>
+          <!-- Sektion: Neue Spieler -->
+          <th:block th:if="${success and !newPlayers.isEmpty()}">
+            <tr>
+              <td>
+                <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Neue Spieler <span th:text="'(' + ${newPlayers.size()} + ')'">(0)</span></p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
+                  <th:block th:each="p,iter : ${newPlayers}">
+                    <tr th:style="${iter.last ? '' : 'border-bottom:1px solid #e7e5e4;'}">
+                      <td style="padding:9px 16px;">
+                        <span style="color:#1c1917;font-size:13px;font-weight:600;" th:text="${p.name}">Vorname Nachname</span>
+                        <span style="color:#78716c;font-size:13px;font-weight:400;" th:text="' · ' + ${p.club}"> · Verein</span>
+                      </td>
+                      <td align="right" style="padding:9px 16px;color:#1c1917;font-size:13px;font-weight:600;white-space:nowrap;" th:text="${p.prize != null} ? ${#numbers.formatInteger(p.prize,1,'POINT')} + ' €' : '–'">1.234.567 €</td>
+                    </tr>
+                  </th:block>
+                </table>
+              </td>
+            </tr>
+            <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+          </th:block>
+
+          <!-- Sektion: Vereinswechsel -->
+          <th:block th:if="${success and !teamChangeList.isEmpty()}">
+            <tr>
+              <td>
+                <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Vereinswechsel <span th:text="'(' + ${teamChangeList.size()} + ')'">(0)</span></p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
+                  <th:block th:each="p,iter : ${teamChangeList}">
+                    <tr th:style="${iter.last ? '' : 'border-bottom:1px solid #e7e5e4;'}">
+                      <td style="padding:9px 16px;color:#1c1917;font-size:13px;font-weight:600;" th:text="${p.name}">Vorname Nachname</td>
+                      <td align="right" style="padding:9px 16px;color:#57534e;font-size:13px;font-weight:400;white-space:nowrap;">
+                        <span th:text="${p.fromClub}">Alt-Verein</span>
+                        <span style="color:#a8a29e;">&rarr;</span>
+                        <span style="color:#1c1917;font-weight:600;" th:text="${p.club}">Neu-Verein</span>
+                      </td>
+                    </tr>
+                  </th:block>
+                </table>
+              </td>
+            </tr>
+            <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+          </th:block>
+
+          <!-- Sektion: Spieler deaktiviert -->
+          <th:block th:if="${success and !deactivatedPlayers.isEmpty()}">
+            <tr>
+              <td>
+                <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Spieler deaktiviert <span th:text="'(' + ${deactivatedPlayers.size()} + ')'">(0)</span></p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
+                  <th:block th:each="p,iter : ${deactivatedPlayers}">
+                    <tr th:style="${iter.last ? '' : 'border-bottom:1px solid #e7e5e4;'}">
+                      <td style="padding:9px 16px;">
+                        <span style="color:#1c1917;font-size:13px;font-weight:600;" th:text="${p.name}">Vorname Nachname</span>
+                        <span th:if="${p.club != null}" style="color:#78716c;font-size:13px;font-weight:400;" th:text="' · ' + ${p.club}"> · Verein</span>
+                        <br th:if="${p.managers != null}" />
+                        <span th:if="${p.managers != null}" style="color:#78716c;font-size:12px;font-weight:400;" th:text="'im Team bei: ' + ${p.managers}">im Team bei: Manager</span>
+                      </td>
+                    </tr>
+                  </th:block>
+                </table>
+              </td>
+            </tr>
+            <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+          </th:block>
+
+          <!-- Sektion: Übersprungen -->
+          <th:block th:if="${success and !skippedPlayers.isEmpty()}">
+            <tr>
+              <td>
+                <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Übersprungen &middot; Marktwert unbekannt <span th:text="'(' + ${skippedPlayers.size()} + ')'">(0)</span></p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
+                  <th:block th:each="p,iter : ${skippedPlayers}">
+                    <tr th:style="${iter.last ? '' : 'border-bottom:1px solid #e7e5e4;'}">
+                      <td style="padding:9px 16px;">
+                        <span style="color:#1c1917;font-size:13px;font-weight:400;" th:text="${p.name}">Vorname Nachname</span>
+                        <span style="color:#78716c;font-size:13px;font-weight:400;" th:text="' · ' + ${p.club}"> · Verein</span>
+                      </td>
+                    </tr>
+                  </th:block>
+                </table>
+              </td>
+            </tr>
+            <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+          </th:block>
+
+          <!-- Sektion: Protokoll (Fallback bei Fehler oder ohne Änderungen) -->
+          <th:block th:if="${!success or (newPlayers.isEmpty() and teamChangeList.isEmpty() and deactivatedPlayers.isEmpty() and skippedPlayers.isEmpty())}">
+            <tr>
+              <td>
+                <p style="margin:0 0 10px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Protokoll</p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;overflow:hidden;">
+                  <th:block th:each="line,iter : ${logLines}">
+                    <tr th:style="${iter.last ? '' : 'border-bottom:1px solid #e7e5e4;'}">
+                      <td th:style="${line.startsWith('=== ') ? 'padding:9px 16px;color:#3f3a34;font-size:13px;font-weight:600;' : (line.startsWith('FEHLER') ? 'padding:9px 16px;color:#b91c1c;font-size:13px;font-weight:600;' : 'padding:9px 16px;color:#1c1917;font-size:13px;font-weight:400;')}" th:text="${line}">Protokollzeile</td>
+                    </tr>
+                  </th:block>
+                </table>
+              </td>
+            </tr>
+            <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+          </th:block>
 
           <!-- Spacer -->
-          <tr><td height="28" style="line-height:28px;font-size:28px;">&nbsp;</td></tr>
+          <tr><td height="4" style="line-height:4px;font-size:4px;">&nbsp;</td></tr>
 
           <!-- Webseite -->
           <th:block th:if="${webUrl != null and !webUrl.isEmpty()}">

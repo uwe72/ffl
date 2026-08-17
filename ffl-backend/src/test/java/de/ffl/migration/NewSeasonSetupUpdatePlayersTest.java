@@ -155,6 +155,28 @@ class NewSeasonSetupUpdatePlayersTest {
     }
 
     @Test
+    void updatePlayers_populatesStructuredListsAndEnrichesNewPlayerLine() {
+        AtomicReference<String> log = new AtomicReference<>("");
+        NewSeasonSetupService.UpdateResult result = setupService.updatePlayers("test-url", msg -> log.set(log.get() + msg + "\n"));
+
+        assertThat(result.newPlayers()).hasSize(8);
+        assertThat(result.teamChangeList()).hasSize(1);
+
+        NewSeasonSetupService.PlayerChange firstNew = result.newPlayers().get(0);
+        assertThat(firstNew.name()).isNotBlank();
+        assertThat(firstNew.club()).isNotBlank();
+        assertThat(firstNew.prize()).isNotNull();
+
+        assertThat(result.newPlayers())
+                .allSatisfy(pc -> assertThat(pc.prize()).isNotNull());
+
+        assertThat(result.teamChangeList().get(0).fromClub()).isNotBlank();
+        assertThat(result.teamChangeList().get(0).club()).isNotBlank();
+
+        assertThat(log.get()).containsPattern("Neuer Spieler: .+ \\(.+\\) · [\\d.]+ €");
+    }
+
+    @Test
     void updatePlayers_runningSeason_addsNewPlayersButSkipsTeamChanges() {
         season.setSeasonState(SeasonState.RUNNING_HINRUNDE);
         seasonRepository.save(season);
