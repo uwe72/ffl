@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
-import { positionLabels } from '../../utils/positions'
-import { formatPoints, formatMillions, formatMillionsShort } from '../../utils/format'
+import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
 
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
 
@@ -13,12 +12,14 @@ const POSITION_COLOR: Record<string, string> = {
   STRIKER: 'var(--color-striker)',
 }
 
-const ROWS = [
-  { position: 'STRIKER', label: 'Sturm', top: '6%' },
-  { position: 'MIDFIELD', label: 'Mittelfeld', top: '34%' },
-  { position: 'DEFENDER', label: 'Abwehr', top: '62%' },
-  { position: 'GOALKEEPER', label: 'Torwart', top: '86%' },
-] as const
+const COLUMNS = ['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const
+
+const LEGEND = [
+  { position: 'GOALKEEPER', label: 'Torwart' },
+  { position: 'DEFENDER', label: 'Abwehr' },
+  { position: 'MIDFIELD', label: 'Mittelfeld' },
+  { position: 'STRIKER', label: 'Sturm' },
+]
 
 function bigOf(p: SpielerAufstellung, modus: FeldModus): number {
   if (modus === 'wert') return p.marktwert
@@ -71,15 +72,15 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
           J
         </span>
       )}
-      <div className="absolute inset-x-0 top-2 px-2 text-center" style={{ transform: 'translateY(0)' }}>
-        <div className="text-[11px] font-semibold text-foreground truncate leading-tight">{player.name}</div>
-        <div className="text-[9px] text-muted truncate leading-tight">{player.verein}</div>
+      <div className="absolute inset-x-0 top-2 px-1.5 text-center">
+        <div className="text-[12px] font-semibold text-foreground truncate leading-tight">{player.name}</div>
+        <div className="text-[10px] font-semibold text-muted truncate leading-tight">{player.vereinKuerzel}</div>
       </div>
-      <div className="absolute bottom-1 left-2 text-lg font-bold text-foreground tabular-nums leading-none">
+      <div className="absolute bottom-1.5 left-2 text-xl font-bold text-foreground tabular-nums leading-none">
         {bigText(player, modus)}
       </div>
       {modus === 'gesamt' && player.punkteSpieltag > 0 && (
-        <span className="absolute bottom-1 right-1 text-[9px] font-semibold text-white bg-stat-accent rounded-full px-1 py-0.5 leading-none">
+        <span className="absolute bottom-1.5 right-1.5 text-[10px] font-semibold text-white bg-stat-accent rounded-full px-1.5 py-0.5 leading-none">
           +{formatPoints(player.punkteSpieltag)}
         </span>
       )}
@@ -89,15 +90,17 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
   const back = (
     <div
       className="relative w-full h-full overflow-hidden"
-      style={{ borderRadius: 6, backgroundColor: posColor, color: '#fafaf9' }}
+      style={{
+        borderRadius: 6,
+        backgroundColor: 'var(--color-background)',
+        color: '#fafaf9',
+        borderTop: `3px solid ${posColor}`,
+      }}
     >
-      <div className="flex flex-col items-center justify-center w-full h-full px-1 text-center gap-0.5">
-        <div className="text-[10px] font-semibold leading-tight">
-          {positionLabels[player.position] ?? player.position}
-        </div>
-        <div className="text-[9px] leading-tight">Tore: {player.tore}</div>
-        <div className="text-[9px] leading-tight">Zu Null: {player.zuNull}</div>
-        <div className="text-[9px] leading-tight">{formatMillionsShort(player.marktwert)}</div>
+      <div className="flex flex-col items-center justify-center w-full h-full px-1.5 text-center gap-1">
+        <div className="text-[12px] font-semibold truncate max-w-full">{player.name}</div>
+        <div className="text-[12px] leading-tight">Tore: {player.tore}</div>
+        <div className="text-[12px] leading-tight">Zu Null: {player.zuNull}</div>
       </div>
     </div>
   )
@@ -157,7 +160,6 @@ interface AufstellungsFeldProps {
   modus: FeldModus
   compact?: boolean
   showLegend?: boolean
-  reducedMotion?: boolean
 }
 
 export default function AufstellungsFeld({
@@ -170,7 +172,7 @@ export default function AufstellungsFeld({
   const canHover = useMedia('(hover: hover)')
 
   const grouped = useMemo(() => {
-    const map: Record<string, SpielerAufstellung[]> = { STRIKER: [], MIDFIELD: [], DEFENDER: [], GOALKEEPER: [] }
+    const map: Record<string, SpielerAufstellung[]> = { GOALKEEPER: [], DEFENDER: [], MIDFIELD: [], STRIKER: [] }
     for (const s of aufstellung.spieler) {
       if (map[s.position]) map[s.position].push(s)
     }
@@ -179,109 +181,108 @@ export default function AufstellungsFeld({
 
   const sum = aufstellung.spieler.reduce((a, s) => a + bigOf(s, modus), 0)
 
-  const centerBig = modus === 'wert' ? formatMillions(sum) : formatPoints(sum)
-  const centerLabel =
-    modus === 'wert'
-      ? `Kaderwert · ${formatMillionsShort(aufstellung.budget)} Budget`
-      : modus === 'spieltag'
-        ? 'Punkte am Spieltag'
-        : 'Punkte gesamt'
+  const sumBig = modus === 'wert' ? formatMillionen(sum) : formatPoints(sum)
+  const sumLabel = modus === 'wert' ? 'Kaderwert' : modus === 'spieltag' ? 'Punkte Spieltag' : 'Punkte gesamt'
 
-  const cardWidth = (count: number) => {
-    if (compact) return count >= 4 ? 40 : 46
-    return count >= 4 ? 62 : 'clamp(74px, 15vw, 104px)'
-  }
-  const cardHeight = compact ? 52 : 84
-  const rowGap = compact ? 6 : 10
+  const cardWidth = compact ? 64 : 'clamp(92px, 10vw, 112px)'
+  const cardHeight = compact ? 64 : 116
   let cardIndex = 0
 
   return (
-    <div className="w-full flex flex-col items-center gap-4">
-      <div
-        className="relative overflow-hidden"
-        style={{ width: compact ? '100%' : 'min(100%, 460px)', aspectRatio: '100/140' }}
-      >
-        <svg
-          viewBox="0 0 100 140"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full"
+    <div className="w-full flex flex-col items-center gap-3">
+      <div className="w-full px-2">
+        <div
+          className="relative w-full overflow-hidden"
+          style={{
+            aspectRatio: '16 / 10',
+            maxHeight: 520,
+            borderRadius: 6,
+            border: '1px solid var(--color-pitch-line)',
+            backgroundImage: 'url(/stadion.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
         >
-          <rect width="100" height="140" style={{ fill: 'var(--color-pitch)' }} />
-          <rect y="0" width="100" height="17.5" style={{ fill: 'var(--color-pitch-stripe)' }} />
-          <rect y="35" width="100" height="17.5" style={{ fill: 'var(--color-pitch-stripe)' }} />
-          <rect y="70" width="100" height="17.5" style={{ fill: 'var(--color-pitch-stripe)' }} />
-          <rect y="105" width="100" height="17.5" style={{ fill: 'var(--color-pitch-stripe)' }} />
-          <rect x="2" y="2" width="96" height="136" fill="none" style={{ stroke: 'var(--color-pitch-line)', strokeWidth: 1 }} />
-          <line x1="50" y1="2" x2="50" y2="138" style={{ stroke: 'var(--color-pitch-line)', strokeWidth: 1 }} />
-          <circle cx="50" cy="70" r="9" fill="none" style={{ stroke: 'var(--color-pitch-line)', strokeWidth: 1 }} />
-          <rect x="2" y="26" width="96" height="14" fill="none" style={{ stroke: 'var(--color-pitch-line)', strokeWidth: 1 }} />
-          <rect x="2" y="100" width="96" height="14" fill="none" style={{ stroke: 'var(--color-pitch-line)', strokeWidth: 1 }} />
-          <rect x="2" y="38" width="96" height="5" fill="none" style={{ stroke: 'var(--color-pitch-line)', strokeWidth: 1 }} />
-          <rect x="2" y="97" width="96" height="5" fill="none" style={{ stroke: 'var(--color-pitch-line)', strokeWidth: 1 }} />
-        </svg>
+          <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0, 0, 0, 0.35)' }} aria-hidden="true" />
 
-        {!compact && (
-          <div
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none"
-            aria-hidden="true"
-          >
-            <div className="text-[26px] font-bold text-on-dark tabular-nums leading-none">{centerBig}</div>
-            <div className="text-[10px] text-on-dark-muted mt-0.5">{centerLabel}</div>
+          <div className="absolute inset-0 flex" style={{ padding: '28px 20px', justifyContent: 'space-around' }}>
+            {COLUMNS.map(pos => {
+              const players = grouped[pos]
+              if (!players || players.length === 0) return null
+              return (
+                <div
+                  key={pos}
+                  className="flex flex-col items-center"
+                  style={{ justifyContent: 'space-around', minWidth: cardWidth, maxWidth: cardWidth }}
+                >
+                  {players.map(player => {
+                    const idx = cardIndex++
+                    return (
+                      <div
+                        key={player.id}
+                        style={{
+                          animation: reduceMotion
+                            ? undefined
+                            : `stat-rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) both`,
+                          animationDelay: reduceMotion ? undefined : `${idx * 55}ms`,
+                        }}
+                      >
+                        <StatPlayerCard
+                          player={player}
+                          modus={modus}
+                          width={cardWidth}
+                          height={cardHeight}
+                          compact={compact}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
           </div>
-        )}
 
-        {ROWS.map(row => {
-          const players = grouped[row.position]
-          if (!players || players.length === 0) return null
-          return (
+          {!compact && (
             <div
-              key={row.position}
-              className="absolute left-0 right-0 flex justify-center"
-              style={{ top: row.top, transform: 'translateY(-50%)', gap: rowGap }}
+              className="absolute text-right"
+              style={{
+                top: 12,
+                right: 12,
+                padding: 12,
+                borderRadius: 6,
+                backgroundColor: 'var(--color-pitch-block)',
+                pointerEvents: 'none',
+              }}
+              aria-hidden="true"
             >
-              {players.map(player => {
-                const idx = cardIndex++
-                return (
-                  <div
-                    key={player.id}
-                    style={{
-                      animation: reduceMotion
-                        ? undefined
-                        : `stat-rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) both`,
-                      animationDelay: reduceMotion ? undefined : `${idx * 55}ms`,
-                    }}
-                  >
-                    <StatPlayerCard
-                      player={player}
-                      modus={modus}
-                      width={cardWidth(players.length)}
-                      height={cardHeight}
-                      compact={compact}
-                    />
-                  </div>
-                )
-              })}
+              <div className="text-xl font-bold tabular-nums leading-none" style={{ color: '#fafaf9' }}>
+                {sumBig}
+              </div>
+              <div
+                className="text-[10px] font-semibold uppercase mt-1"
+                style={{ color: 'var(--color-pitch-block-label)', letterSpacing: '0.12em' }}
+              >
+                {sumLabel}
+              </div>
             </div>
-          )
-        })}
+          )}
+        </div>
       </div>
 
       {showLegend && (
-        <div className="flex items-center justify-center gap-4 flex-wrap text-xs text-muted">
-          {ROWS.map(row => (
-            <span key={row.position} className="inline-flex items-center gap-1.5">
-              <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: POSITION_COLOR[row.position] }} />
-              {row.label}
-            </span>
-          ))}
+        <div className="w-full px-2 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center justify-center gap-4 flex-wrap text-xs text-muted">
+            {LEGEND.map(row => (
+              <span key={row.position} className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: POSITION_COLOR[row.position] }} />
+                {row.label}
+              </span>
+            ))}
+          </div>
+          {!compact && (
+            <p className="text-xs text-muted ml-auto">{canHover ? 'Anklicken zum Umdrehen' : 'Antippen zum Umdrehen'}</p>
+          )}
         </div>
-      )}
-
-      {!compact && (
-        <p className="text-xs text-muted">
-          {canHover ? 'Anklicken zum Umdrehen' : 'Antippen zum Umdrehen'}
-        </p>
       )}
     </div>
   )

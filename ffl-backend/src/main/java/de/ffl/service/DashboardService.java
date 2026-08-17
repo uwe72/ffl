@@ -75,7 +75,7 @@ public class DashboardService {
             spieler.add(SpielerAufstellungDto.builder()
                 .id(p.getId())
                 .name(playerName(p))
-                .verein(verein(p))
+                .vereinKuerzel(vereinKuerzel(p))
                 .position(p.getPosition() != null ? p.getPosition().name() : null)
                 .joker(isJoker(manager, p))
                 .punkteGesamt(pr != null ? pr.getPointsTotal() : 0)
@@ -296,11 +296,10 @@ public class DashboardService {
         return p.getNameKicker();
     }
 
-    private String verein(Player p) {
+    private String vereinKuerzel(Player p) {
         if (p.getTeams() == null || p.getTeams().isEmpty()) return "";
         Team team = p.getTeams().get(p.getTeams().size() - 1);
-        if (team.getShortName() != null && !team.getShortName().isBlank()) return team.getShortName();
-        return team.getName();
+        return team.getShortName() != null ? team.getShortName() : "";
     }
 
     private int tore(Player p) {

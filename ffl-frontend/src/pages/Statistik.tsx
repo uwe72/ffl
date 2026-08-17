@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import StatToggle from '../components/statistik/StatToggle'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
+import AufstellungKompakt from '../components/statistik/AufstellungKompakt'
 import Rangliste from '../components/statistik/Rangliste'
 import { useCurrentManager, useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useDashboardAufstellung, useDashboardRangliste } from '../hooks/useDashboard'
+import { formatMillionen } from '../utils/format'
 import type { StatAnsicht, PunkteModus } from '../types/dashboard'
 
 export default function Statistik() {
@@ -59,9 +61,9 @@ export default function Statistik() {
             <div className="text-sm text-muted tabular-nums">
               {isVorsaison ? (
                 <span>
-                  Kaderwert <span className="font-semibold text-foreground">{aufstellung.data.kaderwert.toLocaleString('de-DE')} €</span>
-                  {' · Budget '}
-                  <span className="font-semibold text-foreground">{aufstellung.data.budget.toLocaleString('de-DE')} €</span>
+                  Kaderwert <span className="font-semibold text-foreground">{formatMillionen(aufstellung.data.kaderwert)}</span>
+                  {' gegen '}
+                  <span className="font-semibold text-foreground">{formatMillionen(aufstellung.data.budget)}</span>
                 </span>
               ) : (
                 <span>
@@ -83,7 +85,14 @@ export default function Statistik() {
         ) : aufstellung.isLoading || !aufstellung.data ? (
           <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
         ) : ansicht === 'feld' ? (
-          <AufstellungsFeld key="feld" aufstellung={aufstellung.data} modus={feldModus} />
+          <div key="feld" className="@container">
+            <div className="hidden @max-[899px]:block">
+              <AufstellungKompakt aufstellung={aufstellung.data} modus={feldModus} />
+            </div>
+            <div className="@max-[899px]:hidden">
+              <AufstellungsFeld aufstellung={aufstellung.data} modus={feldModus} />
+            </div>
+          </div>
         ) : rangliste.isLoading || !rangliste.data ? (
           <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
         ) : (

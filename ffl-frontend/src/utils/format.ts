@@ -34,6 +34,11 @@ export function formatMillionsShort(value: number | null | undefined): string {
   return `${millionsShortFormatter.format(value / 1_000_000)}M`
 }
 
+export function formatMillionen(value: number | null | undefined): string {
+  if (value == null) return '-'
+  return `${millionsShortFormatter.format(value / 1_000_000)} Mio.`
+}
+
 export function formatPoints(value: number | null | undefined): string {
   if (value == null) return '-'
   return integerFormatter.format(Math.round(value))

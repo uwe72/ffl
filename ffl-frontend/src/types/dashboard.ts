@@ -5,7 +5,7 @@ export type DashboardPhase = 'VORSAISON' | 'SAISON'
 export interface SpielerAufstellung {
   id: number
   name: string
-  verein: string
+  vereinKuerzel: string
   position: Position
   joker: boolean
   punkteGesamt: number
