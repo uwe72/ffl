@@ -600,8 +600,8 @@ public class MatchdayMailTransactionService {
         sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">Startgeld noch offen</div>");
         sb.append("<div style=\"background:").append(cardBg).append(";border-radius:12px;padding:14px 16px;border:").append(border).append(";margin-bottom:14px;\">");
         sb.append("<p style=\"margin:0 0 14px 0;color:").append(textPrimary).append(";font-size:13px;line-height:1.5;\">")
-          .append("Bei uns ist dein Startgeld von <strong>").append(escape(pr.getAmountFormatted()))
-          .append("</strong> noch nicht als bezahlt vermerkt. Bitte begleiche die Startgebühr:</p>");
+          .append("Kleiner Reminder: Dein Startgeld von <strong>").append(escape(pr.getAmountFormatted()))
+          .append("</strong> steht bei uns noch offen. Sobald du es beglichen hast, ist alles erledigt – danke! \uD83D\uDE0A</p>");
 
         if (pr.getPaypalLink() != null && !pr.getPaypalLink().isBlank()) {
             sb.append("<div style=\"margin:0 0 10px 0;\">")
