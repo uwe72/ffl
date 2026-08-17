@@ -1261,13 +1261,7 @@ export default function Register() {
               </div>
 
               <p className="text-foreground text-center mb-6">
-                {firstName}, kleiner Reminder: Dein Startgeld von{' '}
-                <span className="font-semibold">
-                  {paymentInfo?.spieleinsatzEuro != null
-                    ? `${Number(paymentInfo.spieleinsatzEuro).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
-                    : '–'}
-                </span>{' '}
-                steht bei uns noch offen. Sobald du es beglichen hast, ist alles erledigt – danke! 😊
+                {firstName}, kleiner Reminder: Dein Startgeld steht noch aus. Sobald du es beglichen hast, ist alles erledigt – danke! 😊
               </p>
 
               {paymentInfo?.paypalLink && (
