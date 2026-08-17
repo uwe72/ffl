@@ -55,6 +55,14 @@
   --ffl-overlay-light: rgba(28, 25, 23, 0.35);
   --ffl-zebra: rgba(28, 25, 23, 0.04);
 
+  /* Statistik */
+  --ffl-stat-card: #fafaf9;
+  --ffl-stat-accent: #c2410c;
+  --ffl-stat-accent-hover: #9a3412;
+  --ffl-pitch: #1c1917;
+  --ffl-pitch-stripe: #292524;
+  --ffl-pitch-line: rgba(250, 250, 249, 0.16);
+
   /* Radien */
   --ffl-radius-card: 6px;
   --ffl-radius-control: 4px;
@@ -167,6 +175,13 @@
   --color-overlay-light: var(--ffl-overlay-light);
 
   --color-zebra: var(--ffl-zebra);
+
+  --color-stat-card: var(--ffl-stat-card);
+  --color-stat-accent: var(--ffl-stat-accent);
+  --color-stat-accent-hover: var(--ffl-stat-accent-hover);
+  --color-pitch: var(--ffl-pitch);
+  --color-pitch-stripe: var(--ffl-pitch-stripe);
+  --color-pitch-line: var(--ffl-pitch-line);
 
   --radius-card: var(--ffl-radius-card);
   --radius-control: var(--ffl-radius-control);
@@ -526,4 +541,26 @@ body {
 
 .ffl-login-enter {
   animation: ffl-login-enter 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes stat-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes stat-rise-side {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
