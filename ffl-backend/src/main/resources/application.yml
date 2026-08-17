@@ -45,3 +45,7 @@ spring:
 app:
   jwt:
     expiration: 31536000000
+
+logging:
+  pattern:
+    console: "%d{dd.MM.yyyy - HH:mm:ss 'Uhr'} %5p --- [%15.15t] %-40.40logger{39} : %m%n"
