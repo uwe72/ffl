@@ -27,9 +27,7 @@ function ManagerCard({ manager, beforeSeason, beforeSeasonNonAdmin }: { manager:
             {manager.shortName || '-'}
           </RouterLink>
         )}
-        {!beforeSeason && (
-          <p className="text-sm text-muted leading-5 truncate">{fullName}</p>
-        )}
+        <p className="text-sm text-muted leading-5 truncate">{fullName}</p>
         {!beforeSeason && (
           <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
               <div>
