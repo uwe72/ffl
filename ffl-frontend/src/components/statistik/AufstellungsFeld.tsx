@@ -194,7 +194,7 @@ export default function AufstellungsFeld({
         <div
           className="relative w-full overflow-hidden"
           style={{
-            aspectRatio: '16 / 10',
+            aspectRatio: '2752 / 1536',
             maxHeight: 520,
             borderRadius: 6,
             border: '1px solid var(--color-pitch-line)',
