@@ -318,7 +318,7 @@ export default function Register() {
   const handleStep2Next = () => {
     setError('')
     if (slogan.trim() && !avatarFile) {
-      setError('Bitte hinterlege ein Profilbild oder einen Avatar, wenn du einen Slogan eingibst.')
+      setError('Bitte hinterlege ein Profilbild oder einen Avatar, wenn du einen Slogan eingibst. Beides zusammen wird in der Manager-Galerie angezeigt.')
       return
     }
     if (season && allPlayers.length === 0) {
