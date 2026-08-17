@@ -470,6 +470,18 @@ public class MatchdayMailTransactionService {
           .append(escape(manager.getUser() != null ? Optional.ofNullable(manager.getUser().getFirstName()).orElse(manager.getName()) : manager.getName()))
           .append("!</p>");
 
+        if (paymentReminder != null && paymentReminder.isOpen()) {
+            String warnBg = isDark ? "#3a2f14" : "#fef3c7";
+            String warnBorder = isDark ? "1px solid #8a6d1f" : "1px solid #f59e0b";
+            String warnText = isDark ? "#f5d98b" : "#92400e";
+            sb.append("<div style=\"background:").append(warnBg)
+              .append(";border:").append(warnBorder)
+              .append(";border-radius:12px;padding:12px 14px;margin:0 0 14px 0;color:").append(warnText)
+              .append(";font-size:13px;font-weight:600;line-height:1.5;\">")
+              .append("\u2139 Bitte beachte den Hinweis weiter unten in dieser E-Mail.")
+              .append("</div>");
+        }
+
         String introCardStyle = "background:" + cardBgAlt + ";padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;border-radius:12px;border:1px solid #555555;";
         if (!isDark) {
             introCardStyle = "background:" + cardBgAlt + ";padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;border-radius:12px;border:1px solid #c0c0c0;";
