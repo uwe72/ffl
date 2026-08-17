@@ -13,21 +13,25 @@ import useIsMobile from '../hooks/useIsMobile'
 type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
 
 function ManagerCard({ manager, beforeSeason, beforeSeasonNonAdmin }: { manager: any; beforeSeason: boolean; beforeSeasonNonAdmin: boolean }) {
+  const fullName = [manager.firstName, manager.lastName].filter(Boolean).join(' ') || '-'
   return (
-    <div className="card p-4 bg-surface border border-border">
-      <div className="flex gap-4 items-center">
-        <div className="flex-1 min-w-0">
-          {beforeSeasonNonAdmin ? (
-            <div className="font-semibold text-foreground truncate block">
-              {manager.shortName || '-'}
-            </div>
-          ) : (
-            <RouterLink to={`/managers/${manager.id}`} className="font-semibold link truncate block">
-              {manager.shortName || '-'}
-            </RouterLink>
-          )}
-          {!beforeSeason && (
-            <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+    <div className="group relative overflow-hidden bg-surface border border-border rounded-none p-3 pl-4 transition-colors hover:border-border-hover">
+      <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
+      <div className="flex-1 min-w-0">
+        {beforeSeasonNonAdmin ? (
+          <p className="text-base font-semibold text-foreground leading-6 truncate">
+            {manager.shortName || '-'}
+          </p>
+        ) : (
+          <RouterLink to={`/managers/${manager.id}`} className="link text-base font-semibold leading-6 truncate block">
+            {manager.shortName || '-'}
+          </RouterLink>
+        )}
+        {!beforeSeason && (
+          <p className="text-sm text-muted leading-5 truncate">{fullName}</p>
+        )}
+        {!beforeSeason && (
+          <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
               <div>
                 <span className="text-subtle">Pos: </span>
                 <span className="font-medium text-foreground">
@@ -50,7 +54,6 @@ function ManagerCard({ manager, beforeSeason, beforeSeasonNonAdmin }: { manager:
               </div>
             </div>
           )}
-        </div>
       </div>
     </div>
   )
@@ -153,10 +156,10 @@ export default function Managers() {
   return (
     <div>
       <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h2 className="text-xl font-semibold text-foreground">Manager ({filteredManagers.length})</h2>
-          <div className="flex items-center gap-3">
-            <div className="relative w-64">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-64">
               <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
               <input
                 type="text"
