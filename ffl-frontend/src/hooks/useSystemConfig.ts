@@ -25,3 +25,14 @@ export function useSendTestMail() {
     mutationFn: (to: string) => systemApi.sendTestMail(to).then(res => res.data),
   })
 }
+
+export function useUpdatePaymentChecks() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { lastPaypalCheck: string | null; lastUeberweisungCheck: string | null }) =>
+      systemApi.updatePaymentChecks(data).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['systemConfig'] })
+    },
+  })
+}

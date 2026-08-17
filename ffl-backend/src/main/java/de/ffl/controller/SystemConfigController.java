@@ -1,5 +1,6 @@
 package de.ffl.controller;
 
+import de.ffl.dto.PaymentCheckRequest;
 import de.ffl.dto.SystemConfigDto;
 import de.ffl.dto.TestMailResultDto;
 import de.ffl.service.MatchdayMailService;
@@ -35,6 +36,13 @@ public class SystemConfigController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SystemConfigDto> updateConfig(@RequestBody SystemConfigDto updateData) {
         return ResponseEntity.ok(configService.updateConfig(updateData));
+    }
+
+    @PutMapping("/config/payment-checks")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SystemConfigDto> updatePaymentChecks(@RequestBody PaymentCheckRequest request) {
+        return ResponseEntity.ok(configService.updatePaymentChecks(
+            request.getLastPaypalCheck(), request.getLastUeberweisungCheck()));
     }
 
     @PostMapping("/test-mail")

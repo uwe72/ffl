@@ -3,6 +3,7 @@ package de.ffl.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -59,4 +60,10 @@ public class SystemConfig {
 
     @Column(name = "auto_update_last_run")
     private LocalDateTime autoUpdateLastRun;
+
+    @Column(name = "last_paypal_check")
+    private LocalDate lastPaypalCheck;
+
+    @Column(name = "last_ueberweisung_check")
+    private LocalDate lastUeberweisungCheck;
 }

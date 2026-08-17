@@ -81,4 +81,18 @@ public class SystemConfigService {
         config = configRepository.save(config);
         return SystemConfigDto.fromEntity(config);
     }
+
+    @Transactional
+    public SystemConfigDto updatePaymentChecks(java.time.LocalDate lastPaypalCheck,
+                                               java.time.LocalDate lastUeberweisungCheck) {
+        SystemConfig config = configRepository.findFirstByOrderByIdAsc()
+                .orElseGet(() -> SystemConfig.builder()
+                        .gmailSmtpServer("smtp.gmail.com")
+                        .gmailSmtpPort(587)
+                        .build());
+        config.setLastPaypalCheck(lastPaypalCheck);
+        config.setLastUeberweisungCheck(lastUeberweisungCheck);
+        config = configRepository.save(config);
+        return SystemConfigDto.fromEntity(config);
+    }
 }

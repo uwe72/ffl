@@ -50,6 +50,7 @@ public class ManagerService {
     private final UserRepository userRepository;
     private final TeamChangeMailService teamChangeMailService;
     private final SystemConfigRepository systemConfigRepository;
+    private final PaymentReminderService paymentReminderService;
 
     public ManagerService(ManagerRepository managerRepository,
                           PlayerRepository playerRepository,
@@ -58,7 +59,8 @@ public class ManagerService {
                           ManagerRankRepository managerRankRepository,
                           UserRepository userRepository,
                           TeamChangeMailService teamChangeMailService,
-                          SystemConfigRepository systemConfigRepository) {
+                          SystemConfigRepository systemConfigRepository,
+                          PaymentReminderService paymentReminderService) {
         this.managerRepository = managerRepository;
         this.playerRepository = playerRepository;
         this.seasonRepository = seasonRepository;
@@ -67,6 +69,7 @@ public class ManagerService {
         this.userRepository = userRepository;
         this.teamChangeMailService = teamChangeMailService;
         this.systemConfigRepository = systemConfigRepository;
+        this.paymentReminderService = paymentReminderService;
     }
 
     @Transactional(readOnly = true)
@@ -809,6 +812,11 @@ public class ManagerService {
 
             String greeting = user.getFirstName() != null && !user.getFirstName().isBlank()
                 ? user.getFirstName() : user.getLogin();
+            String firstName = user.getFirstName() != null ? user.getFirstName().trim() : "";
+            String lastName = user.getLastName() != null ? user.getLastName().trim() : "";
+            String fullName = (firstName + " " + lastName).trim();
+            if (fullName.isEmpty()) fullName = user.getLogin();
+            String userName = fullName + " (" + user.getLogin() + ")";
             String seasonName = season.getName() != null ? season.getName() : "Aktuelle Saison";
             String webUrl = systemConfigRepository.findFirstByOrderByIdAsc()
                 .map(de.ffl.domain.SystemConfig::getWebUrl).orElse(null);
@@ -835,9 +843,12 @@ public class ManagerService {
 
             int teamChangeCount = manager.getTeamChangeCount() != null ? manager.getTeamChangeCount() : 0;
 
+            de.ffl.dto.PaymentReminderDto paymentReminder =
+                paymentReminderService.buildReminder(season, manager.getId(), user.getLogin());
+
             teamChangeMailService.sendTeamChangeConfirmation(
-                user.getEmail(), user.getLogin(), greeting, seasonName, changeTypeLabel,
-                exchanges, positionGroups, budgetDto, webUrl, teamChangeCount);
+                user.getEmail(), user.getLogin(), greeting, userName, seasonName, changeTypeLabel,
+                exchanges, positionGroups, budgetDto, webUrl, teamChangeCount, paymentReminder);
         } catch (Exception e) {
             org.slf4j.LoggerFactory.getLogger(ManagerService.class)
                 .warn("Teamänderungsmail konnte nicht gesendet werden: {}", e.getMessage());

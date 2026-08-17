@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
 import { trackEvent } from '../hooks/useMatomo'
 import { useCurrentSeason, useUpdateSeason, usePrizeDistribution, useCalculatePrizeDistribution, usePrizeDistributionLog, useUpdatePrizePayout, usePreviewSeasonSetup, useGeneratePlayersPdf, useDeposits, useUpdateDeposit, useSyncDeposits, useSetSpielleiter } from '../hooks/useSeasons'
-import { useSystemConfig, useUpdateSystemConfig } from '../hooks/useSystemConfig'
+import { useSystemConfig, useUpdateSystemConfig, useUpdatePaymentChecks } from '../hooks/useSystemConfig'
 import { useManagersBySeason } from '../hooks/useManagers'
 import { useAuth } from '../context/AuthContext'
 import CalculationDialog from '../components/CalculationDialog'
@@ -150,6 +150,7 @@ export default function Season() {
   const isAdmin = user?.role === 'ADMIN'
   const { data: systemConfig } = useSystemConfig()
   const updateSystemConfig = useUpdateSystemConfig()
+  const updatePaymentChecks = useUpdatePaymentChecks()
   const { data: prizeDistribution, isLoading: isLoadingPrize } = usePrizeDistribution(season?.id ?? 0)
   const { data: prizeDistributionLog } = usePrizeDistributionLog(season?.id ?? 0)
   const calculatePrize = useCalculatePrizeDistribution()
@@ -180,6 +181,9 @@ export default function Season() {
   const [depositSortKey, setDepositSortKey] = useState<'login' | 'firstName' | 'lastName' | 'paymentMethod' | 'depositStatus'>('login')
   const [depositSortOrder, setDepositSortOrder] = useState<'asc' | 'desc'>('asc')
   const [depositStatsOpen, setDepositStatsOpen] = useState(false)
+  const [paypalCheckDraft, setPaypalCheckDraft] = useState('')
+  const [ueberweisungCheckDraft, setUeberweisungCheckDraft] = useState('')
+  const [paymentChecksSaved, setPaymentChecksSaved] = useState(false)
   const [setupSeasonName, setSetupSeasonName] = useState('')
   const [setupPreview, setSetupPreview] = useState<SetupPreviewDto | null>(null)
   const [showSetupConfirm, setShowSetupConfirm] = useState(false)
@@ -226,6 +230,8 @@ export default function Season() {
       setAutoUpdateEnabled(systemConfig.autoUpdateEnabled ?? false)
       setAutoUpdateCron(systemConfig.autoUpdateCron ?? '0 0 8 * * *')
       setSourceUrlDraft(systemConfig.autoUpdateSourceUrl || DEFAULT_SOURCE_URL)
+      setPaypalCheckDraft(systemConfig.lastPaypalCheck ?? '')
+      setUeberweisungCheckDraft(systemConfig.lastUeberweisungCheck ?? '')
     }
   }, [systemConfig])
 
@@ -842,6 +848,52 @@ export default function Season() {
               )}
             </div>
           )}
+
+          <div className="p-6 bg-surface border border-border rounded-card mb-6">
+            <h2 className="text-xl font-semibold text-foreground mb-1">Prüfstände für Zahlungserinnerungen</h2>
+            <p className="text-sm text-muted mb-4">
+              Diese Stichtage werden in den Erinnerungs-Mails ausgegeben („PayPal berücksichtigt bis …, Überweisungen bis …“). Nicht gesetzte Daten werden im Hinweistext weggelassen.
+            </p>
+            <div className="flex items-end gap-4 flex-wrap">
+              <div>
+                <label className="block text-sm text-muted mb-1">PayPal geprüft bis</label>
+                <input
+                  type="date"
+                  value={paypalCheckDraft}
+                  onChange={e => { setPaypalCheckDraft(e.target.value); setPaymentChecksSaved(false) }}
+                  className="input-field control px-3 py-2 rounded-control text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted mb-1">Überweisung geprüft bis</label>
+                <input
+                  type="date"
+                  value={ueberweisungCheckDraft}
+                  onChange={e => { setUeberweisungCheckDraft(e.target.value); setPaymentChecksSaved(false) }}
+                  className="input-field control px-3 py-2 rounded-control text-sm"
+                />
+              </div>
+              <Button
+                variant="emphasized"
+                onClick={async () => {
+                  await updatePaymentChecks.mutateAsync({
+                    lastPaypalCheck: paypalCheckDraft ? paypalCheckDraft : null,
+                    lastUeberweisungCheck: ueberweisungCheckDraft ? ueberweisungCheckDraft : null,
+                  })
+                  setPaymentChecksSaved(true)
+                }}
+                disabled={updatePaymentChecks.isPending}
+              >
+                {updatePaymentChecks.isPending ? 'Wird gespeichert...' : 'Prüfstände speichern'}
+              </Button>
+              {paymentChecksSaved && (
+                <span className="text-success text-sm inline-flex items-center gap-1">
+                  <i className="sap-icon sap-icon-accept text-[14px]" />
+                  Gespeichert
+                </span>
+              )}
+            </div>
+          </div>
 
           <div className="p-6 bg-surface border border-border rounded-card mb-6">
           <h2 className="text-xl font-semibold text-foreground mb-4">

@@ -58,6 +58,7 @@ public class MatchdayMailTransactionService {
     private final PointsRepository pointsRepository;
     private final ManagerGroupRepository managerGroupRepository;
     private final LlmService llmService;
+    private final PaymentReminderService paymentReminderService;
 
     public MatchdayMailTransactionService(SeasonRepository seasonRepository,
                                           ManagerRepository managerRepository,
@@ -68,7 +69,8 @@ public class MatchdayMailTransactionService {
                                           GameRepository gameRepository,
                                           PointsRepository pointsRepository,
                                           ManagerGroupRepository managerGroupRepository,
-                                          LlmService llmService) {
+                                          LlmService llmService,
+                                          PaymentReminderService paymentReminderService) {
         this.seasonRepository = seasonRepository;
         this.managerRepository = managerRepository;
         this.managerRankRepository = managerRankRepository;
@@ -79,6 +81,7 @@ public class MatchdayMailTransactionService {
         this.pointsRepository = pointsRepository;
         this.managerGroupRepository = managerGroupRepository;
         this.llmService = llmService;
+        this.paymentReminderService = paymentReminderService;
     }
 
     public void runMailJob(SseEmitter emitter, Long seasonId, Integer roundNumber,
@@ -344,12 +347,17 @@ public class MatchdayMailTransactionService {
                     List<RankingRow> rankingExcerpt = buildRankingExcerpt(dayRanksSorted, managerId);
                     List<ManagerGroup> managerGroups = managerGroupRepository.findByManagerIdWithManagers(managerId);
 
+                    de.ffl.dto.PaymentReminderDto paymentReminder = testMode
+                        ? null
+                        : paymentReminderService.buildReminder(season, managerId,
+                            manager.getUser() != null ? manager.getUser().getLogin() : null);
+
                     String html = buildHtmlForManager(manager, season, roundNumber, intro,
                         dayRankByManagerId.get(managerId), topScorerName, topScorerPoints,
                         playerRankByPlayerId, teamsByPlayerId, playerById, pointsByPlayerId,
                         prevRankByManagerId, seasonRanksByPlayerId, transferRound, config.getWebUrl(),
                         rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment,
-                        manager.getMailTheme());
+                        manager.getMailTheme(), paymentReminder);
 
                     helper.setText(html, true);
                     if (!testMode) {
@@ -438,7 +446,8 @@ public class MatchdayMailTransactionService {
                                         List<ManagerGroup> managerGroups,
                                         Map<Long, ManagerRank> dayRankByManagerId,
                                         String comment,
-                                        MailTheme mailTheme) {
+                                        MailTheme mailTheme,
+                                        de.ffl.dto.PaymentReminderDto paymentReminder) {
         boolean isDark = mailTheme == MailTheme.DARKMODE;
         
         String bodyBg = "#f5f5f7";
@@ -523,6 +532,10 @@ public class MatchdayMailTransactionService {
               .append(escape(comment)).append("</div>");
         }
 
+        if (paymentReminder != null && paymentReminder.isOpen()) {
+            appendPaymentReminder(sb, paymentReminder, isDark, cardBg, cardBgAlt, textPrimary, textSecondary, textTertiary, linkColor);
+        }
+
         List<RosterEntry> roster = collectFullRoster(manager, playerById);
         Map<Long, Integer> mePointsByPlayer = new HashMap<>();
         for (RosterEntry e : roster) {
@@ -564,6 +577,46 @@ public class MatchdayMailTransactionService {
         sb.append("</div>");
         sb.append("</div></body></html>");
         return sb.toString();
+    }
+
+    private void appendPaymentReminder(StringBuilder sb, de.ffl.dto.PaymentReminderDto pr, boolean isDark,
+                                        String cardBg, String cardBgAlt, String textPrimary,
+                                        String textSecondary, String textTertiary, String linkColor) {
+        String border = isDark ? "1px solid #555555" : "1px solid #c0c0c0";
+        sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">Startgeld noch offen</div>");
+        sb.append("<div style=\"background:").append(cardBg).append(";border-radius:12px;padding:14px 16px;border:").append(border).append(";margin-bottom:14px;\">");
+        sb.append("<p style=\"margin:0 0 14px 0;color:").append(textPrimary).append(";font-size:13px;line-height:1.5;\">")
+          .append("Bei uns ist dein Startgeld von <strong>").append(escape(pr.getAmountFormatted()))
+          .append("</strong> noch nicht als bezahlt vermerkt. Bitte begleiche die Startgebühr:</p>");
+
+        if (pr.getPaypalLink() != null && !pr.getPaypalLink().isBlank()) {
+            sb.append("<div style=\"margin:0 0 10px 0;\">")
+              .append("<a href=\"").append(escape(pr.getPaypalLink())).append("\" style=\"display:inline-block;background:#3f3a34;border-radius:8px;padding:11px 20px;color:#fafaf9;font-size:13px;font-weight:700;text-decoration:none;\">")
+              .append(escape(pr.getAmountFormatted())).append(" mit PayPal senden</a></div>");
+            sb.append("<p style=\"margin:0 0 14px 0;color:").append(textSecondary).append(";font-size:12px;line-height:1.5;\">Bitte Option „Freunde und Familie“ nutzen.</p>");
+        }
+
+        boolean hasBank = pr.getKontoinhaber() != null && !pr.getKontoinhaber().isBlank()
+            && pr.getIban() != null && !pr.getIban().isBlank();
+        if (hasBank) {
+            sb.append("<div style=\"border-top:").append(border).append(";padding-top:12px;\">");
+            sb.append("<p style=\"margin:0 0 8px 0;color:").append(textPrimary).append(";font-size:13px;line-height:1.5;\">Kein PayPal? Dann per Überweisung:</p>");
+            sb.append("<div style=\"color:").append(textSecondary).append(";font-size:13px;line-height:1.6;\">");
+            sb.append(escape(pr.getKontoinhaber())).append("<br>");
+            sb.append(escape(pr.getIban())).append("<br>");
+            if (pr.getBankName() != null && !pr.getBankName().isBlank()) {
+                sb.append(escape(pr.getBankName())).append("<br>");
+            }
+            sb.append("Verwendungszweck <strong>").append(escape(pr.getVerwendungszweck())).append("</strong>");
+            sb.append("</div></div>");
+        }
+
+        if (pr.getHinweis() != null && !pr.getHinweis().isBlank()) {
+            sb.append("<p style=\"margin:14px 0 0 0;color:").append(textTertiary).append(";font-size:11px;line-height:1.5;\">")
+              .append(escape(pr.getHinweis())).append("</p>");
+        }
+
+        sb.append("</div>");
     }
 
     private static final class RankingRow {

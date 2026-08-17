@@ -1,6 +1,7 @@
 package de.ffl.service;
 
 import de.ffl.domain.SystemConfig;
+import de.ffl.dto.PaymentReminderDto;
 import de.ffl.repository.SystemConfigRepository;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
@@ -44,12 +45,13 @@ public class TeamChangeMailService {
 
     @Async
     public void sendTeamChangeConfirmation(String userEmail, String userLogin, String greeting,
-                                           String seasonName, String changeTypeLabel,
+                                           String userName, String seasonName, String changeTypeLabel,
                                            List<ExchangeDto> exchanges,
                                            List<PositionGroupDto> positionGroups,
                                            BudgetDto budget,
                                            String webUrl,
-                                           int teamChangeCount) {
+                                           int teamChangeCount,
+                                           PaymentReminderDto paymentReminder) {
         try {
             SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc().orElse(null);
             if (config == null) {
@@ -77,7 +79,7 @@ public class TeamChangeMailService {
 
             helper.setSubject("↻ FFL | " + teamChangeCount + ". Änderung | " + userLogin + " | " + seasonName);
 
-            String html = buildTeamChangeHtml(greeting, seasonName, changeTypeLabel, exchanges, positionGroups, budget, webUrl, teamChangeCount);
+            String html = buildTeamChangeHtml(greeting, userName, seasonName, changeTypeLabel, exchanges, positionGroups, budget, webUrl, teamChangeCount, paymentReminder);
             helper.setText(html, true);
 
             mailSender.send(msg);
@@ -88,11 +90,13 @@ public class TeamChangeMailService {
         }
     }
 
-    private String buildTeamChangeHtml(String greeting, String seasonName, String changeTypeLabel,
+    private String buildTeamChangeHtml(String greeting, String userName, String seasonName, String changeTypeLabel,
                                        List<ExchangeDto> exchanges, List<PositionGroupDto> positionGroups,
-                                       BudgetDto budget, String webUrl, int teamChangeCount) {
+                                       BudgetDto budget, String webUrl, int teamChangeCount,
+                                       PaymentReminderDto paymentReminder) {
         Context context = new Context(Locale.GERMAN);
         context.setVariable("greeting", greeting);
+        context.setVariable("userName", userName);
         context.setVariable("seasonName", seasonName);
         context.setVariable("changeTypeLabel", changeTypeLabel);
         context.setVariable("teamChangeCount", teamChangeCount);
@@ -100,6 +104,7 @@ public class TeamChangeMailService {
         context.setVariable("positionGroups", positionGroups);
         context.setVariable("budget", budget);
         context.setVariable("webUrl", normalizeWebUrl(webUrl));
+        context.setVariable("payment", paymentReminder != null && paymentReminder.isOpen() ? paymentReminder : null);
         return templateEngine.process("mail/team-change-confirmation", context);
     }
 

@@ -17,6 +17,8 @@ export interface SystemConfig {
   autoUpdateCron?: string
   autoUpdateSourceUrl?: string
   autoUpdateLastRun?: string
+  lastPaypalCheck?: string
+  lastUeberweisungCheck?: string
 }
 
 export interface TestMailResult {
