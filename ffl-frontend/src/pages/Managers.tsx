@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import * as XLSX from 'xlsx'
 import { useManagers } from '../hooks/useManagers'
+import { useCurrentSeason } from '../hooks/useSeasons'
+import { useAuth } from '../context/AuthContext'
 import { trackEvent } from '../hooks/useMatomo'
 import Button from '../components/Button'
 import SortIcon from '../components/SortIcon'
@@ -10,36 +12,44 @@ import useIsMobile from '../hooks/useIsMobile'
 
 type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
 
-function ManagerCard({ manager }: { manager: any }) {
+function ManagerCard({ manager, beforeSeason, beforeSeasonNonAdmin }: { manager: any; beforeSeason: boolean; beforeSeasonNonAdmin: boolean }) {
   return (
     <div className="card p-4 bg-surface border border-border">
       <div className="flex gap-4 items-center">
         <div className="flex-1 min-w-0">
-          <RouterLink to={`/managers/${manager.id}`} className="font-semibold link truncate block">
-            {manager.shortName || '-'}
-          </RouterLink>
-          <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-            <div>
-              <span className="text-subtle">Pos: </span>
-              <span className="font-medium text-foreground">
-                {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
-              </span>
+          {beforeSeasonNonAdmin ? (
+            <div className="font-semibold text-foreground truncate block">
+              {manager.shortName || '-'}
             </div>
-            <div>
-              <span className="text-subtle">Pkt: </span>
-              <span className="font-medium text-foreground">{manager.pointsTotal ?? '-'}</span>
+          ) : (
+            <RouterLink to={`/managers/${manager.id}`} className="font-semibold link truncate block">
+              {manager.shortName || '-'}
+            </RouterLink>
+          )}
+          {!beforeSeason && (
+            <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="text-subtle">Pos: </span>
+                <span className="font-medium text-foreground">
+                  {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
+                </span>
+              </div>
+              <div>
+                <span className="text-subtle">Pkt: </span>
+                <span className="font-medium text-foreground">{manager.pointsTotal ?? '-'}</span>
+              </div>
+              <div>
+                <span className="text-subtle">Spieltag: </span>
+                <span className="font-medium text-foreground">{manager.pointsLastRound ?? '-'}</span>
+              </div>
+              <div>
+                <span className="text-subtle">Teamwert: </span>
+                <span className="font-medium text-foreground">
+                  {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-subtle">Spieltag: </span>
-              <span className="font-medium text-foreground">{manager.pointsLastRound ?? '-'}</span>
-            </div>
-            <div>
-              <span className="text-subtle">Teamwert: </span>
-              <span className="font-medium text-foreground">
-                {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
@@ -48,6 +58,10 @@ function ManagerCard({ manager }: { manager: any }) {
 
 export default function Managers() {
   const isMobile = useIsMobile()
+  const { user } = useAuth()
+  const { data: currentSeason } = useCurrentSeason()
+  const beforeSeason = currentSeason?.seasonState === 'BEFORE_SEASON'
+  const beforeSeasonNonAdmin = beforeSeason && user?.role !== 'ADMIN'
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
@@ -152,12 +166,14 @@ export default function Managers() {
                 className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
               />
             </div>
+            {!beforeSeason && (
             <Button
               onClick={exportToExcel}
               size="compact"
             >
               Excel Export
             </Button>
+            )}
           </div>
         </div>
 
@@ -179,39 +195,52 @@ export default function Managers() {
               <table>
                 <TableHead>
                   <tr>
+                    {!beforeSeason && (
                     <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
                       Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
+                    )}
+                    {!beforeSeason && (
                     <ThSortable align="center" onClick={() => handleSort('positionChange')}>
                       +-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
+                    )}
                     <ThSortable align="left" onClick={() => handleSort('shortName')}>
                       Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
+                    {!beforeSeason && (
                     <ThSortable align="center" onClick={() => handleSort('pointsTotal')}>
                       Pkt<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
+                    )}
+                    {!beforeSeason && (
                     <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
                       Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
+                    )}
                     <ThSortable align="left" onClick={() => handleSort('firstName')}>
                       Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
                     <ThSortable align="left" onClick={() => handleSort('lastName')}>
                       Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
+                    {!beforeSeason && (
                     <ThSortable align="right" onClick={() => handleSort('teamValue')}>
                       Teamwert<SortIcon column="teamValue" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
+                    )}
                   </tr>
                 </TableHead>
                 <TableBody>
                   {filteredManagers && filteredManagers.length > 0 ? (
                     filteredManagers.map((manager, index) => (
                       <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                        {!beforeSeason && (
                         <td className="px-3 py-2 text-center text-foreground">
                           {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
                         </td>
+                        )}
+                        {!beforeSeason && (
                         <td className="px-3 py-2 text-center">
                           {manager.positionChange != null && manager.positionChange !== 0 ? (
                             <span className={`${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
@@ -221,31 +250,42 @@ export default function Managers() {
                             <span className="text-subtle">-</span>
                           )}
                         </td>
+                        )}
                         <td className="px-3 py-2">
-                          <RouterLink to={`/managers/${manager.id}`} className="link font-medium">
-                            {manager.shortName || '-'}
-                          </RouterLink>
+                          {beforeSeasonNonAdmin ? (
+                            <span className="font-medium text-foreground">{manager.shortName || '-'}</span>
+                          ) : (
+                            <RouterLink to={`/managers/${manager.id}`} className="link font-medium">
+                              {manager.shortName || '-'}
+                            </RouterLink>
+                          )}
                         </td>
+                        {!beforeSeason && (
                         <td className="px-3 py-2 text-center text-foreground">
                           {manager.pointsTotal ?? '-'}
                         </td>
+                        )}
+                        {!beforeSeason && (
                         <td className="px-3 py-2 text-center text-muted">
                           {manager.pointsLastRound ?? '-'}
                         </td>
+                        )}
                         <td className="px-3 py-2 text-muted">
                           {manager.firstName || '-'}
                         </td>
                         <td className="px-3 py-2 text-muted">
                           {manager.lastName || '-'}
                         </td>
+                        {!beforeSeason && (
                         <td className="px-3 py-2 text-right text-foreground">
                           {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
                         </td>
+                        )}
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={8} className="text-center text-subtle py-8">
+                      <td colSpan={beforeSeason ? 3 : 8} className="text-center text-subtle py-8">
                         Keine Manager gefunden
                       </td>
                     </tr>
@@ -264,7 +304,7 @@ export default function Managers() {
             <div className="grid gap-4">
               {filteredManagers && filteredManagers.length > 0 ? (
                 filteredManagers.map((manager) => (
-                  <ManagerCard key={manager.id} manager={manager} />
+                  <ManagerCard key={manager.id} manager={manager} beforeSeason={beforeSeason} beforeSeasonNonAdmin={beforeSeasonNonAdmin} />
                 ))
               ) : (
                 <div className="text-center text-subtle py-8">

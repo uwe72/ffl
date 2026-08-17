@@ -78,9 +78,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           <SidebarItem to="/teams" label="Vereine" icon="sap-icon-shield" collapsed={collapsed} />
         )}
         <SidebarItem to="/players" label="Spieler" icon="sap-icon-group" collapsed={collapsed} />
-        {!isRestricted && (
-          <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
-        )}
+        <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
         {canAccessGallery ? (
           <SidebarItem to="/manager-galerie" label="Galerie" icon="sap-icon-picture" collapsed={collapsed} />
         ) : (

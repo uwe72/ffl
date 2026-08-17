@@ -5,7 +5,9 @@ import de.ffl.domain.Position;
 import de.ffl.dto.PlayerDto;
 import de.ffl.dto.PlayerRankDto;
 import de.ffl.dto.PlayerSearchDto;
+import de.ffl.service.BeforeSeasonAccess;
 import de.ffl.service.PlayerService;
+import de.ffl.service.SeasonService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +20,11 @@ import java.util.stream.Collectors;
 public class PlayerController {
 
     private final PlayerService playerService;
+    private final SeasonService seasonService;
 
-    public PlayerController(PlayerService playerService) {
+    public PlayerController(PlayerService playerService, SeasonService seasonService) {
         this.playerService = playerService;
+        this.seasonService = seasonService;
     }
 
     @GetMapping
@@ -41,6 +45,9 @@ public class PlayerController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PlayerDto> getPlayerById(@PathVariable Long id) {
+        if (BeforeSeasonAccess.isDetailBlocked(seasonService)) {
+            return ResponseEntity.notFound().build();
+        }
         PlayerDto player = playerService.findByIdWithManagers(id);
         if (player == null) {
             return ResponseEntity.notFound().build();

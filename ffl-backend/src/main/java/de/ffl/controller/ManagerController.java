@@ -14,9 +14,11 @@ import de.ffl.dto.WinterTransferRequest;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.PointsRepository;
 import de.ffl.repository.UserRepository;
+import de.ffl.service.BeforeSeasonAccess;
 import de.ffl.service.ManagerGroupService;
 import de.ffl.service.ManagerService;
 import de.ffl.service.ManagerRoundService;
+import de.ffl.service.SeasonService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +45,9 @@ public class ManagerController {
     private final ManagerGroupService managerGroupService;
     private final JdbcTemplate jdbcTemplate;
     private final UserRepository userRepository;
+    private final SeasonService seasonService;
 
-    public ManagerController(ManagerService managerService, ManagerRankRepository managerRankRepository, ManagerRoundService managerRoundService, PointsRepository pointsRepository, ManagerGroupService managerGroupService, JdbcTemplate jdbcTemplate, UserRepository userRepository) {
+    public ManagerController(ManagerService managerService, ManagerRankRepository managerRankRepository, ManagerRoundService managerRoundService, PointsRepository pointsRepository, ManagerGroupService managerGroupService, JdbcTemplate jdbcTemplate, UserRepository userRepository, SeasonService seasonService) {
         this.managerService = managerService;
         this.managerRankRepository = managerRankRepository;
         this.managerRoundService = managerRoundService;
@@ -52,6 +55,7 @@ public class ManagerController {
         this.managerGroupService = managerGroupService;
         this.jdbcTemplate = jdbcTemplate;
         this.userRepository = userRepository;
+        this.seasonService = seasonService;
     }
 
     @GetMapping
@@ -66,6 +70,9 @@ public class ManagerController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ManagerDto> getManagerById(@PathVariable Long id) {
+        if (BeforeSeasonAccess.isDetailBlocked(seasonService)) {
+            return ResponseEntity.notFound().build();
+        }
         ManagerDto manager = managerService.findById(id);
         if (manager == null) {
             return ResponseEntity.notFound().build();
