@@ -36,6 +36,11 @@ const tabItems = [
 
 const DEFAULT_SOURCE_URL = 'https://classic.kicker-libero.de/api/gameloop/v1/state/current/se-k00012026.json'
 
+function todayIso(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function nextSeasonName(current?: string): string {
   if (!current) return '2026/27'
   const m = current.match(/^(\d{4})\/(\d{2,4})$/)
@@ -857,21 +862,37 @@ export default function Season() {
             <div className="flex items-end gap-4 flex-wrap">
               <div>
                 <label className="block text-sm text-muted mb-1">PayPal geprüft bis</label>
-                <input
-                  type="date"
-                  value={paypalCheckDraft}
-                  onChange={e => { setPaypalCheckDraft(e.target.value); setPaymentChecksSaved(false) }}
-                  className="input-field control px-3 py-2 rounded-control text-sm"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={paypalCheckDraft}
+                    onChange={e => { setPaypalCheckDraft(e.target.value); setPaymentChecksSaved(false) }}
+                    className="input-field control px-3 py-2 rounded-control text-sm"
+                  />
+                  <Button
+                    variant="ghost"
+                    onClick={() => { setPaypalCheckDraft(todayIso()); setPaymentChecksSaved(false) }}
+                  >
+                    Auf heute setzen
+                  </Button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm text-muted mb-1">Überweisung geprüft bis</label>
-                <input
-                  type="date"
-                  value={ueberweisungCheckDraft}
-                  onChange={e => { setUeberweisungCheckDraft(e.target.value); setPaymentChecksSaved(false) }}
-                  className="input-field control px-3 py-2 rounded-control text-sm"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={ueberweisungCheckDraft}
+                    onChange={e => { setUeberweisungCheckDraft(e.target.value); setPaymentChecksSaved(false) }}
+                    className="input-field control px-3 py-2 rounded-control text-sm"
+                  />
+                  <Button
+                    variant="ghost"
+                    onClick={() => { setUeberweisungCheckDraft(todayIso()); setPaymentChecksSaved(false) }}
+                  >
+                    Auf heute setzen
+                  </Button>
+                </div>
               </div>
               <Button
                 variant="emphasized"
