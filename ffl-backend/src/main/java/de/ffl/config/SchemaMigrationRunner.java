@@ -52,8 +52,6 @@ public class SchemaMigrationRunner implements CommandLineRunner {
                     stmt.execute(sql);
                 }
             }
-
-            log.info("Schema migration: ffl_deposit_payment_method_check erneuert (PAYPAL/UEBERWEISUNG/OTHER), name/short_name/payment_state aus ffl_manager entfernt");
         } catch (SQLException e) {
             log.warn("Schema migration skipped: {}", e.getMessage());
         }
