@@ -424,6 +424,7 @@ export interface ManagerInGroup {
   shortName?: string
   firstName?: string
   lastName?: string
+  login?: string
   pointsTotal?: number
   pointsLastRound?: number
   positionTotal?: number

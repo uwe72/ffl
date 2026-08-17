@@ -13,21 +13,23 @@ import useIsMobile from '../hooks/useIsMobile'
 type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
 
 function ManagerCard({ manager, beforeSeason, beforeSeasonNonAdmin }: { manager: any; beforeSeason: boolean; beforeSeasonNonAdmin: boolean }) {
-  const fullName = [manager.firstName, manager.lastName].filter(Boolean).join(' ') || '-'
+  const fullName = [manager.firstName, manager.lastName].filter(Boolean).join(' ') || manager.shortName || manager.name || '-'
   return (
     <div className="group relative overflow-hidden bg-surface border border-border rounded-none p-3 pl-4 transition-colors hover:border-border-hover">
       <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
       <div className="flex-1 min-w-0">
         {beforeSeasonNonAdmin ? (
           <p className="text-base font-semibold text-foreground leading-6 truncate">
-            {manager.shortName || '-'}
+            {fullName}
           </p>
         ) : (
           <RouterLink to={`/managers/${manager.id}`} className="link text-base font-semibold leading-6 truncate block">
-            {manager.shortName || '-'}
+            {fullName}
           </RouterLink>
         )}
-        <p className="text-sm text-muted leading-5 truncate">{fullName}</p>
+        {manager.login && (
+          <p className="text-sm text-muted leading-5 truncate">{manager.login}</p>
+        )}
         {!beforeSeason && (
           <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
               <div>

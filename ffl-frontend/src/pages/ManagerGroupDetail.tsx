@@ -741,7 +741,7 @@ export default function ManagerGroupDetail() {
             <div className="grid gap-3">
               {filteredAndSortedManagers.length > 0 ? (
                 filteredAndSortedManagers.map((manager) => {
-                  const fullName = [manager.firstName, manager.lastName].filter(Boolean).join(' ') || '-'
+                  const fullName = [manager.firstName, manager.lastName].filter(Boolean).join(' ') || manager.shortName || manager.name || '-'
                   return (
                     <div
                       key={manager.id}
@@ -777,14 +777,16 @@ export default function ManagerGroupDetail() {
                             to={`/managers/${manager.id}`}
                             className="link text-base font-semibold leading-6 truncate block"
                           >
-                            {manager.shortName || manager.name}
+                            {fullName}
                           </RouterLink>
                         ) : (
                           <p className="text-base font-semibold text-foreground leading-6 truncate">
-                            {manager.shortName || manager.name}
+                            {fullName}
                           </p>
                         )}
-                        <p className="text-sm text-muted leading-5 truncate">{fullName}</p>
+                        {manager.login && (
+                          <p className="text-sm text-muted leading-5 truncate">{manager.login}</p>
+                        )}
                       </div>
                     </div>
                   )

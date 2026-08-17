@@ -76,6 +76,7 @@ public class ManagerGroupDto {
         private String shortName;
         private String firstName;
         private String lastName;
+        private String login;
         private Integer pointsTotal;
         private Integer pointsLastRound;
         private Integer positionTotal;
@@ -89,6 +90,7 @@ public class ManagerGroupDto {
             if (manager.getUser() != null) {
                 dto.setFirstName(manager.getUser().getFirstName());
                 dto.setLastName(manager.getUser().getLastName());
+                dto.setLogin(manager.getUser().getLogin());
             }
             return dto;
         }
@@ -103,6 +105,8 @@ public class ManagerGroupDto {
         public void setFirstName(String firstName) { this.firstName = firstName; }
         public String getLastName() { return lastName; }
         public void setLastName(String lastName) { this.lastName = lastName; }
+        public String getLogin() { return login; }
+        public void setLogin(String login) { this.login = login; }
         public Integer getPointsTotal() { return pointsTotal; }
         public void setPointsTotal(Integer pointsTotal) { this.pointsTotal = pointsTotal; }
         public Integer getPointsLastRound() { return pointsLastRound; }
