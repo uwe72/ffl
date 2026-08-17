@@ -141,10 +141,13 @@
                     <tr th:style="${iter.last ? '' : 'border-bottom:1px solid #e7e5e4;'}">
                       <td style="padding:9px 16px;">
                         <span style="color:#1c1917;font-size:13px;font-weight:600;" th:text="${p.name}">Vorname Nachname</span>
+                        <span th:if="${p.position != null}" style="color:#78716c;font-size:13px;font-weight:400;" th:text="' · ' + ${p.position}"> · Position</span>
                         <span th:if="${p.club != null}" style="color:#78716c;font-size:13px;font-weight:400;" th:text="' · ' + ${p.club}"> · Verein</span>
-                        <br th:if="${p.managers != null}" />
-                        <span th:if="${p.managers != null}" style="color:#78716c;font-size:12px;font-weight:400;" th:text="'im Team bei: ' + ${p.managers}">im Team bei: Manager</span>
+                        <br />
+                        <span th:if="${p.managers != null}" style="color:#57534e;font-size:12px;font-weight:400;" th:text="'im Team bei: ' + ${p.managers}">im Team bei: Manager</span>
+                        <span th:unless="${p.managers != null}" style="color:#78716c;font-size:12px;font-weight:400;">in keinem Team</span>
                       </td>
+                      <td align="right" style="padding:9px 16px;color:#b91c1c;font-size:13px;font-weight:600;white-space:nowrap;" th:text="${p.prize != null} ? ${#numbers.formatInteger(p.prize,1,'POINT')} + ' €' : '–'">1.234.567 €</td>
                     </tr>
                   </th:block>
                 </table>
@@ -163,6 +166,7 @@
                     <tr th:style="${iter.last ? '' : 'border-bottom:1px solid #e7e5e4;'}">
                       <td style="padding:9px 16px;">
                         <span style="color:#1c1917;font-size:13px;font-weight:400;" th:text="${p.name}">Vorname Nachname</span>
+                        <span th:if="${p.position != null}" style="color:#78716c;font-size:13px;font-weight:400;" th:text="' · ' + ${p.position}"> · Position</span>
                         <span style="color:#78716c;font-size:13px;font-weight:400;" th:text="' · ' + ${p.club}"> · Verein</span>
                       </td>
                     </tr>

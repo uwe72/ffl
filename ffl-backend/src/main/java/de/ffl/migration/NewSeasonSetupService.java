@@ -366,7 +366,7 @@ public class NewSeasonSetupService {
         return newSeason;
     }
 
-    public record PlayerChange(String name, String club, Integer prize, String fromClub, String managers) {}
+    public record PlayerChange(String name, String club, Integer prize, String fromClub, String managers, String position) {}
 
     public record UpdateResult(int playersCreated, int teamChanges, int playersDeactivated,
                                List<PlayerChange> newPlayers, List<PlayerChange> teamChangeList,
@@ -465,7 +465,7 @@ public class NewSeasonSetupService {
                 if (!hasValidMarketValue(kp)) {
                     playersSkipped++;
                     skippedPlayers.add(new PlayerChange(kickerFullName(kp), targetTeam.getName(),
-                            null, null, null));
+                            null, null, null, positionLabel(Position.valueOf(mapPosition(kp.position())))));
                     log.accept("Spieler übersprungen (Marktwert unbekannt): "
                             + kickerDisplayName(kp) + " (" + targetTeam.getName() + ")");
                     continue;
@@ -486,7 +486,7 @@ public class NewSeasonSetupService {
                 playerRepository.save(player);
                 playersCreated++;
                 newPlayers.add(new PlayerChange(kickerFullName(kp), targetTeam.getName(),
-                        kp.marketValue(), null, null));
+                        kp.marketValue(), null, null, positionLabel(Position.valueOf(mapPosition(kp.position())))));
                 log.accept("Neuer Spieler: " + kickerFullName(kp) + " (" + targetTeam.getName()
                         + ") · " + formatPrize(kp.marketValue()));
             } else if (beforeSeason) {
@@ -499,7 +499,7 @@ public class NewSeasonSetupService {
                     playerRepository.save(existing);
                     teamChanges++;
                     teamChangeList.add(new PlayerChange(fullName(existing), targetTeam.getName(),
-                            existing.getPrize(), oldName, null));
+                            existing.getPrize(), oldName, null, positionLabel(existing.getPosition())));
                     log.accept("Vereinswechsel: " + existing.getNameKicker()
                             + " (" + oldName + " -> " + targetTeam.getName() + ")");
                 }
@@ -523,7 +523,7 @@ public class NewSeasonSetupService {
                     Team deactivatedTeam = firstTeam(existing);
                     deactivatedPlayers.add(new PlayerChange(fullName(existing),
                             deactivatedTeam != null ? deactivatedTeam.getName() : null,
-                            existing.getPrize(), null, managerNames(affectedManagers)));
+                            existing.getPrize(), null, managerNames(affectedManagers), positionLabel(existing.getPosition())));
                     log.accept("Spieler deaktiviert: " + formatDeactivatedPlayer(existing, affectedManagers));
                     collectDeactivationNotifications(notificationsByManager, existing, affectedManagers);
                 }
@@ -602,6 +602,10 @@ public class NewSeasonSetupService {
             return "–";
         }
         return String.format(java.util.Locale.GERMANY, "%,d €", prize);
+    }
+
+    private String positionLabel(Position position) {
+        return TeamChangeMailService.positionFullLabel(TeamChangeMailService.positionLabel(position));
     }
 
     private String managerNames(List<Manager> managers) {

@@ -296,10 +296,15 @@ class NewSeasonSetupUpdatePlayersTest {
         entityManager.clear();
 
         AtomicReference<String> log = new AtomicReference<>("");
-        setupService.updatePlayers("test-url", msg -> log.set(log.get() + msg + "\n"));
+        NewSeasonSetupService.UpdateResult result = setupService.updatePlayers("test-url", msg -> log.set(log.get() + msg + "\n"));
 
         assertThat(log.get()).contains("Spieler deaktiviert: Keita Baldé (Testverein Alpha)");
         assertThat(log.get()).contains("im Team bei 1 Manager: Max Mustermann");
+        assertThat(result.deactivatedPlayers()).singleElement()
+                .satisfies(pc -> {
+                    assertThat(pc.position()).isEqualTo("Sturm");
+                    assertThat(pc.managers()).contains("Max Mustermann");
+                });
     }
 
     @Test
@@ -341,5 +346,7 @@ class NewSeasonSetupUpdatePlayersTest {
         assertThat(log.get()).contains("Spieler übersprungen (Marktwert unbekannt): Sentinel (Testverein Alpha)");
         assertThat(log.get()).contains("Spieler mit unbekanntem Marktwert übersprungen: 1");
         assertThat(result.playersCreated()).isEqualTo(8);
+        assertThat(result.skippedPlayers()).singleElement()
+                .satisfies(pc -> assertThat(pc.position()).isNotBlank());
     }
 }

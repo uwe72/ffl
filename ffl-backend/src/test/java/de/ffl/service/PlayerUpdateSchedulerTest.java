@@ -221,11 +221,11 @@ class PlayerUpdateSchedulerTest {
         List<String> lines = List.of("=== Spieler-Update abgeschlossen ===");
         NewSeasonSetupService.UpdateResult result = new NewSeasonSetupService.UpdateResult(
                 2, 1, 1,
-                List.of(new NewSeasonSetupService.PlayerChange("Max Neuer", "FC Alpha", 1234567, null, null),
-                        new NewSeasonSetupService.PlayerChange("Tim Zwei", "FC Beta", 500000, null, null)),
-                List.of(new NewSeasonSetupService.PlayerChange("Leon Wechsel", "FC Beta", 800000, "FC Alpha", null)),
-                List.of(new NewSeasonSetupService.PlayerChange("Alt Weg", "FC Alpha", 700000, null, "Manager X")),
-                List.of(new NewSeasonSetupService.PlayerChange("Ohne Wert", "FC Beta", null, null, null)));
+                List.of(new NewSeasonSetupService.PlayerChange("Max Neuer", "FC Alpha", 1234567, null, null, "Torwart"),
+                        new NewSeasonSetupService.PlayerChange("Tim Zwei", "FC Beta", 500000, null, null, "Mittelfeld")),
+                List.of(new NewSeasonSetupService.PlayerChange("Leon Wechsel", "FC Beta", 800000, "FC Alpha", null, "Sturm")),
+                List.of(new NewSeasonSetupService.PlayerChange("Alt Weg", "FC Alpha", 700000, null, "Manager X", "Abwehr")),
+                List.of(new NewSeasonSetupService.PlayerChange("Ohne Wert", "FC Beta", null, null, null, "Sturm")));
         when(templateEngine.process(eq("mail/player-update"), any(Context.class)))
                 .thenAnswer(invocation -> {
                     Context ctx = invocation.getArgument(1);
