@@ -12,6 +12,7 @@ import de.ffl.domain.Position;
 import de.ffl.domain.Round;
 import de.ffl.domain.Rule;
 import de.ffl.domain.Season;
+import de.ffl.domain.SeasonState;
 import de.ffl.domain.SystemConfig;
 import de.ffl.domain.Team;
 import de.ffl.repository.GameRepository;
@@ -470,7 +471,8 @@ public class MatchdayMailTransactionService {
           .append(escape(manager.getUser() != null ? Optional.ofNullable(manager.getUser().getFirstName()).orElse(manager.getName()) : manager.getName()))
           .append("!</p>");
 
-        if (paymentReminder != null && paymentReminder.isOpen()) {
+        if (paymentReminder != null && paymentReminder.isOpen()
+                && season.getSeasonState() != SeasonState.BEFORE_SEASON) {
             String warnBg = isDark ? "#3a2f14" : "#fef3c7";
             String warnBorder = isDark ? "1px solid #8a6d1f" : "1px solid #f59e0b";
             String warnText = isDark ? "#f5d98b" : "#92400e";

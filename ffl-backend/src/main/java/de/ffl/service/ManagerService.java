@@ -846,9 +846,12 @@ public class ManagerService {
             de.ffl.dto.PaymentReminderDto paymentReminder =
                 paymentReminderService.buildReminder(season, manager.getId(), user.getLogin());
 
+            boolean showTopPaymentNotice = paymentReminder != null && paymentReminder.isOpen()
+                && season.getSeasonState() != SeasonState.BEFORE_SEASON;
+
             teamChangeMailService.sendTeamChangeConfirmation(
                 user.getEmail(), user.getLogin(), greeting, userName, seasonName, changeTypeLabel,
-                exchanges, positionGroups, budgetDto, webUrl, teamChangeCount, paymentReminder);
+                exchanges, positionGroups, budgetDto, webUrl, teamChangeCount, paymentReminder, showTopPaymentNotice);
         } catch (Exception e) {
             org.slf4j.LoggerFactory.getLogger(ManagerService.class)
                 .warn("Teamänderungsmail konnte nicht gesendet werden: {}", e.getMessage());
