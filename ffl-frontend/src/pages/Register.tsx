@@ -317,6 +317,10 @@ export default function Register() {
 
   const handleStep2Next = () => {
     setError('')
+    if (slogan.trim() && !avatarFile) {
+      setError('Bitte hinterlege ein Profilbild oder einen Avatar, wenn du einen Slogan eingibst.')
+      return
+    }
     if (season && allPlayers.length === 0) {
       loadPlayers(season.id)
     }
@@ -808,8 +812,8 @@ export default function Register() {
 
           {step === 2 && (
             <div className="mt-5 flex flex-col items-center">
-              <p className="text-sm text-muted">Wähle ein Profilbild aus (optional, aber empfohlen)</p>
-              <p className="mt-1 mb-6 text-sm text-foreground font-medium">Für andere Manager, die auch ein Profilbild hinterlegt haben, sichtbar</p>
+              <p className="text-sm text-muted">Wähle ein Profilbild oder einen Avatar aus (optional, aber empfohlen)</p>
+              <p className="mt-1 mb-6 text-sm text-foreground font-medium">Zum Beispiel ein Foto oder ein abstraktes Bild – für andere Manager sichtbar</p>
 
               <button
                 type="button"
