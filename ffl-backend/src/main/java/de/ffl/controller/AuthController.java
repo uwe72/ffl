@@ -109,7 +109,9 @@ public class AuthController {
 
     @PostMapping("/register-step-log")
     public ResponseEntity<Void> registerStepLog(@RequestBody RegisterStepLogRequest request) {
-        log.info("register wizard event={} step={}", request.getEvent(), request.getStep());
+        log.info("register wizard event={} step={} user={} {} ({})",
+            request.getEvent(), request.getStep(),
+            request.getFirstName(), request.getLastName(), request.getLogin());
         return ResponseEntity.ok().build();
     }
 

@@ -10,4 +10,7 @@ import lombok.NoArgsConstructor;
 public class RegisterStepLogRequest {
     private String event;
     private Integer step;
+    private String firstName;
+    private String lastName;
+    private String login;
 }

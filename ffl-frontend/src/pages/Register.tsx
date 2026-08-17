@@ -167,7 +167,7 @@ export default function Register() {
   const firstStepRender = useRef(true)
 
   useEffect(() => {
-    authApi.logRegisterStep('wizard-opened', 1).catch(() => {})
+    authApi.logRegisterStep('wizard-opened', 1, firstName, lastName, login).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -175,7 +175,7 @@ export default function Register() {
       firstStepRender.current = false
       return
     }
-    authApi.logRegisterStep('step', step).catch(() => {})
+    authApi.logRegisterStep('step', step, firstName, lastName, login).catch(() => {})
   }, [step])
 
   useEffect(() => {
