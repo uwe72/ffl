@@ -6,7 +6,6 @@ import Rangliste from '../components/statistik/Rangliste'
 import { useCurrentManager, useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useDashboardAufstellung, useDashboardRangliste } from '../hooks/useDashboard'
-import { formatMillionen } from '../utils/format'
 import type { StatAnsicht, PunkteModus } from '../types/dashboard'
 
 export default function Statistik() {
@@ -26,79 +25,71 @@ export default function Statistik() {
   const isVorsaison = aufstellung.data?.phase === 'VORSAISON'
   const feldModus: 'gesamt' | 'spieltag' | 'wert' = isVorsaison ? 'wert' : modus
 
+  const ansichtToggle = (
+    <StatToggle
+      ariaLabel="Ansicht"
+      options={[
+        { value: 'feld', label: 'Feld' },
+        { value: 'rangliste', label: 'Rangliste' },
+      ]}
+      value={ansicht}
+      onChange={v => setAnsicht(v as StatAnsicht)}
+    />
+  )
+
+  const wertungToggle = !isVorsaison ? (
+    <StatToggle
+      ariaLabel="Wertung"
+      options={[
+        { value: 'gesamt', label: 'Gesamt' },
+        { value: 'spieltag', label: 'Spieltag' },
+      ]}
+      value={modus}
+      onChange={v => setModus(v as PunkteModus)}
+    />
+  ) : null
+
+  const toggles = (
+    <>
+      {ansichtToggle}
+      {wertungToggle}
+    </>
+  )
+
   return (
     <div className="pb-6">
-      <h1 className="text-2xl font-bold text-foreground mb-1">Statistik</h1>
-      <p className="text-sm text-muted mb-6">
-        Aufstellung und Rangliste {aufstellung.data ? `· ${aufstellung.data.teamname}` : ''}
-      </p>
-
-      <div className="p-5 md:p-8 bg-stat-card border border-border rounded-[6px]">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <div className="flex items-center gap-3 flex-wrap">
-            <StatToggle
-              ariaLabel="Ansicht"
-              options={[
-                { value: 'feld', label: 'Feld' },
-                { value: 'rangliste', label: 'Rangliste' },
-              ]}
-              value={ansicht}
-              onChange={v => setAnsicht(v as StatAnsicht)}
+      {!refManagerId ? (
+        <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+      ) : aufstellung.isError ? (
+        <p className="text-sm text-danger py-10 text-center">
+          Daten konnten nicht geladen werden.
+        </p>
+      ) : aufstellung.isLoading || !aufstellung.data ? (
+        <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+      ) : ansicht === 'feld' ? (
+        <div key="feld" className="@container">
+          <div className="hidden @max-[899px]:block">
+            <div className="flex items-center gap-3 flex-wrap mb-4">{toggles}</div>
+            <AufstellungKompakt aufstellung={aufstellung.data} modus={feldModus} />
+          </div>
+          <div className="@max-[899px]:hidden">
+            <AufstellungsFeld
+              aufstellung={aufstellung.data}
+              modus={feldModus}
+              overlay={toggles}
             />
-            {!isVorsaison && (
-              <StatToggle
-                ariaLabel="Wertung"
-                options={[
-                  { value: 'gesamt', label: 'Gesamt' },
-                  { value: 'spieltag', label: 'Spieltag' },
-                ]}
-                value={modus}
-                onChange={v => setModus(v as PunkteModus)}
-              />
-            )}
           </div>
-          {aufstellung.data && (
-            <div className="text-sm text-muted tabular-nums">
-              {isVorsaison ? (
-                <span>
-                  Kaderwert <span className="font-semibold text-foreground">{formatMillionen(aufstellung.data.kaderwert)}</span>
-                  {' gegen '}
-                  <span className="font-semibold text-foreground">{formatMillionen(aufstellung.data.budget)}</span>
-                </span>
-              ) : (
-                <span>
-                  {aufstellung.data.spieltag}. Spieltag ·{' '}
-                  <span className="font-semibold text-foreground">{aufstellung.data.punkteGesamt}</span> Pkt gesamt ·{' '}
-                  <span className="font-semibold text-foreground">{aufstellung.data.punkteSpieltag}</span> Pkt Spieltag
-                </span>
-              )}
-            </div>
-          )}
         </div>
-
-        {!refManagerId ? (
-          <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
-        ) : aufstellung.isError ? (
-          <p className="text-sm text-danger py-10 text-center">
-            Daten konnten nicht geladen werden.
-          </p>
-        ) : aufstellung.isLoading || !aufstellung.data ? (
-          <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
-        ) : ansicht === 'feld' ? (
-          <div key="feld" className="@container">
-            <div className="hidden @max-[899px]:block">
-              <AufstellungKompakt aufstellung={aufstellung.data} modus={feldModus} />
-            </div>
-            <div className="@max-[899px]:hidden">
-              <AufstellungsFeld aufstellung={aufstellung.data} modus={feldModus} />
-            </div>
+      ) : rangliste.isLoading || !rangliste.data ? (
+        <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+      ) : (
+        <>
+          <div className="flex items-center gap-3 flex-wrap mb-6">{toggles}</div>
+          <div className="p-5 md:p-8 bg-stat-card border border-border rounded-[6px]">
+            <Rangliste key="rangliste" rangliste={rangliste.data} modus={modus} />
           </div>
-        ) : rangliste.isLoading || !rangliste.data ? (
-          <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
-        ) : (
-          <Rangliste key="rangliste" rangliste={rangliste.data} modus={modus} />
-        )}
-      </div>
+        </>
+      )}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
 import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
 
@@ -160,6 +160,7 @@ interface AufstellungsFeldProps {
   modus: FeldModus
   compact?: boolean
   showLegend?: boolean
+  overlay?: ReactNode
 }
 
 export default function AufstellungsFeld({
@@ -167,6 +168,7 @@ export default function AufstellungsFeld({
   modus,
   compact = false,
   showLegend = true,
+  overlay,
 }: AufstellungsFeldProps) {
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
   const canHover = useMedia('(hover: hover)')
@@ -190,12 +192,11 @@ export default function AufstellungsFeld({
 
   return (
     <div className="w-full flex flex-col items-center gap-3">
-      <div className="w-full px-2">
+      <div className="w-full">
         <div
           className="relative w-full overflow-hidden"
           style={{
             aspectRatio: '2752 / 1536',
-            maxHeight: 520,
             borderRadius: 6,
             border: '1px solid var(--color-pitch-line)',
             backgroundImage: 'url(/stadion.jpg)',
@@ -203,8 +204,11 @@ export default function AufstellungsFeld({
             backgroundPosition: 'center',
           }}
         >
-          <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0, 0, 0, 0.35)' }} aria-hidden="true" />
-
+          {overlay && (
+            <div className="absolute top-3 left-3 z-10 flex items-center gap-2 rounded-md bg-pitch-block/80 p-1.5">
+              {overlay}
+            </div>
+          )}
           <div className="absolute inset-0 flex" style={{ padding: '28px 20px', justifyContent: 'space-around' }}>
             {COLUMNS.map(pos => {
               const players = grouped[pos]
@@ -270,7 +274,7 @@ export default function AufstellungsFeld({
       </div>
 
       {showLegend && (
-        <div className="w-full px-2 flex items-center justify-between gap-3 flex-wrap">
+        <div className="w-full flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center justify-center gap-4 flex-wrap text-xs text-muted">
             {LEGEND.map(row => (
               <span key={row.position} className="inline-flex items-center gap-1.5">
