@@ -1,7 +1,7 @@
 import { type ButtonHTMLAttributes, forwardRef } from 'react'
 
-type ButtonVariant = 'emphasized' | 'ghost' | 'transparent' | 'negative'
-type ButtonSize = 'default' | 'compact' | 'sm'
+type ButtonVariant = 'emphasized' | 'secondary' | 'ghost' | 'transparent' | 'negative'
+type ButtonSize = 'default' | 'input' | 'compact' | 'sm'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
