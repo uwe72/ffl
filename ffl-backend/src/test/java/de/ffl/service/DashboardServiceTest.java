@@ -161,6 +161,8 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
         assertThat(rang.getVerteilung()).isNotNull();
         assertThat(rang.getVerteilung()).isNotEmpty();
         assertThat(rang.getEigenerWert()).isEqualTo(dto.getKaderwert());
-        assertThat(rang.getEintraege()).isNullOrEmpty();
+        assertThat(rang.getEintraege()).isNotEmpty();
+        assertThat(rang.getEintraege()).allMatch(e -> e.getKaderwert() != null && e.getKaderwert() > 0);
+        assertThat(rang.getEintraege()).anyMatch(RanglistenEintragDto::getIstIch);
     }
 }

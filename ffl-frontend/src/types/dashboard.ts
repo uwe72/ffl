@@ -42,6 +42,7 @@ export interface RanglistenEintrag {
   avatarUrl?: string
   punkteGesamt: number
   punkteSpieltag: number
+  kaderwert?: number
   abstandZuMir: number
   istIch: boolean
 }

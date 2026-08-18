@@ -240,12 +240,37 @@ public class DashboardService {
 
         int eigenerWert = valueByManager.getOrDefault(manager.getId(), 0);
 
+        List<Manager> sorted = new ArrayList<>(managers);
+        sorted.sort(Comparator.comparingInt((Manager m) -> valueByManager.getOrDefault(m.getId(), 0)).reversed());
+
+        List<RanglistenEintragDto> eintraege = new ArrayList<>();
+        int platz = 0;
+        for (Manager m : sorted) {
+            platz++;
+            eintraege.add(RanglistenEintragDto.builder()
+                .managerId(m.getId())
+                .platz(platz)
+                .veraenderung(0)
+                .teamname(m.getShortName())
+                .managername(m.getName())
+                .firstName(m.getUser() != null ? m.getUser().getFirstName() : null)
+                .lastName(m.getUser() != null ? m.getUser().getLastName() : null)
+                .avatarUrl(m.getUser() != null ? "/api/users/" + m.getUser().getId() + "/avatar" : null)
+                .punkteGesamt(0)
+                .punkteSpieltag(0)
+                .kaderwert(valueByManager.getOrDefault(m.getId(), 0))
+                .abstandZuMir(0)
+                .istIch(m.getId().equals(manager.getId()))
+                .build());
+        }
+
         return RanglisteDto.builder()
             .phase(phase)
             .spieltag(currentMatchday)
             .teilnehmer(teilnehmer)
             .verteilung(verteilung)
             .eigenerWert(eigenerWert)
+            .eintraege(eintraege)
             .hatOben(false)
             .hatUnten(false)
             .build();

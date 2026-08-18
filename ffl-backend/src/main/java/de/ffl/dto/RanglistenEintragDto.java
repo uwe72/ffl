@@ -20,6 +20,7 @@ public class RanglistenEintragDto {
     private String avatarUrl;
     private Integer punkteGesamt;
     private Integer punkteSpieltag;
+    private Integer kaderwert;
     private Integer abstandZuMir;
     private Boolean istIch;
 }

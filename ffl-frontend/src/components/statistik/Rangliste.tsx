@@ -25,16 +25,8 @@ export default function Rangliste({
   activeManagerId,
   onSelectManager,
 }: RanglisteProps) {
-  if (rangliste.verteilung) {
-    return (
-      <Verteilung
-        verteilung={rangliste.verteilung}
-        eigenerWert={rangliste.eigenerWert ?? 0}
-      />
-    )
-  }
-
   const eintraege = rangliste.eintraege ?? []
+  const vorsaison = rangliste.phase === 'VORSAISON'
   const grenze = rangliste.preisgeldGrenzePlatz ?? -1
 
   return (
@@ -76,6 +68,7 @@ export default function Rangliste({
               <ManagerCard
                 e={e}
                 active={e.managerId === activeManagerId}
+                vorsaison={vorsaison}
                 onSelect={onSelectManager}
               />
             </div>
@@ -92,10 +85,12 @@ export default function Rangliste({
 function ManagerCard({
   e,
   active,
+  vorsaison,
   onSelect,
 }: {
   e: RanglistenEintrag
   active: boolean
+  vorsaison: boolean
   onSelect?: (managerId: number) => void
 }) {
   const change = changeInfo(e)
@@ -138,12 +133,21 @@ function ManagerCard({
         <span className={`text-xs font-bold tabular-nums shrink-0 ${change.cls}`}>{change.text}</span>
       </div>
       <div className="flex items-center justify-between mt-2 text-[11px]">
-        <span className="text-subtle">
-          Gesamt <span className="text-foreground font-semibold tabular-nums">{formatPoints(e.punkteGesamt)}</span>
-        </span>
-        <span className="text-subtle">
-          Spieltag <span className="text-foreground font-semibold tabular-nums">{formatPoints(e.punkteSpieltag)}</span>
-        </span>
+        {vorsaison ? (
+          <>
+            <span className="text-subtle">Kaderwert</span>
+            <span className="text-foreground font-semibold tabular-nums">{formatMillionsShort(e.kaderwert ?? 0)}</span>
+          </>
+        ) : (
+          <>
+            <span className="text-subtle">
+              Gesamt <span className="text-foreground font-semibold tabular-nums">{formatPoints(e.punkteGesamt)}</span>
+            </span>
+            <span className="text-subtle">
+              Spieltag <span className="text-foreground font-semibold tabular-nums">{formatPoints(e.punkteSpieltag)}</span>
+            </span>
+          </>
+        )}
       </div>
     </button>
   )
@@ -154,50 +158,5 @@ function PreisgeldgrenzeTag() {
     <span className="absolute -top-2 left-3 z-10 text-[9px] font-semibold uppercase tracking-wide text-white bg-stat-accent rounded-badge px-1.5 py-0.5 leading-none">
       Preisgeldgrenze
     </span>
-  )
-}
-
-function Verteilung({
-  verteilung,
-  eigenerWert,
-}: {
-  verteilung: { von: number; bis: number; anzahl: number }[]
-  eigenerWert: number
-}) {
-  const maxCount = Math.max(1, ...verteilung.map(v => v.anzahl))
-
-  return (
-    <div className="w-full max-w-2xl mx-auto">
-      <p className="text-center text-sm text-muted mb-4">
-        Verteilung der Kaderwerte aller Manager · Dein Wert: {formatMillionsShort(eigenerWert)}
-      </p>
-      <div className="flex items-end gap-1.5 h-40">
-        {verteilung.map(v => {
-          const own = eigenerWert >= v.von && eigenerWert < v.bis
-          const isLast = v.bis >= verteilung[verteilung.length - 1].bis
-          const containsOwn = own || (isLast && eigenerWert >= v.von)
-          const active = own || containsOwn
-          return (
-            <div
-              key={`${v.von}-${v.bis}`}
-              className="flex-1 flex flex-col items-center justify-end h-full gap-1"
-              title={`${formatMillionsShort(v.von)} – ${formatMillionsShort(v.bis)}`}
-            >
-              <div
-                className="w-full rounded-[4px]"
-                style={{
-                  height: `${Math.round((v.anzahl / maxCount) * 100)}%`,
-                  backgroundColor: active ? 'var(--color-stat-accent)' : 'var(--color-border)',
-                }}
-              />
-            </div>
-          )
-        })}
-      </div>
-      <div className="flex justify-between mt-1 text-[10px] text-muted">
-        <span>{formatMillionsShort(verteilung[0]?.von ?? 0)}</span>
-        <span>{formatMillionsShort(verteilung[verteilung.length - 1]?.bis ?? 0)}</span>
-      </div>
-    </div>
   )
 }
