@@ -21,17 +21,6 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
 
   const phaseLabel = seasonStateLabel(season?.seasonState)
 
-  const brandWidth = collapsed ? 64 : 240
-  const textStart = brandWidth + 30
-  const desktopGradient = [
-    'rgba(10,14,20,0.10) 0px',
-    `rgba(10,14,20,0.16) ${Math.max(0, brandWidth - 90)}px`,
-    `rgba(10,14,20,0.45) ${textStart}px`,
-    `rgba(10,14,20,0.45) ${textStart + 440}px`,
-    `rgba(10,14,20,0.18) ${textStart + 700}px`,
-    'rgba(10,14,20,0) 90%',
-  ].join(', ')
-
   return (
     <div className="hero relative h-[120px] shrink-0 overflow-hidden bg-header">
       <div
@@ -42,20 +31,7 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
           filter: 'brightness(1.35) contrast(0.92)',
         }}
       />
-      <div
-        className="absolute inset-0 md:hidden"
-        style={{
-          background: 'linear-gradient(to right, rgba(10,14,20,0.45) 0%, rgba(10,14,20,0.30) 35%, rgba(10,14,20,0.10) 65%, rgba(10,14,20,0) 100%)',
-        }}
-      />
-      <div
-        className="absolute inset-0 hidden md:block"
-        style={{ background: `linear-gradient(to right, ${desktopGradient})` }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{ backgroundColor: 'rgba(10,16,24,0.03)' }}
-      />
+      <div className="img-overlay" />
 
       <div className="relative z-10 flex h-full items-stretch">
         <div
@@ -71,7 +47,7 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
             <i className="sap-icon sap-icon-menu text-[20px]" />
           </button>
 
-          <div className="flex flex-col justify-center min-w-0">
+          <div className="flex flex-col justify-center min-w-0 hero-text-shadow">
             <p className="text-xl md:text-2xl font-bold text-foreground leading-tight">
               {getGreeting()}, {user?.firstName || user?.login || 'Gast'}!
             </p>

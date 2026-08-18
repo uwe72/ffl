@@ -10,6 +10,8 @@ export default function Teams() {
   return (
     <div>
       {teams && teams.length > 0 ? (
+        <>
+        <h2 className="text-xl font-semibold text-foreground mb-4">Vereine ({teams.length})</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {teams.map(team => (
             <div key={team.id} className="card p-4 bg-surface border border-border hover:border-primary hover:bg-card-hover transition-all">
@@ -32,6 +34,7 @@ export default function Teams() {
             </div>
           ))}
         </div>
+        </>
       ) : (
         <div className="text-center py-8 text-subtle">
           Keine Teams gefunden
