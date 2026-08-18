@@ -63,6 +63,7 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
 
   const firstName = player.firstName || ''
   const lastName = player.lastName || player.name
+  const fullName = [firstName, lastName].filter(Boolean).join(' ') || player.name
 
   const front = compact ? (
     <div
@@ -88,12 +89,12 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
           J
         </span>
       )}
-      <div className="flex-1 flex flex-col items-center justify-center gap-1 px-1 pt-1 min-h-0">
-        <div className="relative">
+      <div className="flex items-center gap-2 px-2 flex-1 min-h-0">
+        <div className="relative flex-shrink-0">
           {player.pictureUrl ? (
             <img
               src={player.pictureUrl}
-              alt={lastName}
+              alt={fullName}
               className="w-14 h-14 rounded-full object-cover border border-border"
             />
           ) : (
@@ -109,11 +110,11 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
             />
           )}
         </div>
-        <div className="text-center leading-tight max-w-full">
-          {firstName && (
-            <div className="text-[11px] font-medium text-foreground truncate">{firstName}</div>
+        <div className="min-w-0 flex-1 text-center">
+          <div className="text-[12px] font-semibold text-foreground truncate leading-tight">{fullName}</div>
+          {player.vereinKuerzel && (
+            <div className="text-[10px] font-semibold text-muted truncate leading-tight">{player.vereinKuerzel}</div>
           )}
-          <div className="text-[11px] font-semibold text-foreground truncate">{lastName}</div>
         </div>
       </div>
       <div className="border-t border-border">
@@ -255,8 +256,8 @@ export default function AufstellungsFeld({
   const sumBig = modus === 'wert' ? formatMillionen(sum) : formatPoints(sum)
   const sumLabel = modus === 'wert' ? 'Kaderwert' : modus === 'spieltag' ? 'Punkte Spieltag' : 'Punkte gesamt'
 
-  const cardWidth = compact ? 64 : 'clamp(118px, 11.5vw, 142px)'
-  const cardHeight = compact ? 64 : 152
+  const cardWidth = compact ? 64 : 'clamp(148px, 14vw, 178px)'
+  const cardHeight = compact ? 64 : 108
   let cardIndex = 0
 
   return (
