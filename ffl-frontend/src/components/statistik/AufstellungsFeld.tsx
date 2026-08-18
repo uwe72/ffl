@@ -89,7 +89,7 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
           J
         </span>
       )}
-      <div className="flex items-center gap-2 px-2 flex-1 min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-center gap-1 px-1 min-h-0">
         <div className="relative flex-shrink-0">
           {player.pictureUrl ? (
             <img
@@ -110,12 +110,7 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
             />
           )}
         </div>
-        <div className="min-w-0 flex-1 text-center">
-          <div className="text-[12px] font-semibold text-foreground truncate leading-tight">{fullName}</div>
-          {player.vereinKuerzel && (
-            <div className="text-[10px] font-semibold text-muted truncate leading-tight">{player.vereinKuerzel}</div>
-          )}
-        </div>
+        <div className="text-[12px] font-semibold text-foreground truncate leading-tight max-w-full">{fullName}</div>
       </div>
       <div className="border-t border-border">
         <div className="grid grid-cols-2 px-2 py-1.5">
@@ -257,7 +252,7 @@ export default function AufstellungsFeld({
   const sumLabel = modus === 'wert' ? 'Kaderwert' : modus === 'spieltag' ? 'Punkte Spieltag' : 'Punkte gesamt'
 
   const cardWidth = compact ? 64 : 'clamp(148px, 14vw, 178px)'
-  const cardHeight = compact ? 64 : 108
+  const cardHeight = compact ? 64 : 122
   let cardIndex = 0
 
   return (
