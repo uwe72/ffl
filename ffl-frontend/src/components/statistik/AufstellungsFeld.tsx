@@ -113,7 +113,7 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
         <div className="text-[12px] font-semibold text-foreground truncate leading-tight max-w-full">{fullName}</div>
       </div>
       <div>
-        <div className="grid grid-cols-2 px-2 pt-0.5 pb-1">
+        <div className="grid grid-cols-2 px-2 pt-0.5 pb-2">
           <div className="text-center">
             <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Gesamt</div>
             <div className="text-[15px] font-bold text-foreground tabular-nums leading-none">{formatPoints(player.punkteGesamt)}</div>
