@@ -498,8 +498,9 @@ public class NewSeasonSetupService {
                     existing.getTeams().add(targetTeam);
                     playerRepository.save(existing);
                     teamChanges++;
+                    List<Manager> affectedManagers = managerRepository.findManagersByPlayerId(existing.getId());
                     teamChangeList.add(new PlayerChange(fullName(existing), targetTeam.getName(),
-                            existing.getPrize(), oldName, null, positionLabel(existing.getPosition())));
+                            existing.getPrize(), oldName, managerNames(affectedManagers), positionLabel(existing.getPosition())));
                     log.accept("Vereinswechsel: " + existing.getNameKicker()
                             + " (" + oldName + " -> " + targetTeam.getName() + ")");
                 }
