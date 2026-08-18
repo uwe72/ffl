@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
 import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
