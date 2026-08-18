@@ -33,7 +33,6 @@ import ForgotLogin from './pages/ForgotLogin'
 import ResetPassword from './pages/ResetPassword'
 import Profile from './pages/Profile'
 import MyTeam from './pages/MyTeam'
-import Statistik from './pages/Statistik'
 import ProtectedRoute from './components/ProtectedRoute'
 import SeasonRestrictedRoute from './components/SeasonRestrictedRoute'
 import ManagerGalleryRoute from './components/ManagerGalleryRoute'
@@ -60,7 +59,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={
               <ProtectedRoute>
-                <SeasonRestrictedRoute><Home /></SeasonRestrictedRoute>
+                <Home />
               </ProtectedRoute>
             } />
             <Route path="profile" element={
@@ -71,11 +70,6 @@ function App() {
             <Route path="my-team" element={
               <ProtectedRoute>
                 <MyTeam />
-              </ProtectedRoute>
-            } />
-            <Route path="statistik" element={
-              <ProtectedRoute requiredRole="ADMIN">
-                <Statistik />
               </ProtectedRoute>
             } />
             <Route path="season" element={

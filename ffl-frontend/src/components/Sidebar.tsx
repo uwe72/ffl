@@ -68,11 +68,8 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
   const sidebarContent = (
     <div className="flex flex-col h-full">
       <nav className="flex-1 px-2 py-4 flex flex-col gap-1 overflow-y-auto">
-        {!isRestricted && (
+        {isAuthenticated && (
           <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
-        )}
-        {isAuthenticated && user?.role === 'ADMIN' && (
-          <SidebarItem to="/statistik" label="Statistik" icon="sap-icon-line-chart" collapsed={collapsed} />
         )}
         {isAuthenticated && user?.role !== 'ADMIN' && (
           <SidebarItem to="/my-team" label="Mein Team" icon="sap-icon-competitor" collapsed={collapsed} />
