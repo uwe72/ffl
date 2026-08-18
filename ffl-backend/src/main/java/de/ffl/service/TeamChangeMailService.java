@@ -107,6 +107,7 @@ public class TeamChangeMailService {
         context.setVariable("budget", budget);
         context.setVariable("webUrl", normalizeWebUrl(webUrl));
         context.setVariable("payment", paymentReminder != null && paymentReminder.isOpen() ? paymentReminder : null);
+        context.setVariable("startgeldReceived", paymentReminder != null && paymentReminder.isReceived());
         context.setVariable("showTopPaymentNotice", showTopPaymentNotice);
         return templateEngine.process("mail/team-change-confirmation", context);
     }

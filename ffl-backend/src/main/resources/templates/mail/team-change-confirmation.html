@@ -212,6 +212,24 @@
             </tr>
           </th:block>
 
+          <!-- Sektion: Startgeld eingegangen -->
+          <th:block th:if="${startgeldReceived}">
+            <tr><td height="24" style="line-height:24px;font-size:24px;">&nbsp;</td></tr>
+            <tr>
+              <td>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f0fdf4;border:1px solid #86efac;border-radius:6px;">
+                  <tr>
+                    <td style="padding:14px 18px;">
+                      <p style="margin:0;color:#166534;font-size:14px;line-height:1.6;font-weight:600;">
+                        &#10003; Dein Startgeld ist eingegangen &ndash; vielen Dank!
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </th:block>
+
           <!-- Spacer -->
           <tr><td height="28" style="line-height:28px;font-size:28px;">&nbsp;</td></tr>
 

@@ -61,8 +61,7 @@ class PaymentReminderServiceTest extends AbstractSeasonTestBase {
             season, managerUwe72.getId(), managerUwe72.getUser().getLogin());
 
         assertTrue(reminder.isOpen());
-        assertEquals(new BigDecimal("10.00"), reminder.getAmount());
-        assertNotNull(reminder.getPaypalLink());
+        assertEquals(new BigDecimal("10.00"), reminder.getAmount());        assertNotNull(reminder.getPaypalLink());
         assertTrue(reminder.getPaypalLink().contains("10"));
         assertEquals("Uwe Clement", reminder.getKontoinhaber());
         assertTrue(reminder.getHinweis().contains("15.03.2026"));
@@ -82,6 +81,7 @@ class PaymentReminderServiceTest extends AbstractSeasonTestBase {
             season, managerUwe72.getId(), managerUwe72.getUser().getLogin());
 
         assertFalse(reminder.isOpen());
+        assertTrue(reminder.isReceived());
     }
 
     @Test
@@ -90,6 +90,7 @@ class PaymentReminderServiceTest extends AbstractSeasonTestBase {
             season, managerUwe72.getId(), managerUwe72.getUser().getLogin());
 
         assertFalse(reminder.isOpen());
+        assertFalse(reminder.isReceived());
     }
 
     @Test

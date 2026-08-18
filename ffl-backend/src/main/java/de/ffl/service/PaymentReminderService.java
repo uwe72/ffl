@@ -42,8 +42,13 @@ public class PaymentReminderService {
         }
 
         Deposit deposit = depositRepository.findBySeasonIdAndManagerId(season.getId(), managerId).orElse(null);
-        if (deposit == null || deposit.getDepositStatus() != DepositStatus.OPEN) {
+        if (deposit == null) {
             return PaymentReminderDto.closed();
+        }
+        if (deposit.getDepositStatus() != DepositStatus.OPEN) {
+            PaymentReminderDto received = new PaymentReminderDto();
+            received.setReceived(true);
+            return received;
         }
 
         SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc().orElse(null);

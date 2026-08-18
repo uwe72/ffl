@@ -6,6 +6,7 @@ import java.time.LocalDate;
 public class PaymentReminderDto {
 
     private boolean open;
+    private boolean received;
     private BigDecimal amount;
     private int amountRounded;
     private String amountFormatted;
@@ -31,6 +32,8 @@ public class PaymentReminderDto {
 
     public boolean isOpen() { return open; }
     public void setOpen(boolean open) { this.open = open; }
+    public boolean isReceived() { return received; }
+    public void setReceived(boolean received) { this.received = received; }
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public int getAmountRounded() { return amountRounded; }
