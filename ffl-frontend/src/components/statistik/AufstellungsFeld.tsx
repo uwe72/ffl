@@ -209,6 +209,7 @@ interface AufstellungsFeldProps {
   showLegend?: boolean
   overlayLegend?: boolean
   overlay?: ReactNode
+  heightOffset?: number
 }
 
 export default function AufstellungsFeld({
@@ -218,6 +219,7 @@ export default function AufstellungsFeld({
   showLegend = true,
   overlayLegend = false,
   overlay,
+  heightOffset = 64,
 }: AufstellungsFeldProps) {
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
   const canHover = useMedia('(hover: hover)')
@@ -231,7 +233,7 @@ export default function AufstellungsFeld({
     if (!el) return
     const compute = () => {
       const top = el.getBoundingClientRect().top
-      const availH = Math.max(0, window.innerHeight - top - 64)
+      const availH = Math.max(0, window.innerHeight - top - heightOffset)
       const availW = el.clientWidth
       setBoxWidth(Math.min(availW, availH * (2752 / 1536)))
     }
@@ -243,7 +245,7 @@ export default function AufstellungsFeld({
       window.removeEventListener('resize', compute)
       ro.disconnect()
     }
-  }, [compact])
+  }, [compact, heightOffset])
 
   const grouped = useMemo(() => {
     const map: Record<string, SpielerAufstellung[]> = { GOALKEEPER: [], DEFENDER: [], MIDFIELD: [], STRIKER: [] }

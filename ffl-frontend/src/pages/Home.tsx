@@ -142,7 +142,7 @@ export default function Home() {
   return (
     <div className="pb-6">
       {!isBeforeSeason && (
-        <div className="flex items-center gap-3 flex-wrap mb-4">
+        <div className="relative z-20 flex items-center gap-3 flex-wrap mb-4">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -179,22 +179,24 @@ export default function Home() {
       )}
 
       {isBeforeSeason && wertungToggle && (
-        <div className="flex items-center gap-3 flex-wrap mb-4">
+        <div className="relative z-20 flex items-center gap-3 flex-wrap mb-4">
           <div className="ml-auto">{wertungToggle}</div>
         </div>
       )}
 
-      {isBestView && !bestAufstellung ? (
-        <p className="text-sm text-muted py-10 text-center">Noch kein bestes Team verfügbar.</p>
-      ) : !isBestView && !refManagerId && effectiveSelection.type === 'own' ? (
-        <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend />
-      ) : !isBestView && aufstellungQuery.isError ? (
-        <p className="text-sm text-danger py-10 text-center">Daten konnten nicht geladen werden.</p>
-      ) : !displayAufstellung ? (
-        <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
-      ) : (
-        <AufstellungsFeld aufstellung={displayAufstellung} modus={feldModus} overlayLegend />
-      )}
+      <div className="relative z-0 isolate mt-6">
+        {isBestView && !bestAufstellung ? (
+          <p className="text-sm text-muted py-10 text-center">Noch kein bestes Team verfügbar.</p>
+        ) : !isBestView && !refManagerId && effectiveSelection.type === 'own' ? (
+          <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend heightOffset={96} />
+        ) : !isBestView && aufstellungQuery.isError ? (
+          <p className="text-sm text-danger py-10 text-center">Daten konnten nicht geladen werden.</p>
+        ) : !displayAufstellung ? (
+          <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+        ) : (
+          <AufstellungsFeld aufstellung={displayAufstellung} modus={feldModus} overlayLegend heightOffset={96} />
+        )}
+      </div>
     </div>
   )
 }
