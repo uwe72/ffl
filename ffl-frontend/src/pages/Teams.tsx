@@ -14,7 +14,7 @@ export default function Teams() {
         <h2 className="text-xl font-semibold text-foreground mb-4">Vereine ({teams.length})</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {teams.map(team => (
-            <div key={team.id} className="card p-4 bg-zebra border border-border hover:border-primary transition-all">
+            <div key={team.id} className="p-4 bg-zebra border border-border rounded-card shadow-sm hover:border-primary transition-all">
               <RouterLink to={`/teams/${team.id}`} className="block link">
                 {team.logoXxlUrl && (
                   <img 
