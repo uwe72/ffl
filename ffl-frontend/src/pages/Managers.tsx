@@ -1,21 +1,22 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect, forwardRef } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import * as XLSX from 'xlsx'
-import { useManagers } from '../hooks/useManagers'
+import { useManagers, useCurrentManager } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
 import { trackEvent } from '../hooks/useMatomo'
 import Button from '../components/Button'
 import SortIcon from '../components/SortIcon'
-import { TableHead, ThSortable, TableBody } from '../components/Table'
+import { TableHead, ThSortable, TableBody, TableRow } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 
 type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
 
-function ManagerCard({ manager, beforeSeason, beforeSeasonNonAdmin }: { manager: any; beforeSeason: boolean; beforeSeasonNonAdmin: boolean }) {
+const ManagerCard = forwardRef<HTMLDivElement, { manager: any; beforeSeason: boolean; beforeSeasonNonAdmin: boolean; active?: boolean }>(
+  function ManagerCard({ manager, beforeSeason, beforeSeasonNonAdmin, active = false }, ref) {
   const fullName = [manager.firstName, manager.lastName].filter(Boolean).join(' ') || manager.shortName || manager.name || '-'
   return (
-    <div className="group relative overflow-hidden bg-surface border border-border rounded-none p-3 pl-4 transition-colors hover:border-border-hover">
+    <div ref={ref} className={`group relative overflow-hidden bg-surface border rounded-none p-3 pl-4 transition-colors hover:border-border-hover ${active ? 'border-accent bg-accent-muted' : 'border-border'}`}>
       <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
       <div className="flex-1 min-w-0">
         {beforeSeasonNonAdmin ? (
@@ -57,7 +58,7 @@ function ManagerCard({ manager, beforeSeason, beforeSeasonNonAdmin }: { manager:
       </div>
     </div>
   )
-}
+})
 
 export default function Managers() {
   const isMobile = useIsMobile()
@@ -68,8 +69,17 @@ export default function Managers() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [selected, setSelected] = useState(false)
 
   const { data: managers, isLoading, error } = useManagers()
+  const { data: currentManager } = useCurrentManager()
+
+  const isAdmin = user?.role === 'ADMIN'
+  const uwe72 = useMemo(() => managers?.find(m => m.shortName === 'uwe72'), [managers])
+  const myManagerId = isAdmin ? uwe72?.id : currentManager?.id
+
+  const rowRef = useRef<HTMLTableRowElement | null>(null)
+  const cardRef = useRef<HTMLDivElement | null>(null)
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -150,6 +160,22 @@ export default function Managers() {
 
   const hasActiveFilter = searchTerm !== ''
 
+  const handleSelectMe = () => {
+    if (selected) {
+      setSelected(false)
+      return
+    }
+    if (searchTerm !== '') setSearchTerm('')
+    setSelected(true)
+    trackEvent('manager', 'select_me')
+  }
+
+  useEffect(() => {
+    if (!selected || myManagerId == null) return
+    const el = isMobile ? cardRef.current : rowRef.current
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [selected, myManagerId, isMobile, searchTerm, filteredManagers])
+
   if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
@@ -169,6 +195,16 @@ export default function Managers() {
                 className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
               />
             </div>
+            {myManagerId != null && (
+            <Button
+              onClick={handleSelectMe}
+              size="compact"
+              variant={selected ? 'emphasized' : 'ghost'}
+            >
+              <i className="sap-icon sap-icon-account text-[14px]" />
+              Selektiere mich
+            </Button>
+            )}
             {!beforeSeason && (
             <Button
               onClick={exportToExcel}
@@ -236,8 +272,15 @@ export default function Managers() {
                 </TableHead>
                 <TableBody>
                   {filteredManagers && filteredManagers.length > 0 ? (
-                    filteredManagers.map((manager, index) => (
-                      <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                    filteredManagers.map((manager, index) => {
+                      const isMe = selected && manager.id === myManagerId
+                      return (
+                      <TableRow
+                        key={manager.id}
+                        ref={isMe ? rowRef : undefined}
+                        active={isMe}
+                        className={index % 2 === 1 ? 'bg-zebra' : ''}
+                      >
                         {!beforeSeason && (
                         <td className="px-3 py-2 text-center text-foreground">
                           {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
@@ -284,8 +327,9 @@ export default function Managers() {
                           {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
                         </td>
                         )}
-                      </tr>
-                    ))
+                      </TableRow>
+                      )
+                    })
                   ) : (
                     <tr>
                       <td colSpan={beforeSeason ? 3 : 8} className="text-center text-subtle py-8">
@@ -306,9 +350,12 @@ export default function Managers() {
           <div>
             <div className="grid gap-4">
               {filteredManagers && filteredManagers.length > 0 ? (
-                filteredManagers.map((manager) => (
-                  <ManagerCard key={manager.id} manager={manager} beforeSeason={beforeSeason} beforeSeasonNonAdmin={beforeSeasonNonAdmin} />
-                ))
+                filteredManagers.map((manager) => {
+                  const isMe = selected && manager.id === myManagerId
+                  return (
+                    <ManagerCard key={manager.id} ref={isMe ? cardRef : undefined} active={isMe} manager={manager} beforeSeason={beforeSeason} beforeSeasonNonAdmin={beforeSeasonNonAdmin} />
+                  )
+                })
               ) : (
                 <div className="text-center text-subtle py-8">
                   Keine Manager gefunden
