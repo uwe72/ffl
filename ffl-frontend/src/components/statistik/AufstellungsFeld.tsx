@@ -133,24 +133,21 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
       style={{
         borderRadius: 6,
         backgroundColor: 'var(--color-background)',
-        color: '#fafaf9',
         borderTop: `3px solid ${posColor}`,
       }}
     >
-      <div className="flex flex-col w-full h-full px-1.5 py-1 text-center gap-0.5">
-        <div className="text-[12px] font-semibold truncate max-w-full">{player.name}</div>
-        <div className="text-[10px] leading-tight">Preis: {formatMillionen(player.marktwert)}</div>
-        <div className="text-[10px] leading-tight">Zu Null: {player.zuNull}</div>
-        {(player.regeln ?? []).length > 0 && (
-          <div className="mt-0.5 pt-0.5 border-t border-white/15 flex flex-col gap-0.5">
-            {(player.regeln ?? []).map(r => (
-              <div key={r.rule} className="flex justify-between gap-1 text-[10px] leading-tight">
-                <span className="truncate opacity-90">{r.ruleLabel}</span>
-                <span className="tabular-nums">{r.points}</span>
-              </div>
-            ))}
-          </div>
-        )}
+      {player.pictureUrl ? (
+        <img src={player.pictureUrl} alt={fullName} className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-[#fafaf9]">
+          <i className="sap-icon sap-icon-employee text-[28px] opacity-80" />
+          <div className="text-[11px] font-semibold px-1 truncate max-w-full">{fullName}</div>
+        </div>
+      )}
+      <div className="absolute bottom-1.5 inset-x-0 flex justify-center pointer-events-none">
+        <span className="text-[11px] font-bold text-[#fafaf9] bg-black rounded-full px-2 py-0.5 tabular-nums">
+          {formatMillionsShort(player.marktwert)} €
+        </span>
       </div>
     </div>
   )
