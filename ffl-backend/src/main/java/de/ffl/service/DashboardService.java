@@ -75,7 +75,11 @@ public class DashboardService {
             spieler.add(SpielerAufstellungDto.builder()
                 .id(p.getId())
                 .name(playerName(p))
+                .firstName(p.getFirstName())
+                .lastName(p.getLastName())
                 .vereinKuerzel(vereinKuerzel(p))
+                .vereinLogoUrl(vereinLogoUrl(p))
+                .pictureUrl(p.getPictureUrl())
                 .position(p.getPosition() != null ? p.getPosition().name() : null)
                 .joker(isJoker(manager, p))
                 .punkteGesamt(pr != null ? pr.getPointsTotal() : 0)
@@ -297,9 +301,18 @@ public class DashboardService {
     }
 
     private String vereinKuerzel(Player p) {
-        if (p.getTeams() == null || p.getTeams().isEmpty()) return "";
-        Team team = p.getTeams().get(p.getTeams().size() - 1);
-        return team.getShortName() != null ? team.getShortName() : "";
+        Team team = letztesTeam(p);
+        return team != null && team.getShortName() != null ? team.getShortName() : "";
+    }
+
+    private String vereinLogoUrl(Player p) {
+        Team team = letztesTeam(p);
+        return team != null ? team.getLogoSUrl() : null;
+    }
+
+    private Team letztesTeam(Player p) {
+        if (p.getTeams() == null || p.getTeams().isEmpty()) return null;
+        return p.getTeams().get(p.getTeams().size() - 1);
     }
 
     private int tore(Player p) {

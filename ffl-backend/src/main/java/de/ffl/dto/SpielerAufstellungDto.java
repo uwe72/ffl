@@ -12,7 +12,11 @@ import lombok.NoArgsConstructor;
 public class SpielerAufstellungDto {
     private Long id;
     private String name;
+    private String firstName;
+    private String lastName;
     private String vereinKuerzel;
+    private String vereinLogoUrl;
+    private String pictureUrl;
     private String position;
     private Boolean joker;
     private Integer punkteGesamt;

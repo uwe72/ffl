@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
 import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
@@ -61,29 +61,75 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
   }
   const handleToggle = () => setFlipped(f => !f)
 
-  const front = (
+  const firstName = player.firstName || ''
+  const lastName = player.lastName || player.name
+
+  const front = compact ? (
     <div
       className="relative w-full h-full bg-stat-card border border-border overflow-hidden"
       style={{ borderRadius: 6 }}
     >
       <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: posColor }} />
-      {player.joker && !compact && (
-        <span className="absolute top-1 right-1 text-[8px] font-bold leading-none px-1 py-0.5 rounded-badge bg-stat-accent text-white">
+      <div className="absolute inset-x-0 top-1 px-1 text-center">
+        <div className="text-[11px] font-semibold text-foreground truncate leading-tight">{lastName}</div>
+      </div>
+      <div className="absolute bottom-1 left-1.5 text-base font-bold text-foreground tabular-nums leading-none">
+        {bigText(player, modus)}
+      </div>
+    </div>
+  ) : (
+    <div
+      className="relative w-full h-full bg-stat-card border border-border overflow-hidden flex flex-col"
+      style={{ borderRadius: 6 }}
+    >
+      <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: posColor }} />
+      {player.joker && (
+        <span className="absolute top-1 right-1 z-10 text-[8px] font-bold leading-none px-1 py-0.5 rounded-badge bg-stat-accent text-white">
           J
         </span>
       )}
-      <div className="absolute inset-x-0 top-2 px-1.5 text-center">
-        <div className="text-[12px] font-semibold text-foreground truncate leading-tight">{player.name}</div>
-        <div className="text-[10px] font-semibold text-muted truncate leading-tight">{player.vereinKuerzel}</div>
+      <div className="flex-1 flex flex-col items-center justify-center gap-1 px-1 pt-1 min-h-0">
+        <div className="relative">
+          {player.pictureUrl ? (
+            <img
+              src={player.pictureUrl}
+              alt={lastName}
+              className="w-12 h-12 rounded-full object-cover border border-border"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-elevated border border-border flex items-center justify-center">
+              <i className="sap-icon sap-icon-employee text-[20px] text-subtle" />
+            </div>
+          )}
+          {player.vereinLogoUrl && (
+            <img
+              src={player.vereinLogoUrl}
+              alt={player.vereinKuerzel}
+              className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white border border-border object-contain"
+            />
+          )}
+        </div>
+        <div className="text-center leading-tight max-w-full">
+          {firstName && (
+            <div className="text-[11px] font-medium text-foreground truncate">{firstName}</div>
+          )}
+          <div className="text-[11px] font-semibold text-foreground truncate">{lastName}</div>
+        </div>
       </div>
-      <div className="absolute bottom-1.5 left-2 text-xl font-bold text-foreground tabular-nums leading-none">
-        {bigText(player, modus)}
+      <div className="grid grid-cols-3 gap-px bg-border border-t border-border">
+        <div className="bg-stat-card px-1 py-1 text-center min-w-0">
+          <div className="text-[9px] font-semibold uppercase text-subtle leading-none tracking-wide">Gesamt</div>
+          <div className="text-[13px] font-bold text-foreground tabular-nums leading-tight">{formatPoints(player.punkteGesamt)}</div>
+        </div>
+        <div className="bg-stat-card px-1 py-1 text-center min-w-0">
+          <div className="text-[9px] font-semibold uppercase text-subtle leading-none tracking-wide">Spieltag</div>
+          <div className="text-[13px] font-bold text-foreground tabular-nums leading-tight">{formatPoints(player.punkteSpieltag)}</div>
+        </div>
+        <div className="bg-stat-card px-1 py-1 text-center min-w-0">
+          <div className="text-[9px] font-semibold uppercase text-subtle leading-none tracking-wide">Preis</div>
+          <div className="text-[13px] font-bold text-foreground tabular-nums leading-tight">{formatMillionsShort(player.marktwert)}</div>
+        </div>
       </div>
-      {modus === 'gesamt' && player.punkteSpieltag > 0 && (
-        <span className="absolute bottom-1.5 right-1.5 text-[10px] font-semibold text-white bg-stat-accent rounded-full px-1.5 py-0.5 leading-none">
-          +{formatPoints(player.punkteSpieltag)}
-        </span>
-      )}
     </div>
   )
 
@@ -160,6 +206,7 @@ interface AufstellungsFeldProps {
   modus: FeldModus
   compact?: boolean
   showLegend?: boolean
+  overlayLegend?: boolean
   overlay?: ReactNode
 }
 
@@ -168,10 +215,34 @@ export default function AufstellungsFeld({
   modus,
   compact = false,
   showLegend = true,
+  overlayLegend = false,
   overlay,
 }: AufstellungsFeldProps) {
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
   const canHover = useMedia('(hover: hover)')
+
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const [boxWidth, setBoxWidth] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (compact) return
+    const el = wrapperRef.current
+    if (!el) return
+    const compute = () => {
+      const top = el.getBoundingClientRect().top
+      const availH = Math.max(0, window.innerHeight - top - 64)
+      const availW = el.clientWidth
+      setBoxWidth(Math.min(availW, availH * (2752 / 1536)))
+    }
+    compute()
+    window.addEventListener('resize', compute)
+    const ro = new ResizeObserver(compute)
+    ro.observe(el)
+    return () => {
+      window.removeEventListener('resize', compute)
+      ro.disconnect()
+    }
+  }, [compact])
 
   const grouped = useMemo(() => {
     const map: Record<string, SpielerAufstellung[]> = { GOALKEEPER: [], DEFENDER: [], MIDFIELD: [], STRIKER: [] }
@@ -186,17 +257,20 @@ export default function AufstellungsFeld({
   const sumBig = modus === 'wert' ? formatMillionen(sum) : formatPoints(sum)
   const sumLabel = modus === 'wert' ? 'Kaderwert' : modus === 'spieltag' ? 'Punkte Spieltag' : 'Punkte gesamt'
 
-  const cardWidth = compact ? 64 : 'clamp(92px, 10vw, 112px)'
-  const cardHeight = compact ? 64 : 116
+  const cardWidth = compact ? 64 : 'clamp(118px, 11.5vw, 142px)'
+  const cardHeight = compact ? 64 : 152
   let cardIndex = 0
 
   return (
     <div className="w-full flex flex-col items-center gap-3">
-      <div className="w-full">
+      <div className="w-full" ref={wrapperRef}>
         <div
-          className="relative w-full overflow-hidden"
+          className={`relative overflow-hidden ${compact ? 'w-full' : 'mr-auto'}`}
           style={{
             aspectRatio: '2752 / 1536',
+            ...(compact
+              ? {}
+              : { width: boxWidth ? `${boxWidth}px` : '100%' }),
             borderRadius: 6,
             border: '1px solid var(--color-pitch-line)',
             backgroundImage: 'url(/stadion.jpg)',
@@ -204,6 +278,7 @@ export default function AufstellungsFeld({
             backgroundPosition: 'center',
           }}
         >
+          <div className="img-overlay" />
           {overlay && (
             <div className="absolute top-3 left-3 z-10 flex items-center gap-2 rounded-md bg-pitch-block/80 p-1.5">
               {overlay}
@@ -270,10 +345,34 @@ export default function AufstellungsFeld({
               </div>
             </div>
           )}
+
+          {overlayLegend && (
+            <>
+              <div className="absolute bottom-2 left-2 z-10 flex items-center gap-3 rounded-md bg-pitch-block/80 px-2 py-1">
+                {LEGEND.map(row => (
+                  <span
+                    key={row.position}
+                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold"
+                    style={{ color: '#fafaf9' }}
+                  >
+                    <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: POSITION_COLOR[row.position] }} />
+                    {row.label}
+                  </span>
+                ))}
+              </div>
+              <div
+                className="absolute bottom-2 right-2 z-10 rounded-md bg-pitch-block/80 px-2 py-1 text-[11px] font-semibold"
+                style={{ color: 'var(--color-pitch-block-label)', letterSpacing: '0.04em' }}
+                aria-hidden="true"
+              >
+                {canHover ? 'Anklicken zum Umdrehen' : 'Antippen zum Umdrehen'}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {showLegend && (
+      {showLegend && !overlayLegend && (
         <div className="w-full flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center justify-center gap-4 flex-wrap text-xs text-muted">
             {LEGEND.map(row => (
