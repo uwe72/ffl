@@ -1,35 +1,30 @@
-import { useState } from 'react'
 import type { Rangliste, RanglistenEintrag } from '../../types/dashboard'
-import { useDashboardFremdAufstellung } from '../../hooks/useDashboard'
 import { formatPoints, formatMillionsShort } from '../../utils/format'
-import AufstellungsFeld from './AufstellungsFeld'
 
-function tendColor(e: RanglistenEintrag): string {
-  if (e.istIch) return 'var(--color-stat-accent)'
-  if (e.veraenderung > 0) return 'var(--color-defender)'
-  if (e.veraenderung < 0) return 'var(--color-striker)'
-  return 'var(--color-goalkeeper)'
+function managerName(e: RanglistenEintrag): string {
+  const first = e.firstName?.trim()
+  const last = e.lastName?.trim()
+  if (first && last) return `${first} ${last}`
+  return e.managername || e.teamname
 }
 
-function tendArrow(e: RanglistenEintrag): { text: string; tone: string } {
-  if (e.veraenderung > 0) return { text: `↑${e.veraenderung}`, tone: 'var(--color-defender)' }
-  if (e.veraenderung < 0) return { text: `↓${Math.abs(e.veraenderung)}`, tone: 'var(--color-striker)' }
-  return { text: '–', tone: 'var(--color-goalkeeper)' }
-}
-
-function clampPct(v: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, v))
+function changeInfo(e: RanglistenEintrag): { text: string; cls: string; color: string } {
+  if (e.veraenderung > 0) return { text: `+${e.veraenderung}`, cls: 'text-up', color: 'var(--color-up)' }
+  if (e.veraenderung < 0) return { text: `${e.veraenderung}`, cls: 'text-down', color: 'var(--color-down)' }
+  return { text: '–', cls: 'text-muted', color: 'var(--color-muted)' }
 }
 
 interface RanglisteProps {
   rangliste: Rangliste
-  modus: 'gesamt' | 'spieltag'
+  activeManagerId?: number | null
+  onSelectManager?: (managerId: number) => void
 }
 
-export default function Rangliste({ rangliste, modus }: RanglisteProps) {
-  const [expandedId, setExpandedId] = useState<number | null>(null)
-  const fremd = useDashboardFremdAufstellung(expandedId ?? 0)
-
+export default function Rangliste({
+  rangliste,
+  activeManagerId,
+  onSelectManager,
+}: RanglisteProps) {
   if (rangliste.verteilung) {
     return (
       <Verteilung
@@ -40,96 +35,10 @@ export default function Rangliste({ rangliste, modus }: RanglisteProps) {
   }
 
   const eintraege = rangliste.eintraege ?? []
-  const maxAbs = Math.max(1, ...eintraege.map(e => Math.abs(e.abstandZuMir ?? 0)))
-
-  const points = (e: RanglistenEintrag) =>
-    modus === 'spieltag' ? e.punkteSpieltag : e.punkteGesamt
-
-  const barPct = (e: RanglistenEintrag) => {
-    const offset = ((e.abstandZuMir ?? 0) / maxAbs) * 50
-    return clampPct(50 + offset, 2, 98)
-  }
-
   const grenze = rangliste.preisgeldGrenzePlatz ?? -1
 
-  const renderRow = (e: RanglistenEintrag, clipped = false, delayIndex = 0) => {
-    const own = e.istIch
-    const arrow = tendArrow(e)
-    return (
-      <button
-        key={e.managerId}
-        type="button"
-        disabled={own}
-        onClick={() => setExpandedId(expandedId === e.managerId ? null : e.managerId)}
-        aria-expanded={expandedId === e.managerId}
-        className={`relative w-full bg-stat-card border border-border text-left transition-colors ${
-          own ? 'cursor-default' : 'cursor-pointer hover:border-border-hover'
-        }`}
-        style={{
-          borderRadius: 6,
-          borderLeft: `4px solid ${tendColor(e)}`,
-          padding: own ? '14px 12px' : '9px 12px',
-          opacity: clipped ? 0.55 : 1,
-          backgroundColor: own
-            ? 'color-mix(in srgb, var(--color-stat-accent) 7%, var(--color-stat-card))'
-            : 'var(--color-stat-card)',
-          animation: `stat-rise-side 0.35s cubic-bezier(0.16, 1, 0.3, 1) both`,
-          animationDelay: clipped ? undefined : `${(delayIndex % 5) * 55}ms`,
-        }}
-      >
-        {!clipped && (
-          <span className="sr-only">{own ? 'Eigene Zeile' : `${e.teamname} Aufstellung anzeigen`}</span>
-        )}
-        <div className="flex items-center gap-3 w-full">
-          <span className={`tabular-nums ${own ? 'text-lg font-bold text-stat-accent' : 'text-sm text-foreground'}`}>
-            {e.platz}.
-          </span>
-          <span
-            className={`tabular-nums text-xs ${own ? 'text-stat-accent' : ''}`}
-            style={own ? undefined : { color: arrow.tone }}
-          >
-            {arrow.text}
-          </span>
-          <span className={`truncate ${own ? 'text-base font-bold text-foreground' : 'text-sm font-semibold text-foreground'}`}>
-            {e.teamname}
-          </span>
-          <span className="text-xs text-muted truncate hidden md:inline">{e.managername}</span>
-          <span className={`ml-auto tabular-nums ${own ? 'text-lg font-bold text-stat-accent' : 'text-sm text-foreground'}`}>
-            {formatPoints(points(e))}
-          </span>
-          <span className="tabular-nums text-xs text-muted hidden lg:inline w-10 text-right">
-            {formatPoints(modus === 'spieltag' ? e.punkteGesamt : e.punkteSpieltag)}
-          </span>
-          <span
-            className="relative h-1.5 rounded-full shrink-0"
-            style={{ width: 96, backgroundColor: 'color-mix(in srgb, var(--color-border) 40%, transparent)' }}
-          >
-            <span
-              className="absolute top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full"
-              style={{
-                left: `${barPct(e)}%`,
-                transform: 'translate(-50%, -50%)',
-                backgroundColor: own ? 'var(--color-stat-accent)' : 'var(--color-muted)',
-                border: '1px solid var(--color-border-strong)',
-              }}
-            />
-          </span>
-        </div>
-        {!own && expandedId === e.managerId && (
-          <div className="mt-3 pt-3 border-t border-border">
-            {fremd.isLoading ? (
-              <p className="text-xs text-muted">Lade Aufstellung…</p>
-            ) : fremd.data ? (
-              <AufstellungsFeld aufstellung={fremd.data} modus={modus === 'spieltag' ? 'spieltag' : 'gesamt'} compact />
-            ) : null}
-          </div>
-        )}
-      </button>
-    )
-  }
-
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
+    <div className="flex flex-col items-center w-full">
       <div className="flex items-center justify-center gap-8 mb-4 w-full">
         <div className="text-center">
           <div className="text-xs text-muted">Abstand zu Platz 1</div>
@@ -140,7 +49,7 @@ export default function Rangliste({ rangliste, modus }: RanglisteProps) {
         <div className="w-px self-stretch bg-border" />
         <div className="text-center">
           <div className="text-xs text-muted">Abstand zur Preisgeldgrenze</div>
-          <div className={`text-xl font-bold tabular-nums ${(rangliste.abstandZurPreisgeldGrenze ?? 0) >= 0 ? 'text-defender' : 'text-striker'}`}>
+          <div className={`text-xl font-bold tabular-nums ${(rangliste.abstandZurPreisgeldGrenze ?? 0) >= 0 ? 'text-up' : 'text-down'}`}>
             {rangliste.abstandZurPreisgeldGrenze != null
               ? `${rangliste.abstandZurPreisgeldGrenze >= 0 ? '+' : ''}${formatPoints(rangliste.abstandZurPreisgeldGrenze)}`
               : '–'}
@@ -148,43 +57,103 @@ export default function Rangliste({ rangliste, modus }: RanglisteProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5 w-full">
-        {rangliste.hatOben && <ClippedRow />}
-
-        {eintraege.map((e, i) => (
-          <div key={e.managerId} className="contents">
-            {renderRow(e, false, i)}
-            {e.platz === grenze && <Preisgeldgrenze />}
-          </div>
-        ))}
-
-        {rangliste.hatUnten && <ClippedRow />}
+      <div
+        className="relative w-full rounded-[6px] overflow-y-auto"
+        style={{
+          aspectRatio: '2752 / 1536',
+          maxHeight: '72vh',
+          border: '1px solid var(--color-pitch-line)',
+          backgroundImage: 'url(/stadion.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="img-overlay" />
+        <div className="relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
+          {eintraege.map(e => (
+            <div key={e.managerId} className="relative">
+              {e.platz === grenze && <PreisgeldgrenzeTag />}
+              <ManagerCard
+                e={e}
+                active={e.managerId === activeManagerId}
+                onSelect={onSelectManager}
+              />
+            </div>
+          ))}
+        </div>
       </div>
+      {onSelectManager && (
+        <p className="mt-3 text-xs text-muted">Klicke auf einen Manager, um seine Aufstellung zu sehen</p>
+      )}
     </div>
   )
 }
 
-function ClippedRow() {
+function ManagerCard({
+  e,
+  active,
+  onSelect,
+}: {
+  e: RanglistenEintrag
+  active: boolean
+  onSelect?: (managerId: number) => void
+}) {
+  const change = changeInfo(e)
+  const name = managerName(e)
   return (
-    <div
-      className="w-full flex items-center justify-center gap-3 bg-stat-card border border-border"
-      style={{ borderRadius: 6, opacity: 0.45, padding: '5px 12px' }}
-      aria-hidden="true"
+    <button
+      type="button"
+      onClick={() => onSelect?.(e.managerId)}
+      aria-label={`${name} (${e.teamname}), Platz ${e.platz}`}
+      className={`relative w-full text-left transition-colors ${
+        onSelect ? 'cursor-pointer hover:border-border-hover' : 'cursor-default'
+      }`}
+      style={{
+        borderRadius: 6,
+        border: `1px solid ${active ? 'var(--color-stat-accent)' : 'var(--color-border)'}`,
+        borderLeft: `4px solid ${change.color}`,
+        padding: '10px 12px',
+        backgroundColor: active
+          ? 'color-mix(in srgb, var(--color-stat-accent) 7%, var(--color-stat-card))'
+          : 'var(--color-stat-card)',
+      }}
     >
-      <span className="h-2 w-8 rounded bg-card-muted" />
-      <span className="h-2 flex-1 rounded bg-card-muted" />
-      <span className="h-2 w-6 rounded bg-card-muted" />
-    </div>
+      <div className="flex items-center gap-2 w-full">
+        <span className="tabular-nums text-lg font-bold text-foreground shrink-0">{e.platz}.</span>
+        {e.avatarUrl ? (
+          <img
+            src={e.avatarUrl}
+            alt={name}
+            className="w-10 h-10 rounded-full object-cover border border-border flex-shrink-0"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-elevated border border-border flex items-center justify-center flex-shrink-0">
+            <i className="sap-icon sap-icon-employee text-[16px] text-subtle" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-semibold text-foreground leading-tight">{name}</div>
+          <div className="truncate text-[11px] text-subtle leading-tight">({e.teamname})</div>
+        </div>
+        <span className={`text-xs font-bold tabular-nums shrink-0 ${change.cls}`}>{change.text}</span>
+      </div>
+      <div className="flex items-center justify-between mt-2 text-[11px]">
+        <span className="text-subtle">
+          Gesamt <span className="text-foreground font-semibold tabular-nums">{formatPoints(e.punkteGesamt)}</span>
+        </span>
+        <span className="text-subtle">
+          Spieltag <span className="text-foreground font-semibold tabular-nums">{formatPoints(e.punkteSpieltag)}</span>
+        </span>
+      </div>
+    </button>
   )
 }
 
-function Preisgeldgrenze() {
+function PreisgeldgrenzeTag() {
   return (
-    <div className="flex items-center gap-2 my-1">
-      <span className="h-px flex-1" style={{ backgroundColor: 'var(--color-stat-accent)' }} />
-      <span className="text-[10px] font-semibold uppercase tracking-wide text-stat-accent">Preisgeldgrenze</span>
-      <span className="h-px flex-1" style={{ backgroundColor: 'var(--color-stat-accent)' }} />
-    </div>
+    <span className="absolute -top-2 left-3 z-10 text-[9px] font-semibold uppercase tracking-wide text-white bg-stat-accent rounded-badge px-1.5 py-0.5 leading-none">
+      Preisgeldgrenze
+    </span>
   )
 }
 
@@ -206,7 +175,7 @@ function Verteilung({
         {verteilung.map(v => {
           const own = eigenerWert >= v.von && eigenerWert < v.bis
           const isLast = v.bis >= verteilung[verteilung.length - 1].bis
-          const containsOwn = (own || (isLast && eigenerWert >= v.von))
+          const containsOwn = own || (isLast && eigenerWert >= v.von)
           const active = own || containsOwn
           return (
             <div

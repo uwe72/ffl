@@ -71,6 +71,8 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
         assertThat(dto.getEintraege()).isNotEmpty();
         assertThat(dto.getEintraege().size()).isLessThanOrEqualTo(5);
         assertThat(dto.getEintraege()).anyMatch(RanglistenEintragDto::getIstIch);
+        assertThat(dto.getEintraege()).allMatch(e -> e.getAvatarUrl() != null);
+        assertThat(dto.getEintraege()).allMatch(e -> e.getFirstName() != null && e.getLastName() != null);
     }
 
     @Test

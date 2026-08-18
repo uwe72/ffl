@@ -37,6 +37,9 @@ export interface RanglistenEintrag {
   veraenderung: number
   teamname: string
   managername: string
+  firstName?: string
+  lastName?: string
+  avatarUrl?: string
   punkteGesamt: number
   punkteSpieltag: number
   abstandZuMir: number

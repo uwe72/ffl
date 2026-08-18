@@ -15,6 +15,9 @@ public class RanglistenEintragDto {
     private Integer veraenderung;
     private String teamname;
     private String managername;
+    private String firstName;
+    private String lastName;
+    private String avatarUrl;
     private Integer punkteGesamt;
     private Integer punkteSpieltag;
     private Integer abstandZuMir;

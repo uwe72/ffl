@@ -11,6 +11,7 @@ import type { StatAnsicht, PunkteModus } from '../types/dashboard'
 export default function Statistik() {
   const [ansicht, setAnsicht] = useState<StatAnsicht>('feld')
   const [modus, setModus] = useState<PunkteModus>('gesamt')
+  const [viewManagerId, setViewManagerId] = useState<number | null>(null)
 
   const { data: season } = useCurrentSeason()
   const { data: currentManager } = useCurrentManager()
@@ -18,9 +19,15 @@ export default function Statistik() {
 
   const uwe72 = managers?.find(m => m.shortName === 'uwe72')
   const refManagerId = currentManager?.id ?? uwe72?.id
+  const effectiveManagerId = viewManagerId ?? refManagerId
 
-  const aufstellung = useDashboardAufstellung(refManagerId ?? 0)
-  const rangliste = useDashboardRangliste(refManagerId ?? 0, modus)
+  const aufstellung = useDashboardAufstellung(effectiveManagerId ?? 0)
+  const rangliste = useDashboardRangliste(refManagerId ?? 0, modus, 999)
+
+  const handleSelectManager = (managerId: number) => {
+    setViewManagerId(managerId)
+    setAnsicht('feld')
+  }
 
   const isVorsaison = aufstellung.data?.phase === 'VORSAISON'
   const feldModus: 'gesamt' | 'spieltag' | 'wert' = isVorsaison ? 'wert' : modus
@@ -77,6 +84,7 @@ export default function Statistik() {
               aufstellung={aufstellung.data}
               modus={feldModus}
               overlay={toggles}
+              overlayLegend
             />
           </div>
         </div>
@@ -85,9 +93,12 @@ export default function Statistik() {
       ) : (
         <>
           <div className="flex items-center gap-3 flex-wrap mb-6">{toggles}</div>
-          <div className="p-5 md:p-8 bg-stat-card border border-border rounded-[6px]">
-            <Rangliste key="rangliste" rangliste={rangliste.data} modus={modus} />
-          </div>
+          <Rangliste
+            key="rangliste"
+            rangliste={rangliste.data}
+            activeManagerId={effectiveManagerId}
+            onSelectManager={handleSelectManager}
+          />
         </>
       )}
     </div>
