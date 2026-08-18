@@ -106,15 +106,14 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
             <img
               src={player.vereinLogoUrl}
               alt={player.vereinKuerzel}
-              className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white border border-border object-contain"
+              className="absolute -bottom-1 -right-1 w-[26px] h-[26px] rounded-full bg-white border border-border object-contain"
             />
           )}
         </div>
         <div className="text-[12px] font-semibold text-foreground truncate leading-tight max-w-full">{fullName}</div>
       </div>
-      <div className="border-t border-border">
-        <div className="grid grid-cols-2 px-2 py-1.5">
-          <div className="text-center">
+      <div>
+        <div className="grid grid-cols-2 px-2 py-1.5">          <div className="text-center">
             <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Gesamt</div>
             <div className="text-[15px] font-bold text-foreground tabular-nums leading-none">{formatPoints(player.punkteGesamt)}</div>
           </div>
@@ -251,8 +250,8 @@ export default function AufstellungsFeld({
   const sumBig = modus === 'wert' ? formatMillionen(sum) : formatPoints(sum)
   const sumLabel = modus === 'wert' ? 'Kaderwert' : modus === 'spieltag' ? 'Punkte Spieltag' : 'Punkte gesamt'
 
-  const cardWidth = compact ? 64 : 'clamp(148px, 14vw, 178px)'
-  const cardHeight = compact ? 64 : 122
+  const cardWidth = compact ? 64 : 'clamp(118px, 11.2vw, 142px)'
+  const cardHeight = compact ? 64 : 146
   let cardIndex = 0
 
   return (
