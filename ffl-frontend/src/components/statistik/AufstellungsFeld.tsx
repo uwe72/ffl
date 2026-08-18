@@ -95,11 +95,11 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
             <img
               src={player.pictureUrl}
               alt={fullName}
-              className="w-14 h-14 rounded-full object-cover border border-border"
+              className="w-[67px] h-[67px] rounded-full object-cover border border-border"
             />
           ) : (
-            <div className="w-14 h-14 rounded-full bg-elevated border border-border flex items-center justify-center">
-              <i className="sap-icon sap-icon-employee text-[22px] text-subtle" />
+            <div className="w-[67px] h-[67px] rounded-full bg-elevated border border-border flex items-center justify-center">
+              <i className="sap-icon sap-icon-employee text-[26px] text-subtle" />
             </div>
           )}
           {player.vereinLogoUrl && (
@@ -113,7 +113,8 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
         <div className="text-[12px] font-semibold text-foreground truncate leading-tight max-w-full">{fullName}</div>
       </div>
       <div>
-        <div className="grid grid-cols-2 px-2 py-1.5">          <div className="text-center">
+        <div className="grid grid-cols-2 px-2 py-1">
+          <div className="text-center">
             <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Gesamt</div>
             <div className="text-[15px] font-bold text-foreground tabular-nums leading-none">{formatPoints(player.punkteGesamt)}</div>
           </div>
