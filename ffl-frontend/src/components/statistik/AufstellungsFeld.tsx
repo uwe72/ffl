@@ -224,29 +224,6 @@ export default function AufstellungsFeld({
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
   const canHover = useMedia('(hover: hover)')
 
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const [boxWidth, setBoxWidth] = useState<number | null>(null)
-
-  useEffect(() => {
-    if (compact) return
-    const el = wrapperRef.current
-    if (!el) return
-    const compute = () => {
-      const top = el.getBoundingClientRect().top
-      const availH = Math.max(0, window.innerHeight - top - heightOffset)
-      const availW = el.clientWidth
-      setBoxWidth(Math.min(availW, availH * (2752 / 1536)))
-    }
-    compute()
-    window.addEventListener('resize', compute)
-    const ro = new ResizeObserver(compute)
-    ro.observe(el)
-    return () => {
-      window.removeEventListener('resize', compute)
-      ro.disconnect()
-    }
-  }, [compact, heightOffset])
-
   const grouped = useMemo(() => {
     const map: Record<string, SpielerAufstellung[]> = { GOALKEEPER: [], DEFENDER: [], MIDFIELD: [], STRIKER: [] }
     for (const s of aufstellung.spieler) {
@@ -266,14 +243,18 @@ export default function AufstellungsFeld({
 
   return (
     <div className="w-full flex flex-col items-center gap-3">
-      <div className="w-full" ref={wrapperRef}>
+      <div className="w-full">
         <div
           className={`relative overflow-hidden ${compact ? 'w-full' : 'mr-auto'}`}
           style={{
             aspectRatio: '2752 / 1536',
+            width: '100%',
             ...(compact
               ? {}
-              : { width: boxWidth ? `${boxWidth}px` : '100%' }),
+              : {
+                  maxHeight: `calc(100vh - ${heightOffset}px)`,
+                  maxWidth: `calc((100vh - ${heightOffset}px) * 2752 / 1536)`,
+                }),
             borderRadius: 6,
             border: '1px solid var(--color-pitch-line)',
             backgroundImage: 'url(/stadion.jpg)',
