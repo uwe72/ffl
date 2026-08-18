@@ -311,6 +311,10 @@ export interface Player {
 - Do NOT use different text (like "← Spiele") or different styling
 - The link uses the accent color tokens (`text-accent` / `text-accent-hover`), the SAP nav-back icon, and the text "Zurück zur Übersicht". The former gold `#c9a66b` was removed because it only reached 2.29:1 contrast on the light background.
 
+#### Button Sizing Next To Inputs
+- **A `<Button>` placed in the same row as an `input-field control` text field must use `size="input"`** so it has the exact same height as the input (both resolve to `px-3 py-2 text-sm` ≈ 38px). Never pair a `size="compact"` button with a full-height search/text input — the heights would not match.
+- The `input` size lives in `ffl-frontend/src/components/Button.tsx` alongside the other sizes. Use `variant="secondary"` (neutral grey via `--color-secondary`) for such adjacent action buttons; keep `variant="emphasized"` for the active/selected state.
+
 ## Important Notes
 
 - **No comments in code** unless explicitly requested

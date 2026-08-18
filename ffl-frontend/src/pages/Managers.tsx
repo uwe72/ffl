@@ -198,8 +198,8 @@ export default function Managers() {
             {myManagerId != null && (
             <Button
               onClick={handleSelectMe}
-              size="compact"
-              variant={selected ? 'emphasized' : 'ghost'}
+              size="input"
+              variant={selected ? 'emphasized' : 'secondary'}
             >
               <i className="sap-icon sap-icon-account text-[14px]" />
               Selektiere mich

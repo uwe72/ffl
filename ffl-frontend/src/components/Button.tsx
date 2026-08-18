@@ -11,6 +11,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const variantClasses: Record<ButtonVariant, string> = {
   emphasized:
     'bg-primary text-primary-foreground hover:bg-button-primary-hover border border-transparent',
+  secondary:
+    'bg-secondary text-secondary-foreground border border-border-strong hover:bg-card-hover',
   ghost:
     'bg-transparent text-primary border border-primary hover:bg-accent-muted',
   transparent:
@@ -21,6 +23,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 
 const sizeClasses: Record<ButtonSize, string> = {
   default: 'px-4 py-2 text-sm',
+  input: 'px-3 py-2 text-sm',
   compact: 'px-3 py-1.5 text-xs',
   sm: 'px-2 py-1 text-xs',
 }
