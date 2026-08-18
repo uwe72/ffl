@@ -94,11 +94,11 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
             <img
               src={player.pictureUrl}
               alt={lastName}
-              className="w-12 h-12 rounded-full object-cover border border-border"
+              className="w-14 h-14 rounded-full object-cover border border-border"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-elevated border border-border flex items-center justify-center">
-              <i className="sap-icon sap-icon-employee text-[20px] text-subtle" />
+            <div className="w-14 h-14 rounded-full bg-elevated border border-border flex items-center justify-center">
+              <i className="sap-icon sap-icon-employee text-[22px] text-subtle" />
             </div>
           )}
           {player.vereinLogoUrl && (
