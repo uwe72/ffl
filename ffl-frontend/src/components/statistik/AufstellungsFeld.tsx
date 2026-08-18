@@ -116,18 +116,16 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
           <div className="text-[11px] font-semibold text-foreground truncate">{lastName}</div>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-px bg-border border-t border-border">
-        <div className="bg-stat-card px-1 py-1 text-center min-w-0">
-          <div className="text-[9px] font-semibold uppercase text-subtle leading-none tracking-wide">Gesamt</div>
-          <div className="text-[13px] font-bold text-foreground tabular-nums leading-tight">{formatPoints(player.punkteGesamt)}</div>
-        </div>
-        <div className="bg-stat-card px-1 py-1 text-center min-w-0">
-          <div className="text-[9px] font-semibold uppercase text-subtle leading-none tracking-wide">Spieltag</div>
-          <div className="text-[13px] font-bold text-foreground tabular-nums leading-tight">{formatPoints(player.punkteSpieltag)}</div>
-        </div>
-        <div className="bg-stat-card px-1 py-1 text-center min-w-0">
-          <div className="text-[9px] font-semibold uppercase text-subtle leading-none tracking-wide">Preis</div>
-          <div className="text-[13px] font-bold text-foreground tabular-nums leading-tight">{formatMillionsShort(player.marktwert)}</div>
+      <div className="border-t border-border">
+        <div className="grid grid-cols-2 px-2 py-1.5">
+          <div className="text-center">
+            <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Gesamt</div>
+            <div className="text-[15px] font-bold text-foreground tabular-nums leading-none">{formatPoints(player.punkteGesamt)}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Spieltag</div>
+            <div className="text-[15px] font-bold text-foreground tabular-nums leading-none">{formatPoints(player.punkteSpieltag)}</div>
+          </div>
         </div>
       </div>
     </div>
