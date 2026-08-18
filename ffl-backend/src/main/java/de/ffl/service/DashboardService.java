@@ -14,9 +14,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class DashboardService {
@@ -87,6 +89,7 @@ public class DashboardService {
                 .marktwert(p.getPrize())
                 .tore(tore(p))
                 .zuNull(zuNull(p))
+                .regeln(regelPunkte(p))
                 .build());
         }
 
@@ -337,6 +340,34 @@ public class DashboardService {
             || r == Rule.GOAL_DEFENDER
             || r == Rule.GOAL_GOALKEEPER
             || r == Rule.GOAL_GOALKEEPER_BY_PENALTY;
+    }
+
+    private List<SpielerAufstellungDto.RulePointDto> regelPunkte(Player p) {
+        Map<Rule, Integer> counts = new LinkedHashMap<>();
+        for (Points pt : pointsRepository.findByPlayerId(p.getId())) {
+            counts.merge(pt.getRule(), 1, Integer::sum);
+        }
+        return counts.entrySet().stream()
+            .map(entry -> SpielerAufstellungDto.RulePointDto.builder()
+                .rule(entry.getKey().name())
+                .ruleLabel(getRuleLabel(entry.getKey()))
+                .count(entry.getValue())
+                .points(entry.getKey().getPoints() * entry.getValue())
+                .build())
+            .sorted(Comparator.comparing(SpielerAufstellungDto.RulePointDto::getPoints).reversed())
+            .collect(Collectors.toList());
+    }
+
+    private String getRuleLabel(Rule rule) {
+        return switch (rule) {
+            case GOAL_STRIKER -> "Tor Stürmer";
+            case GOAL_MIDFIELDER -> "Tor Mittelfeldspieler";
+            case GOAL_DEFENDER -> "Tor Verteidiger";
+            case TO_NULL_GOALKEEPER -> "Zu Null Torwart";
+            case TO_NULL_DEFENDER -> "Zu Null Verteidiger";
+            case GOAL_GOALKEEPER -> "Tor Torwart";
+            case GOAL_GOALKEEPER_BY_PENALTY -> "Tor Torwart (Elfmeter)";
+        };
     }
 
     private String phase(SeasonState s) {

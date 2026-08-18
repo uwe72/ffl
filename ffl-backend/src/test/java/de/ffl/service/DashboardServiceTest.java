@@ -34,6 +34,15 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
         assertThat(dto.getSpieler()).allMatch(s -> s.getPosition() != null);
         assertThat(dto.getSpieler()).allMatch(s -> s.getLastName() != null && !s.getLastName().isBlank());
         assertThat(dto.getSpieler()).allMatch(s -> s.getName().equals(s.getLastName()));
+        assertThat(dto.getSpieler()).allMatch(s -> s.getRegeln() != null);
+        assertThat(dto.getSpieler())
+            .flatExtracting(SpielerAufstellungDto::getRegeln)
+            .allSatisfy(r -> {
+                assertThat(r.getRule()).isNotBlank();
+                assertThat(r.getRuleLabel()).isNotBlank();
+                assertThat(r.getCount()).isGreaterThan(0);
+                assertThat(r.getPoints()).isGreaterThan(0);
+            });
     }
 
     @Test

@@ -1,4 +1,4 @@
-import type { Position } from '../types'
+import type { Position, RulePoint } from '../types'
 
 export type DashboardPhase = 'VORSAISON' | 'SAISON'
 
@@ -17,6 +17,7 @@ export interface SpielerAufstellung {
   marktwert: number
   tore: number
   zuNull: number
+  regeln?: RulePoint[]
 }
 
 export interface Aufstellung {

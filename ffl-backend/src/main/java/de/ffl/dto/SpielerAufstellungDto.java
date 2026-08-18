@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,4 +27,17 @@ public class SpielerAufstellungDto {
     private Integer marktwert;
     private Integer tore;
     private Integer zuNull;
+    @Builder.Default
+    private List<RulePointDto> regeln = new ArrayList<>();
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class RulePointDto {
+        private String rule;
+        private String ruleLabel;
+        private Integer count;
+        private Integer points;
+    }
 }
