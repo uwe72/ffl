@@ -89,7 +89,7 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
           J
         </span>
       )}
-      <div className="flex-1 flex flex-col items-center justify-center gap-1 px-1 min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-center gap-2 px-1 min-h-0">
         <div className="relative flex-shrink-0">
           {player.pictureUrl ? (
             <img
