@@ -70,9 +70,9 @@ export default function Home() {
   const title = isOwnTeam ? 'Mein Team' : managerLabel(activeManager) || 'Mein Team'
   const showBearbeiten = isOwnTeam && !isAdmin
 
-  const card = (children: ReactNode) => (
-    <div className="p-6 bg-surface border border-border rounded-card">
-      <div className="relative z-20 flex items-center gap-3 flex-wrap mb-4">
+  const card = (children: ReactNode, fill = false) => (
+    <div className={`p-6 bg-surface border border-border rounded-card${fill ? ' h-full flex flex-col min-h-0' : ''}`}>
+      <div className="relative z-20 flex items-center gap-3 flex-wrap mb-4 shrink-0">
         <h2 className="text-xl font-semibold text-foreground">{title}</h2>
         <div className="ml-auto flex items-center gap-3">
           {showBearbeiten && (
@@ -94,7 +94,7 @@ export default function Home() {
           )}
         </div>
       </div>
-      {children}
+      {fill ? <div className="flex-1 min-h-0">{children}</div> : children}
     </div>
   )
 
@@ -115,19 +115,20 @@ export default function Home() {
   }
 
   return (
-    <div className="pb-6">
+    <div className="pb-6 h-full flex flex-col min-h-0">
       {card(
-        <div className="relative z-0 isolate">
+        <div className="relative z-0 isolate h-full flex flex-col min-h-0">
           {!activeManagerId ? (
-            <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend heightOffset={200} hideSum={isVorsaison} />
+            <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend hideSum={isVorsaison} />
           ) : aufstellungQuery.isError ? (
             <p className="text-sm text-danger py-10 text-center">Daten konnten nicht geladen werden.</p>
           ) : !displayAufstellung ? (
             <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
           ) : (
-            <AufstellungsFeld aufstellung={displayAufstellung} modus={feldModus} overlayLegend heightOffset={200} hideSum={isVorsaison} />
+            <AufstellungsFeld aufstellung={displayAufstellung} modus={feldModus} overlayLegend hideSum={isVorsaison} />
           )}
-        </div>
+        </div>,
+        true
       )}
     </div>
   )

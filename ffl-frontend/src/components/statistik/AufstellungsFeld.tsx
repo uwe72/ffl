@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
 import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
+import useAvailableHeight from '../../hooks/useAvailableHeight'
 
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
 
@@ -215,7 +216,6 @@ interface AufstellungsFeldProps {
   showLegend?: boolean
   overlayLegend?: boolean
   overlay?: ReactNode
-  heightOffset?: number
   hideSum?: boolean
 }
 
@@ -226,11 +226,12 @@ export default function AufstellungsFeld({
   showLegend = true,
   overlayLegend = false,
   overlay,
-  heightOffset = 64,
   hideSum = false,
 }: AufstellungsFeldProps) {
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
   const canHover = useMedia('(hover: hover)')
+  const slotRef = useRef<HTMLDivElement>(null)
+  const availableHeight = useAvailableHeight(slotRef)
 
   const grouped = useMemo(() => {
     const map: Record<string, SpielerAufstellung[]> = { GOALKEEPER: [], DEFENDER: [], MIDFIELD: [], STRIKER: [] }
@@ -249,100 +250,114 @@ export default function AufstellungsFeld({
   const cardHeight = compact ? 64 : 146
   let cardIndex = 0
 
-  return (
-    <div className="w-full flex flex-col items-center gap-3">
-      <div className="w-full">
-        <div
-          className={`relative overflow-hidden ${compact ? 'w-full' : 'mr-auto'}`}
-          style={{
-            aspectRatio: '2752 / 1536',
-            width: '100%',
-            ...(compact
-              ? {}
-              : {
-                  maxHeight: `calc(100vh - ${heightOffset}px)`,
-                  maxWidth: `calc((100vh - ${heightOffset}px) * 2752 / 1536)`,
-                }),
-            borderRadius: 6,
-            border: '1px solid var(--color-pitch-line)',
-            backgroundImage: 'url(/stadion.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          <div className="img-overlay" />
-          {overlay && (
-            <div className="absolute top-3 left-3 z-10 flex items-center gap-2 rounded-md bg-pitch-block/80 p-1.5">
-              {overlay}
-            </div>
-          )}
-          <div className="absolute inset-0 flex" style={{ padding: '28px 20px', justifyContent: 'space-around' }}>
-            {COLUMNS.map(pos => {
-              const players = grouped[pos]
-              if (!players || players.length === 0) return null
-              return (
-                <div
-                  key={pos}
-                  className="flex flex-col items-center"
-                  style={{ justifyContent: 'space-around', minWidth: cardWidth, maxWidth: cardWidth }}
-                >
-                  {players.map(player => {
-                    const idx = cardIndex++
-                    return (
-                      <div
-                        key={player.id}
-                        style={{
-                          animation: reduceMotion
-                            ? undefined
-                            : `stat-rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) both`,
-                          animationDelay: reduceMotion ? undefined : `${idx * 55}ms`,
-                        }}
-                      >
-                        <StatPlayerCard
-                          player={player}
-                          modus={modus}
-                          width={cardWidth}
-                          height={cardHeight}
-                          compact={compact}
-                        />
-                      </div>
-                    )
-                  })}
-                </div>
-              )
-            })}
-          </div>
+  const fieldSizeStyle: CSSProperties = compact
+    ? {}
+    : availableHeight
+      ? {
+          maxHeight: `${availableHeight}px`,
+          maxWidth: `${(availableHeight * 2752) / 1536}px`,
+        }
+      : {
+          maxHeight: 'calc(100vh - 220px)',
+          maxWidth: 'calc((100vh - 220px) * 2752 / 1536)',
+        }
 
-          {!compact && !hideSum && (
-            <div
-              className="absolute text-right"
-              style={{
-                top: 12,
-                right: 12,
-                padding: 12,
-                borderRadius: 6,
-                backgroundColor: 'var(--color-pitch-block)',
-                pointerEvents: 'none',
-              }}
-              aria-hidden="true"
-            >
-              <div className="text-xl font-bold tabular-nums leading-none" style={{ color: '#fafaf9' }}>
-                {sumBig}
-              </div>
-              <div
-                className="text-[10px] font-semibold uppercase mt-1"
-                style={{ color: 'var(--color-pitch-block-label)', letterSpacing: '0.12em' }}
-              >
-                {sumLabel}
-              </div>
-            </div>
-          )}
-
+  const field = (
+    <div
+      className={`relative overflow-hidden ${compact ? 'w-full' : 'mr-auto'}`}
+      style={{
+        aspectRatio: '2752 / 1536',
+        width: '100%',
+        ...fieldSizeStyle,
+        borderRadius: 6,
+        border: '1px solid var(--color-pitch-line)',
+        backgroundImage: 'url(/stadion.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <div className="img-overlay" />
+      {overlay && (
+        <div className="absolute top-3 left-3 z-10 flex items-center gap-2 rounded-md bg-pitch-block/80 p-1.5">
+          {overlay}
         </div>
+      )}
+      <div className="absolute inset-0 flex" style={{ padding: '28px 20px', justifyContent: 'space-around' }}>
+        {COLUMNS.map(pos => {
+          const players = grouped[pos]
+          if (!players || players.length === 0) return null
+          return (
+            <div
+              key={pos}
+              className="flex flex-col items-center"
+              style={{ justifyContent: 'space-around', minWidth: cardWidth, maxWidth: cardWidth }}
+            >
+              {players.map(player => {
+                const idx = cardIndex++
+                return (
+                  <div
+                    key={player.id}
+                    style={{
+                      animation: reduceMotion
+                        ? undefined
+                        : `stat-rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) both`,
+                      animationDelay: reduceMotion ? undefined : `${idx * 55}ms`,
+                    }}
+                  >
+                    <StatPlayerCard
+                      player={player}
+                      modus={modus}
+                      width={cardWidth}
+                      height={cardHeight}
+                      compact={compact}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
       </div>
 
+      {!compact && !hideSum && (
+        <div
+          className="absolute text-right"
+          style={{
+            top: 12,
+            right: 12,
+            padding: 12,
+            borderRadius: 6,
+            backgroundColor: 'var(--color-pitch-block)',
+            pointerEvents: 'none',
+          }}
+          aria-hidden="true"
+        >
+          <div className="text-xl font-bold tabular-nums leading-none" style={{ color: '#fafaf9' }}>
+            {sumBig}
+          </div>
+          <div
+            className="text-[10px] font-semibold uppercase mt-1"
+            style={{ color: 'var(--color-pitch-block-label)', letterSpacing: '0.12em' }}
+          >
+            {sumLabel}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
+  return (
+    <div className={`w-full flex flex-col items-center gap-3${compact ? '' : ' h-full min-h-0'}`}>
+      {compact ? (
+        <div className="w-full">{field}</div>
+      ) : (
+        <div ref={slotRef} className="w-full flex-1 min-h-0 flex items-start">
+          {field}
+        </div>
+      )}
+
       {showLegend && !overlayLegend && (
-        <div className="w-full flex items-center justify-between gap-3 flex-wrap">
+        <div className="w-full flex items-center justify-between gap-3 flex-wrap shrink-0">
           <div className="flex items-center justify-center gap-4 flex-wrap text-xs text-muted">
             {LEGEND.map(row => (
               <span key={row.position} className="inline-flex items-center gap-1.5">

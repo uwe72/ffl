@@ -62,7 +62,7 @@ export default function Layout() {
         />
 
         <main className="flex-1 min-w-0 overflow-y-auto bg-page pt-[30px] pb-4 md:pb-6">
-          <div className="w-full max-w-[1440px] px-[30px]">
+          <div className="w-full max-w-[1440px] px-[30px] h-full">
             <Outlet />
           </div>
         </main>
