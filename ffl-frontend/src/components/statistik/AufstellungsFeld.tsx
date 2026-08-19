@@ -184,31 +184,31 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
 
   const back = mobile ? (
     <div
-      className="relative w-full h-full overflow-hidden flex flex-col"
-      style={{ borderRadius: 6, backgroundColor: 'var(--color-background)', borderTop: `3px solid ${posColor}` }}
+      className="relative w-full h-full overflow-hidden flex flex-col bg-surface"
+      style={{ borderRadius: 6, borderTop: `3px solid ${posColor}` }}
     >
       <div className="flex-1 min-h-0 flex flex-col justify-center px-3 py-2">
-        <div className="text-[9px] font-semibold uppercase tracking-wider text-subtle mb-1">Punkte</div>
-        <div className="flex items-baseline justify-between text-[13px] mb-2">
-          <span className="text-muted">Gesamt</span>
+        <div className="text-[9px] font-semibold uppercase tracking-wider text-muted mb-1.5">Punkte</div>
+        <div className="flex items-baseline justify-between text-[13px] mb-1.5">
+          <span className="text-subtle">Gesamt</span>
           <span className="font-bold text-foreground tabular-nums">{formatPoints(player.punkteGesamt)}</span>
         </div>
         <div className="flex items-baseline justify-between text-[13px] mb-3">
-          <span className="text-muted">Spieltag</span>
+          <span className="text-subtle">Spieltag</span>
           <span className="font-bold text-foreground tabular-nums">{formatPoints(player.punkteSpieltag)}</span>
         </div>
-        <div className="text-[9px] font-semibold uppercase tracking-wider text-subtle mb-1">Platzierung</div>
-        <div className="flex items-baseline justify-between text-[13px] mb-2">
-          <span className="text-muted">Gesamt</span>
+        <div className="text-[9px] font-semibold uppercase tracking-wider text-muted mb-1.5">Platzierung</div>
+        <div className="flex items-baseline justify-between text-[13px] mb-1.5">
+          <span className="text-subtle">Gesamt</span>
           <span className="font-bold text-foreground tabular-nums">{player.positionTotal}</span>
         </div>
         <div className="flex items-baseline justify-between text-[13px]">
-          <span className="text-muted">Spieltag</span>
+          <span className="text-subtle">Spieltag</span>
           <span className="font-bold text-foreground tabular-nums">{player.positionRound}</span>
         </div>
       </div>
-      <div className="flex items-center justify-between border-t border-border px-3 py-2">
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-subtle">Preis</span>
+      <div className="flex items-center justify-between border-t border-border bg-elevated px-3 py-2">
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted">Preis</span>
         <span className="text-[13px] font-bold text-foreground tabular-nums">{formatMillionsShort(player.marktwert)} €</span>
       </div>
     </div>
