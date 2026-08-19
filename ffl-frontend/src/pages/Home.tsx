@@ -26,10 +26,10 @@ const EMPTY_AUFSTELLUNG: Aufstellung = {
 function managerLabel(m?: Manager): string {
   if (!m) return ''
   const fullName = `${m.firstName ?? ''} ${m.lastName ?? ''}`.trim()
-  if (fullName && m.shortName) return `Team ${fullName} (${m.shortName})`
-  if (fullName) return `Team ${fullName}`
-  if (m.shortName) return `Team ${m.shortName}`
-  return ''
+  if (fullName && m.login) return `${fullName} (${m.login})`
+  if (fullName) return fullName
+  if (m.login) return m.login
+  return m.shortName ?? ''
 }
 
 export default function Home() {
@@ -65,13 +65,13 @@ export default function Home() {
   const isVorsaison = displayAufstellung?.phase === 'VORSAISON'
   const feldModus: 'gesamt' | 'wert' = isVorsaison ? 'wert' : 'gesamt'
 
-  const subtitle = managerLabel(activeManager)
+  const isOwnTeam = activeManagerId === refManagerId
+  const title = isOwnTeam ? 'Mein Team' : managerLabel(activeManager) || 'Mein Team'
 
   const card = (children: ReactNode) => (
     <div className="p-6 bg-surface border border-border rounded-card">
       <div className="relative z-20 flex items-center gap-3 flex-wrap mb-4">
-        <h2 className="text-xl font-semibold text-foreground">Dashboard</h2>
-        {subtitle && <span className="text-sm text-muted">{subtitle}</span>}
+        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
         {canSelectManager && (
           <div className="ml-auto">
             <ManagerSelect
