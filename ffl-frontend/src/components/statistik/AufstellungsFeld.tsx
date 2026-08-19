@@ -279,7 +279,7 @@ export default function AufstellungsFeld({
 
   const field = (
     <div
-      className={`relative overflow-hidden ${compact ? 'w-full' : 'mr-auto'}`}
+      className={`relative overflow-hidden ${compact ? 'w-full' : 'mx-auto'}`}
       style={{
         ...fieldSizeStyle,
         borderRadius: 6,
