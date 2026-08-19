@@ -2,7 +2,17 @@ import { useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
 import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
-import useAvailableHeight from '../../hooks/useAvailableHeight'
+import useElementSize from '../../hooks/useElementSize'
+
+const CARD_W = 142
+const CARD_H = 146
+const PAD_H = 20
+const PAD_V = 28
+const GAP_V = 14
+const FIELD_RATIO = 2752 / 1536
+const DESIGN_COL_H = 2 * PAD_V + 4 * CARD_H + 3 * GAP_V
+const DESIGN_ROW_W = 2 * PAD_H + 4 * CARD_W
+const SCALE_FLOOR = 0.7
 
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
 
@@ -231,7 +241,7 @@ export default function AufstellungsFeld({
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
   const canHover = useMedia('(hover: hover)')
   const slotRef = useRef<HTMLDivElement>(null)
-  const availableHeight = useAvailableHeight(slotRef)
+  const slotSize = useElementSize(slotRef)
 
   const grouped = useMemo(() => {
     const map: Record<string, SpielerAufstellung[]> = { GOALKEEPER: [], DEFENDER: [], MIDFIELD: [], STRIKER: [] }
@@ -246,28 +256,36 @@ export default function AufstellungsFeld({
   const sumBig = modus === 'wert' ? formatMillionen(sum) : formatPoints(sum)
   const sumLabel = modus === 'wert' ? 'Kaderwert' : modus === 'spieltag' ? 'Punkte Spieltag' : 'Punkte gesamt'
 
-  const cardWidth = compact ? 64 : 'clamp(118px, 11.2vw, 142px)'
-  const cardHeight = compact ? 64 : 146
   let cardIndex = 0
 
+  const layout = useMemo(() => {
+    if (compact || !slotSize || slotSize.width <= 0 || slotSize.height <= 0) {
+      return { scale: 1, fieldW: undefined as number | undefined, fieldH: undefined as number | undefined }
+    }
+    const containW = Math.min(slotSize.width, slotSize.height * FIELD_RATIO)
+    const containH = containW / FIELD_RATIO
+    const scaleRaw = Math.min(containW / DESIGN_ROW_W, containH / DESIGN_COL_H, 1)
+    const scale = Math.max(scaleRaw, SCALE_FLOOR)
+    const floored = scaleRaw < SCALE_FLOOR
+    return floored
+      ? { scale, fieldW: slotSize.width, fieldH: DESIGN_COL_H * scale }
+      : { scale, fieldW: containW, fieldH: containH }
+  }, [compact, slotSize])
+
+  const scale = layout.scale
+  const cardWidth = compact ? 64 : CARD_W * scale
+  const cardHeight = compact ? 64 : CARD_H * scale
+  const padH = PAD_H * scale
+  const padV = PAD_V * scale
+
   const fieldSizeStyle: CSSProperties = compact
-    ? {}
-    : availableHeight
-      ? {
-          maxHeight: `${availableHeight}px`,
-          maxWidth: `${(availableHeight * 2752) / 1536}px`,
-        }
-      : {
-          maxHeight: 'calc(100vh - 220px)',
-          maxWidth: 'calc((100vh - 220px) * 2752 / 1536)',
-        }
+    ? { aspectRatio: '2752 / 1536', width: '100%' }
+    : { width: layout.fieldW, height: layout.fieldH }
 
   const field = (
     <div
       className={`relative overflow-hidden ${compact ? 'w-full' : 'mr-auto'}`}
       style={{
-        aspectRatio: '2752 / 1536',
-        width: '100%',
         ...fieldSizeStyle,
         borderRadius: 6,
         border: '1px solid var(--color-pitch-line)',
@@ -282,7 +300,10 @@ export default function AufstellungsFeld({
           {overlay}
         </div>
       )}
-      <div className="absolute inset-0 flex" style={{ padding: '28px 20px', justifyContent: 'space-around' }}>
+      <div
+        className="absolute inset-0 flex"
+        style={{ padding: `${padV}px ${padH}px`, justifyContent: 'space-around' }}
+      >
         {COLUMNS.map(pos => {
           const players = grouped[pos]
           if (!players || players.length === 0) return null
@@ -298,19 +319,21 @@ export default function AufstellungsFeld({
                   <div
                     key={player.id}
                     style={{
+                      width: cardWidth,
+                      height: cardHeight,
                       animation: reduceMotion
                         ? undefined
                         : `stat-rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) both`,
                       animationDelay: reduceMotion ? undefined : `${idx * 55}ms`,
                     }}
                   >
-                    <StatPlayerCard
-                      player={player}
-                      modus={modus}
-                      width={cardWidth}
-                      height={cardHeight}
-                      compact={compact}
-                    />
+                    {compact ? (
+                      <StatPlayerCard player={player} modus={modus} width={64} height={64} compact />
+                    ) : (
+                      <div style={{ width: CARD_W, height: CARD_H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+                        <StatPlayerCard player={player} modus={modus} width={CARD_W} height={CARD_H} compact={false} />
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -323,21 +346,29 @@ export default function AufstellungsFeld({
         <div
           className="absolute text-right"
           style={{
-            top: 12,
-            right: 12,
-            padding: 12,
+            top: 12 * scale,
+            right: 12 * scale,
+            padding: 12 * scale,
             borderRadius: 6,
             backgroundColor: 'var(--color-pitch-block)',
             pointerEvents: 'none',
           }}
           aria-hidden="true"
         >
-          <div className="text-xl font-bold tabular-nums leading-none" style={{ color: '#fafaf9' }}>
+          <div
+            className="font-bold tabular-nums leading-none"
+            style={{ color: '#fafaf9', fontSize: 20 * scale }}
+          >
             {sumBig}
           </div>
           <div
-            className="text-[10px] font-semibold uppercase mt-1"
-            style={{ color: 'var(--color-pitch-block-label)', letterSpacing: '0.12em' }}
+            className="font-semibold uppercase"
+            style={{
+              color: 'var(--color-pitch-block-label)',
+              letterSpacing: '0.12em',
+              fontSize: 10 * scale,
+              marginTop: 4 * scale,
+            }}
           >
             {sumLabel}
           </div>
@@ -347,13 +378,14 @@ export default function AufstellungsFeld({
   )
 
   return (
-    <div className={`w-full flex flex-col items-center gap-3${compact ? '' : ' h-full min-h-0'}`}>
+    <div className={`w-full flex flex-col items-center gap-3${compact ? '' : ' relative h-full min-h-0'}`}>
+      {!compact && (
+        <div ref={slotRef} className="absolute inset-0 -z-10 pointer-events-none" aria-hidden="true" />
+      )}
       {compact ? (
         <div className="w-full">{field}</div>
       ) : (
-        <div ref={slotRef} className="w-full flex-1 min-h-0 flex items-start">
-          {field}
-        </div>
+        <div className="w-full flex items-start justify-start">{field}</div>
       )}
 
       {showLegend && !overlayLegend && (
