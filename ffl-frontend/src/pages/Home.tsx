@@ -76,12 +76,13 @@ export default function Home() {
         <h2 className="text-xl font-semibold text-foreground">{title}</h2>
         {showBearbeiten && (
           <Button
-            variant="emphasized"
+            variant="ghost"
             size="input"
             onClick={() => navigate('/my-team')}
+            aria-label="Team bearbeiten"
+            title="Team bearbeiten"
           >
             <i className="sap-icon sap-icon-edit text-sm" />
-            Bearbeiten
           </Button>
         )}
         <div className="ml-auto flex items-center gap-3">
