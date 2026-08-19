@@ -29,8 +29,8 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadAvatar = useUploadAvatar()
   const { data: avatarUrl } = useAvatar(user?.id ?? null)
-  const { data: currentSeason } = useCurrentSeason()
-  const isRestricted = isAuthenticated && currentSeason?.seasonState === 'BEFORE_SEASON' && user?.role !== 'ADMIN'
+  const { data: currentSeason, isLoading: seasonLoading } = useCurrentSeason()
+  const isRestricted = isAuthenticated && user?.role !== 'ADMIN' && (seasonLoading || currentSeason?.seasonState === 'BEFORE_SEASON')
   const canAccessGallery = user?.role === 'ADMIN' || !!user?.avatarUrl
 
   useEffect(() => {
