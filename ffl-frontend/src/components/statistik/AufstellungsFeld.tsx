@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
 import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
 import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
 import useElementSize from '../../hooks/useElementSize'
@@ -226,6 +226,7 @@ interface AufstellungsFeldProps {
   overlayLegend?: boolean
   overlay?: ReactNode
   hideSum?: boolean
+  fieldRef?: RefObject<HTMLDivElement | null>
 }
 
 export default function AufstellungsFeld({
@@ -236,6 +237,7 @@ export default function AufstellungsFeld({
   overlayLegend = false,
   overlay,
   hideSum = false,
+  fieldRef,
 }: AufstellungsFeldProps) {
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
   const canHover = useMedia('(hover: hover)')
@@ -279,6 +281,7 @@ export default function AufstellungsFeld({
 
   const field = (
     <div
+      ref={fieldRef}
       className={`relative overflow-hidden ${compact ? 'w-full' : 'mr-auto'}`}
       style={{
         ...fieldSizeStyle,
