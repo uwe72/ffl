@@ -74,17 +74,17 @@ export default function Home() {
     <div className={`p-6 bg-surface border border-border rounded-card${fill ? ' h-full flex flex-col min-h-0' : ''}`}>
       <div className="relative z-20 flex items-center gap-3 flex-wrap mb-4 shrink-0">
         <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+        {showBearbeiten && (
+          <Button
+            variant="emphasized"
+            size="input"
+            onClick={() => navigate('/my-team')}
+          >
+            <i className="sap-icon sap-icon-edit text-sm" />
+            Bearbeiten
+          </Button>
+        )}
         <div className="ml-auto flex items-center gap-3">
-          {showBearbeiten && (
-            <Button
-              variant="emphasized"
-              size="input"
-              onClick={() => navigate('/my-team')}
-            >
-              <i className="sap-icon sap-icon-edit text-sm" />
-              Bearbeiten
-            </Button>
-          )}
           {canSelectManager && (
             <ManagerSelect
               managers={managers ?? []}
