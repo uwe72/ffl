@@ -52,7 +52,7 @@ export default function AufstellungVertikal({
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 {players.map(p => (
-                  <StatPlayerCard key={p.id} player={p} modus={modus} width="100%" height={165} compact={false} pictureScale={1.5} mobile />
+                  <StatPlayerCard key={p.id} player={p} modus={modus} width="100%" height={148} compact={false} pictureScale={1.5} mobile />
                 ))}
               </div>
             </div>
