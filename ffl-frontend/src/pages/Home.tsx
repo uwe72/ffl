@@ -115,7 +115,7 @@ export default function Home() {
   }
 
   return (
-    <div className="pb-6 h-full flex flex-col min-h-0">
+    <div className="pb-6 h-[103%] flex flex-col min-h-0">
       {card(
         <div className="relative z-0 isolate h-full flex flex-col min-h-0">
           {!activeManagerId ? (

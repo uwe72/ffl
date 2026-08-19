@@ -12,7 +12,6 @@ const GAP_V = 14
 const FIELD_RATIO = 2752 / 1536
 const DESIGN_COL_H = 2 * PAD_V + 4 * CARD_H + 3 * GAP_V
 const DESIGN_ROW_W = 2 * PAD_H + 4 * CARD_W
-const SCALE_FLOOR = 0.7
 
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
 
@@ -264,12 +263,8 @@ export default function AufstellungsFeld({
     }
     const containW = Math.min(slotSize.width, slotSize.height * FIELD_RATIO)
     const containH = containW / FIELD_RATIO
-    const scaleRaw = Math.min(containW / DESIGN_ROW_W, containH / DESIGN_COL_H, 1)
-    const scale = Math.max(scaleRaw, SCALE_FLOOR)
-    const floored = scaleRaw < SCALE_FLOOR
-    return floored
-      ? { scale, fieldW: slotSize.width, fieldH: DESIGN_COL_H * scale }
-      : { scale, fieldW: containW, fieldH: containH }
+    const scale = Math.min(containW / DESIGN_ROW_W, containH / DESIGN_COL_H, 1)
+    return { scale, fieldW: containW, fieldH: containH }
   }, [compact, slotSize])
 
   const scale = layout.scale
@@ -379,13 +374,10 @@ export default function AufstellungsFeld({
 
   return (
     <div className={`w-full flex flex-col items-center gap-3${compact ? '' : ' relative h-full min-h-0'}`}>
-      {!compact && (
-        <div ref={slotRef} className="absolute inset-0 -z-10 pointer-events-none" aria-hidden="true" />
-      )}
       {compact ? (
         <div className="w-full">{field}</div>
       ) : (
-        <div className="w-full flex items-start justify-start">{field}</div>
+        <div ref={slotRef} className="w-full flex-1 min-h-0 flex items-start justify-start">{field}</div>
       )}
 
       {showLegend && !overlayLegend && (
