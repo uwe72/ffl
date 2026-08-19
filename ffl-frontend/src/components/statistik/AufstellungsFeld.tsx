@@ -56,9 +56,10 @@ interface StatPlayerCardProps {
   height: number
   compact: boolean
   pictureScale?: number
+  mobile?: boolean
 }
 
-export function StatPlayerCard({ player, modus, width, height, compact, pictureScale = 1 }: StatPlayerCardProps) {
+export function StatPlayerCard({ player, modus, width, height, compact, pictureScale = 1, mobile = false }: StatPlayerCardProps) {
   const [flipped, setFlipped] = useState(false)
   const canHover = useMedia('(hover: hover)')
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
@@ -87,6 +88,56 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       </div>
       <div className="absolute bottom-1 left-1.5 text-base font-bold text-foreground tabular-nums leading-none">
         {bigText(player, modus)}
+      </div>
+    </div>
+  ) : mobile ? (
+    <div
+      className="relative w-full bg-stat-card border border-border overflow-hidden flex items-center px-3 py-3 gap-3"
+      style={{ borderRadius: 6 }}
+    >
+      <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: posColor }} />
+      {player.joker && (
+        <span className="absolute top-1 right-1 z-10 text-[8px] font-bold leading-none px-1 py-0.5 rounded-badge bg-stat-accent text-white">
+          J
+        </span>
+      )}
+      <div className="flex flex-col items-center gap-2 shrink-0">
+        <div className="relative flex-shrink-0">
+          {player.pictureUrl ? (
+            <img
+              src={player.pictureUrl}
+              alt={fullName}
+              className="rounded-full object-cover border border-border"
+              style={{ width: 67 * pictureScale, height: 67 * pictureScale }}
+            />
+          ) : (
+            <div
+              className="rounded-full bg-elevated border border-border flex items-center justify-center"
+              style={{ width: 67 * pictureScale, height: 67 * pictureScale }}
+            >
+              <i className="sap-icon sap-icon-employee text-[26px] text-subtle" />
+            </div>
+          )}
+          {player.vereinLogoUrl && (
+            <img
+              src={player.vereinLogoUrl}
+              alt={player.vereinKuerzel}
+              className="absolute -bottom-1 -right-1 rounded-full bg-white border border-border object-contain"
+              style={{ width: 26 * pictureScale, height: 26 * pictureScale }}
+            />
+          )}
+        </div>
+        <div className="text-[12px] font-semibold text-foreground truncate leading-tight max-w-full">{fullName}</div>
+      </div>
+      <div className="ml-auto flex flex-col items-end text-right">
+        <div className="mb-1">
+          <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Gesamt</div>
+          <div className="text-[15px] font-bold text-foreground tabular-nums leading-none">{formatPoints(player.punkteGesamt)}</div>
+        </div>
+        <div>
+          <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Spieltag</div>
+          <div className="text-[15px] font-bold text-foreground tabular-nums leading-none">{formatPoints(player.punkteSpieltag)}</div>
+        </div>
       </div>
     </div>
   ) : (
@@ -183,37 +234,64 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       onMouseLeave={handleLeave}
       aria-label={player.name}
       className="relative block p-0 border-0 bg-transparent cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-      style={{ width, height }}
+      style={mobile ? { width } : { width, height }}
     >
-      <div className="relative w-full h-full" style={{ perspective: '600px' }}>
-        {reduceMotion ? (
-          <div className="relative w-full h-full">
-            <div
-              className="absolute inset-0 transition-opacity duration-200"
-              style={{ opacity: flipped ? 0 : 1 }}
-            >
-              {front}
+      {mobile ? (
+        <div className="relative w-full" style={{ perspective: '600px' }}>
+          {reduceMotion ? (
+            <div className="relative w-full">
+              <div className="transition-opacity duration-200" style={{ opacity: flipped ? 0 : 1 }}>{front}</div>
+              <div className="absolute inset-0 transition-opacity duration-200" style={{ opacity: flipped ? 1 : 0 }}>{back}</div>
             </div>
+          ) : (
             <div
-              className="absolute inset-0 transition-opacity duration-200"
-              style={{ opacity: flipped ? 1 : 0 }}
+              className="relative w-full transition-transform duration-300 ease-in-out"
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+              }}
             >
-              {back}
+              <div style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>{front}</div>
+              <div
+                className="absolute inset-0"
+                style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+              >
+                {back}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div
-            className="relative w-full h-full transition-transform duration-300 ease-in-out"
-            style={{
-              transformStyle: 'preserve-3d',
-              transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-            }}
-          >
-            <div style={faceContainer}>{front}</div>
-            <div style={{ ...faceContainer, transform: 'rotateY(180deg)' }}>{back}</div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      ) : (
+        <div className="relative w-full h-full" style={{ perspective: '600px' }}>
+          {reduceMotion ? (
+            <div className="relative w-full h-full">
+              <div
+                className="absolute inset-0 transition-opacity duration-200"
+                style={{ opacity: flipped ? 0 : 1 }}
+              >
+                {front}
+              </div>
+              <div
+                className="absolute inset-0 transition-opacity duration-200"
+                style={{ opacity: flipped ? 1 : 0 }}
+              >
+                {back}
+              </div>
+            </div>
+          ) : (
+            <div
+              className="relative w-full h-full transition-transform duration-300 ease-in-out"
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+              }}
+            >
+              <div style={faceContainer}>{front}</div>
+              <div style={{ ...faceContainer, transform: 'rotateY(180deg)' }}>{back}</div>
+            </div>
+          )}
+        </div>
+      )}
     </button>
   )
 }
