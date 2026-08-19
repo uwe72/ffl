@@ -330,29 +330,6 @@ export default function AufstellungsFeld({
             </div>
           )}
 
-          {overlayLegend && (
-            <>
-              <div className="absolute bottom-2 left-2 z-10 flex items-center gap-3 rounded-md bg-pitch-block/80 px-2 py-1">
-                {LEGEND.map(row => (
-                  <span
-                    key={row.position}
-                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold"
-                    style={{ color: '#fafaf9' }}
-                  >
-                    <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: POSITION_COLOR[row.position] }} />
-                    {row.label}
-                  </span>
-                ))}
-              </div>
-              <div
-                className="absolute bottom-2 right-2 z-10 rounded-md bg-pitch-block/80 px-2 py-1 text-[11px] font-semibold"
-                style={{ color: 'var(--color-pitch-block-label)', letterSpacing: '0.04em' }}
-                aria-hidden="true"
-              >
-                {canHover ? 'Anklicken zum Umdrehen' : 'Antippen zum Umdrehen'}
-              </div>
-            </>
-          )}
         </div>
       </div>
 
