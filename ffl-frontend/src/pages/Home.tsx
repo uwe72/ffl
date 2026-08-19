@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCurrentManager, useManagersBySeason } from '../hooks/useManagers'
@@ -6,7 +6,6 @@ import { useCurrentSeason } from '../hooks/useSeasons'
 import { useDashboardAufstellung } from '../hooks/useDashboard'
 import { useAuth } from '../context/AuthContext'
 import useIsMobile from '../hooks/useIsMobile'
-import useElementSize from '../hooks/useElementSize'
 import ManagerSelect from '../components/ManagerSelect'
 import Button from '../components/Button'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
@@ -43,8 +42,6 @@ export default function Home() {
   const { data: managers } = useManagersBySeason(season?.id ?? 0)
 
   const [selectedManagerId, setSelectedManagerId] = useState<number | null>(null)
-  const fieldRef = useRef<HTMLDivElement>(null)
-  const fieldSize = useElementSize(fieldRef)
 
   useEffect(() => {
     if (!isAuthenticated) navigate('/login')
@@ -75,8 +72,7 @@ export default function Home() {
 
   const card = (children: ReactNode, fill = false) => (
     <div
-      className={`p-6 bg-surface border border-border rounded-card${fill ? ' h-full flex flex-col min-h-0' : ''}`}
-      style={fieldSize ? { width: fieldSize.width + 48 } : undefined}
+      className={`p-6 bg-surface border border-border rounded-card${fill ? ' h-full flex flex-col min-h-0 max-w-[1300px]' : ''}`}
     >
       <div className="relative z-20 flex items-center gap-3 flex-wrap mb-4 shrink-0">
         <h2 className="text-xl font-semibold text-foreground">{title}</h2>
@@ -126,13 +122,13 @@ export default function Home() {
       {card(
         <div className="relative z-0 isolate h-full flex flex-col min-h-0">
           {!activeManagerId ? (
-            <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend hideSum={isVorsaison} fieldRef={fieldRef} />
+            <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend hideSum={isVorsaison} />
           ) : aufstellungQuery.isError ? (
             <p className="text-sm text-danger py-10 text-center">Daten konnten nicht geladen werden.</p>
           ) : !displayAufstellung ? (
             <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
           ) : (
-            <AufstellungsFeld aufstellung={displayAufstellung} modus={feldModus} overlayLegend hideSum={isVorsaison} fieldRef={fieldRef} />
+            <AufstellungsFeld aufstellung={displayAufstellung} modus={feldModus} overlayLegend hideSum={isVorsaison} />
           )}
         </div>,
         true
