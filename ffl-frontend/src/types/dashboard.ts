@@ -14,6 +14,8 @@ export interface SpielerAufstellung {
   joker: boolean
   punkteGesamt: number
   punkteSpieltag: number
+  positionTotal: number
+  positionRound: number
   marktwert: number
   tore: number
   zuNull: number

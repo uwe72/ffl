@@ -63,6 +63,19 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    void aufstellung_liefertPlatzierungGesamtUndSpieltag() {
+        Round round = roundRepository.findBySeasonIdAndNumber(season.getId(), season.getCurrentMatchday()).orElseThrow();
+        AufstellungDto dto = dashboardService.getAufstellung(managerUwe72.getId());
+
+        assertThat(dto.getSpieler()).isNotEmpty();
+        for (SpielerAufstellungDto s : dto.getSpieler()) {
+            PlayerRank pr = playerRankRepository.findByPlayerIdAndRoundId(s.getId(), round.getId()).orElse(null);
+            assertThat(s.getPositionTotal()).isEqualTo(pr != null ? pr.getPositionTotal() : 0);
+            assertThat(s.getPositionRound()).isEqualTo(pr != null ? pr.getPositionRound() : 0);
+        }
+    }
+
+    @Test
     void rangliste_gesamt_liefertAusschnittMitEigenerZeile() {
         RanglisteDto dto = dashboardService.getRangliste(managerUwe72.getId(), 2, "gesamt");
 

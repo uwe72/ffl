@@ -86,6 +86,8 @@ public class DashboardService {
                 .joker(isJoker(manager, p))
                 .punkteGesamt(pr != null ? pr.getPointsTotal() : 0)
                 .punkteSpieltag(pr != null ? pr.getPointsRound() : 0)
+                .positionTotal(pr != null ? pr.getPositionTotal() : 0)
+                .positionRound(pr != null ? pr.getPositionRound() : 0)
                 .marktwert(p.getPrize())
                 .tore(tore(p))
                 .zuNull(zuNull(p))

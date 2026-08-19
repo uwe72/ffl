@@ -92,7 +92,7 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
     </div>
   ) : mobile ? (
     <div
-      className="relative w-full bg-stat-card border border-border overflow-hidden flex items-center px-3 py-3 gap-3"
+      className="relative w-full h-full bg-stat-card border border-border overflow-hidden flex flex-col items-center justify-center gap-2 px-1"
       style={{ borderRadius: 6 }}
     >
       <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: posColor }} />
@@ -101,44 +101,32 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
           J
         </span>
       )}
-      <div className="flex flex-col items-center gap-2 shrink-0">
-        <div className="relative flex-shrink-0">
-          {player.pictureUrl ? (
-            <img
-              src={player.pictureUrl}
-              alt={fullName}
-              className="rounded-full object-cover border border-border"
-              style={{ width: 67 * pictureScale, height: 67 * pictureScale }}
-            />
-          ) : (
-            <div
-              className="rounded-full bg-elevated border border-border flex items-center justify-center"
-              style={{ width: 67 * pictureScale, height: 67 * pictureScale }}
-            >
-              <i className="sap-icon sap-icon-employee text-[26px] text-subtle" />
-            </div>
-          )}
-          {player.vereinLogoUrl && (
-            <img
-              src={player.vereinLogoUrl}
-              alt={player.vereinKuerzel}
-              className="absolute -bottom-1 -right-1 rounded-full bg-white border border-border object-contain"
-              style={{ width: 26 * pictureScale, height: 26 * pictureScale }}
-            />
-          )}
-        </div>
-        <div className="text-[12px] font-semibold text-foreground truncate leading-tight max-w-full">{fullName}</div>
+      <div className="relative flex-shrink-0">
+        {player.pictureUrl ? (
+          <img
+            src={player.pictureUrl}
+            alt={fullName}
+            className="rounded-full object-cover border border-border"
+            style={{ width: 67 * pictureScale, height: 67 * pictureScale }}
+          />
+        ) : (
+          <div
+            className="rounded-full bg-elevated border border-border flex items-center justify-center"
+            style={{ width: 67 * pictureScale, height: 67 * pictureScale }}
+          >
+            <i className="sap-icon sap-icon-employee text-[26px] text-subtle" />
+          </div>
+        )}
+        {player.vereinLogoUrl && (
+          <img
+            src={player.vereinLogoUrl}
+            alt={player.vereinKuerzel}
+            className="absolute -bottom-1 -right-1 rounded-full bg-white border border-border object-contain"
+            style={{ width: 26 * pictureScale, height: 26 * pictureScale }}
+          />
+        )}
       </div>
-      <div className="ml-auto flex flex-col items-end text-right">
-        <div className="mb-1">
-          <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Gesamt</div>
-          <div className="text-[15px] font-bold text-foreground tabular-nums leading-none">{formatPoints(player.punkteGesamt)}</div>
-        </div>
-        <div>
-          <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Spieltag</div>
-          <div className="text-[15px] font-bold text-foreground tabular-nums leading-none">{formatPoints(player.punkteSpieltag)}</div>
-        </div>
-      </div>
+      <div className="text-[12px] font-semibold text-foreground truncate leading-tight max-w-full">{fullName}</div>
     </div>
   ) : (
     <div
@@ -194,7 +182,37 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
     </div>
   )
 
-  const back = (
+  const back = mobile ? (
+    <div
+      className="relative w-full h-full overflow-hidden flex flex-col"
+      style={{ borderRadius: 6, backgroundColor: 'var(--color-background)', borderTop: `3px solid ${posColor}` }}
+    >
+      <div className="flex-1 min-h-0 flex flex-col justify-center px-3 py-2">
+        <div className="text-[9px] font-semibold uppercase tracking-wider text-subtle mb-1">Punkte</div>
+        <div className="flex items-baseline justify-between text-[13px] mb-2">
+          <span className="text-muted">Gesamt</span>
+          <span className="font-bold text-foreground tabular-nums">{formatPoints(player.punkteGesamt)}</span>
+        </div>
+        <div className="flex items-baseline justify-between text-[13px] mb-3">
+          <span className="text-muted">Spieltag</span>
+          <span className="font-bold text-foreground tabular-nums">{formatPoints(player.punkteSpieltag)}</span>
+        </div>
+        <div className="text-[9px] font-semibold uppercase tracking-wider text-subtle mb-1">Platzierung</div>
+        <div className="flex items-baseline justify-between text-[13px] mb-2">
+          <span className="text-muted">Gesamt</span>
+          <span className="font-bold text-foreground tabular-nums">{player.positionTotal}</span>
+        </div>
+        <div className="flex items-baseline justify-between text-[13px]">
+          <span className="text-muted">Spieltag</span>
+          <span className="font-bold text-foreground tabular-nums">{player.positionRound}</span>
+        </div>
+      </div>
+      <div className="flex items-center justify-between border-t border-border px-3 py-2">
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-subtle">Preis</span>
+        <span className="text-[13px] font-bold text-foreground tabular-nums">{formatMillionsShort(player.marktwert)} €</span>
+      </div>
+    </div>
+  ) : (
     <div
       className="relative w-full h-full overflow-hidden"
       style={{
@@ -234,64 +252,37 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       onMouseLeave={handleLeave}
       aria-label={player.name}
       className="relative block p-0 border-0 bg-transparent cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-      style={mobile ? { width } : { width, height }}
+      style={{ width, height }}
     >
-      {mobile ? (
-        <div className="relative w-full" style={{ perspective: '600px' }}>
-          {reduceMotion ? (
-            <div className="relative w-full">
-              <div className="transition-opacity duration-200" style={{ opacity: flipped ? 0 : 1 }}>{front}</div>
-              <div className="absolute inset-0 transition-opacity duration-200" style={{ opacity: flipped ? 1 : 0 }}>{back}</div>
-            </div>
-          ) : (
+      <div className="relative w-full h-full" style={{ perspective: '600px' }}>
+        {reduceMotion ? (
+          <div className="relative w-full h-full">
             <div
-              className="relative w-full transition-transform duration-300 ease-in-out"
-              style={{
-                transformStyle: 'preserve-3d',
-                transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-              }}
+              className="absolute inset-0 transition-opacity duration-200"
+              style={{ opacity: flipped ? 0 : 1 }}
             >
-              <div style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>{front}</div>
-              <div
-                className="absolute inset-0"
-                style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-              >
-                {back}
-              </div>
+              {front}
             </div>
-          )}
-        </div>
-      ) : (
-        <div className="relative w-full h-full" style={{ perspective: '600px' }}>
-          {reduceMotion ? (
-            <div className="relative w-full h-full">
-              <div
-                className="absolute inset-0 transition-opacity duration-200"
-                style={{ opacity: flipped ? 0 : 1 }}
-              >
-                {front}
-              </div>
-              <div
-                className="absolute inset-0 transition-opacity duration-200"
-                style={{ opacity: flipped ? 1 : 0 }}
-              >
-                {back}
-              </div>
-            </div>
-          ) : (
             <div
-              className="relative w-full h-full transition-transform duration-300 ease-in-out"
-              style={{
-                transformStyle: 'preserve-3d',
-                transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-              }}
+              className="absolute inset-0 transition-opacity duration-200"
+              style={{ opacity: flipped ? 1 : 0 }}
             >
-              <div style={faceContainer}>{front}</div>
-              <div style={{ ...faceContainer, transform: 'rotateY(180deg)' }}>{back}</div>
+              {back}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        ) : (
+          <div
+            className="relative w-full h-full transition-transform duration-300 ease-in-out"
+            style={{
+              transformStyle: 'preserve-3d',
+              transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            }}
+          >
+            <div style={faceContainer}>{front}</div>
+            <div style={{ ...faceContainer, transform: 'rotateY(180deg)' }}>{back}</div>
+          </div>
+        )}
+      </div>
     </button>
   )
 }

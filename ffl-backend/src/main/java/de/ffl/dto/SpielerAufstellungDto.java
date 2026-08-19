@@ -24,6 +24,8 @@ public class SpielerAufstellungDto {
     private Boolean joker;
     private Integer punkteGesamt;
     private Integer punkteSpieltag;
+    private Integer positionTotal;
+    private Integer positionRound;
     private Integer marktwert;
     private Integer tore;
     private Integer zuNull;

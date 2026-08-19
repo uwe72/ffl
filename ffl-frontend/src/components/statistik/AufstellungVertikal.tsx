@@ -46,14 +46,16 @@ export default function AufstellungVertikal({
         const players = grouped[pos]
         if (!players || players.length === 0) return null
         return (
-          <div key={pos} className="flex flex-col gap-3">
-            <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[pos]}`}>
-              {positionLabels[pos]}
-            </h3>
-            {players.map(p => (
-              <StatPlayerCard key={p.id} player={p} modus={modus} width="100%" height={176} compact={false} pictureScale={1.5} mobile />
-            ))}
-          </div>
+            <div key={pos} className="flex flex-col gap-3">
+              <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[pos]}`}>
+                {positionLabels[pos]}
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {players.map(p => (
+                  <StatPlayerCard key={p.id} player={p} modus={modus} width="100%" height={165} compact={false} pictureScale={1.5} mobile />
+                ))}
+              </div>
+            </div>
         )
       })}
     </div>
