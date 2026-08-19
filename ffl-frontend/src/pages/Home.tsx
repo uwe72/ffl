@@ -9,7 +9,7 @@ import useIsMobile from '../hooks/useIsMobile'
 import ManagerSelect from '../components/ManagerSelect'
 import Button from '../components/Button'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
-import AufstellungKompakt from '../components/statistik/AufstellungKompakt'
+import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
 import type { Aufstellung } from '../types/dashboard'
 import type { Manager } from '../types'
 
@@ -77,7 +77,7 @@ export default function Home() {
         <div className="ml-auto flex items-center gap-3">
           {showBearbeiten && (
             <Button
-              variant="secondary"
+              variant="emphasized"
               size="input"
               onClick={() => navigate('/my-team')}
             >
@@ -107,7 +107,7 @@ export default function Home() {
           ) : aufstellungQuery.isLoading || !aufstellungQuery.data ? (
             <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
           ) : (
-            <AufstellungKompakt aufstellung={aufstellungQuery.data} modus={feldModus} />
+            <AufstellungVertikal aufstellung={aufstellungQuery.data} modus={feldModus} />
           )
         )}
       </div>
@@ -119,13 +119,13 @@ export default function Home() {
       {card(
         <div className="relative z-0 isolate">
           {!activeManagerId ? (
-            <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend heightOffset={200} />
+            <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend heightOffset={200} hideSum={isVorsaison} />
           ) : aufstellungQuery.isError ? (
             <p className="text-sm text-danger py-10 text-center">Daten konnten nicht geladen werden.</p>
           ) : !displayAufstellung ? (
             <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
           ) : (
-            <AufstellungsFeld aufstellung={displayAufstellung} modus={feldModus} overlayLegend heightOffset={200} />
+            <AufstellungsFeld aufstellung={displayAufstellung} modus={feldModus} overlayLegend heightOffset={200} hideSum={isVorsaison} />
           )}
         </div>
       )}

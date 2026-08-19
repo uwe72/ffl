@@ -45,9 +45,10 @@ interface StatPlayerCardProps {
   width: number | string
   height: number
   compact: boolean
+  pictureScale?: number
 }
 
-function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCardProps) {
+export function StatPlayerCard({ player, modus, width, height, compact, pictureScale = 1 }: StatPlayerCardProps) {
   const [flipped, setFlipped] = useState(false)
   const canHover = useMedia('(hover: hover)')
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
@@ -95,10 +96,14 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
             <img
               src={player.pictureUrl}
               alt={fullName}
-              className="w-[67px] h-[67px] rounded-full object-cover border border-border"
+              className="rounded-full object-cover border border-border"
+              style={{ width: 67 * pictureScale, height: 67 * pictureScale }}
             />
           ) : (
-            <div className="w-[67px] h-[67px] rounded-full bg-elevated border border-border flex items-center justify-center">
+            <div
+              className="rounded-full bg-elevated border border-border flex items-center justify-center"
+              style={{ width: 67 * pictureScale, height: 67 * pictureScale }}
+            >
               <i className="sap-icon sap-icon-employee text-[26px] text-subtle" />
             </div>
           )}
@@ -106,7 +111,8 @@ function StatPlayerCard({ player, modus, width, height, compact }: StatPlayerCar
             <img
               src={player.vereinLogoUrl}
               alt={player.vereinKuerzel}
-              className="absolute -bottom-1 -right-1 w-[26px] h-[26px] rounded-full bg-white border border-border object-contain"
+              className="absolute -bottom-1 -right-1 rounded-full bg-white border border-border object-contain"
+              style={{ width: 26 * pictureScale, height: 26 * pictureScale }}
             />
           )}
         </div>
@@ -210,6 +216,7 @@ interface AufstellungsFeldProps {
   overlayLegend?: boolean
   overlay?: ReactNode
   heightOffset?: number
+  hideSum?: boolean
 }
 
 export default function AufstellungsFeld({
@@ -220,6 +227,7 @@ export default function AufstellungsFeld({
   overlayLegend = false,
   overlay,
   heightOffset = 64,
+  hideSum = false,
 }: AufstellungsFeldProps) {
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
   const canHover = useMedia('(hover: hover)')
@@ -305,7 +313,7 @@ export default function AufstellungsFeld({
             })}
           </div>
 
-          {!compact && (
+          {!compact && !hideSum && (
             <div
               className="absolute text-right"
               style={{
