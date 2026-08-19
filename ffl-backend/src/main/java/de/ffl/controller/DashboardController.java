@@ -17,7 +17,6 @@ public class DashboardController {
     }
 
     @GetMapping("/aufstellung/{managerId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public AufstellungDto getAufstellung(@PathVariable Long managerId) {
         return dashboardService.getAufstellung(managerId);
     }
