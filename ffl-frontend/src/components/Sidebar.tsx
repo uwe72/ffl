@@ -71,9 +71,6 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         {isAuthenticated && (
           <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
         )}
-        {isAuthenticated && user?.role !== 'ADMIN' && (
-          <SidebarItem to="/my-team" label="Mein Team" icon="sap-icon-competitor" collapsed={collapsed} />
-        )}
         {!isRestricted && (
           <SidebarItem to="/teams" label="Vereine" icon="sap-icon-shield" collapsed={collapsed} />
         )}

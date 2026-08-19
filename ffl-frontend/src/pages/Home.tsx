@@ -7,6 +7,7 @@ import { useDashboardAufstellung } from '../hooks/useDashboard'
 import { useAuth } from '../context/AuthContext'
 import useIsMobile from '../hooks/useIsMobile'
 import ManagerSelect from '../components/ManagerSelect'
+import Button from '../components/Button'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
 import AufstellungKompakt from '../components/statistik/AufstellungKompakt'
 import type { Aufstellung } from '../types/dashboard'
@@ -67,20 +68,31 @@ export default function Home() {
 
   const isOwnTeam = activeManagerId === refManagerId
   const title = isOwnTeam ? 'Mein Team' : managerLabel(activeManager) || 'Mein Team'
+  const showBearbeiten = isOwnTeam && !isAdmin
 
   const card = (children: ReactNode) => (
     <div className="p-6 bg-surface border border-border rounded-card">
       <div className="relative z-20 flex items-center gap-3 flex-wrap mb-4">
         <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-        {canSelectManager && (
-          <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-3">
+          {showBearbeiten && (
+            <Button
+              variant="secondary"
+              size="input"
+              onClick={() => navigate('/my-team')}
+            >
+              <i className="sap-icon sap-icon-edit text-sm" />
+              Bearbeiten
+            </Button>
+          )}
+          {canSelectManager && (
             <ManagerSelect
               managers={managers ?? []}
               value={activeManagerId ?? null}
               onChange={id => setSelectedManagerId(id)}
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
       {children}
     </div>

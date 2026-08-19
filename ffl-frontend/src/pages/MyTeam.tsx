@@ -736,6 +736,11 @@ export default function MyTeam() {
 
   return (
     <div className="max-w-6xl">
+      <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
+        <i className="sap-icon sap-icon-nav-back text-base" />
+        Zurück zur Übersicht
+      </RouterLink>
+
       {isHinrunde && (
         <div className="flex items-center gap-3 p-3 bg-accent-muted border border-accent/30 rounded-card mb-6">
           <i className="sap-icon sap-icon-switch-classes text-[18px] text-accent shrink-0" />
