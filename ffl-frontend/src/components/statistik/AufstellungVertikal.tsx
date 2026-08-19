@@ -51,7 +51,7 @@ export default function AufstellungVertikal({
               {positionLabels[pos]}
             </h3>
             {players.map(p => (
-              <StatPlayerCard key={p.id} player={p} modus={modus} width="100%" height={220} compact={false} pictureScale={1.5} />
+              <StatPlayerCard key={p.id} player={p} modus={modus} width="100%" height={176} compact={false} pictureScale={1.5} />
             ))}
           </div>
         )
