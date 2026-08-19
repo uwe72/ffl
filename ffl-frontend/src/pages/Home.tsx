@@ -75,9 +75,9 @@ export default function Home() {
 
   const card = (children: ReactNode, fill = false) => (
     <div className={`p-6 bg-surface border border-border rounded-card${fill ? ' h-full flex flex-col min-h-0' : ''}`}>
-      <div className="relative z-20 flex items-center gap-3 flex-wrap mb-4 shrink-0">
+      <div className="relative z-20 flex items-center gap-3 flex-wrap mb-4 shrink-0" style={fieldSize ? { width: fieldSize.width } : undefined}>
         <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-        <div className="ml-auto flex items-center gap-3" style={fieldSize ? { marginRight: `calc(100% - ${fieldSize.width}px)` } : undefined}>
+        <div className="ml-auto flex items-center gap-3">
           {showBearbeiten && (
             <Button
               variant="emphasized"
