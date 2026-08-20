@@ -85,12 +85,19 @@ class PaymentReminderServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
-    void noDeposit_returnsClosedReminder() {
+    void noDeposit_treatedAsOpenReminder() {
+        season.setPaypalLink("https://paypal.me/ffltest");
+        season.setSpieleinsatzEuro(new BigDecimal("10.00"));
+        seasonRepository.save(season);
+        setPaymentChecks(LocalDate.of(2026, 3, 15), LocalDate.of(2026, 3, 10));
+
         PaymentReminderDto reminder = paymentReminderService.buildReminder(
             season, managerUwe72.getId(), managerUwe72.getUser().getLogin());
 
-        assertFalse(reminder.isOpen());
+        assertTrue(reminder.isOpen());
         assertFalse(reminder.isReceived());
+        assertEquals(new BigDecimal("10.00"), reminder.getAmount());
+        assertNotNull(reminder.getPaypalLink());
     }
 
     @Test
