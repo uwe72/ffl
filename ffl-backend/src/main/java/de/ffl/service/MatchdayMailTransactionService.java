@@ -618,8 +618,8 @@ public class MatchdayMailTransactionService {
             && pr.getIban() != null && !pr.getIban().isBlank();
         if (hasBank) {
             sb.append("<div style=\"border-top:").append(border).append(";padding-top:12px;\">");
-            sb.append("<p style=\"margin:0 0 8px 0;color:").append(textPrimary).append(";font-size:13px;line-height:1.5;\">Kein PayPal? Dann per Überweisung:</p>");
-            sb.append("<div style=\"color:").append(textSecondary).append(";font-size:13px;line-height:1.6;\">");
+            sb.append("<p style=\"margin:0 0 8px 0;color:").append(textPrimary).append(";font-size:12px;line-height:1.5;\">Kein PayPal? Dann per Überweisung:</p>");
+            sb.append("<div style=\"color:").append(textSecondary).append(";font-size:12px;line-height:1.5;\">");
             sb.append(escape(pr.getKontoinhaber())).append("<br>");
             sb.append(escape(pr.getIban())).append("<br>");
             if (pr.getBankName() != null && !pr.getBankName().isBlank()) {

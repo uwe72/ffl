@@ -214,10 +214,10 @@
                         <tr><td style="border-top:1px solid #e7e5e4;font-size:0;line-height:0;">&nbsp;</td></tr>
                       </table>
 
-                      <p style="margin:0 0 12px 0;color:#1c1917;font-size:13px;line-height:1.5;">Kein PayPal? Dann per &Uuml;berweisung:</p>
+                      <p style="margin:0 0 12px 0;color:#1c1917;font-size:12px;line-height:1.5;">Kein PayPal? Dann per &Uuml;berweisung:</p>
 
                       <th:block th:if="${payment.kontoinhaber != null and !payment.kontoinhaber.isEmpty() and payment.iban != null and !payment.iban.isEmpty()}">
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;line-height:1.6;color:#78716c;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:12px;line-height:1.5;color:#78716c;">
                           <tr><td style="color:#78716c;" th:text="${payment.kontoinhaber}">Kontoinhaber</td></tr>
                           <tr><td style="color:#78716c;" th:text="${payment.iban}">IBAN</td></tr>
                           <tr th:if="${payment.bankName != null and !payment.bankName.isEmpty()}"><td style="color:#78716c;" th:text="${payment.bankName}">Bank</td></tr>
