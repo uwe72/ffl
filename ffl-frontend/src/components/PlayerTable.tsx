@@ -274,6 +274,7 @@ export default function PlayerTable({
   defaultSortKey = 'position',
   defaultSortOrder = 'asc',
   isPublic = false,
+  defaultAktivFilter = 'alle',
 }: {
   players: Player[]
   fixedPosition?: Position
@@ -282,6 +283,7 @@ export default function PlayerTable({
   defaultSortKey?: SortKey
   defaultSortOrder?: 'asc' | 'desc'
   isPublic?: boolean
+  defaultAktivFilter?: 'aktiv' | 'inaktiv' | 'alle'
 }) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
@@ -296,7 +298,7 @@ export default function PlayerTable({
   const [searchTerm, setSearchTerm] = useState('')
   const [priceMin, setPriceMin] = useState('')
   const [priceMax, setPriceMax] = useState('')
-  const [aktivFilter, setAktivFilter] = useState<'aktiv' | 'inaktiv' | 'alle'>('alle')
+  const [aktivFilter, setAktivFilter] = useState<'aktiv' | 'inaktiv' | 'alle'>(defaultAktivFilter)
   const [sortKey, setSortKey] = useState<SortKey>(defaultSortKey)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(defaultSortOrder)
 

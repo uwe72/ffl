@@ -220,6 +220,7 @@ export default function PlayerSelect({
                 onSelect={handleSelect}
                 defaultSortKey="prize"
                 defaultSortOrder="asc"
+                defaultAktivFilter="aktiv"
               />
             </div>
           </div>
