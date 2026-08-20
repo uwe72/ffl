@@ -163,8 +163,15 @@
                             </td>
                           </tr>
                         </table>
-                        <p style="margin:0 0 8px 0;color:#1c1917;font-size:14px;font-weight:700;line-height:1.5;">Bitte gib deinen Loginnamen als Verwendungszweck an, damit wir deine Zahlung zuordnen k&ouml;nnen.</p>
-                        <p style="margin:0 0 18px 0;color:#a8a29e;font-size:13px;line-height:1.5;">Bitte Option &bdquo;Freunde und Familie&ldquo;, nutzen.</p>
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px 0;background:#fbf0dd;border:1px solid #e0a53a;border-radius:6px;">
+                          <tr>
+                            <td valign="top" style="padding:12px 0 12px 14px;width:24px;font-size:18px;color:#b7791f;">&#8505;&#65039;</td>
+                            <td style="padding:12px 14px 12px 8px;font-size:13px;line-height:1.5;color:#1c1917;">
+                              <div>&bull; Verwendungszweck: Deinen Loginnamen angeben (<span th:text="${payment.login}">login</span>)</div>
+                              <div style="margin-top:4px;">&bull; Bitte Option &bdquo;Freunde und Familie&ldquo; nutzen.</div>
+                            </td>
+                          </tr>
+                        </table>
                       </th:block>
                       <th:block th:if="${payment.paypalLink == null or payment.paypalLink.isEmpty()}">
                         <p style="margin:0 0 16px 0;color:#dc2626;font-size:13px;font-weight:700;">[PayPal-Link nicht in Datenbank hinterlegt]</p>

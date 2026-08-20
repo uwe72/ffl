@@ -162,6 +162,7 @@ public class RegistrationMailService {
                 firstName,
                 spieleinsatz,
                 paypalLink,
+                user.getLogin(),
                 verwendungszweck,
                 season.getKontoinhaber(),
                 season.getIban(),
@@ -414,5 +415,5 @@ public class RegistrationMailService {
 
     public record BudgetDto(String budgetFormatted, String totalFormatted, String remainingFormatted, int percent) {}
 
-    public record PaymentDto(String firstName, int spieleinsatz, String paypalLink, String verwendungszweck, String kontoinhaber, String iban, String bic, String bankName) {}
+    public record PaymentDto(String firstName, int spieleinsatz, String paypalLink, String login, String verwendungszweck, String kontoinhaber, String iban, String bic, String bankName) {}
 }

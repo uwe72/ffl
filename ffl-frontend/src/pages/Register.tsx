@@ -1277,6 +1277,16 @@ export default function Register() {
                 </a>
               )}
 
+              {paymentInfo?.paypalLink && (
+                <div className="flex items-start gap-3 p-3 bg-warning-bg border border-warning/30 rounded-control mb-6">
+                  <i className="sap-icon sap-icon-information text-[18px] text-warning shrink-0 mt-0.5" />
+                  <ul className="text-sm text-foreground space-y-1.5 list-disc list-inside">
+                    <li>Verwendungszweck: Deinen Loginnamen angeben ({login})</li>
+                    <li>Bitte Option „Freunde und Familie“ nutzen</li>
+                  </ul>
+                </div>
+              )}
+
               {(paymentInfo?.iban || paymentInfo?.bankName) && (
                 <div className="mb-6">
                   <button

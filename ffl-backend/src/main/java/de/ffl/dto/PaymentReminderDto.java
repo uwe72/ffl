@@ -11,6 +11,7 @@ public class PaymentReminderDto {
     private int amountRounded;
     private String amountFormatted;
     private String paypalLink;
+    private String login;
     private String verwendungszweck;
     private String kontoinhaber;
     private String iban;
@@ -42,6 +43,8 @@ public class PaymentReminderDto {
     public void setAmountFormatted(String amountFormatted) { this.amountFormatted = amountFormatted; }
     public String getPaypalLink() { return paypalLink; }
     public void setPaypalLink(String paypalLink) { this.paypalLink = paypalLink; }
+    public String getLogin() { return login; }
+    public void setLogin(String login) { this.login = login; }
     public String getVerwendungszweck() { return verwendungszweck; }
     public void setVerwendungszweck(String verwendungszweck) { this.verwendungszweck = verwendungszweck; }
     public String getKontoinhaber() { return kontoinhaber; }

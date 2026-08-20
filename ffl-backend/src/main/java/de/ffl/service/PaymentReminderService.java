@@ -68,6 +68,7 @@ public class PaymentReminderService {
         dto.setAmountRounded(amountRounded);
         dto.setAmountFormatted(formatEuro(amount));
         dto.setPaypalLink(RegistrationMailService.buildPaypalLinkWithAmount(season.getPaypalLink(), amount));
+        dto.setLogin(login);
         dto.setVerwendungszweck(verwendungszweck);
         dto.setKontoinhaber(season.getKontoinhaber());
         dto.setIban(season.getIban());
