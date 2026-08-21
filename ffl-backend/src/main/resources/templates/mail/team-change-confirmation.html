@@ -203,7 +203,7 @@
                           <tr>
                             <td valign="top" style="padding:12px 0 12px 14px;width:24px;font-size:18px;color:#b7791f;">&#8505;&#65039;</td>
                             <td style="padding:12px 14px 12px 8px;font-size:13px;line-height:1.5;color:#1c1917;">
-                              <div>&bull; Verwendungszweck: Deinen Loginnamen angeben (<span th:text="${payment.login}">login</span>)</div>
+                              <div>&bull; Bitte bei Verwendungszweck deinen Loginnamen angeben (<span th:text="${payment.login}">login</span>)</div>
                               <div style="margin-top:4px;">&bull; Bitte Option &bdquo;Freunde und Familie&ldquo; nutzen.</div>
                             </td>
                           </tr>
@@ -221,7 +221,7 @@
                           <tr><td style="color:#78716c;" th:text="${payment.kontoinhaber}">Kontoinhaber</td></tr>
                           <tr><td style="color:#78716c;" th:text="${payment.iban}">IBAN</td></tr>
                           <tr th:if="${payment.bankName != null and !payment.bankName.isEmpty()}"><td style="color:#78716c;" th:text="${payment.bankName}">Bank</td></tr>
-                          <tr><td style="color:#78716c;">Verwendungszweck <strong th:text="${payment.verwendungszweck}">FFL</strong></td></tr>
+                          <tr><td style="color:#78716c;">Verwendungszweck <span th:text="${payment.verwendungszweck}">FFL</span></td></tr>
                         </table>
                       </th:block>
 

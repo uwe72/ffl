@@ -167,7 +167,7 @@
                           <tr>
                             <td valign="top" style="padding:12px 0 12px 14px;width:24px;font-size:18px;color:#b7791f;">&#8505;&#65039;</td>
                             <td style="padding:12px 14px 12px 8px;font-size:13px;line-height:1.5;color:#1c1917;">
-                              <div>&bull; Verwendungszweck: Deinen Loginnamen angeben (<span th:text="${payment.login}">login</span>)</div>
+                              <div>&bull; Bitte bei Verwendungszweck deinen Loginnamen angeben (<span th:text="${payment.login}">login</span>)</div>
                               <div style="margin-top:4px;">&bull; Bitte Option &bdquo;Freunde und Familie&ldquo; nutzen.</div>
                             </td>
                           </tr>
@@ -187,7 +187,7 @@
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:12px;line-height:1.5;color:#78716c;">
                           <tr><td style="color:#78716c;" th:text="${payment.kontoinhaber}">Uwe Clement</td></tr>
                           <tr><td style="color:#78716c;" th:text="${payment.iban}">DE 60 1203 0000 1055 4306 39</td></tr>
-                          <tr><td style="color:#78716c;">Verwendungszweck <strong th:text="${payment.verwendungszweck}">FFL</strong></td></tr>
+                          <tr><td style="color:#78716c;">Verwendungszweck <span th:text="${payment.verwendungszweck}">FFL</span></td></tr>
                         </table>
                       </th:block>
                       <th:block th:if="${payment.kontoinhaber == null or payment.kontoinhaber.isEmpty() or payment.iban == null or payment.iban.isEmpty()}">
