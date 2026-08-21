@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import type { Player, Position } from '../types'
 import { positionLabels, positionColors } from '../pages/Players'
 import { positionBarColor } from '../utils/positions'
@@ -84,18 +85,41 @@ export default function PlayerSelect({
     return set
   }, [selectedIds, value])
 
+  const closeModal = () => {
+    setIsOpen(false)
+    setSearch('')
+    setPriceMin('')
+    setPriceMax('')
+  }
+
   useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-        setSearch('')
-        setPriceMin('')
-        setPriceMax('')
+    if (!modal) {
+      const handleClick = (e: MouseEvent) => {
+        if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+          setIsOpen(false)
+          setSearch('')
+          setPriceMin('')
+          setPriceMax('')
+        }
       }
+      document.addEventListener('mousedown', handleClick)
+      return () => document.removeEventListener('mousedown', handleClick)
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+  }, [modal])
+
+  useEffect(() => {
+    if (!isOpen || !modal) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeModal()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, modal])
 
   const handleSelect = (player: Player) => {
     onChange(player.id)
@@ -182,15 +206,10 @@ export default function PlayerSelect({
         ariaLabel={`${slot.label} wählen`}
       />
 
-      {isOpen && modal && (
+      {isOpen && modal && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4"
-          onClick={() => {
-            setIsOpen(false)
-            setSearch('')
-            setPriceMin('')
-            setPriceMax('')
-          }}
+          onClick={closeModal}
         >
           <div
             className="bg-surface border border-border rounded-card shadow-2xl w-full max-w-[760px] max-h-[85vh] flex flex-col"
@@ -200,12 +219,7 @@ export default function PlayerSelect({
               <h3 className="text-sm font-semibold text-foreground">{slot.label}</h3>
               <button
                 type="button"
-                onClick={() => {
-                  setIsOpen(false)
-                  setSearch('')
-                  setPriceMin('')
-                  setPriceMax('')
-                }}
+                onClick={closeModal}
                 aria-label="Schließen"
                 className="text-subtle hover:text-foreground transition-colors p-1 -mr-1"
               >
@@ -224,7 +238,8 @@ export default function PlayerSelect({
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {isOpen && !modal && (
