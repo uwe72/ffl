@@ -256,11 +256,14 @@ export default function MyTeam() {
   const remaining = budget - totalCost
   const isBudgetExceeded = remaining < 0
   const isBudgetLow = !isBudgetExceeded && budget > 0 && remaining <= budget * 0.1
-  const remainingTone: 'default' | 'warning' | 'danger' = isBudgetExceeded
+  const isBudgetExhausted = remaining === 0
+  const remainingTone: 'default' | 'warning' | 'danger' | 'success' = isBudgetExceeded
     ? 'danger'
-    : isBudgetLow
-      ? 'warning'
-      : 'default'
+    : isBudgetExhausted
+      ? 'success'
+      : isBudgetLow
+        ? 'warning'
+        : 'default'
 
   const avatarInitials = (profileFirstName && profileLastName)
     ? `${profileFirstName.charAt(0)}${profileLastName.charAt(0)}`.toUpperCase()
@@ -954,7 +957,7 @@ export default function MyTeam() {
             label="Verbleibend"
             value={formatPrice(remaining)}
             tone={remainingTone}
-            icon={(isBudgetExceeded || isBudgetLow) ? <i className="sap-icon sap-icon-alert text-base" /> : null}
+            icon={(isBudgetExceeded || (isBudgetLow && !isBudgetExhausted)) ? <i className="sap-icon sap-icon-alert text-base" /> : null}
           />
         </div>
 
