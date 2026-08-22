@@ -126,6 +126,11 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Login bereits vergeben");
         }
 
+        if (request.getSlogan() != null && !request.getSlogan().isBlank()
+                && (avatar == null || avatar.isEmpty())) {
+            return ResponseEntity.badRequest().body("Bitte hinterlege ein Profilbild oder einen Avatar, wenn du einen Slogan eingibst.");
+        }
+
         Season season = seasonRepository.findAll().stream().findFirst().orElse(null);
         if (season == null) {
             return ResponseEntity.badRequest().body("Keine Season vorhanden");
