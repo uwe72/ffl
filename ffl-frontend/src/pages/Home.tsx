@@ -52,11 +52,9 @@ export default function Home() {
   const isBeforeSeason = season?.seasonState === 'BEFORE_SEASON'
   const canSelectManager = isAdmin || !isBeforeSeason
 
-  const quickActions: QuickAction[] = []
-  const canAccessGallery = isAdmin || !!user?.avatarUrl
-  if (canAccessGallery) {
-    quickActions.push({ icon: 'sap-icon-picture', label: 'Manager-Galerie', to: '/manager-galerie' })
-  }
+  const quickActions: QuickAction[] = [
+    { icon: 'sap-icon-picture', label: 'Manager-Galerie', to: '/manager-galerie' },
+  ]
 
   const uwe72 = useMemo(() => managers?.find(m => m.shortName === 'uwe72'), [managers])
   const refManagerId = isAdmin ? uwe72?.id : currentManager?.id
