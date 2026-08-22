@@ -689,6 +689,12 @@ public class NewSeasonSetupService {
     }
 
     private String deriveGreeting(Manager manager) {
+        if (manager.getUser() != null) {
+            String firstName = manager.getUser().getFirstName();
+            if (firstName != null && !firstName.isBlank()) {
+                return firstName;
+            }
+        }
         String name = manager.getName();
         if (name != null && !name.isBlank()) {
             return name;
