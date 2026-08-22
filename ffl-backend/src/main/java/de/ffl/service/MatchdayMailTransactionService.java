@@ -609,7 +609,7 @@ public class MatchdayMailTransactionService {
             sb.append("<div style=\"margin:0 0 14px 0;background:#fbf0dd;border:1px solid #e0a53a;border-radius:8px;padding:12px 14px;\">")
               .append("<div style=\"color:#b7791f;font-size:15px;margin-bottom:6px;\">\u2139\uFE0F</div>")
               .append("<div style=\"color:#1c1917;font-size:12px;line-height:1.5;\">")
-              .append("• Bitte bei Verwendungszweck deinen Loginnamen angeben (").append(escape(pr.getLogin() != null ? pr.getLogin() : "")).append(")<br>")
+              .append("• Bitte bei Verwendungszweck „").append(escape(pr.getLogin() != null ? pr.getLogin() : "")).append("“ angeben.<br>")
               .append("• Bitte Option „Freunde und Familie“ nutzen.")
               .append("</div></div>");
         }

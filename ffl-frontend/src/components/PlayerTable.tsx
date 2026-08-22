@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason, usePublicCurrentSeason } from '../hooks/useSeasons'
@@ -275,6 +275,7 @@ export default function PlayerTable({
   defaultSortOrder = 'asc',
   isPublic = false,
   defaultAktivFilter = 'alle',
+  autoFocus = false,
 }: {
   players: Player[]
   fixedPosition?: Position
@@ -284,6 +285,7 @@ export default function PlayerTable({
   defaultSortOrder?: 'asc' | 'desc'
   isPublic?: boolean
   defaultAktivFilter?: 'aktiv' | 'inaktiv' | 'alle'
+  autoFocus?: boolean
 }) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
@@ -301,6 +303,13 @@ export default function PlayerTable({
   const [aktivFilter, setAktivFilter] = useState<'aktiv' | 'inaktiv' | 'alle'>(defaultAktivFilter)
   const [sortKey, setSortKey] = useState<SortKey>(defaultSortKey)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(defaultSortOrder)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (autoFocus) {
+      setTimeout(() => searchInputRef.current?.focus(), 50)
+    }
+  }, [autoFocus])
 
   const teams = useMemo(() => {
     const teamMap = new Map<number, Team>()
@@ -379,6 +388,7 @@ export default function PlayerTable({
         <div className="relative w-full sm:w-64">
           <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
           <input
+            ref={searchInputRef}
             type="text"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}

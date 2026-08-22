@@ -235,6 +235,7 @@ export default function PlayerSelect({
                 defaultSortKey="prize"
                 defaultSortOrder="asc"
                 defaultAktivFilter="aktiv"
+                autoFocus
               />
             </div>
           </div>
