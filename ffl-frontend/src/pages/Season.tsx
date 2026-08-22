@@ -36,8 +36,9 @@ const tabItems = [
 
 const DEFAULT_SOURCE_URL = 'https://classic.kicker-libero.de/api/gameloop/v1/state/current/se-k00012026.json'
 
-function todayIso(): string {
+function yesterdayIso(): string {
   const d = new Date()
+  d.setDate(d.getDate() - 1)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
@@ -871,9 +872,9 @@ export default function Season() {
                   />
                   <Button
                     variant="ghost"
-                    onClick={() => { setPaypalCheckDraft(todayIso()); setPaymentChecksSaved(false) }}
+                    onClick={() => { setPaypalCheckDraft(yesterdayIso()); setPaymentChecksSaved(false) }}
                   >
-                    Auf heute setzen
+                    Auf gestern setzen
                   </Button>
                 </div>
               </div>
@@ -888,9 +889,9 @@ export default function Season() {
                   />
                   <Button
                     variant="ghost"
-                    onClick={() => { setUeberweisungCheckDraft(todayIso()); setPaymentChecksSaved(false) }}
+                    onClick={() => { setUeberweisungCheckDraft(yesterdayIso()); setPaymentChecksSaved(false) }}
                   >
-                    Auf heute setzen
+                    Auf gestern setzen
                   </Button>
                 </div>
               </div>
