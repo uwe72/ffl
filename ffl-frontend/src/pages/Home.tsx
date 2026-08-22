@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import useIsMobile from '../hooks/useIsMobile'
 import ManagerSelect from '../components/ManagerSelect'
 import Button from '../components/Button'
+import QuickActions, { type QuickAction } from '../components/QuickActions'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
 import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
 import type { Aufstellung } from '../types/dashboard'
@@ -50,6 +51,12 @@ export default function Home() {
   const isAdmin = user?.role === 'ADMIN'
   const isBeforeSeason = season?.seasonState === 'BEFORE_SEASON'
   const canSelectManager = isAdmin || !isBeforeSeason
+
+  const quickActions: QuickAction[] = []
+  const canAccessGallery = isAdmin || !!user?.avatarUrl
+  if (canAccessGallery) {
+    quickActions.push({ icon: 'sap-icon-picture', label: 'Manager-Galerie', to: '/manager-galerie' })
+  }
 
   const uwe72 = useMemo(() => managers?.find(m => m.shortName === 'uwe72'), [managers])
   const refManagerId = isAdmin ? uwe72?.id : currentManager?.id
@@ -104,6 +111,10 @@ export default function Home() {
   if (isMobile) {
     return (
       <div className="pb-6">
+        {quickActions.length > 0 && (
+          <QuickActions items={quickActions} />
+        )}
+        <div className="mt-4">
         {card(
           !activeManagerId ? (
             <p className="text-sm text-muted py-10 text-center">Kein Team vorhanden.</p>
@@ -113,12 +124,17 @@ export default function Home() {
             <AufstellungVertikal aufstellung={aufstellungQuery.data} modus={feldModus} />
           )
         )}
+        </div>
       </div>
     )
   }
 
   return (
     <div className="pb-6 h-[103%] flex flex-col min-h-0">
+      {quickActions.length > 0 && (
+        <QuickActions items={quickActions} />
+      )}
+      <div className="mt-4 flex-1 flex flex-col min-h-0">
       {card(
         <div className="relative z-0 isolate h-full flex flex-col min-h-0">
           {!activeManagerId ? (
@@ -133,6 +149,7 @@ export default function Home() {
         </div>,
         true
       )}
+      </div>
     </div>
   )
 }
