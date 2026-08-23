@@ -63,7 +63,7 @@ export default function Login() {
     setShowEmailHint(false)
 
     try {
-      await authLogin({ login, password })
+      await authLogin({ login: login.trim(), password })
       trackEvent('auth', 'login', 'success')
       navigate('/')
     } catch (err) {

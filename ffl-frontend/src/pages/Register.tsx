@@ -299,7 +299,7 @@ export default function Register() {
 
     setIsLoading(true)
     try {
-      const loginAvailable = await authApi.checkLogin(login)
+      const loginAvailable = await authApi.checkLogin(login.trim())
 
       if (!loginAvailable) errors.login = 'Login bereits vergeben.'
 
@@ -453,7 +453,7 @@ export default function Register() {
     }
 
     try {
-      const loginAvailable = await authApi.checkLogin(login)
+      const loginAvailable = await authApi.checkLogin(login.trim())
       if (!loginAvailable) {
         setFieldErrors({ login: 'Login bereits vergeben.' })
         setStep(1)
@@ -462,7 +462,7 @@ export default function Register() {
       }
 
       const result = await register({
-        login,
+        login: login.trim(),
         email,
         password,
         firstName,
