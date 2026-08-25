@@ -8,10 +8,11 @@ const CARD_W = 142
 const CARD_H = 146
 const PAD_H = 20
 const PAD_V = 28
-const GAP_V = 14
+const GAP_V = 24
+const BADGE_PROTRUDE = 12
 const FIELD_RATIO = 2752 / 1536
 const DESIGN_COL_H = 2 * PAD_V + 4 * CARD_H + 3 * GAP_V
-const DESIGN_ROW_W = 2 * PAD_H + 4 * CARD_W
+const DESIGN_ROW_W = 2 * PAD_H + 4 * (CARD_W + 2 * BADGE_PROTRUDE)
 
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
 
@@ -21,6 +22,16 @@ const POSITION_COLOR: Record<string, string> = {
   MIDFIELD: 'var(--color-midfield)',
   STRIKER: 'var(--color-striker)',
 }
+
+const POSITION_SHORT: Record<string, string> = {
+  GOALKEEPER: 'TW',
+  DEFENDER: 'ABW',
+  MIDFIELD: 'MIT',
+  STRIKER: 'ANG',
+}
+
+const BADGE_RING = '0 0 0 3px var(--color-stat-card)'
+const BADGE_SHADOW = '0 2px 8px rgba(0, 0, 0, 0.28)'
 
 const COLUMNS = ['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const
 
@@ -135,7 +146,7 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
     >
       <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: posColor }} />
       {player.joker && (
-        <span className="absolute top-1 right-1 z-10 text-[8px] font-bold leading-none px-1 py-0.5 rounded-badge bg-stat-accent text-white">
+        <span className="absolute top-1/2 right-0 -translate-y-1/2 z-10 text-[8px] font-bold leading-none px-1 py-0.5 rounded-badge bg-stat-accent text-white">
           J
         </span>
       )}
@@ -168,15 +179,9 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
         <div className="text-[12px] font-semibold text-foreground truncate leading-tight max-w-full">{fullName}</div>
       </div>
       <div>
-        <div className="grid grid-cols-2 px-2 pt-0.5 pb-2">
-          <div className="text-center">
-            <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Gesamt</div>
-            <div className="text-[15px] font-bold text-foreground tabular-nums leading-none">{formatPoints(player.punkteGesamt)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Spieltag</div>
-            <div className="text-[15px] font-bold text-foreground tabular-nums leading-none">{formatPoints(player.punkteSpieltag)}</div>
-          </div>
+        <div className="px-2 pt-0.5 pb-2 text-center">
+          <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Position</div>
+          <div className="text-[13px] font-bold text-foreground">{POSITION_SHORT[player.position]}</div>
         </div>
       </div>
     </div>
@@ -242,7 +247,7 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
       aria-label={player.name}
-      className="relative block p-0 border-0 bg-transparent cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      className="relative block p-0 border-0 bg-transparent cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent stat-player-card"
       style={{ width, height }}
     >
       <div className="relative w-full h-full" style={{ perspective: '600px' }}>
@@ -274,6 +279,62 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
           </div>
         )}
       </div>
+
+      {!compact && !mobile && (
+        <>
+          <div
+            className="stat-card-badge absolute z-20 flex flex-col items-center justify-center rounded-full leading-none"
+            style={{
+              top: 'calc(var(--badge-offset, 12px) * -1)',
+              right: 'calc(var(--badge-offset, 12px) * -1)',
+              minWidth: 46,
+              backgroundColor: 'var(--color-accent)',
+              boxShadow: `${BADGE_RING}, ${BADGE_SHADOW}`,
+              padding: '6px 8px 5px',
+            }}
+          >
+            <span className="text-white font-bold tabular-nums" style={{ fontSize: 15 }}>
+              {formatPoints(player.punkteGesamt)}
+            </span>
+            <span className="text-white" style={{ fontSize: 7, letterSpacing: '0.08em', opacity: 0.9 }}>
+              GES
+            </span>
+          </div>
+
+          <div
+            className="stat-card-badge absolute z-20 flex items-center justify-center rounded-full font-bold tabular-nums leading-none"
+            style={{
+              left: 'calc(var(--badge-offset, 12px) * -1)',
+              bottom: 'calc(var(--badge-offset, 12px) * -1)',
+              minWidth: 38,
+              padding: '5px 9px',
+              backgroundColor: player.punkteSpieltag === 0 ? 'var(--color-stat-card)' : 'var(--color-accent)',
+              color: player.punkteSpieltag === 0 ? 'var(--color-muted)' : 'var(--color-text-on-accent, #fafaf9)',
+              boxShadow: `${BADGE_RING}, ${BADGE_SHADOW}`,
+            }}
+          >
+            {player.punkteSpieltag === 0
+              ? '±0'
+              : `${player.punkteSpieltag > 0 ? '+' : ''}${player.punkteSpieltag}`}
+          </div>
+
+          <div
+            className="stat-card-badge absolute z-20 flex items-center justify-center rounded-full font-bold leading-none"
+            style={{
+              top: 'calc(var(--badge-offset, 12px) * -1)',
+              left: 'calc(var(--badge-offset, 12px) * -1)',
+              minWidth: 26,
+              height: 20,
+              padding: '0 6px',
+              backgroundColor: 'var(--color-accent-soft)',
+              color: 'var(--color-accent-hover)',
+              boxShadow: `${BADGE_RING}, ${BADGE_SHADOW}`,
+            }}
+          >
+            {POSITION_SHORT[player.position]}
+          </div>
+        </>
+      )}
     </button>
   )
 }
@@ -366,7 +427,7 @@ export default function AufstellungsFeld({
             <div
               key={pos}
               className="flex flex-col items-center"
-              style={{ justifyContent: 'space-around', minWidth: cardWidth, maxWidth: cardWidth }}
+              style={{ justifyContent: 'space-around', minWidth: cardWidth, maxWidth: cardWidth, margin: `0 ${BADGE_PROTRUDE * scale}px` }}
             >
               {players.map(player => {
                 const idx = cardIndex++
