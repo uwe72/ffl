@@ -28,43 +28,48 @@ class EmailAddressServiceTest {
     }
 
     @Test
-    void addIfNotExists_newEmail_persistsLowercased() {
+    void addIfNotExists_newEmail_persistsLowercasedAndReturnsTrue() {
         when(emailAddressRepository.existsByEmail("new@example.com")).thenReturn(false);
 
-        service().addIfNotExists("  NEW@Example.com  ");
+        boolean result = service().addIfNotExists("  NEW@Example.com  ");
 
+        assertThat(result).isTrue();
         ArgumentCaptor<EmailAddress> captor = ArgumentCaptor.forClass(EmailAddress.class);
         verify(emailAddressRepository).save(captor.capture());
         assertThat(captor.getValue().getEmail()).isEqualTo("new@example.com");
     }
 
     @Test
-    void addIfNotExists_existingEmail_doesNothing() {
+    void addIfNotExists_existingEmail_doesNothingAndReturnsFalse() {
         when(emailAddressRepository.existsByEmail("dup@example.com")).thenReturn(true);
 
-        service().addIfNotExists("dup@example.com");
+        boolean result = service().addIfNotExists("dup@example.com");
 
+        assertThat(result).isFalse();
         verify(emailAddressRepository, never()).save(any());
     }
 
     @Test
-    void addIfNotExists_blankEmail_doesNothing() {
-        service().addIfNotExists("   ");
+    void addIfNotExists_blankEmail_doesNothingAndReturnsFalse() {
+        boolean result = service().addIfNotExists("   ");
 
+        assertThat(result).isFalse();
         verify(emailAddressRepository, never()).save(any());
     }
 
     @Test
-    void addIfNotExists_nullEmail_doesNothing() {
-        service().addIfNotExists(null);
+    void addIfNotExists_nullEmail_doesNothingAndReturnsFalse() {
+        boolean result = service().addIfNotExists(null);
 
+        assertThat(result).isFalse();
         verify(emailAddressRepository, never()).save(any());
     }
 
     @Test
-    void addIfNotExists_invalidEmail_doesNothing() {
-        service().addIfNotExists("not-an-email");
+    void addIfNotExists_invalidEmail_doesNothingAndReturnsFalse() {
+        boolean result = service().addIfNotExists("not-an-email");
 
+        assertThat(result).isFalse();
         verify(emailAddressRepository, never()).save(any());
     }
 

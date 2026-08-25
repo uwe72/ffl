@@ -187,7 +187,7 @@ public class AuthController {
 
         userRepository.save(user);
 
-        emailAddressService.addIfNotExists(request.getEmail());
+        boolean isNewUser = emailAddressService.addIfNotExists(request.getEmail());
 
         if (avatar != null && !avatar.isEmpty()) {
             String contentType = avatar.getContentType();
@@ -230,7 +230,7 @@ public class AuthController {
         managerRepository.save(manager);
 
         long registrationNumber = managerRepository.count();
-        registrationMailService.sendRegistrationConfirmation(user, manager, registrationNumber);
+        registrationMailService.sendRegistrationConfirmation(user, manager, registrationNumber, isNewUser);
 
         RegisterResponseDto.PaymentInfo paymentInfo = new RegisterResponseDto.PaymentInfo();
         paymentInfo.setSpieleinsatzEuro(season.getSpieleinsatzEuro());

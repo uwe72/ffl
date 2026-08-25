@@ -55,7 +55,7 @@ public class RegistrationMailService {
     }
 
     @Async
-    public void sendRegistrationConfirmation(User user, Manager manager, long registrationNumber) {
+    public void sendRegistrationConfirmation(User user, Manager manager, long registrationNumber, boolean isNewUser) {
         try {
             SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc().orElse(null);
             if (config == null) {
@@ -84,7 +84,7 @@ public class RegistrationMailService {
             String seasonName = manager.getSeason() != null ? manager.getSeason().getName() : "Aktuelle Saison";
             helper.setSubject("✓ FFL | " + registrationNumber + ". Anmeldung | " + user.getLogin() + " | " + seasonName);
 
-            String html = buildRegistrationHtml(user, manager, config.getWebUrl());
+            String html = buildRegistrationHtml(user, manager, config.getWebUrl(), isNewUser);
             helper.setText(html, true);
 
             mailSender.send(msg);
@@ -113,13 +113,15 @@ public class RegistrationMailService {
         return sender;
     }
 
-    private String buildRegistrationHtml(User user, Manager manager, String webUrl) {
+    String buildRegistrationHtml(User user, Manager manager, String webUrl, boolean isNewUser) {
         Context context = new Context(Locale.GERMAN);
 
         String greeting = user.getFirstName() != null && !user.getFirstName().isBlank()
             ? user.getFirstName()
             : user.getLogin();
         context.setVariable("greeting", greeting);
+
+        context.setVariable("newUserLabel", isNewUser ? "Erstes Mal dabei" : "Bereits mitgespielt");
 
         String seasonName = manager.getSeason() != null ? manager.getSeason().getName() : "Aktuelle Saison";
         context.setVariable("seasonName", seasonName);

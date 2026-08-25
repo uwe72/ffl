@@ -46,19 +46,20 @@ public class EmailAddressService {
     }
 
     @Transactional
-    public void addIfNotExists(String email) {
+    public boolean addIfNotExists(String email) {
         if (email == null || email.isBlank()) {
-            return;
+            return false;
         }
         String trimmed = email.trim().toLowerCase();
         if (!isValidEmail(trimmed)) {
-            return;
+            return false;
         }
         if (emailAddressRepository.existsByEmail(trimmed)) {
-            return;
+            return false;
         }
         EmailAddress entity = EmailAddress.builder().email(trimmed).build();
         emailAddressRepository.save(entity);
+        return true;
     }
 
     @Transactional
