@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
 import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
+import { positionLabels } from '../../utils/positions'
 import useElementSize from '../../hooks/useElementSize'
 
 const CARD_W = 142
@@ -23,14 +24,7 @@ const POSITION_COLOR: Record<string, string> = {
   STRIKER: 'var(--color-striker)',
 }
 
-const POSITION_SHORT: Record<string, string> = {
-  GOALKEEPER: 'TW',
-  DEFENDER: 'ABW',
-  MIDFIELD: 'MIT',
-  STRIKER: 'ANG',
-}
-
-const BADGE_RING = '0 0 0 3px var(--color-stat-card)'
+const BADGE_RING = '0 0 0 3px var(--color-accent-ring)'
 const BADGE_SHADOW = '0 2px 8px rgba(0, 0, 0, 0.28)'
 
 const COLUMNS = ['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const
@@ -157,12 +151,12 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
               src={player.pictureUrl}
               alt={fullName}
               className="rounded-full object-cover border border-border"
-              style={{ width: 67 * pictureScale, height: 67 * pictureScale }}
+              style={{ width: 92 * pictureScale, height: 92 * pictureScale }}
             />
           ) : (
             <div
               className="rounded-full bg-elevated border border-border flex items-center justify-center"
-              style={{ width: 67 * pictureScale, height: 67 * pictureScale }}
+              style={{ width: 92 * pictureScale, height: 92 * pictureScale }}
             >
               <i className="sap-icon sap-icon-employee text-[26px] text-subtle" />
             </div>
@@ -172,7 +166,7 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
               src={player.vereinLogoUrl}
               alt={player.vereinKuerzel}
               className="absolute -bottom-1 -right-1 rounded-full bg-white border border-border object-contain"
-              style={{ width: 26 * pictureScale, height: 26 * pictureScale }}
+              style={{ width: 31 * pictureScale, height: 31 * pictureScale }}
             />
           )}
         </div>
@@ -180,8 +174,7 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       </div>
       <div>
         <div className="px-2 pt-0.5 pb-2 text-center">
-          <div className="text-[9px] font-semibold uppercase text-subtle tracking-wide mb-0.5">Position</div>
-          <div className="text-[13px] font-bold text-foreground">{POSITION_SHORT[player.position]}</div>
+          <div className="text-[11px] font-semibold text-foreground">{positionLabels[player.position]}</div>
         </div>
       </div>
     </div>
@@ -283,56 +276,40 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       {!compact && !mobile && (
         <>
           <div
-            className="stat-card-badge absolute z-20 flex flex-col items-center justify-center rounded-full leading-none"
+            className="stat-card-badge absolute z-20 flex items-center justify-center leading-none"
             style={{
               top: 'calc(var(--badge-offset, 12px) * -1)',
               right: 'calc(var(--badge-offset, 12px) * -1)',
-              minWidth: 46,
+              minWidth: 37,
+              borderRadius: 8,
               backgroundColor: 'var(--color-accent)',
               boxShadow: `${BADGE_RING}, ${BADGE_SHADOW}`,
-              padding: '6px 8px 5px',
+              padding: '6px 6px',
             }}
           >
-            <span className="text-white font-bold tabular-nums" style={{ fontSize: 15 }}>
+            <span className="text-white font-bold tabular-nums" style={{ fontSize: 12 }}>
               {formatPoints(player.punkteGesamt)}
             </span>
-            <span className="text-white" style={{ fontSize: 7, letterSpacing: '0.08em', opacity: 0.9 }}>
-              GES
-            </span>
           </div>
 
-          <div
-            className="stat-card-badge absolute z-20 flex items-center justify-center rounded-full font-bold tabular-nums leading-none"
-            style={{
-              left: 'calc(var(--badge-offset, 12px) * -1)',
-              bottom: 'calc(var(--badge-offset, 12px) * -1)',
-              minWidth: 38,
-              padding: '5px 9px',
-              backgroundColor: player.punkteSpieltag === 0 ? 'var(--color-stat-card)' : 'var(--color-accent)',
-              color: player.punkteSpieltag === 0 ? 'var(--color-muted)' : 'var(--color-text-on-accent, #fafaf9)',
-              boxShadow: `${BADGE_RING}, ${BADGE_SHADOW}`,
-            }}
-          >
-            {player.punkteSpieltag === 0
-              ? '±0'
-              : `${player.punkteSpieltag > 0 ? '+' : ''}${player.punkteSpieltag}`}
-          </div>
-
-          <div
-            className="stat-card-badge absolute z-20 flex items-center justify-center rounded-full font-bold leading-none"
-            style={{
-              top: 'calc(var(--badge-offset, 12px) * -1)',
-              left: 'calc(var(--badge-offset, 12px) * -1)',
-              minWidth: 26,
-              height: 20,
-              padding: '0 6px',
-              backgroundColor: 'var(--color-accent-soft)',
-              color: 'var(--color-accent-hover)',
-              boxShadow: `${BADGE_RING}, ${BADGE_SHADOW}`,
-            }}
-          >
-            {POSITION_SHORT[player.position]}
-          </div>
+          {player.punkteSpieltag > 0 && (
+            <div
+              className="stat-card-badge absolute z-20 flex items-center justify-center font-bold tabular-nums leading-none"
+              style={{
+                left: 'calc(var(--badge-offset, 12px) * -1)',
+                bottom: 'calc(var(--badge-offset, 12px) * -1)',
+                minWidth: 37,
+                borderRadius: 8,
+                padding: '6px 6px',
+                fontSize: 12,
+                backgroundColor: 'var(--color-stat-accent)',
+                color: 'var(--color-text-on-accent, #fafaf9)',
+                boxShadow: `${BADGE_RING}, ${BADGE_SHADOW}`,
+              }}
+            >
+              +{player.punkteSpieltag}
+            </div>
+          )}
         </>
       )}
     </button>
