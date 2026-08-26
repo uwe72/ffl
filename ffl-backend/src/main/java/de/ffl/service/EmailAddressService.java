@@ -38,7 +38,7 @@ public class EmailAddressService {
     public EmailAddressDto create(String email) {
         String trimmed = email.trim().toLowerCase();
         validateEmail(trimmed);
-        if (emailAddressRepository.existsByEmail(trimmed)) {
+        if (emailAddressRepository.existsByEmailIgnoreCase(trimmed)) {
             throw new IllegalArgumentException("E-Mail-Adresse existiert bereits: " + trimmed);
         }
         EmailAddress entity = EmailAddress.builder().email(trimmed).build();
@@ -54,7 +54,7 @@ public class EmailAddressService {
         if (!isValidEmail(trimmed)) {
             return false;
         }
-        if (emailAddressRepository.existsByEmail(trimmed)) {
+        if (emailAddressRepository.existsByEmailIgnoreCase(trimmed)) {
             return false;
         }
         EmailAddress entity = EmailAddress.builder().email(trimmed).build();
@@ -74,7 +74,7 @@ public class EmailAddressService {
                 errors.add("Ungültige E-Mail-Adresse: " + trimmed);
                 continue;
             }
-            if (emailAddressRepository.existsByEmail(trimmed)) {
+            if (emailAddressRepository.existsByEmailIgnoreCase(trimmed)) {
                 continue;
             }
             EmailAddress entity = EmailAddress.builder().email(trimmed).build();

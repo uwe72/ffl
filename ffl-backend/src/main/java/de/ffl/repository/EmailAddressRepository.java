@@ -10,6 +10,8 @@ import java.util.Optional;
 @Repository
 public interface EmailAddressRepository extends JpaRepository<EmailAddress, Long> {
     Optional<EmailAddress> findByEmail(String email);
+    Optional<EmailAddress> findByEmailIgnoreCase(String email);
     boolean existsByEmail(String email);
+    boolean existsByEmailIgnoreCase(String email);
     List<EmailAddress> findByEmailContainingIgnoreCase(String keyword);
 }

@@ -29,7 +29,7 @@ class EmailAddressServiceTest {
 
     @Test
     void addIfNotExists_newEmail_persistsLowercasedAndReturnsTrue() {
-        when(emailAddressRepository.existsByEmail("new@example.com")).thenReturn(false);
+        when(emailAddressRepository.existsByEmailIgnoreCase("new@example.com")).thenReturn(false);
 
         boolean result = service().addIfNotExists("  NEW@Example.com  ");
 
@@ -41,9 +41,19 @@ class EmailAddressServiceTest {
 
     @Test
     void addIfNotExists_existingEmail_doesNothingAndReturnsFalse() {
-        when(emailAddressRepository.existsByEmail("dup@example.com")).thenReturn(true);
+        when(emailAddressRepository.existsByEmailIgnoreCase("dup@example.com")).thenReturn(true);
 
         boolean result = service().addIfNotExists("dup@example.com");
+
+        assertThat(result).isFalse();
+        verify(emailAddressRepository, never()).save(any());
+    }
+
+    @Test
+    void addIfNotExists_existingEmailWithDifferentCase_returnsFalse() {
+        when(emailAddressRepository.existsByEmailIgnoreCase("dup@example.com")).thenReturn(true);
+
+        boolean result = service().addIfNotExists("  DUP@Example.COM  ");
 
         assertThat(result).isFalse();
         verify(emailAddressRepository, never()).save(any());
@@ -75,8 +85,8 @@ class EmailAddressServiceTest {
 
     @Test
     void bulkCreate_skipsDuplicatesAndPersistsNew() {
-        when(emailAddressRepository.existsByEmail("a@example.com")).thenReturn(true);
-        when(emailAddressRepository.existsByEmail("b@example.com")).thenReturn(false);
+        when(emailAddressRepository.existsByEmailIgnoreCase("a@example.com")).thenReturn(true);
+        when(emailAddressRepository.existsByEmailIgnoreCase("b@example.com")).thenReturn(false);
         when(emailAddressRepository.save(any(EmailAddress.class)))
             .thenAnswer(inv -> inv.getArgument(0, EmailAddress.class));
 
