@@ -101,11 +101,6 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       style={{ borderRadius: 6 }}
     >
       <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: posColor }} />
-      {player.joker && (
-        <span className="absolute top-1 right-1 z-10 text-[8px] font-bold leading-none px-1 py-0.5 rounded-badge bg-stat-accent text-white">
-          J
-        </span>
-      )}
       <div className="relative flex-shrink-0">
         {player.pictureUrl ? (
           <img
@@ -139,11 +134,6 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       style={{ borderRadius: 6 }}
     >
       <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: posColor }} />
-      {player.joker && (
-        <span className="absolute top-1/2 right-0 -translate-y-1/2 z-10 text-[8px] font-bold leading-none px-1 py-0.5 rounded-badge bg-stat-accent text-white">
-          J
-        </span>
-      )}
       <div className="flex-1 flex flex-col items-center justify-center gap-2 px-1 min-h-0">
         <div className="relative flex-shrink-0">
           {player.pictureUrl ? (
