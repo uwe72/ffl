@@ -21,6 +21,7 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +39,8 @@ public class ReminderMailService {
 
     private static final DateTimeFormatter DATE_LONG = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy", Locale.GERMANY);
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+
+    private static final int BCC_CHUNK_SIZE = 200;
 
     private final SystemConfigRepository systemConfigRepository;
     private final SeasonRepository seasonRepository;
@@ -136,8 +139,12 @@ public class ReminderMailService {
 
                 int sent = 0;
                 int failed = 0;
-                long lastKeepAlive = System.currentTimeMillis();
+                int bccMails = 0;
+                int bccRecipients = 0;
+                int individualSent = 0;
 
+                List<EmailAddress> registeredList = new ArrayList<>();
+                List<EmailAddress> nonRegisteredList = new ArrayList<>();
                 for (Long emailId : emailIds) {
                     EmailAddress emailAddress = emailsById.get(emailId);
                     if (emailAddress == null) {
@@ -145,29 +152,94 @@ public class ReminderMailService {
                         failed++;
                         continue;
                     }
+                    boolean registered = isRegistered(emailAddress, registeredEmails);
+                    if (registered) {
+                        registeredList.add(emailAddress);
+                    } else {
+                        nonRegisteredList.add(emailAddress);
+                    }
+                }
 
+                if (!registeredList.isEmpty()) {
+                    if (testMode) {
+                        try {
+                            String html = buildHtml(season, true, anzahlManager, webUrl);
+                            String plainText = buildPlainText(season, true, anzahlManager, webUrl);
+
+                            MimeMessage msg = mailSender.createMimeMessage();
+                            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+                            helper.setFrom(config.getGmailSenderEmail());
+                            helper.setTo(config.getGmailSenderEmail());
+                            helper.setSubject(buildSubject(season, true));
+                            helper.setText(plainText, html);
+
+                            mailSender.send(msg);
+                            bccMails++;
+                            bccRecipients += registeredList.size();
+                            sent += registeredList.size();
+                            send(emitter, "[TEST] ✓ Danke-Mail an Admin (stellvertretend für " + registeredList.size() + " registrierte Empfänger)");
+                        } catch (Exception e) {
+                            failed += registeredList.size();
+                            send(emitter, "✗ Danke-Testmail fehlgeschlagen: " + e.getMessage());
+                            log.error("Fehler beim Senden der Danke-Testmail", e);
+                        }
+                    } else {
+                        for (int start = 0; start < registeredList.size(); start += BCC_CHUNK_SIZE) {
+                            List<EmailAddress> chunk = registeredList.subList(start,
+                                Math.min(start + BCC_CHUNK_SIZE, registeredList.size()));
+                            List<String> recipients = chunk.stream()
+                                .map(EmailAddress::getEmail)
+                                .collect(Collectors.toList());
+                            try {
+                                String html = buildHtml(season, true, anzahlManager, webUrl);
+                                String plainText = buildPlainText(season, true, anzahlManager, webUrl);
+
+                                MimeMessage msg = mailSender.createMimeMessage();
+                                MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+                                helper.setFrom(config.getGmailSenderEmail());
+                                helper.setTo(config.getGmailSenderEmail());
+                                helper.setBcc(recipients.toArray(new String[0]));
+                                helper.setSubject(buildSubject(season, true));
+                                helper.setText(plainText, html);
+
+                                mailSender.send(msg);
+                                bccMails++;
+                                bccRecipients += recipients.size();
+                                sent += recipients.size();
+                                send(emitter, "✓ BCC-Mail (Danke) an " + recipients.size() + " Empfänger");
+                            } catch (Exception e) {
+                                failed += recipients.size();
+                                send(emitter, "✗ BCC-Mail (Danke) fehlgeschlagen: " + e.getMessage());
+                                log.error("Fehler beim Senden der Danke-BCC-Mail", e);
+                            }
+                        }
+                    }
+                }
+
+                long lastKeepAlive = System.currentTimeMillis();
+                int individualTotal = nonRegisteredList.size();
+                for (EmailAddress emailAddress : nonRegisteredList) {
                     String recipientEmail = emailAddress.getEmail();
-                    boolean registered = registeredEmails.contains(recipientEmail.toLowerCase());
 
                     try {
-                        String html = buildHtml(season, registered, anzahlManager, webUrl);
-                        String plainText = buildPlainText(season, registered, anzahlManager, webUrl);
-                        String unsubscribeUrl = unsubscribeService.generateUnsubscribeUrl(emailId, config.getWebUrl());
+                        String html = buildHtml(season, false, anzahlManager, webUrl);
+                        String plainText = buildPlainText(season, false, anzahlManager, webUrl);
+                        String unsubscribeUrl = unsubscribeService.generateUnsubscribeUrl(emailAddress.getId(), config.getWebUrl());
                         html = insertUnsubscribeFooter(html, unsubscribeUrl);
                         plainText = appendUnsubscribePlainText(plainText, unsubscribeUrl);
-                        String subject = buildSubject(season, registered);
 
                         MimeMessage msg = mailSender.createMimeMessage();
                         MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
                         helper.setFrom(config.getGmailSenderEmail());
                         helper.setTo(testMode ? config.getGmailSenderEmail() : recipientEmail);
-                        helper.setSubject(subject);
+                        helper.setSubject(buildSubject(season, false));
                         helper.setText(plainText, html);
 
                         mailSender.send(msg);
 
                         send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + emailAddress.getId() + "] " + recipientEmail
-                            + (registered ? " (Danke-Variante)" : " (Erinnerung)"));
+                            + " (Erinnerung)");
+                        individualSent++;
                         sent++;
 
                         Thread.sleep(1000);
@@ -178,9 +250,9 @@ public class ReminderMailService {
                             lastKeepAlive = now;
                         }
 
-                        if (sent % 50 == 0 && sent < emailIds.size()) {
+                        if (individualSent % 50 == 0 && individualSent < individualTotal) {
                             for (int remaining = 90; remaining > 0; remaining--) {
-                                send(emitter, "⏳ " + sent + " Mails versendet, warte " + remaining + " Sekunden...");
+                                send(emitter, "⏳ " + individualSent + " Mails versendet, warte " + remaining + " Sekunden...");
                                 Thread.sleep(1000);
                             }
                             send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
@@ -199,7 +271,9 @@ public class ReminderMailService {
                 }
 
                 send(emitter, "");
-                send(emitter, "Fertig: " + sent + " versendet, " + failed + " fehlgeschlagen." + (testMode ? " (TEST-MODUS)" : ""));
+                send(emitter, "Fertig: " + bccMails + " Danke-BCC-Mail(s) an " + bccRecipients + " Empfänger, "
+                    + individualSent + " einzeln versendet, " + failed + " fehlgeschlagen."
+                    + (testMode ? " (TEST-MODUS)" : ""));
                 emitter.send(SseEmitter.event().name("complete").data(""));
                 emitter.complete();
             } catch (Exception e) {
@@ -327,6 +401,12 @@ public class ReminderMailService {
             + "<p style=\"font-size:14px;margin:0;line-height:1.5;\">&nbsp;</p>"
             + "</div>";
         return html.replace("</body>", footer + "</body>");
+    }
+
+    boolean isRegistered(EmailAddress emailAddress, Set<String> registeredEmails) {
+        return emailAddress != null
+            && emailAddress.getEmail() != null
+            && registeredEmails.contains(emailAddress.getEmail().toLowerCase());
     }
 
     private String appendUnsubscribePlainText(String text, String unsubscribeUrl) {
