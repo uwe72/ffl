@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useEmails, useCreateEmail, useBulkCreateEmails, useDeleteEmail } from '../hooks/useEmails'
+import { useCurrentSeason } from '../hooks/useSeasons'
+import { useManagersBySeason } from '../hooks/useManagers'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
@@ -7,10 +9,12 @@ import FormCard from '../components/FormCard'
 import Button from '../components/Button'
 import type { EmailAddress } from '../types'
 
-type SortKey = 'id' | 'email'
+type SortKey = 'id' | 'email' | 'participant' | 'teamCount'
+type ParticipantFilter = 'all' | 'yes' | 'no'
 
 export default function Emails() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [participantFilter, setParticipantFilter] = useState<ParticipantFilter>('all')
   const [sortKey, setSortKey] = useState<SortKey>('email')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -22,9 +26,26 @@ export default function Emails() {
   const [error, setError] = useState('')
 
   const { data: emails, isLoading, error: fetchError } = useEmails(searchTerm || undefined)
+  const { data: currentSeason } = useCurrentSeason()
+  const { data: seasonManagers } = useManagersBySeason(currentSeason?.id ?? 0)
   const createEmail = useCreateEmail()
   const bulkCreateEmails = useBulkCreateEmails()
   const deleteEmail = useDeleteEmail()
+
+  const teamCountByEmail = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const manager of seasonManagers ?? []) {
+      const email = manager.email?.toLowerCase()
+      if (!email) continue
+      map.set(email, (map.get(email) ?? 0) + 1)
+    }
+    return map
+  }, [seasonManagers])
+
+  const getTeamCount = useCallback(
+    (email: string) => teamCountByEmail.get(email.toLowerCase()) ?? 0,
+    [teamCountByEmail],
+  )
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -37,7 +58,12 @@ export default function Emails() {
 
   const sortedEmails = useMemo(() => {
     if (!emails) return []
-    return [...emails].sort((a, b) => {
+    const filtered = emails.filter((email) => {
+      if (participantFilter === 'all') return true
+      const isParticipant = (teamCountByEmail.get(email.email.toLowerCase()) ?? 0) > 0
+      return participantFilter === 'yes' ? isParticipant : !isParticipant
+    })
+    return filtered.sort((a, b) => {
       let comparison = 0
       switch (sortKey) {
         case 'id':
@@ -46,10 +72,22 @@ export default function Emails() {
         case 'email':
           comparison = a.email.localeCompare(b.email)
           break
+        case 'participant': {
+          const aCount = teamCountByEmail.get(a.email.toLowerCase()) ?? 0
+          const bCount = teamCountByEmail.get(b.email.toLowerCase()) ?? 0
+          comparison = (aCount > 0 ? 1 : 0) - (bCount > 0 ? 1 : 0)
+          break
+        }
+        case 'teamCount': {
+          const aCount = teamCountByEmail.get(a.email.toLowerCase()) ?? 0
+          const bCount = teamCountByEmail.get(b.email.toLowerCase()) ?? 0
+          comparison = aCount - bCount
+          break
+        }
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-  }, [emails, sortKey, sortOrder])
+  }, [emails, participantFilter, teamCountByEmail, sortKey, sortOrder])
 
   const handleCreate = useCallback(async () => {
     setError('')
@@ -112,7 +150,7 @@ export default function Emails() {
   if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
   if (fetchError) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
-  const hasActiveFilter = searchTerm !== ''
+  const hasActiveFilter = searchTerm !== '' || participantFilter !== 'all'
 
   return (
     <div>
@@ -133,6 +171,19 @@ export default function Emails() {
             />
           </div>
 
+          <label className="flex items-center gap-1.5 text-xs text-muted">
+            Teilnehmer:
+            <select
+              value={participantFilter}
+              onChange={(e) => setParticipantFilter(e.target.value as ParticipantFilter)}
+              className="input-field py-1.5 pl-2 pr-6 text-xs"
+            >
+              <option value="all">Alle</option>
+              <option value="yes">Ja</option>
+              <option value="no">Nein</option>
+            </select>
+          </label>
+
           <Button
             variant="emphasized"
             size="compact"
@@ -150,7 +201,7 @@ export default function Emails() {
 
           {hasActiveFilter && (
             <button
-              onClick={() => setSearchTerm('')}
+              onClick={() => { setSearchTerm(''); setParticipantFilter('all') }}
               className="p-1 rounded-badge text-subtle hover:text-danger transition-colors"
               title="Filter zurücksetzen"
             >
@@ -169,29 +220,49 @@ export default function Emails() {
                 <ThSortable onClick={() => handleSort('email')}>
                   E-Mail<SortIcon column="email" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
+                <ThSortable onClick={() => handleSort('participant')}>
+                  Teilnehmer diesjähriger Saison<SortIcon column="participant" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+                <ThSortable onClick={() => handleSort('teamCount')}>
+                  Anzahl Teams<SortIcon column="teamCount" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
                 <Th align="right">Aktionen</Th>
               </tr>
             </TableHead>
             <TableBody>
               {sortedEmails.length > 0 ? (
-                sortedEmails.map((email) => (
-                  <tr key={email.id} className="border-b border-border hover:bg-card-hover">
-                    <td className="px-3 py-2 text-subtle">{email.id}</td>
-                    <td className="px-3 py-2 text-foreground">{email.email}</td>
-                    <td className="px-3 py-2 text-right">
-                      <Button
-                        variant="negative"
-                        size="compact"
-                        onClick={() => { setDeleteTarget(email); setShowDeleteDialog(true); setError('') }}
-                      >
-                        Löschen
-                      </Button>
-                    </td>
-                  </tr>
-                ))
+                sortedEmails.map((email) => {
+                  const teamCount = getTeamCount(email.email)
+                  const isParticipant = teamCount > 0
+                  return (
+                    <tr key={email.id} className="border-b border-border hover:bg-card-hover">
+                      <td className="px-3 py-2 text-subtle">{email.id}</td>
+                      <td className="px-3 py-2 text-foreground">{email.email}</td>
+                      <td className="px-3 py-2">
+                        {isParticipant ? (
+                          <span className="text-success font-medium">Ja</span>
+                        ) : (
+                          <span className="text-muted">Nein</span>
+                        )}
+                      </td>
+                      <td className={`px-3 py-2 ${teamCount > 0 ? 'text-foreground' : 'text-subtle'}`}>
+                        {teamCount}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <Button
+                          variant="negative"
+                          size="compact"
+                          onClick={() => { setDeleteTarget(email); setShowDeleteDialog(true); setError('') }}
+                        >
+                          Löschen
+                        </Button>
+                      </td>
+                    </tr>
+                  )
+                })
               ) : (
                 <tr>
-                  <td colSpan={3} className="text-center text-subtle py-8">
+                  <td colSpan={5} className="text-center text-subtle py-8">
                     Keine E-Mail-Adressen gefunden
                   </td>
                 </tr>
