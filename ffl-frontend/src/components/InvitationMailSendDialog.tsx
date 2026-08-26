@@ -55,6 +55,7 @@ interface Props {
   endpoint?: string
   progressTitle?: string
   emails?: EmailAddress[]
+  sendMode?: string
 }
 
 export default function InvitationMailSendDialog({
@@ -68,6 +69,7 @@ export default function InvitationMailSendDialog({
   endpoint = '/invitation-mail/stream',
   progressTitle = 'Versende Einladungsmails…',
   emails,
+  sendMode,
 }: Props) {
   const isMobile = useIsMobile()
   const { data: allEmails } = useEmails()
@@ -274,6 +276,7 @@ export default function InvitationMailSendDialog({
           testMode={testMode}
           endpoint={endpoint}
           title={progressTitle}
+          sendMode={sendMode}
         />
       </div>
     </div>

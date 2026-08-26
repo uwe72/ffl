@@ -22,10 +22,10 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -113,6 +113,10 @@ public class ReminderMailService {
     }
 
     public SseEmitter streamReminderMail(Long seasonId, List<Long> emailIds, boolean testMode) {
+        return streamReminderMail(seasonId, emailIds, testMode, null);
+    }
+
+    public SseEmitter streamReminderMail(Long seasonId, List<Long> emailIds, boolean testMode, String sendMode) {
         SseEmitter emitter = new SseEmitter(1_200_000L);
         executor.execute(() -> {
             try {
@@ -130,7 +134,10 @@ public class ReminderMailService {
                     .orElseThrow(() -> new RuntimeException("Saison nicht gefunden"));
 
                 long anzahlManager = managerRepository.countBySeasonId(seasonId);
-                Set<String> registeredEmails = new HashSet<>(managerRepository.findDistinctUserEmailsBySeasonId(seasonId));
+                Set<String> registeredEmails = managerRepository.findDistinctUserEmailsBySeasonId(seasonId).stream()
+                    .filter(Objects::nonNull)
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toSet());
 
                 List<EmailAddress> allEmails = emailAddressRepository.findAll();
                 Map<Long, EmailAddress> emailsById = allEmails.stream()
@@ -148,6 +155,7 @@ public class ReminderMailService {
                 int bccMails = 0;
                 int bccRecipients = 0;
                 int individualSent = 0;
+                int skipped = 0;
 
                 List<EmailAddress> registeredList = new ArrayList<>();
                 List<EmailAddress> nonRegisteredList = new ArrayList<>();
@@ -158,11 +166,15 @@ public class ReminderMailService {
                         failed++;
                         continue;
                     }
-                    boolean registered = isRegistered(emailAddress, registeredEmails);
-                    if (registered) {
-                        registeredList.add(emailAddress);
-                    } else {
-                        nonRegisteredList.add(emailAddress);
+                    RecipientBucket bucket = classify(emailAddress, registeredEmails, sendMode);
+                    switch (bucket) {
+                        case DANKE -> registeredList.add(emailAddress);
+                        case ERINNERUNG -> nonRegisteredList.add(emailAddress);
+                        case SKIP -> {
+                            send(emitter, "⤼ [" + emailAddress.getId() + "] " + emailAddress.getEmail()
+                                + " übersprungen (bereits angemeldet)");
+                            skipped++;
+                        }
                     }
                 }
 
@@ -278,7 +290,7 @@ public class ReminderMailService {
 
                 send(emitter, "");
                 send(emitter, "Fertig: " + bccMails + " Danke-BCC-Mail(s) an " + bccRecipients + " Empfänger, "
-                    + individualSent + " einzeln versendet, " + failed + " fehlgeschlagen."
+                    + individualSent + " einzeln versendet, " + skipped + " übersprungen, " + failed + " fehlgeschlagen."
                     + (testMode ? " (TEST-MODUS)" : ""));
                 emitter.send(SseEmitter.event().name("complete").data(""));
                 emitter.complete();
@@ -413,6 +425,19 @@ public class ReminderMailService {
         return emailAddress != null
             && emailAddress.getEmail() != null
             && registeredEmails.contains(emailAddress.getEmail().toLowerCase());
+    }
+
+    enum RecipientBucket { DANKE, ERINNERUNG, SKIP }
+
+    RecipientBucket classify(EmailAddress emailAddress, Set<String> registeredEmails, String sendMode) {
+        boolean registered = isRegistered(emailAddress, registeredEmails);
+        if ("danke".equalsIgnoreCase(sendMode)) {
+            return RecipientBucket.DANKE;
+        }
+        if ("erinnerung".equalsIgnoreCase(sendMode)) {
+            return registered ? RecipientBucket.SKIP : RecipientBucket.ERINNERUNG;
+        }
+        return registered ? RecipientBucket.DANKE : RecipientBucket.ERINNERUNG;
     }
 
     private String appendUnsubscribePlainText(String text, String unsubscribeUrl) {

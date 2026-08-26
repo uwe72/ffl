@@ -124,6 +124,7 @@ export default function MailingReminder({ variant }: Props) {
         endpoint="/reminder-mail/stream"
         progressTitle={isDanke ? 'Versende Danke-Mails…' : 'Versende Erinnerungs-Mails…'}
         emails={filteredEmails}
+        sendMode={variant}
       />
     </div>
   )

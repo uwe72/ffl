@@ -62,6 +62,44 @@ class ReminderMailPartitionTest {
     }
 
     @Test
+    void classify_dankeMode_alwaysBucketsAsDanke_evenForNonRegistered() {
+        Set<String> registered = Set.of("manager@example.com");
+
+        assertThat(service().classify(email("manager@example.com"), registered, "danke"))
+            .isEqualTo(ReminderMailService.RecipientBucket.DANKE);
+        assertThat(service().classify(email("stranger@example.com"), registered, "danke"))
+            .isEqualTo(ReminderMailService.RecipientBucket.DANKE);
+    }
+
+    @Test
+    void classify_erinnerungMode_skipsRegistered_sendsToNonRegistered() {
+        Set<String> registered = Set.of("manager@example.com");
+
+        assertThat(service().classify(email("manager@example.com"), registered, "erinnerung"))
+            .isEqualTo(ReminderMailService.RecipientBucket.SKIP);
+        assertThat(service().classify(email("stranger@example.com"), registered, "erinnerung"))
+            .isEqualTo(ReminderMailService.RecipientBucket.ERINNERUNG);
+    }
+
+    @Test
+    void classify_erinnerungMode_skipsRegistered_caseInsensitive() {
+        Set<String> registered = Set.of("manager@example.com");
+
+        assertThat(service().classify(email("MANAGER@example.com"), registered, "erinnerung"))
+            .isEqualTo(ReminderMailService.RecipientBucket.SKIP);
+    }
+
+    @Test
+    void classify_withoutSendMode_fallsBackToRegistrationStatus() {
+        Set<String> registered = Set.of("manager@example.com");
+
+        assertThat(service().classify(email("manager@example.com"), registered, null))
+            .isEqualTo(ReminderMailService.RecipientBucket.DANKE);
+        assertThat(service().classify(email("stranger@example.com"), registered, null))
+            .isEqualTo(ReminderMailService.RecipientBucket.ERINNERUNG);
+    }
+
+    @Test
     void getRegisteredEmails_returnsSeasonManagerEmails() {
         when(managerRepository.findDistinctUserEmailsBySeasonId(7L))
             .thenReturn(List.of("a@example.com", "b@example.com"));

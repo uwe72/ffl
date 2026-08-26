@@ -398,7 +398,8 @@ public class SeasonController {
     public SseEmitter streamReminderMail(
             @PathVariable Long id,
             @RequestParam List<Long> emailIds,
-            @RequestParam(required = false, defaultValue = "false") boolean testMode) {
+            @RequestParam(required = false, defaultValue = "false") boolean testMode,
+            @RequestParam(required = false) String sendMode) {
         if (!seasonRepository.existsById(id)) {
             SseEmitter emitter = new SseEmitter();
             try {
@@ -407,7 +408,7 @@ public class SeasonController {
             } catch (Exception ignored) {}
             return emitter;
         }
-        return reminderMailService.streamReminderMail(id, emailIds, testMode);
+        return reminderMailService.streamReminderMail(id, emailIds, testMode, sendMode);
     }
 
     @PostMapping("/{id}/transparency-mail/test")
