@@ -17,6 +17,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -43,6 +44,7 @@ public class ReminderMailService {
     private final EmailAddressRepository emailAddressRepository;
     private final ManagerRepository managerRepository;
     private final UnsubscribeService unsubscribeService;
+    private final InvitationMailService invitationMailService;
     private final SpringTemplateEngine templateEngine;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -52,12 +54,14 @@ public class ReminderMailService {
                                EmailAddressRepository emailAddressRepository,
                                ManagerRepository managerRepository,
                                UnsubscribeService unsubscribeService,
+                               InvitationMailService invitationMailService,
                                SpringTemplateEngine templateEngine) {
         this.systemConfigRepository = systemConfigRepository;
         this.seasonRepository = seasonRepository;
         this.emailAddressRepository = emailAddressRepository;
         this.managerRepository = managerRepository;
         this.unsubscribeService = unsubscribeService;
+        this.invitationMailService = invitationMailService;
         this.templateEngine = templateEngine;
     }
 
@@ -226,9 +230,10 @@ public class ReminderMailService {
         if (registered) {
             sb.append("Danke für Deine Anmeldung zur FFL-Saison ").append(seasonName).append("!\r\n\r\n");
             sb.append("Schon ").append(anzahlManager).append(" Manager sind dabei. Du kannst gerne noch Freunde, Bekannte oder Familienmitglieder einladen – oder mit einem neuen Login ein Zweitteam registrieren.\r\n\r\n");
-            if (webUrl != null) {
-                sb.append("Zur FFL: ").append(webUrl).append("\r\n\r\n");
-            }
+            sb.append("Einfach diese Mail weiterleiten.\r\n\r\n");
+            sb.append("------------------------------------------------------------------\r\n\r\n");
+            sb.append(invitationMailService.buildPlainText(season, webUrl));
+            sb.append("\r\n");
         } else {
             sb.append("Die Anmeldung für die FFL-Saison ").append(seasonName).append(" ist noch offen – schon ").append(anzahlManager).append(" Manager sind dabei.\r\n\r\n");
             sb.append("Du hast bis ").append(deadlineDate).append(" um ").append(deadlineTime).append(" Uhr Zeit, Dich anzumelden und Dein Team aufzustellen.\r\n\r\n");
@@ -255,10 +260,19 @@ public class ReminderMailService {
         context.setVariable("registered", registered);
         context.setVariable("seasonName", season.getName() != null ? season.getName() : "Aktuelle Saison");
         context.setVariable("anzahlManager", anzahlManager);
+        context.setVariable("startDateLong", formatOrDefault(season.getSeasonStartDate(), DATE_LONG, "siehe Webseite"));
         context.setVariable("deadlineDate", formatOrDefault(season.getFinalRegistrationDate() != null
             ? season.getFinalRegistrationDate()
             : season.getSeasonStartDate(), DATE_LONG, "siehe Webseite"));
         context.setVariable("deadlineTime", formatOrDefault(season.getSeasonStartTime(), TIME_FMT, "20:30"));
+        context.setVariable("spieleinsatz", formatCurrency(season.getSpieleinsatzEuro(), "10"));
+        context.setVariable("serverkosten", formatCurrency(season.getServerkostenEuro(), "60"));
+        context.setVariable("gewinnProzent", season.getGewinnErsterPlatzProzent() != null ? String.valueOf(season.getGewinnErsterPlatzProzent()) : "10");
+        context.setVariable("gewinnLetzter", formatCurrency(season.getGewinnLetzterPlatzEuro(), "15"));
+        context.setVariable("anzahlSpielleiter", season.getAnzahlSpielleiter() != null ? String.valueOf(season.getAnzahlSpielleiter()) : "2");
+        context.setVariable("budget", formatBudget(season.getBudget()));
+        context.setVariable("playersUrl", webUrl != null ? webUrl + "/players" : null);
+        context.setVariable("documentsUrl", webUrl != null ? webUrl + "/documents" : null);
         context.setVariable("webUrl", webUrl);
 
         return context;
@@ -277,6 +291,23 @@ public class ReminderMailService {
 
     private String formatOrDefault(LocalTime time, DateTimeFormatter fmt, String fallback) {
         return time != null ? time.format(fmt) : fallback;
+    }
+
+    private String formatCurrency(java.math.BigDecimal value, String fallback) {
+        if (value == null) {
+            return fallback;
+        }
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.GERMANY);
+        nf.setMaximumFractionDigits(0);
+        return nf.format(value);
+    }
+
+    private String formatBudget(Integer value) {
+        if (value == null) {
+            return "30.000.000";
+        }
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.GERMANY);
+        return nf.format(value);
     }
 
     private String normalizeWebUrl(String webUrl) {

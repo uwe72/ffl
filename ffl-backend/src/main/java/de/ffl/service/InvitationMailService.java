@@ -226,7 +226,7 @@ public class InvitationMailService {
         return dto;
     }
 
-    private String buildPlainText(Season season, String webUrl) {
+    String buildPlainText(Season season, String webUrl) {
         String seasonName = season.getName() != null ? season.getName() : "Aktuelle Saison";
         String startDateLong = formatOrDefault(season.getSeasonStartDate(), DATE_LONG, "siehe Webseite");
         LocalDate deadlineDateRaw = season.getFinalRegistrationDate() != null

@@ -26,11 +26,13 @@ class ReminderMailUnsubscribeFooterTest {
     @Mock
     private UnsubscribeService unsubscribeService;
     @Mock
+    private InvitationMailService invitationMailService;
+    @Mock
     private SpringTemplateEngine templateEngine;
 
     private ReminderMailService service() {
         return new ReminderMailService(systemConfigRepository, seasonRepository,
-            emailAddressRepository, managerRepository, unsubscribeService, templateEngine);
+            emailAddressRepository, managerRepository, unsubscribeService, invitationMailService, templateEngine);
     }
 
     @Test
