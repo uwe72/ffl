@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
+  <title>FFL | Kurze Erinnerung zur Saison</title>
+</head>
+<body style="margin:0;padding:0;background:#e7e5e4;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1c1917;-webkit-font-smoothing:antialiased;">
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#e7e5e4;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+          <!-- Hero-Banner -->
+          <tr>
+            <td style="background:#1c1917;border-radius:6px;padding:32px 28px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="vertical-align:top;">
+                    <p style="margin:0 0 10px 0;color:#ede9e3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">FFL &middot; Fantasy Football League</p>
+                    <h1 style="margin:0 0 6px 0;color:#fafaf9;font-size:26px;font-weight:700;line-height:1.2;" th:text="${registered ? 'Danke für Deine Anmeldung' : 'Kurze Erinnerung'}">Kurze Erinnerung</h1>
+                    <p style="margin:0;color:#a8a29e;font-size:15px;font-weight:500;line-height:1.4;">Saison <span th:text="${seasonName}" style="font-weight:700;">Aktuelle Saison</span></p>
+                  </td>
+                  <td width="44" style="vertical-align:top;text-align:right;">
+                    <span style="display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;background:#15803d;color:#ffffff;border-radius:9999px;font-size:18px;font-weight:700;">&#9993;</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="20" style="line-height:20px;font-size:20px;">&nbsp;</td></tr>
+
+          <!-- Variante: Danke (registriert) -->
+          <th:block th:if="${registered}">
+            <tr>
+              <td>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
+                  <tr>
+                    <td style="padding:20px 22px;color:#57534e;font-size:14px;line-height:1.6;">
+                      <p style="margin:0 0 12px 0;">Danke f&uuml;r Deine Anmeldung zur <strong>FFL-Saison <span th:text="${seasonName}">Aktuelle Saison</span></strong>! Schon <strong><span th:text="${anzahlManager}">0</span> Manager</strong> sind dabei.</p>
+                      <p style="margin:0 0 16px 0;">Du kannst gerne noch <strong>Freunde, Bekannte oder Familienmitglieder</strong> einladen – oder mit einem neuen Login ein <strong>Zweitteam</strong> registrieren.</p>
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="background:#3f3a34;border-radius:6px;">
+                            <a th:href="${webUrl}" style="display:inline-block;padding:12px 22px;color:#fafaf9;font-size:14px;font-weight:700;text-decoration:none;">Zur FFL</a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </th:block>
+
+          <!-- Variante: Erinnerung (nicht registriert) -->
+          <th:block th:if="${!registered}">
+            <tr>
+              <td>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
+                  <tr>
+                    <td style="padding:20px 22px;color:#57534e;font-size:14px;line-height:1.6;">
+                      <p style="margin:0 0 12px 0;">Nur eine kurze Erinnerung: Die Anmeldung f&uuml;r die <strong>FFL-Saison <span th:text="${seasonName}">Aktuelle Saison</span></strong> ist noch offen – schon <strong><span th:text="${anzahlManager}">0</span> Manager</strong> sind dabei.</p>
+                      <p style="margin:0 0 16px 0;">Du hast bis <strong><span th:text="${deadlineDate}">--</span> um <span th:text="${deadlineTime}">--</span> Uhr</strong> Zeit, Dich anzumelden und Dein Team aufzustellen.</p>
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;">
+                        <tr>
+                          <td style="background:#3f3a34;border-radius:6px;">
+                            <a th:href="${webUrl}" style="display:inline-block;padding:12px 22px;color:#fafaf9;font-size:14px;font-weight:700;text-decoration:none;">Jetzt anmelden</a>
+                          </td>
+                        </tr>
+                      </table>
+                      <p style="margin:0;color:#78716c;font-size:13px;">Die n&auml;chste Mail von uns kommt erst wieder im August n&auml;chsten Jahres.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </th:block>
+
+          <!-- Spacer -->
+          <tr><td height="20" style="line-height:20px;font-size:20px;">&nbsp;</td></tr>
+
+          <!-- Gruss -->
+          <tr>
+            <td>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;">
+                <tr>
+                  <td style="padding:20px 22px;color:#1c1917;font-size:14px;line-height:1.6;">
+                    <p style="margin:0;">
+                      Viele Gr&uuml;&szlig;e<br/>
+                      <strong>Uwe Clement</strong><br/>
+                      <strong>Wolfgang Gehring</strong>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Spacer -->
+          <tr><td height="14" style="line-height:14px;font-size:14px;">&nbsp;</td></tr>
+
+          <!-- Webseitenlink -->
+          <th:block th:if="${webUrl != null and !webUrl.isEmpty()}">
+            <tr>
+              <td align="center" style="padding-bottom:16px;">
+                <p style="margin:0 0 6px 0;color:#a8a29e;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Webseite:</p>
+                <a th:href="${webUrl}" style="color:#1d4ed8;font-size:13px;font-weight:700;text-decoration:none;">FFL &middot; Fantasy Football League</a>
+              </td>
+            </tr>
+          </th:block>
+
+          <!-- Fusszeile -->
+          <tr>
+            <td style="padding-top:10px;border-top:1px solid #d6d3d1;text-align:center;">
+              <p style="margin:0 0 2px 0;color:#78716c;font-size:12px;line-height:1.6;">Private Liga, ehrenamtlich, ohne Gewinnabsicht. Rechtsweg ausgeschlossen.</p>
+              <p style="margin:0;color:#78716c;font-size:12px;line-height:1.6;">Fragen? Einfach auf diese Mail antworten.</p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

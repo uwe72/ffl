@@ -21,6 +21,13 @@ const sections: { label: string; cards: MailCard[] }[] = [
         icon: 'sap-icon-letter'
       },
       {
+        title: 'Erinnerungsmail',
+        description: 'Kurze Erinnerung kurz vor dem Saisonstart: Nicht-registrierte Adressen erhalten einen Nudge mit der Anzahl der angemeldeten Manager, bereits registrierte einen Dank mit Einladungs-/Zweitteam-Hinweis. Beide enthalten den Abmeldelink.',
+        recipients: 'Adressbuch',
+        route: '/mailing/erinnerung',
+        icon: 'sap-icon-message-information'
+      },
+      {
         title: 'Transparenz-Report',
         description: 'Sendet zu Beginn der Saison einmalig eine Übersicht an alle Manager: jeder Manager mit seinem kompletten Kader sowie eine Tabelle aller verwendeten Spieler. Erhöht die Transparenz in der Liga.',
         recipients: 'Manager (auswählbar)',

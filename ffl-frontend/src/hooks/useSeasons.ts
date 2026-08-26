@@ -122,6 +122,13 @@ export function useSendInvitationTestMail() {
   })
 }
 
+export function useSendReminderTestMail() {
+  return useMutation({
+    mutationFn: (seasonId: number) =>
+      seasonApi.sendReminderTestMail(seasonId).then(res => res.data),
+  })
+}
+
 export function useSendSeasonReport() {
   return useMutation({
     mutationFn: (seasonId: number) =>

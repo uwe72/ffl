@@ -49,9 +49,24 @@ interface Props {
   onClose: () => void
   seasonId: number
   seasonName: string
+  title?: string
+  sendLabel?: string
+  testSendLabel?: string
+  endpoint?: string
+  progressTitle?: string
 }
 
-export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, seasonName }: Props) {
+export default function InvitationMailSendDialog({
+  isOpen,
+  onClose,
+  seasonId,
+  seasonName,
+  title = 'Saisoneinladung',
+  sendLabel = 'Einladungsmail senden',
+  testSendLabel = 'Test-Mail senden',
+  endpoint = '/invitation-mail/stream',
+  progressTitle = 'Versende Einladungsmails…',
+}: Props) {
   const isMobile = useIsMobile()
   const { data: emails } = useEmails()
 
@@ -107,7 +122,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
       >
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-foreground">Saisoneinladung</h2>
+            <h2 className="text-2xl font-bold text-foreground">{title}</h2>
             <span className="px-2 py-1 rounded-badge bg-primary text-primary-foreground text-xs font-semibold">
               {seasonName}
             </span>
@@ -244,7 +259,7 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
             variant="emphasized"
             className={`w-full md:w-auto font-semibold ${testMode ? 'bg-success text-background hover:bg-success' : ''}`}
           >
-            {testMode ? `Test-Mail senden (${selectedEmailIds.length})` : `Einladungsmail senden (${selectedEmailIds.length})`}
+            {testMode ? `${testSendLabel} (${selectedEmailIds.length})` : `${sendLabel} (${selectedEmailIds.length})`}
           </Button>
         </div>
 
@@ -254,6 +269,8 @@ export default function InvitationMailSendDialog({ isOpen, onClose, seasonId, se
           seasonId={seasonId}
           emailIds={selectedEmailIds}
           testMode={testMode}
+          endpoint={endpoint}
+          title={progressTitle}
         />
       </div>
     </div>

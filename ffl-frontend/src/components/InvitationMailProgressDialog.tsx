@@ -7,6 +7,8 @@ interface Props {
   seasonId: number
   emailIds: number[]
   testMode?: boolean
+  endpoint?: string
+  title?: string
 }
 
 export default function InvitationMailProgressDialog({
@@ -15,6 +17,8 @@ export default function InvitationMailProgressDialog({
   seasonId,
   emailIds,
   testMode,
+  endpoint = '/invitation-mail/stream',
+  title = 'Versende Einladungsmails…',
 }: Props) {
   const [logs, setLogs] = useState<string[]>([])
   const [isComplete, setIsComplete] = useState(false)
@@ -36,7 +40,7 @@ export default function InvitationMailProgressDialog({
     if (token) params.set('token', token)
     if (testMode) params.set('testMode', 'true')
 
-    const url = `/api/seasons/${seasonId}/invitation-mail/stream?${params.toString()}`
+    const url = `/api/seasons/${seasonId}${endpoint}?${params.toString()}`
     const eventSource = new EventSource(url)
 
     eventSource.onmessage = (event) => {
@@ -88,7 +92,7 @@ export default function InvitationMailProgressDialog({
             ? error
               ? 'Fehler beim Versand'
               : 'Versand abgeschlossen'
-            : 'Versende Einladungsmails…'}
+            : title}
         </h2>
 
         <div

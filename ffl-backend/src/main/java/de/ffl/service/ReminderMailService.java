@@ -1,0 +1,338 @@
+package de.ffl.service;
+
+import de.ffl.domain.EmailAddress;
+import de.ffl.domain.Season;
+import de.ffl.domain.SystemConfig;
+import de.ffl.repository.EmailAddressRepository;
+import de.ffl.repository.ManagerRepository;
+import de.ffl.repository.SeasonRepository;
+import de.ffl.repository.SystemConfigRepository;
+import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+
+@Service
+public class ReminderMailService {
+
+    private static final Logger log = LoggerFactory.getLogger(ReminderMailService.class);
+
+    private static final DateTimeFormatter DATE_LONG = DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy", Locale.GERMANY);
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+
+    private final SystemConfigRepository systemConfigRepository;
+    private final SeasonRepository seasonRepository;
+    private final EmailAddressRepository emailAddressRepository;
+    private final ManagerRepository managerRepository;
+    private final UnsubscribeService unsubscribeService;
+    private final SpringTemplateEngine templateEngine;
+
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+
+    public ReminderMailService(SystemConfigRepository systemConfigRepository,
+                               SeasonRepository seasonRepository,
+                               EmailAddressRepository emailAddressRepository,
+                               ManagerRepository managerRepository,
+                               UnsubscribeService unsubscribeService,
+                               SpringTemplateEngine templateEngine) {
+        this.systemConfigRepository = systemConfigRepository;
+        this.seasonRepository = seasonRepository;
+        this.emailAddressRepository = emailAddressRepository;
+        this.managerRepository = managerRepository;
+        this.unsubscribeService = unsubscribeService;
+        this.templateEngine = templateEngine;
+    }
+
+    public void sendTestMail(Long seasonId) {
+        SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc()
+            .orElseThrow(() -> new RuntimeException("Keine Systemkonfiguration vorhanden"));
+
+        if (config.getGmailSenderEmail() == null || config.getGmailSenderEmail().isBlank()
+            || config.getGmailAppPassword() == null || config.getGmailAppPassword().isBlank()) {
+            throw new RuntimeException("Gmail-Zugangsdaten sind nicht vollständig konfiguriert");
+        }
+
+        Season season = seasonRepository.findById(seasonId)
+            .orElseThrow(() -> new RuntimeException("Saison nicht gefunden"));
+
+        String webUrl = normalizeWebUrl(config.getWebUrl());
+        long anzahlManager = managerRepository.countBySeasonId(seasonId);
+        String html = buildHtml(season, false, anzahlManager, webUrl);
+        String plainText = buildPlainText(season, false, anzahlManager, webUrl);
+        String unsubscribeUrl = unsubscribeService.getUnsubscribePlaceholderUrl();
+        html = insertUnsubscribeFooter(html, unsubscribeUrl);
+        plainText = appendUnsubscribePlainText(plainText, unsubscribeUrl);
+        String subject = buildSubject(season, false);
+
+        try {
+            JavaMailSenderImpl mailSender = buildMailSender(config);
+            MimeMessage msg = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+            helper.setFrom(config.getGmailSenderEmail());
+            helper.setTo(config.getGmailSenderEmail());
+            helper.setSubject(subject);
+            helper.setText(plainText, html);
+
+            mailSender.send(msg);
+            log.info("Erinnerungsmail (Test) gesendet an Admin: {}", config.getGmailSenderEmail());
+        } catch (Exception e) {
+            log.error("Fehler beim Senden der Test-Erinnerungsmail: {}", e.getMessage(), e);
+            throw new RuntimeException("Versand fehlgeschlagen: " + e.getMessage(), e);
+        }
+    }
+
+    public SseEmitter streamReminderMail(Long seasonId, List<Long> emailIds, boolean testMode) {
+        SseEmitter emitter = new SseEmitter(1_200_000L);
+        executor.execute(() -> {
+            try {
+                SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc()
+                    .orElseThrow(() -> new RuntimeException("Keine Systemkonfiguration vorhanden"));
+
+                if (config.getGmailSenderEmail() == null || config.getGmailSenderEmail().isBlank()
+                    || config.getGmailAppPassword() == null || config.getGmailAppPassword().isBlank()) {
+                    emitter.send(SseEmitter.event().name("error").data("FEHLER: Gmail-Zugangsdaten sind nicht vollständig konfiguriert"));
+                    emitter.complete();
+                    return;
+                }
+
+                Season season = seasonRepository.findById(seasonId)
+                    .orElseThrow(() -> new RuntimeException("Saison nicht gefunden"));
+
+                long anzahlManager = managerRepository.countBySeasonId(seasonId);
+                Set<String> registeredEmails = new HashSet<>(managerRepository.findDistinctUserEmailsBySeasonId(seasonId));
+
+                List<EmailAddress> allEmails = emailAddressRepository.findAll();
+                Map<Long, EmailAddress> emailsById = allEmails.stream()
+                    .collect(Collectors.toMap(EmailAddress::getId, e -> e));
+
+                JavaMailSenderImpl mailSender = buildMailSender(config);
+                String webUrl = normalizeWebUrl(config.getWebUrl());
+
+                send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
+                send(emitter, "Registrierte Manager der Saison: " + anzahlManager);
+                send(emitter, "Starte Versand an " + emailIds.size() + " Empfänger...");
+
+                int sent = 0;
+                int failed = 0;
+                long lastKeepAlive = System.currentTimeMillis();
+
+                for (Long emailId : emailIds) {
+                    EmailAddress emailAddress = emailsById.get(emailId);
+                    if (emailAddress == null) {
+                        send(emitter, "✗ E-Mail-ID " + emailId + " nicht gefunden");
+                        failed++;
+                        continue;
+                    }
+
+                    String recipientEmail = emailAddress.getEmail();
+                    boolean registered = registeredEmails.contains(recipientEmail.toLowerCase());
+
+                    try {
+                        String html = buildHtml(season, registered, anzahlManager, webUrl);
+                        String plainText = buildPlainText(season, registered, anzahlManager, webUrl);
+                        String unsubscribeUrl = unsubscribeService.generateUnsubscribeUrl(emailId, config.getWebUrl());
+                        html = insertUnsubscribeFooter(html, unsubscribeUrl);
+                        plainText = appendUnsubscribePlainText(plainText, unsubscribeUrl);
+                        String subject = buildSubject(season, registered);
+
+                        MimeMessage msg = mailSender.createMimeMessage();
+                        MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+                        helper.setFrom(config.getGmailSenderEmail());
+                        helper.setTo(testMode ? config.getGmailSenderEmail() : recipientEmail);
+                        helper.setSubject(subject);
+                        helper.setText(plainText, html);
+
+                        mailSender.send(msg);
+
+                        send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + emailAddress.getId() + "] " + recipientEmail
+                            + (registered ? " (Danke-Variante)" : " (Erinnerung)"));
+                        sent++;
+
+                        Thread.sleep(1000);
+
+                        long now = System.currentTimeMillis();
+                        if (now - lastKeepAlive > 30000) {
+                            emitter.send(SseEmitter.event().comment("keep-alive"));
+                            lastKeepAlive = now;
+                        }
+
+                        if (sent % 50 == 0 && sent < emailIds.size()) {
+                            for (int remaining = 90; remaining > 0; remaining--) {
+                                send(emitter, "⏳ " + sent + " Mails versendet, warte " + remaining + " Sekunden...");
+                                Thread.sleep(1000);
+                            }
+                            send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
+                            lastKeepAlive = System.currentTimeMillis();
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        send(emitter, "✗ Versand unterbrochen: " + e.getMessage());
+                        failed++;
+                        break;
+                    } catch (Exception e) {
+                        send(emitter, "✗ [" + emailAddress.getId() + "] " + recipientEmail + ": " + e.getMessage());
+                        failed++;
+                        log.error("Fehler beim Senden der Erinnerungsmail an {}", recipientEmail, e);
+                    }
+                }
+
+                send(emitter, "");
+                send(emitter, "Fertig: " + sent + " versendet, " + failed + " fehlgeschlagen." + (testMode ? " (TEST-MODUS)" : ""));
+                emitter.send(SseEmitter.event().name("complete").data(""));
+                emitter.complete();
+            } catch (Exception e) {
+                try {
+                    emitter.send(SseEmitter.event().name("error").data("FEHLER: " + e.getMessage()));
+                } catch (Exception ignored) {
+                }
+                emitter.completeWithError(e);
+            }
+        });
+        return emitter;
+    }
+
+    private String buildHtml(Season season, boolean registered, long anzahlManager, String webUrl) {
+        Context context = buildContext(season, registered, anzahlManager, webUrl);
+        return templateEngine.process("mail/reminder", context);
+    }
+
+    private String buildPlainText(Season season, boolean registered, long anzahlManager, String webUrl) {
+        String seasonName = season.getName() != null ? season.getName() : "Aktuelle Saison";
+        String deadlineDate = formatOrDefault(season.getFinalRegistrationDate() != null
+            ? season.getFinalRegistrationDate()
+            : season.getSeasonStartDate(), DATE_LONG, "siehe Webseite");
+        String deadlineTime = formatOrDefault(season.getSeasonStartTime(), TIME_FMT, "20:30");
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("FFL · Fantasy Football League\r\n\r\n");
+        if (registered) {
+            sb.append("Danke für Deine Anmeldung zur FFL-Saison ").append(seasonName).append("!\r\n\r\n");
+            sb.append("Schon ").append(anzahlManager).append(" Manager sind dabei. Du kannst gerne noch Freunde, Bekannte oder Familienmitglieder einladen – oder mit einem neuen Login ein Zweitteam registrieren.\r\n\r\n");
+            if (webUrl != null) {
+                sb.append("Zur FFL: ").append(webUrl).append("\r\n\r\n");
+            }
+        } else {
+            sb.append("Nur eine kurze Erinnerung: Die Anmeldung für die FFL-Saison ").append(seasonName).append(" ist noch offen – schon ").append(anzahlManager).append(" Manager sind dabei.\r\n\r\n");
+            sb.append("Du hast bis ").append(deadlineDate).append(" um ").append(deadlineTime).append(" Uhr Zeit, Dich anzumelden und Dein Team aufzustellen.\r\n\r\n");
+            if (webUrl != null) {
+                sb.append("Jetzt anmelden: ").append(webUrl).append("\r\n\r\n");
+            }
+            sb.append("Die nächste Mail von uns kommt erst wieder im August nächsten Jahres.\r\n\r\n");
+        }
+        sb.append("Viele Grüße\r\n");
+        sb.append("Uwe Clement\r\n");
+        sb.append("Wolfgang Gehring\r\n\r\n");
+        if (webUrl != null) {
+            sb.append(webUrl).append("\r\n\r\n");
+        }
+        sb.append("Private Liga, ehrenamtlich, ohne Gewinnabsicht. Rechtsweg ausgeschlossen.\r\n");
+        sb.append("Fragen? Einfach auf diese Mail antworten.\r\n");
+
+        return sb.toString();
+    }
+
+    private Context buildContext(Season season, boolean registered, long anzahlManager, String webUrl) {
+        Context context = new Context(Locale.GERMANY);
+
+        context.setVariable("registered", registered);
+        context.setVariable("seasonName", season.getName() != null ? season.getName() : "Aktuelle Saison");
+        context.setVariable("anzahlManager", anzahlManager);
+        context.setVariable("deadlineDate", formatOrDefault(season.getFinalRegistrationDate() != null
+            ? season.getFinalRegistrationDate()
+            : season.getSeasonStartDate(), DATE_LONG, "siehe Webseite"));
+        context.setVariable("deadlineTime", formatOrDefault(season.getSeasonStartTime(), TIME_FMT, "20:30"));
+        context.setVariable("webUrl", webUrl);
+
+        return context;
+    }
+
+    private String buildSubject(Season season, boolean registered) {
+        String seasonName = season.getName() != null ? season.getName() : "Aktuelle Saison";
+        return registered
+            ? "FFL | Danke für Deine Anmeldung | " + seasonName
+            : "FFL | Kurze Erinnerung: Saison " + seasonName;
+    }
+
+    private String formatOrDefault(LocalDate date, DateTimeFormatter fmt, String fallback) {
+        return date != null ? date.format(fmt) : fallback;
+    }
+
+    private String formatOrDefault(LocalTime time, DateTimeFormatter fmt, String fallback) {
+        return time != null ? time.format(fmt) : fallback;
+    }
+
+    private String normalizeWebUrl(String webUrl) {
+        if (webUrl == null || webUrl.isBlank()) {
+            return null;
+        }
+        return webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
+    }
+
+    String insertUnsubscribeFooter(String html, String unsubscribeUrl) {
+        String escapedUrl = escapeHtml(unsubscribeUrl);
+        String footer = "<div style=\"margin-top:16px;padding-top:16px;border-top:1px solid #d1d5db;text-align:center;\">"
+            + "<p style=\"color:#000000;font-size:14px;margin:0;line-height:1.5;\">"
+            + "Wenn Du keine weiteren Mails der FFL erhalten möchtest, kannst Du dich "
+            + "<a href=\"" + escapedUrl + "\" target=\"_blank\" style=\"color:#000000;text-decoration:underline;\">hier austragen</a>."
+            + "</p>"
+            + "<p style=\"font-size:14px;margin:0;line-height:1.5;\">&nbsp;</p>"
+            + "</div>";
+        return html.replace("</body>", footer + "</body>");
+    }
+
+    private String appendUnsubscribePlainText(String text, String unsubscribeUrl) {
+        return text + "\r\n\r\nWenn Du keine weiteren Mails der FFL erhalten möchtest, kannst Du dich hier austragen: " + unsubscribeUrl + "\r\n";
+    }
+
+    private JavaMailSenderImpl buildMailSender(SystemConfig config) {
+        JavaMailSenderImpl sender = new JavaMailSenderImpl();
+        sender.setHost(config.getGmailSmtpServer() != null ? config.getGmailSmtpServer() : "smtp.gmail.com");
+        sender.setPort(config.getGmailSmtpPort() != null ? config.getGmailSmtpPort() : 587);
+        sender.setUsername(config.getGmailSenderEmail());
+        sender.setPassword(config.getGmailAppPassword());
+
+        Properties props = sender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.starttls.required", "true");
+        props.put("mail.smtp.connectiontimeout", "30000");
+        props.put("mail.smtp.timeout", "120000");
+        props.put("mail.smtp.writetimeout", "120000");
+        return sender;
+    }
+
+    private void send(SseEmitter emitter, String message) {
+        try {
+            emitter.send(SseEmitter.event().data(message));
+        } catch (Exception e) {
+            log.warn("SSE send failed: {}", e.getMessage());
+        }
+    }
+
+    private String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                   .replace("<", "&lt;")
+                   .replace(">", "&gt;")
+                   .replace("\"", "&quot;");
+    }
+}

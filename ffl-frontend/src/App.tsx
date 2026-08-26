@@ -22,6 +22,7 @@ import UserDetail from './pages/UserDetail'
 import Emails from './pages/Emails'
 import Mailing from './pages/Mailing'
 import MailingInvitation from './pages/MailingInvitation'
+import MailingReminder from './pages/MailingReminder'
 import MailingMatchday from './pages/MailingMatchday'
 import MailingPrizeDistribution from './pages/MailingPrizeDistribution'
 import MailingAdminReport from './pages/MailingAdminReport'
@@ -153,6 +154,11 @@ function App() {
             <Route path="mailing/einladung" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <MailingInvitation />
+              </ProtectedRoute>
+            } />
+            <Route path="mailing/erinnerung" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <MailingReminder />
               </ProtectedRoute>
             } />
             <Route path="mailing/spieltagsmail" element={

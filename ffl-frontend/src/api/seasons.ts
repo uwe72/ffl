@@ -45,6 +45,7 @@ export const seasonApi = {
     api.put<PrizePayout>(`/seasons/${seasonId}/prize-payouts/${managerId}`, data),
   getPrizeDistributionMailPreview: (id: number) => api.get<MailPreviewResponse>(`/seasons/${id}/prize-distribution/mail/preview`),
   sendInvitationTestMail: (id: number) => api.post<{ message: string }>(`/seasons/${id}/invitation-mail/test`),
+  sendReminderTestMail: (id: number) => api.post<{ message: string }>(`/seasons/${id}/reminder-mail/test`),
   sendSeasonReport: (id: number) => api.post<{ message: string }>(`/seasons/${id}/report-mail`),
   sendTransparencyTestMail: (id: number) => api.post<{ message: string }>(`/seasons/${id}/transparency-mail/test`),
   getTransparencyMailPreview: (id: number) => api.get<MailPreviewResponse>(`/seasons/${id}/transparency-mail/preview`),

@@ -21,6 +21,7 @@ import de.ffl.service.PrizeDistributionService;
 import de.ffl.service.InvitationMailService;
 import de.ffl.service.SeasonReportMailService;
 import de.ffl.service.SeasonTransparencyMailService;
+import de.ffl.service.ReminderMailService;
 import de.ffl.service.SeasonService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,19 +43,21 @@ public class SeasonController {
     private final PrizeDistributionService prizeDistributionService;
     private final PrizeDistributionMailService prizeDistributionMailService;
     private final InvitationMailService invitationMailService;
+    private final ReminderMailService reminderMailService;
     private final SeasonReportMailService seasonReportMailService;
     private final SeasonTransparencyMailService seasonTransparencyMailService;
     private final DocumentService documentService;
     private final PlayerPdfService playerPdfService;
     private final DepositService depositService;
 
-    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, BestTeamService bestTeamService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, SeasonReportMailService seasonReportMailService, SeasonTransparencyMailService seasonTransparencyMailService, DocumentService documentService, PlayerPdfService playerPdfService, DepositService depositService) {
+    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, BestTeamService bestTeamService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, ReminderMailService reminderMailService, SeasonReportMailService seasonReportMailService, SeasonTransparencyMailService seasonTransparencyMailService, DocumentService documentService, PlayerPdfService playerPdfService, DepositService depositService) {
         this.seasonRepository = seasonRepository;
         this.seasonService = seasonService;
         this.bestTeamService = bestTeamService;
         this.prizeDistributionService = prizeDistributionService;
         this.prizeDistributionMailService = prizeDistributionMailService;
         this.invitationMailService = invitationMailService;
+        this.reminderMailService = reminderMailService;
         this.seasonReportMailService = seasonReportMailService;
         this.seasonTransparencyMailService = seasonTransparencyMailService;
         this.documentService = documentService;
@@ -363,6 +366,37 @@ public class SeasonController {
             return emitter;
         }
         return invitationMailService.streamInvitationMail(id, emailIds, testMode);
+    }
+
+    @PostMapping("/{id}/reminder-mail/test")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> sendReminderTestMail(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            reminderMailService.sendTestMail(id);
+            return ResponseEntity.ok(new MessageResponse("Test-Erinnerungsmail wurde an die Admin-Adresse versendet."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/{id}/reminder-mail/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public SseEmitter streamReminderMail(
+            @PathVariable Long id,
+            @RequestParam List<Long> emailIds,
+            @RequestParam(required = false, defaultValue = "false") boolean testMode) {
+        if (!seasonRepository.existsById(id)) {
+            SseEmitter emitter = new SseEmitter();
+            try {
+                emitter.send(SseEmitter.event().name("error").data("Saison nicht gefunden"));
+                emitter.complete();
+            } catch (Exception ignored) {}
+            return emitter;
+        }
+        return reminderMailService.streamReminderMail(id, emailIds, testMode);
     }
 
     @PostMapping("/{id}/transparency-mail/test")

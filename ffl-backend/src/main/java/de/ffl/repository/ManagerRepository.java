@@ -15,6 +15,11 @@ import java.util.Optional;
 public interface ManagerRepository extends JpaRepository<Manager, Long> {
     List<Manager> findBySeason(Season season);
     List<Manager> findBySeasonId(Long seasonId);
+    long countBySeasonId(Long seasonId);
+
+    @Query("SELECT DISTINCT u.email FROM Manager m JOIN m.user u WHERE m.season.id = :seasonId")
+    List<String> findDistinctUserEmailsBySeasonId(@Param("seasonId") Long seasonId);
+
     Optional<Manager> findByUserIdAndSeasonId(Long userId, Long seasonId);
     Manager findByUserId(Long userId);
     
