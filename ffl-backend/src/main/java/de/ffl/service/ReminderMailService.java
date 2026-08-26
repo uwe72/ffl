@@ -230,7 +230,7 @@ public class ReminderMailService {
                 sb.append("Zur FFL: ").append(webUrl).append("\r\n\r\n");
             }
         } else {
-            sb.append("Eine letzte kurze Erinnerung: Die Anmeldung für die FFL-Saison ").append(seasonName).append(" ist noch offen – schon ").append(anzahlManager).append(" Manager sind dabei.\r\n\r\n");
+            sb.append("Die Anmeldung für die FFL-Saison ").append(seasonName).append(" ist noch offen – schon ").append(anzahlManager).append(" Manager sind dabei.\r\n\r\n");
             sb.append("Du hast bis ").append(deadlineDate).append(" um ").append(deadlineTime).append(" Uhr Zeit, Dich anzumelden und Dein Team aufzustellen.\r\n\r\n");
             if (webUrl != null) {
                 sb.append("Jetzt anmelden: ").append(webUrl).append("\r\n\r\n");
