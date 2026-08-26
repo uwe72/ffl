@@ -89,6 +89,11 @@ export default function Emails() {
     })
   }, [emails, participantFilter, teamCountByEmail, sortKey, sortOrder])
 
+  const totalTeams = useMemo(
+    () => sortedEmails.reduce((sum, e) => sum + getTeamCount(e.email), 0),
+    [sortedEmails, getTeamCount],
+  )
+
   const handleCreate = useCallback(async () => {
     setError('')
     if (!newEmail.trim()) {
@@ -198,6 +203,10 @@ export default function Emails() {
           >
             + Importieren
           </Button>
+
+          <span className="ml-auto text-xs text-muted">
+            Teams gesamt: <span className="font-semibold text-foreground">{totalTeams}</span>
+          </span>
 
           {hasActiveFilter && (
             <button
