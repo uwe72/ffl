@@ -370,16 +370,27 @@ public class SeasonController {
 
     @PostMapping("/{id}/reminder-mail/test")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> sendReminderTestMail(@PathVariable Long id) {
+    public ResponseEntity<?> sendReminderTestMail(@PathVariable Long id,
+                                                  @RequestParam(defaultValue = "erinnerung") String variant) {
         if (!seasonRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
+        boolean registered = "danke".equalsIgnoreCase(variant);
         try {
-            reminderMailService.sendTestMail(id);
+            reminderMailService.sendTestMail(id, registered);
             return ResponseEntity.ok(new MessageResponse("Test-Erinnerungsmail wurde an die Admin-Adresse versendet."));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
         }
+    }
+
+    @GetMapping("/{id}/reminder-mail/registered-emails")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<String>> getReminderRegisteredEmails(@PathVariable Long id) {
+        if (!seasonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(reminderMailService.getRegisteredEmails(id));
     }
 
     @GetMapping(value = "/{id}/reminder-mail/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

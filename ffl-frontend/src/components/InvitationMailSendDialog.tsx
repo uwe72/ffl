@@ -54,6 +54,7 @@ interface Props {
   testSendLabel?: string
   endpoint?: string
   progressTitle?: string
+  emails?: EmailAddress[]
 }
 
 export default function InvitationMailSendDialog({
@@ -66,9 +67,11 @@ export default function InvitationMailSendDialog({
   testSendLabel = 'Test-Mail senden',
   endpoint = '/invitation-mail/stream',
   progressTitle = 'Versende Einladungsmails…',
+  emails,
 }: Props) {
   const isMobile = useIsMobile()
-  const { data: emails } = useEmails()
+  const { data: allEmails } = useEmails()
+  const addressBook = emails ?? allEmails
 
   const [selectedEmailIds, setSelectedEmailIds] = useState<number[]>([])
   const [sendDialogOpen, setSendDialogOpen] = useState(false)
@@ -77,9 +80,9 @@ export default function InvitationMailSendDialog({
   const [testMode, setTestMode] = useState(false)
 
   const sortedEmails = useMemo(() => {
-    if (!emails) return []
-    return [...emails].sort((a, b) => a.id - b.id)
-  }, [emails])
+    if (!addressBook) return []
+    return [...addressBook].sort((a, b) => a.id - b.id)
+  }, [addressBook])
 
   const allSelected =
     sortedEmails.length > 0 && selectedEmailIds.length === sortedEmails.length
@@ -231,7 +234,7 @@ export default function InvitationMailSendDialog({
           )}
 
           <div className="mt-4 text-sm text-subtle">
-            {sortedEmails.length} von {emails?.length || 0} E-Mail-Adressen
+            {sortedEmails.length} von {addressBook?.length || 0} E-Mail-Adressen
           </div>
         </div>
 

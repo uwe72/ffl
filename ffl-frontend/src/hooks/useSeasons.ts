@@ -124,8 +124,16 @@ export function useSendInvitationTestMail() {
 
 export function useSendReminderTestMail() {
   return useMutation({
-    mutationFn: (seasonId: number) =>
-      seasonApi.sendReminderTestMail(seasonId).then(res => res.data),
+    mutationFn: ({ id, variant }: { id: number; variant: 'danke' | 'erinnerung' }) =>
+      seasonApi.sendReminderTestMail(id, variant).then(res => res.data),
+  })
+}
+
+export function useReminderRegisteredEmails(seasonId: number) {
+  return useQuery({
+    queryKey: ['seasons', seasonId, 'reminder-registered-emails'],
+    queryFn: () => seasonApi.getReminderRegisteredEmails(seasonId).then(res => res.data),
+    enabled: !!seasonId,
   })
 }
 

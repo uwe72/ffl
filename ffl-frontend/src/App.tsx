@@ -158,7 +158,12 @@ function App() {
             } />
             <Route path="mailing/erinnerung" element={
               <ProtectedRoute requiredRole="ADMIN">
-                <MailingReminder />
+                <MailingReminder variant="erinnerung" />
+              </ProtectedRoute>
+            } />
+            <Route path="mailing/danke" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <MailingReminder variant="danke" />
               </ProtectedRoute>
             } />
             <Route path="mailing/spieltagsmail" element={

@@ -21,9 +21,16 @@ const sections: { label: string; cards: MailCard[] }[] = [
         icon: 'sap-icon-letter'
       },
       {
-        title: 'Erinnerungsmail',
-        description: 'Kurze Erinnerung kurz vor dem Saisonstart: Nicht-registrierte Adressen erhalten einen Nudge mit der Anzahl der angemeldeten Manager, bereits registrierte einen Dank mit Einladungs-/Zweitteam-Hinweis. Beide enthalten den Abmeldelink.',
-        recipients: 'Adressbuch',
+        title: 'Danke-Mail (Angemeldete)',
+        description: 'Kurze Danke-Mail an bereits angemeldete Manager, gebündelt als eine BCC-Mail. Regt zum Einladen von Freunden bzw. zur Zweitteam-Registrierung an und wiederholt den Einladungstext zum Weiterleiten.',
+        recipients: 'Angemeldete (BCC)',
+        route: '/mailing/danke',
+        icon: 'sap-icon-email-read'
+      },
+      {
+        title: 'Erinnerung (Nicht-Angemeldete)',
+        description: 'Kurze Erinnerung an noch nicht angemeldete Adressen mit der Anzahl der angemeldeten Manager, einzeln versendet mit personalisiertem Abmeldelink.',
+        recipients: 'Nicht angemeldete (einzeln)',
         route: '/mailing/erinnerung',
         icon: 'sap-icon-message-information'
       },

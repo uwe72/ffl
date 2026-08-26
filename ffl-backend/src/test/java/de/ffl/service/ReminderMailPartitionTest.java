@@ -11,9 +11,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ReminderMailPartitionTest {
@@ -57,6 +59,15 @@ class ReminderMailPartitionTest {
     void nullAddress_isNotRegistered() {
         assertThat(service().isRegistered(null, Set.of("a@b.c"))).isFalse();
         assertThat(service().isRegistered(email(null), Set.of("a@b.c"))).isFalse();
+    }
+
+    @Test
+    void getRegisteredEmails_returnsSeasonManagerEmails() {
+        when(managerRepository.findDistinctUserEmailsBySeasonId(7L))
+            .thenReturn(List.of("a@example.com", "b@example.com"));
+
+        assertThat(service().getRegisteredEmails(7L))
+            .containsExactlyInAnyOrder("a@example.com", "b@example.com");
     }
 
     private EmailAddress email(String value) {

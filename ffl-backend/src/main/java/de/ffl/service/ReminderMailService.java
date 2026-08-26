@@ -68,7 +68,7 @@ public class ReminderMailService {
         this.templateEngine = templateEngine;
     }
 
-    public void sendTestMail(Long seasonId) {
+    public void sendTestMail(Long seasonId, boolean registered) {
         SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc()
             .orElseThrow(() -> new RuntimeException("Keine Systemkonfiguration vorhanden"));
 
@@ -82,12 +82,14 @@ public class ReminderMailService {
 
         String webUrl = normalizeWebUrl(config.getWebUrl());
         long anzahlManager = managerRepository.countBySeasonId(seasonId);
-        String html = buildHtml(season, false, anzahlManager, webUrl);
-        String plainText = buildPlainText(season, false, anzahlManager, webUrl);
-        String unsubscribeUrl = unsubscribeService.getUnsubscribePlaceholderUrl();
-        html = insertUnsubscribeFooter(html, unsubscribeUrl);
-        plainText = appendUnsubscribePlainText(plainText, unsubscribeUrl);
-        String subject = buildSubject(season, false);
+        String html = buildHtml(season, registered, anzahlManager, webUrl);
+        String plainText = buildPlainText(season, registered, anzahlManager, webUrl);
+        if (!registered) {
+            String unsubscribeUrl = unsubscribeService.getUnsubscribePlaceholderUrl();
+            html = insertUnsubscribeFooter(html, unsubscribeUrl);
+            plainText = appendUnsubscribePlainText(plainText, unsubscribeUrl);
+        }
+        String subject = buildSubject(season, registered);
 
         try {
             JavaMailSenderImpl mailSender = buildMailSender(config);
@@ -99,11 +101,15 @@ public class ReminderMailService {
             helper.setText(plainText, html);
 
             mailSender.send(msg);
-            log.info("Erinnerungsmail (Test) gesendet an Admin: {}", config.getGmailSenderEmail());
+            log.info("Erinnerungsmail (Test, registered={}) gesendet an Admin: {}", registered, config.getGmailSenderEmail());
         } catch (Exception e) {
             log.error("Fehler beim Senden der Test-Erinnerungsmail: {}", e.getMessage(), e);
             throw new RuntimeException("Versand fehlgeschlagen: " + e.getMessage(), e);
         }
+    }
+
+    public List<String> getRegisteredEmails(Long seasonId) {
+        return managerRepository.findDistinctUserEmailsBySeasonId(seasonId);
     }
 
     public SseEmitter streamReminderMail(Long seasonId, List<Long> emailIds, boolean testMode) {
