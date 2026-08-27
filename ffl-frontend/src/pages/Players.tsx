@@ -23,7 +23,7 @@ export default function Players() {
     return (
       <div>
         <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
-          <PlayerTable players={publicQuery.data ?? []} isPublic />
+          <PlayerTable players={publicQuery.data ?? []} isPublic enableExport />
         </div>
       </div>
     )
@@ -35,7 +35,7 @@ export default function Players() {
   return (
     <div>
       <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
-        <PlayerTable players={authedQuery.data ?? []} />
+        <PlayerTable players={authedQuery.data ?? []} enableExport />
       </div>
     </div>
   )

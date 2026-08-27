@@ -1,9 +1,12 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
+import * as XLSX from 'xlsx'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason, usePublicCurrentSeason } from '../hooks/useSeasons'
+import { trackEvent } from '../hooks/useMatomo'
 import useIsMobile from '../hooks/useIsMobile'
 import SortIcon from '../components/SortIcon'
+import Button from '../components/Button'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import { positionBarColor } from '../utils/positions'
 import type { Team, Player, Position } from '../types'
@@ -276,6 +279,7 @@ export default function PlayerTable({
   isPublic = false,
   defaultAktivFilter = 'alle',
   autoFocus = false,
+  enableExport = false,
 }: {
   players: Player[]
   fixedPosition?: Position
@@ -286,6 +290,7 @@ export default function PlayerTable({
   isPublic?: boolean
   defaultAktivFilter?: 'aktiv' | 'inaktiv' | 'alle'
   autoFocus?: boolean
+  enableExport?: boolean
 }) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
@@ -381,20 +386,61 @@ export default function PlayerTable({
     })
   }, [players, selectedPositions, selectedTeamId, searchTerm, priceMin, priceMax, aktivFilter, sortKey, sortOrder, excludePlayerIds])
 
+  const exportToExcel = () => {
+    if (!filteredPlayers || filteredPlayers.length === 0) return
+
+    const data = filteredPlayers.map(player => {
+      const row: Record<string, string | number> = {
+        'Name': fullName(player),
+      }
+      if (!isBeforeSeason) {
+        row['Pos.'] = player.positionTotal ?? '-'
+        row['+-'] = player.positionChange != null && player.positionChange !== 0
+          ? (player.positionChange > 0 ? `↑${player.positionChange}` : `↓${Math.abs(player.positionChange)}`)
+          : '-'
+        row['Pkt.'] = player.points ?? '-'
+        row['Spieltag'] = player.pointsLastRound ?? '-'
+      }
+      if (!isBeforeSeasonNonAdmin) {
+        row['Manager'] = player.managerCount ?? 0
+      }
+      row['Preis (€)'] = player.prize ? player.prize : 0
+      if (!fixedPosition) {
+        row['Position'] = positionLabels[player.position]
+      }
+      row['Verein'] = player.teams.length > 0 ? player.teams[0].name : '-'
+      row['Aktiv'] = player.aktiv === false ? 'Nein' : 'Ja'
+      return row
+    })
+
+    const ws = XLSX.utils.json_to_sheet(data)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Spieler')
+    XLSX.writeFile(wb, 'player-export.xlsx')
+    trackEvent('player', 'export_excel')
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="hidden sm:block text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
-        <div className="relative w-full sm:w-64">
-          <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            placeholder="Spieler suchen..."
-            className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
-          />
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Spieler suchen..."
+              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
+            />
+          </div>
+          {enableExport && (
+            <Button onClick={exportToExcel} size="input">
+              Excel Export
+            </Button>
+          )}
         </div>
       </div>
 
