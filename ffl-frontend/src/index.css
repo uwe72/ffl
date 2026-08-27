@@ -45,6 +45,7 @@
   /* Status */
   --ffl-success: #15803d;
   --ffl-warning: #b7791f;
+  --ffl-orange: #c2410c;
   --ffl-danger: #b91c1c;
   --ffl-danger-hover: #991b1b;
 
@@ -140,6 +141,8 @@
   --color-danger-hover: var(--ffl-danger-hover);
   --color-danger-foreground: #ffffff;
   --color-danger-bg: #fbe6e4;
+  --color-orange: var(--ffl-orange);
+  --color-orange-bg: #ffedd5;
   --color-info: var(--ffl-accent);
   --color-info-bg: var(--ffl-accent-soft);
 
