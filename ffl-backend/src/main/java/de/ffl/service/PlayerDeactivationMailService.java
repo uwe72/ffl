@@ -83,6 +83,7 @@ public class PlayerDeactivationMailService {
     String buildHtml(ManagerNotificationDto notification, String seasonName, boolean beforeSeason, String webUrl) {
         Context context = new Context(Locale.GERMAN);
         context.setVariable("greeting", notification.greeting());
+        context.setVariable("userName", notification.userName());
         context.setVariable("seasonName", seasonName);
         context.setVariable("players", notification.players());
         context.setVariable("beforeSeason", beforeSeason);
@@ -117,5 +118,5 @@ public class PlayerDeactivationMailService {
 
     public record PlayerRowDto(String posLabel, String posColorHex, String posBgHex, String name, String teamName) {}
 
-    public record ManagerNotificationDto(String email, String greeting, List<PlayerRowDto> players) {}
+    public record ManagerNotificationDto(String email, String greeting, String userName, List<PlayerRowDto> players) {}
 }

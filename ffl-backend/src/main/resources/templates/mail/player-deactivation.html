@@ -23,7 +23,7 @@
                   <td style="vertical-align:top;">
                     <p style="margin:0 0 10px 0;color:#ede9e3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">FFL &middot; Fantasy Football League</p>
                     <h1 style="margin:0 0 6px 0;color:#fafaf9;font-size:26px;font-weight:700;line-height:1.2;">Spieler nicht mehr verf&uuml;gbar</h1>
-                    <p style="margin:0;color:#a8a29e;font-size:15px;font-weight:500;line-height:1.4;">Saison <span th:text="${seasonName}">Aktuelle Saison</span></p>
+                    <p style="margin:0;color:#a8a29e;font-size:15px;font-weight:500;line-height:1.4;">Saison <span th:text="${seasonName}">Aktuelle Saison</span><span th:if="${userName != null and !userName.isEmpty()}"> &middot; <span th:text="${userName}">Manager</span></span></p>
                   </td>
                   <td width="44" style="vertical-align:top;text-align:right;">
                     <span style="display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;background:#b45309;color:#ffffff;border-radius:9999px;font-size:22px;font-weight:700;">&#9888;</span>

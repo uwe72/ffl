@@ -8,6 +8,7 @@ import de.ffl.domain.Round;
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
 import de.ffl.domain.Team;
+import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.migration.KickerClientDatabase.KickerMatch;
 import de.ffl.migration.KickerClientDatabase.KickerPlayer;
@@ -683,7 +684,7 @@ public class NewSeasonSetupService {
             }
             ManagerNotificationAccumulator acc = notificationsByManager.computeIfAbsent(
                     manager.getId(),
-                    id -> new ManagerNotificationAccumulator(email, deriveGreeting(manager)));
+                    id -> new ManagerNotificationAccumulator(email, deriveGreeting(manager), deriveUserName(manager)));
             acc.players().add(row);
         }
     }
@@ -703,6 +704,21 @@ public class NewSeasonSetupService {
         return shortName != null ? shortName : "Manager";
     }
 
+    private String deriveUserName(Manager manager) {
+        if (manager.getUser() == null) {
+            return null;
+        }
+        User user = manager.getUser();
+        String firstName = user.getFirstName() != null ? user.getFirstName().trim() : "";
+        String lastName = user.getLastName() != null ? user.getLastName().trim() : "";
+        String fullName = (firstName + " " + lastName).trim();
+        if (fullName.isEmpty()) {
+            fullName = user.getLogin();
+        }
+        String login = user.getLogin() != null ? user.getLogin() : "";
+        return fullName + " (" + login + ")";
+    }
+
     private void dispatchDeactivationNotifications(Map<Long, ManagerNotificationAccumulator> notificationsByManager,
                                                    String seasonName, SeasonState seasonState) {
         if (notificationsByManager.isEmpty()) {
@@ -710,7 +726,7 @@ public class NewSeasonSetupService {
         }
         List<ManagerNotificationDto> notifications = new ArrayList<>();
         for (ManagerNotificationAccumulator acc : notificationsByManager.values()) {
-            notifications.add(new ManagerNotificationDto(acc.email(), acc.greeting(), acc.players()));
+            notifications.add(new ManagerNotificationDto(acc.email(), acc.greeting(), acc.userName(), acc.players()));
         }
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -724,9 +740,9 @@ public class NewSeasonSetupService {
         }
     }
 
-    private record ManagerNotificationAccumulator(String email, String greeting, List<PlayerRowDto> players) {
-        ManagerNotificationAccumulator(String email, String greeting) {
-            this(email, greeting, new ArrayList<>());
+    private record ManagerNotificationAccumulator(String email, String greeting, String userName, List<PlayerRowDto> players) {
+        ManagerNotificationAccumulator(String email, String greeting, String userName) {
+            this(email, greeting, userName, new ArrayList<>());
         }
     }
 

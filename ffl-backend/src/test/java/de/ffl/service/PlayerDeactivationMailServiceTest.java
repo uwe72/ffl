@@ -47,7 +47,7 @@ class PlayerDeactivationMailServiceTest {
     }
 
     private ManagerNotificationDto notification() {
-        return new ManagerNotificationDto("manager@example.com", "Max Mustermann",
+        return new ManagerNotificationDto("manager@example.com", "Max Mustermann", "Max Mustermann (mmustermann)",
                 List.of(new PlayerRowDto("ST", "#be123c", "#fce7f3", "Keita Baldé", "SV Musterverein")));
     }
 
@@ -95,6 +95,7 @@ class PlayerDeactivationMailServiceTest {
                 .thenAnswer(invocation -> {
                     Context ctx = invocation.getArgument(1);
                     return "greeting=" + ctx.getVariable("greeting")
+                            + "|userName=" + ctx.getVariable("userName")
                             + "|season=" + ctx.getVariable("seasonName")
                             + "|players=" + ((List<?>) ctx.getVariable("players")).size()
                             + "|beforeSeason=" + ctx.getVariable("beforeSeason")
@@ -104,6 +105,7 @@ class PlayerDeactivationMailServiceTest {
         String html = service().buildHtml(notification(), "2026/27", true, "https://ffl.app");
 
         assertThat(html).contains("greeting=Max Mustermann");
+        assertThat(html).contains("userName=Max Mustermann (mmustermann)");
         assertThat(html).contains("season=2026/27");
         assertThat(html).contains("players=1");
         assertThat(html).contains("beforeSeason=true");
