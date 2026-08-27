@@ -137,17 +137,19 @@ export default function Managers() {
 
     const data = filteredManagers.map(manager => {
       const row: Record<string, string | number> = {
-        'Pos.': manager.positionTotal ?? '-',
-        '+-': manager.positionChange != null && manager.positionChange !== 0
-          ? (manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`)
-          : '-',
         'Manager': manager.shortName || '-',
-        'Pkt.': manager.pointsTotal ?? '-',
-        'Spieltag': manager.pointsLastRound ?? '-',
         'Vorname': manager.firstName || '-',
         'Nachname': manager.lastName || '-',
       }
-      row['Teamwert (Mio.)'] = manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'
+      if (!beforeSeason) {
+        row['Pos.'] = manager.positionTotal ?? '-'
+        row['+-'] = manager.positionChange != null && manager.positionChange !== 0
+          ? (manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`)
+          : '-'
+        row['Pkt.'] = manager.pointsTotal ?? '-'
+        row['Spieltag'] = manager.pointsLastRound ?? '-'
+        row['Teamwert (Mio.)'] = manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'
+      }
       return row
     })
 
@@ -205,14 +207,12 @@ export default function Managers() {
               Selektiere mich
             </Button>
             )}
-            {!beforeSeason && (
             <Button
               onClick={exportToExcel}
               size="compact"
             >
               Excel Export
             </Button>
-            )}
           </div>
         </div>
 
