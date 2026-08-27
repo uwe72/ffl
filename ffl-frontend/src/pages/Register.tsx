@@ -1263,10 +1263,6 @@ export default function Register() {
                 </h2>
               </div>
 
-              <p className="text-foreground text-center mb-6">
-                {firstName}, kleiner Reminder: Dein Startgeld steht noch aus. Sobald du es beglichen hast, ist alles erledigt – danke! 😊
-              </p>
-
               {paymentInfo?.paypalLink && (
                 <a
                   href={paymentInfo.paypalLink}
