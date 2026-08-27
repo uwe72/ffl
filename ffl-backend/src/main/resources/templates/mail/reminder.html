@@ -89,6 +89,31 @@
                 </table>
               </td>
             </tr>
+
+            <!-- Spacer -->
+            <tr><td height="20" style="line-height:20px;font-size:20px;">&nbsp;</td></tr>
+
+            <!-- Info-Hinweis: andere E-Mail-Adresse -->
+            <tr>
+              <td>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;">
+                  <tr>
+                    <td style="padding:16px 20px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td width="32" style="vertical-align:top;text-align:center;">
+                            <span style="display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;background:#1d4ed8;color:#ffffff;border-radius:9999px;font-size:14px;font-weight:700;">&#8505;</span>
+                          </td>
+                          <td style="padding-left:12px;color:#1e3a8a;font-size:14px;line-height:1.6;">
+                            <p style="margin:0;">Wir haben diese E-Mail an <strong th:text="${recipientEmail}">--</strong> gesendet. Vielleicht hast Du Dein Team aber auch unter einer <strong>anderen E-Mail-Adresse</strong> angemeldet &ndash; dann ist diese Mail nur eine freundliche Erinnerung und Du kannst sie einfach ignorieren.</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
           </th:block>
 
           <!-- Spacer -->

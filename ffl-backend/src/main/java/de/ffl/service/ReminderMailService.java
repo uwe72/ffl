@@ -82,8 +82,9 @@ public class ReminderMailService {
 
         String webUrl = normalizeWebUrl(config.getWebUrl());
         long anzahlManager = managerRepository.countBySeasonId(seasonId);
-        String html = buildHtml(season, registered, anzahlManager, webUrl);
-        String plainText = buildPlainText(season, registered, anzahlManager, webUrl);
+        String recipientEmail = config.getGmailSenderEmail();
+        String html = buildHtml(season, registered, anzahlManager, webUrl, recipientEmail);
+        String plainText = buildPlainText(season, registered, anzahlManager, webUrl, recipientEmail);
         if (!registered) {
             String unsubscribeUrl = unsubscribeService.getUnsubscribePlaceholderUrl();
             html = insertUnsubscribeFooter(html, unsubscribeUrl);
@@ -181,8 +182,8 @@ public class ReminderMailService {
                 if (!registeredList.isEmpty()) {
                     if (testMode) {
                         try {
-                            String html = buildHtml(season, true, anzahlManager, webUrl);
-                            String plainText = buildPlainText(season, true, anzahlManager, webUrl);
+                            String html = buildHtml(season, true, anzahlManager, webUrl, null);
+                            String plainText = buildPlainText(season, true, anzahlManager, webUrl, null);
 
                             MimeMessage msg = mailSender.createMimeMessage();
                             MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
@@ -209,8 +210,8 @@ public class ReminderMailService {
                                 .map(EmailAddress::getEmail)
                                 .collect(Collectors.toList());
                             try {
-                                String html = buildHtml(season, true, anzahlManager, webUrl);
-                                String plainText = buildPlainText(season, true, anzahlManager, webUrl);
+                                String html = buildHtml(season, true, anzahlManager, webUrl, null);
+                                String plainText = buildPlainText(season, true, anzahlManager, webUrl, null);
 
                                 MimeMessage msg = mailSender.createMimeMessage();
                                 MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
@@ -240,8 +241,8 @@ public class ReminderMailService {
                     String recipientEmail = emailAddress.getEmail();
 
                     try {
-                        String html = buildHtml(season, false, anzahlManager, webUrl);
-                        String plainText = buildPlainText(season, false, anzahlManager, webUrl);
+                        String html = buildHtml(season, false, anzahlManager, webUrl, recipientEmail);
+                        String plainText = buildPlainText(season, false, anzahlManager, webUrl, recipientEmail);
                         String unsubscribeUrl = unsubscribeService.generateUnsubscribeUrl(emailAddress.getId(), config.getWebUrl());
                         html = insertUnsubscribeFooter(html, unsubscribeUrl);
                         plainText = appendUnsubscribePlainText(plainText, unsubscribeUrl);
@@ -305,12 +306,12 @@ public class ReminderMailService {
         return emitter;
     }
 
-    private String buildHtml(Season season, boolean registered, long anzahlManager, String webUrl) {
-        Context context = buildContext(season, registered, anzahlManager, webUrl);
+    private String buildHtml(Season season, boolean registered, long anzahlManager, String webUrl, String recipientEmail) {
+        Context context = buildContext(season, registered, anzahlManager, webUrl, recipientEmail);
         return templateEngine.process("mail/reminder", context);
     }
 
-    private String buildPlainText(Season season, boolean registered, long anzahlManager, String webUrl) {
+    private String buildPlainText(Season season, boolean registered, long anzahlManager, String webUrl, String recipientEmail) {
         String seasonName = season.getName() != null ? season.getName() : "Aktuelle Saison";
         String deadlineDate = formatOrDefault(season.getFinalRegistrationDate() != null
             ? season.getFinalRegistrationDate()
@@ -332,6 +333,7 @@ public class ReminderMailService {
             if (webUrl != null) {
                 sb.append("Jetzt anmelden: ").append(webUrl).append("\r\n\r\n");
             }
+            sb.append("Wir haben diese E-Mail an ").append(recipientEmail != null ? recipientEmail : "").append(" gesendet. Vielleicht hast Du Dein Team aber auch unter einer anderen E-Mail-Adresse angemeldet – dann ist diese Mail nur eine freundliche Erinnerung und Du kannst sie einfach ignorieren.\r\n\r\n");
             sb.append("Die nächste Mail von uns kommt erst wieder im August nächsten Jahres.\r\n\r\n");
         }
         sb.append("Viele Grüße\r\n");
@@ -346,10 +348,11 @@ public class ReminderMailService {
         return sb.toString();
     }
 
-    private Context buildContext(Season season, boolean registered, long anzahlManager, String webUrl) {
+    private Context buildContext(Season season, boolean registered, long anzahlManager, String webUrl, String recipientEmail) {
         Context context = new Context(Locale.GERMANY);
 
         context.setVariable("registered", registered);
+        context.setVariable("recipientEmail", recipientEmail);
         context.setVariable("seasonName", season.getName() != null ? season.getName() : "Aktuelle Saison");
         context.setVariable("anzahlManager", anzahlManager);
         context.setVariable("startDateLong", formatOrDefault(season.getSeasonStartDate(), DATE_LONG, "siehe Webseite"));

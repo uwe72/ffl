@@ -50,6 +50,7 @@ class ReminderMailTemplateRenderTest {
     private static Context context(Season season, boolean registered) {
         Context ctx = new Context(Locale.GERMANY);
         ctx.setVariable("registered", registered);
+        ctx.setVariable("recipientEmail", "spieler@example.com");
         ctx.setVariable("seasonName", season.getName());
         ctx.setVariable("anzahlManager", 123L);
         ctx.setVariable("startDateLong", "Freitag, 14. August 2026");
@@ -79,6 +80,7 @@ class ReminderMailTemplateRenderTest {
         assertThat(html).contains("Viel Erfolg");
         assertThat(html).contains("Spielregeln");
         assertThat(html).doesNotContain("Zur FFL");
+        assertThat(html).doesNotContain("unter einer <strong>anderen E-Mail-Adresse</strong> angemeldet");
     }
 
     @Test
@@ -88,6 +90,8 @@ class ReminderMailTemplateRenderTest {
 
         assertThat(html).contains("ist noch offen");
         assertThat(html).contains("August n&auml;chsten Jahres");
+        assertThat(html).contains("unter einer <strong>anderen E-Mail-Adresse</strong> angemeldet");
+        assertThat(html).contains("spieler@example.com");
         assertThat(html).doesNotContain("Einfach diese Mail weiterleiten.");
         assertThat(html).doesNotContain("Viel Erfolg");
     }
