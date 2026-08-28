@@ -11,6 +11,7 @@ import ManagerSelect from '../components/ManagerSelect'
 import Button from '../components/Button'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
 import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
+import ManagerOverlay from '../components/statistik/ManagerOverlay'
 import type { Aufstellung } from '../types/dashboard'
 import type { Manager } from '../types'
 
@@ -249,7 +250,13 @@ export default function Home() {
           ) : !displayAufstellung ? (
             <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
           ) : (
-            <AufstellungsFeld aufstellung={displayAufstellung} modus={feldModus} overlayLegend hideSum={isVorsaison} />
+            <AufstellungsFeld
+              aufstellung={displayAufstellung}
+              modus={feldModus}
+              overlayLegend
+              hideSum={isVorsaison}
+              overlay={activeManager ? <ManagerOverlay manager={activeManager} /> : undefined}
+            />
           )}
         </div>,
         true
