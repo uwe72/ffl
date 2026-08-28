@@ -73,7 +73,7 @@ export default function ManagerSelect({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-full bg-surface border border-border rounded-card shadow-xl max-h-[320px] flex flex-col">
+        <div className="absolute z-50 mt-1 w-[300px] bg-surface border border-border rounded-card shadow-xl max-h-[320px] flex flex-col">
           <div className="p-2 border-b border-border">
             <div className="relative">
               <i className="sap-icon sap-icon-search absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-subtle" />
@@ -96,18 +96,13 @@ export default function ManagerSelect({
                   key={m.id}
                   type="button"
                   onClick={() => handleSelect(m.id)}
-                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-elevated transition-colors flex items-center justify-between gap-3 ${
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-elevated transition-colors ${
                     m.id === value ? 'bg-accent-muted' : ''
                   }`}
                 >
-                  <span className="flex items-center gap-2 min-w-0">
-                    <span className="text-subtle tabular-nums shrink-0 w-6 text-right">
-                      {m.positionTotal ? `${m.positionTotal}.` : '-'}
-                    </span>
-                    <span className="text-foreground truncate">{m.shortName || '-'}</span>
-                  </span>
-                  <span className="text-muted text-[11px] truncate shrink-0">
-                    {`${m.firstName || ''} ${m.lastName || ''}`.trim()}
+                  <span className="text-foreground truncate">
+                    {`${m.firstName || ''} ${m.lastName || ''}`.trim() || m.shortName || '-'}
+                    {m.login ? ` (${m.login})` : ''}
                   </span>
                 </button>
               ))
