@@ -244,7 +244,7 @@ export default function Home() {
       {card(
         <div className="relative z-0 isolate h-full flex flex-col min-h-0">
           {!activeManagerId ? (
-            <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend hideSum={isVorsaison} />
+            <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend hideSum />
           ) : aufstellungQuery.isError ? (
             <p className="text-sm text-danger py-10 text-center">Daten konnten nicht geladen werden.</p>
           ) : !displayAufstellung ? (
@@ -254,7 +254,7 @@ export default function Home() {
               aufstellung={displayAufstellung}
               modus={feldModus}
               overlayLegend
-              hideSum={isVorsaison}
+              hideSum
               overlay={activeManager ? <ManagerOverlay manager={activeManager} /> : undefined}
             />
           )}
