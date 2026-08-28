@@ -76,7 +76,7 @@ public class UserService {
                 if (newLogin.length() > 25) {
                     throw new IllegalArgumentException("Login darf maximal 25 Zeichen lang sein");
                 }
-                if (userRepository.existsByLogin(newLogin)) {
+                if (userRepository.existsByLoginIgnoreCase(newLogin)) {
                     throw new IllegalArgumentException("Login bereits vergeben");
                 }
                 user.setLogin(newLogin);
@@ -134,7 +134,7 @@ public class UserService {
 
     @Transactional
     public UserDto updateAvatar(String login, MultipartFile file) throws IOException {
-        User user = userRepository.findByLogin(login).orElse(null);
+        User user = userRepository.findByLoginIgnoreCase(login).orElse(null);
         if (user == null) {
             return null;
         }
@@ -154,7 +154,7 @@ public class UserService {
 
     @Transactional
     public void removeAvatar(String login) {
-        User user = userRepository.findByLogin(login).orElse(null);
+        User user = userRepository.findByLoginIgnoreCase(login).orElse(null);
         if (user == null) {
             return;
         }

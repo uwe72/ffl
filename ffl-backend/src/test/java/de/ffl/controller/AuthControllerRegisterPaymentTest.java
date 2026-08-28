@@ -108,7 +108,7 @@ class AuthControllerRegisterPaymentTest {
             .paypalLink("https://www.paypal.com/paypalme/UweClement")
             .build();
         when(seasonRepository.findAll()).thenReturn(List.of(season));
-        when(userRepository.existsByLogin("neuerManager")).thenReturn(false);
+        when(userRepository.existsByLoginIgnoreCase("neuerManager")).thenReturn(false);
         when(playerRepository.findByIdsWithTeams(any())).thenReturn(elevenPlayers());
         when(passwordEncoder.encode("passwort123")).thenReturn("encoded");
         when(managerRepository.count()).thenReturn(1L);
@@ -133,7 +133,7 @@ class AuthControllerRegisterPaymentTest {
             .paypalLink("https://www.paypal.com/paypalme/UweClement/10")
             .build();
         when(seasonRepository.findAll()).thenReturn(List.of(season));
-        when(userRepository.existsByLogin("neuerManager")).thenReturn(false);
+        when(userRepository.existsByLoginIgnoreCase("neuerManager")).thenReturn(false);
         when(playerRepository.findByIdsWithTeams(any())).thenReturn(elevenPlayers());
         when(passwordEncoder.encode("passwort123")).thenReturn("encoded");
         when(managerRepository.count()).thenReturn(1L);
@@ -155,7 +155,7 @@ class AuthControllerRegisterPaymentTest {
             .spieleinsatzEuro(new BigDecimal("10.00"))
             .build();
         when(seasonRepository.findAll()).thenReturn(List.of(season));
-        when(userRepository.existsByLogin("neuerManager")).thenReturn(false);
+        when(userRepository.existsByLoginIgnoreCase("neuerManager")).thenReturn(false);
         when(playerRepository.findByIdsWithTeams(any())).thenReturn(elevenPlayers());
         when(passwordEncoder.encode("passwort123")).thenReturn("encoded");
         when(managerRepository.count()).thenReturn(1L);
@@ -177,7 +177,7 @@ class AuthControllerRegisterPaymentTest {
             .paypalLink("https://paypal.me/ffl")
             .build();
         when(seasonRepository.findAll()).thenReturn(List.of(season));
-        when(userRepository.existsByLogin("neuerManager")).thenReturn(false);
+        when(userRepository.existsByLoginIgnoreCase("neuerManager")).thenReturn(false);
         when(playerRepository.findByIdsWithTeams(any())).thenReturn(elevenPlayers());
         when(passwordEncoder.encode("passwort123")).thenReturn("encoded");
         when(managerRepository.count()).thenReturn(1L);

@@ -102,7 +102,7 @@ public class AuthController {
         String refreshToken = tokenProvider.generateRefreshToken(request.getLogin(), 
             userRepository.findByLogin(request.getLogin()).orElseThrow().getRole().name());
 
-        User user = userRepository.findByLogin(request.getLogin()).orElseThrow();
+        User user = userRepository.findByLoginIgnoreCase(request.getLogin()).orElseThrow();
         log.info("login successful: {} {} ({})", user.getFirstName(), user.getLastName(), user.getLogin());
         return ResponseEntity.ok(new AuthResponse(jwt, refreshToken, user.getLogin(), user.getRole().name()));
     }
@@ -122,7 +122,7 @@ public class AuthController {
         if (request.getLogin().contains("@")) {
             return ResponseEntity.badRequest().body("Login darf keine E-Mail-Adresse sein");
         }
-        if (userRepository.existsByLogin(request.getLogin())) {
+        if (userRepository.existsByLoginIgnoreCase(request.getLogin())) {
             return ResponseEntity.badRequest().body("Login bereits vergeben");
         }
 
@@ -389,7 +389,7 @@ public class AuthController {
 
     @GetMapping("/check-login")
     public ResponseEntity<Boolean> checkLoginAvailable(@RequestParam String login) {
-        return ResponseEntity.ok(!userRepository.existsByLogin(login));
+        return ResponseEntity.ok(!userRepository.existsByLoginIgnoreCase(login));
     }
 
     @PostMapping("/forgot-password")
@@ -438,7 +438,7 @@ public class AuthController {
         String login = tokenProvider.getUsernameFromToken(refreshToken);
         String role = tokenProvider.getRoleFromToken(refreshToken);
 
-        User user = userRepository.findByLogin(login).orElse(null);
+        User user = userRepository.findByLoginIgnoreCase(login).orElse(null);
         if (user == null) {
             return ResponseEntity.status(401).body("Benutzer nicht gefunden");
         }

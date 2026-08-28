@@ -47,4 +47,26 @@ class AuthControllerRegisterTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody().toString()).contains("Profilbild");
     }
+
+    @Test
+    void register_sameLoginDifferentCase_returnsLoginTaken() {
+        UserRepository userRepository = mock(UserRepository.class);
+        when(userRepository.existsByLoginIgnoreCase("tobi")).thenReturn(true);
+        AuthController controller = new AuthController(
+            null, userRepository, null, null, null, null, null, null, null, null,
+            null, null
+        );
+
+        RegisterRequest request = new RegisterRequest();
+        request.setLogin("tobi");
+        request.setPassword("password123");
+        request.setEmail("user@test.de");
+        request.setFirstName("Tobi");
+        request.setLastName("Muster");
+
+        ResponseEntity<?> response = controller.register(request, null);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody().toString()).contains("Login bereits vergeben");
+    }
 }
