@@ -154,6 +154,17 @@ export default function Home() {
             <i className="sap-icon sap-icon-slim-arrow-left text-sm" />
           </button>
         )}
+        {showCarouselNav && (
+          <button
+            type="button"
+            onClick={carouselNext}
+            aria-label="Nächstes Team"
+            title="Nächstes Team"
+            className="w-9 h-9 rounded-control border border-border-strong text-accent hover:bg-accent-muted flex items-center justify-center transition-colors"
+          >
+            <i className="sap-icon sap-icon-slim-arrow-right text-sm" />
+          </button>
+        )}
         <h2 className="text-xl font-semibold text-foreground min-w-0">{title}</h2>
         {isStandard && (
           <span className="text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
@@ -170,17 +181,6 @@ export default function Home() {
           >
             <i className="sap-icon sap-icon-edit text-sm" />
           </Button>
-        )}
-        {showCarouselNav && (
-          <button
-            type="button"
-            onClick={carouselNext}
-            aria-label="Nächstes Team"
-            title="Nächstes Team"
-            className="w-9 h-9 rounded-control border border-border-strong text-accent hover:bg-accent-muted flex items-center justify-center transition-colors"
-          >
-            <i className="sap-icon sap-icon-slim-arrow-right text-sm" />
-          </button>
         )}
         <div className="ml-auto flex items-center gap-2">
           {carouselEnabled && activeManagerId != null && (
