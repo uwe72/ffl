@@ -20,7 +20,7 @@ class AuthControllerForgotLoginTest {
     private AuthController controllerWithPasswordResetService() {
         return new AuthController(
             null, null, null, null, null, null, null, null, null, null,
-            passwordResetService, null
+            passwordResetService, null, null
         );
     }
 

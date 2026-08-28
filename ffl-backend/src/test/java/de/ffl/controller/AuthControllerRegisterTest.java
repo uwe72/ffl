@@ -17,7 +17,7 @@ class AuthControllerRegisterTest {
         when(userRepository.existsByLogin("user123")).thenReturn(false);
         return new AuthController(
             null, userRepository, null, null, null, null, null, null, null, null,
-            null, null
+            null, null, null
         );
     }
 
@@ -54,7 +54,7 @@ class AuthControllerRegisterTest {
         when(userRepository.existsByLoginIgnoreCase("tobi")).thenReturn(true);
         AuthController controller = new AuthController(
             null, userRepository, null, null, null, null, null, null, null, null,
-            null, null
+            null, null, null
         );
 
         RegisterRequest request = new RegisterRequest();

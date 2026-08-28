@@ -25,6 +25,7 @@ import de.ffl.service.PasswordResetService;
 import de.ffl.service.RegistrationMailService;
 import de.ffl.service.UserService;
 import de.ffl.service.EmailAddressService;
+import de.ffl.service.FriendTeamService;
 import de.ffl.dto.RegisterStepLogRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -63,6 +64,7 @@ public class AuthController {
     private final RegistrationMailService registrationMailService;
     private final PasswordResetService passwordResetService;
     private final EmailAddressService emailAddressService;
+    private final FriendTeamService friendTeamService;
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
@@ -75,7 +77,8 @@ public class AuthController {
                           ManagerService managerService,
                           RegistrationMailService registrationMailService,
                           PasswordResetService passwordResetService,
-                          EmailAddressService emailAddressService) {
+                          EmailAddressService emailAddressService,
+                          FriendTeamService friendTeamService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -88,6 +91,7 @@ public class AuthController {
         this.registrationMailService = registrationMailService;
         this.passwordResetService = passwordResetService;
         this.emailAddressService = emailAddressService;
+        this.friendTeamService = friendTeamService;
     }
 
     @Transactional(readOnly = true)
@@ -228,6 +232,7 @@ public class AuthController {
             .build();
 
         managerRepository.save(manager);
+        friendTeamService.seedInitialFavorite(manager);
 
         long registrationNumber = managerRepository.count();
         registrationMailService.sendRegistrationConfirmation(user, manager, registrationNumber, isNewUser);

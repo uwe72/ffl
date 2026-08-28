@@ -51,6 +51,7 @@ public class ManagerService {
     private final TeamChangeMailService teamChangeMailService;
     private final SystemConfigRepository systemConfigRepository;
     private final PaymentReminderService paymentReminderService;
+    private final FriendTeamService friendTeamService;
 
     public ManagerService(ManagerRepository managerRepository,
                           PlayerRepository playerRepository,
@@ -60,7 +61,8 @@ public class ManagerService {
                           UserRepository userRepository,
                           TeamChangeMailService teamChangeMailService,
                           SystemConfigRepository systemConfigRepository,
-                          PaymentReminderService paymentReminderService) {
+                          PaymentReminderService paymentReminderService,
+                          FriendTeamService friendTeamService) {
         this.managerRepository = managerRepository;
         this.playerRepository = playerRepository;
         this.seasonRepository = seasonRepository;
@@ -70,6 +72,7 @@ public class ManagerService {
         this.teamChangeMailService = teamChangeMailService;
         this.systemConfigRepository = systemConfigRepository;
         this.paymentReminderService = paymentReminderService;
+        this.friendTeamService = friendTeamService;
     }
 
     @Transactional(readOnly = true)
@@ -494,7 +497,9 @@ public class ManagerService {
     @Transactional
     public Manager createManager(Manager manager) {
         validateTeam(manager);
-        return managerRepository.save(manager);
+        Manager saved = managerRepository.save(manager);
+        friendTeamService.seedInitialFavorite(saved);
+        return saved;
     }
 
     @Transactional

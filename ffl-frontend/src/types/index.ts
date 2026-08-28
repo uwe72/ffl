@@ -313,6 +313,19 @@ export interface ManagerInfo {
   seasonName: string
 }
 
+export interface FriendTeam {
+  id: number
+  friendManagerId: number
+  name?: string
+  shortName?: string
+  firstName?: string
+  lastName?: string
+  login?: string
+  avatarUrl?: string
+  position: number
+  standard: boolean
+}
+
 export interface User {
   id: number
   login: string

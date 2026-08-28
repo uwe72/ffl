@@ -14,6 +14,7 @@ import de.ffl.service.ManagerService;
 import de.ffl.service.PasswordResetService;
 import de.ffl.service.RegistrationMailService;
 import de.ffl.service.UserService;
+import de.ffl.service.FriendTeamService;
 import de.ffl.config.JwtTokenProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,6 +61,8 @@ class AuthControllerRegisterPaymentTest {
     private PasswordResetService passwordResetService;
     @Mock
     private EmailAddressService emailAddressService;
+    @Mock
+    private FriendTeamService friendTeamService;
 
     @InjectMocks
     private AuthController authController;
