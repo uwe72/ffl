@@ -379,7 +379,7 @@ export default function AufstellungsFeld({
     >
       <div className="img-overlay" />
       {overlay && (
-        <div className="absolute top-3 left-3 z-10 flex items-center gap-2 rounded-md bg-pitch-block/80 p-1.5">
+        <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2 rounded-md bg-pitch-block/80 p-1.5">
           {overlay}
         </div>
       )}

@@ -17,20 +17,20 @@ export default function ManagerOverlay({ manager }: { manager: Manager }) {
   }, [manager])
 
   return (
-    <div className="flex flex-col items-center gap-1.5 pointer-events-none" title={manager.description?.trim() || undefined}>
+    <div className="flex flex-col items-center gap-1.5" title={manager.description?.trim() || undefined}>
       {avatarUrl ? (
         <img
           src={avatarUrl}
           alt={manager.name ?? 'Manager'}
           className="rounded-full object-cover border border-on-dark/30"
-          style={{ width: 80, height: 80 }}
+          style={{ width: 120, height: 120 }}
         />
       ) : (
         <div
           className="rounded-full bg-on-dark flex items-center justify-center border border-on-dark-muted/40"
-          style={{ width: 80, height: 80 }}
+          style={{ width: 120, height: 120 }}
         >
-          <span className="text-2xl font-bold text-foreground leading-none">{initials}</span>
+          <span className="text-4xl font-bold text-foreground leading-none">{initials}</span>
         </div>
       )}
     </div>
