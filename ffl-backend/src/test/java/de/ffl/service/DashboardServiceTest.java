@@ -76,6 +76,77 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    void aufstellung_liefertStatusPanelWerteUndTeilnehmer() {
+        int matchday = season.getCurrentMatchday();
+        ManagerRank own = managerRankRepository.findByManagerIdAndRoundNumber(managerUwe72.getId(), matchday).orElseThrow();
+
+        AufstellungDto dto = dashboardService.getAufstellung(managerUwe72.getId());
+
+        assertThat(dto.getPositionGesamt()).isEqualTo(own.getPositionTotal());
+        assertThat(dto.getPositionSpieltag()).isEqualTo(own.getPositionRound());
+        assertThat(dto.getPunkteGesamt()).isEqualTo(own.getPointsTotal());
+        assertThat(dto.getPunkteSpieltag()).isEqualTo(own.getPointsRound());
+        assertThat(dto.getTeilnehmer()).isEqualTo(managerRepository.findBySeasonId(season.getId()).size());
+
+        if (matchday > 1) {
+            ManagerRank prev = managerRankRepository.findByManagerIdAndRoundNumber(managerUwe72.getId(), matchday - 1).orElse(null);
+            if (prev != null) {
+                assertThat(dto.getPositionGesamtVorher()).isEqualTo(prev.getPositionTotal());
+                assertThat(dto.getPositionSpieltagVorher()).isEqualTo(prev.getPositionRound());
+            }
+        }
+    }
+
+    @Test
+    void aufstellung_vorErstemSpieltagLiefertNullWerte() {
+        Season vsSeason = Season.builder()
+            .name("Vorsaison Status Test")
+            .budget(30000000)
+            .seasonState(SeasonState.BEFORE_SEASON)
+            .currentMatchday(0)
+            .build();
+        vsSeason = seasonRepository.save(vsSeason);
+
+        User user = User.builder()
+            .login("vorsaison-status")
+            .password("$2a$10$test")
+            .email("vorsaison-status@test.de")
+            .firstName("Vor")
+            .lastName("Status")
+            .role(UserRole.NORMAL)
+            .build();
+        user = userRepository.save(user);
+
+        List<Player> all = new java.util.ArrayList<>(playerMap.values());
+        Manager m = Manager.builder()
+            .user(user)
+            .season(vsSeason)
+            .budget(30000000)
+            .playerGoalkeeper(all.get(0))
+            .playerDefender1(all.get(1))
+            .playerDefender2(all.get(2))
+            .playerDefender3(all.get(3))
+            .playerMidfield1(all.get(4))
+            .playerMidfield2(all.get(5))
+            .playerMidfield3(all.get(6))
+            .playerStriker1(all.get(7))
+            .playerStriker2(all.get(8))
+            .playerStriker3(all.get(9))
+            .playerFreeChoice(all.get(10))
+            .build();
+        m = managerRepository.save(m);
+
+        AufstellungDto dto = dashboardService.getAufstellung(m.getId());
+
+        assertThat(dto.getPhase()).isEqualTo("VORSAISON");
+        assertThat(dto.getPositionGesamt()).isNull();
+        assertThat(dto.getPositionSpieltag()).isNull();
+        assertThat(dto.getPunkteGesamt()).isNull();
+        assertThat(dto.getPunkteSpieltag()).isNull();
+        assertThat(dto.getTeilnehmer()).isEqualTo(managerRepository.findBySeasonId(vsSeason.getId()).size());
+    }
+
+    @Test
     void rangliste_gesamt_liefertAusschnittMitEigenerZeile() {
         RanglisteDto dto = dashboardService.getRangliste(managerUwe72.getId(), 2, "gesamt");
 

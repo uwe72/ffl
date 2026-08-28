@@ -68,6 +68,12 @@ public class DashboardService {
             ? managerRankRepository.findByManagerIdAndRoundNumber(managerId, currentMatchday).orElse(null)
             : null;
 
+        ManagerRank prevRank = currentMatchday > 1
+            ? managerRankRepository.findByManagerIdAndRoundNumber(managerId, currentMatchday - 1).orElse(null)
+            : null;
+
+        int teilnehmer = managerRepository.findBySeasonId(season.getId()).size();
+
         int kaderwert = 0;
         List<SpielerAufstellungDto> spieler = new ArrayList<>();
         for (Player p : lineup) {
@@ -99,8 +105,13 @@ public class DashboardService {
             .phase(phase)
             .spieltag(currentMatchday)
             .teamname(manager.getShortName())
-            .punkteGesamt(ownRank != null ? ownRank.getPointsTotal() : 0)
-            .punkteSpieltag(ownRank != null ? ownRank.getPointsRound() : 0)
+            .punkteGesamt(ownRank != null ? ownRank.getPointsTotal() : null)
+            .punkteSpieltag(ownRank != null ? ownRank.getPointsRound() : null)
+            .positionGesamt(ownRank != null ? ownRank.getPositionTotal() : null)
+            .positionSpieltag(ownRank != null ? ownRank.getPositionRound() : null)
+            .teilnehmer(teilnehmer)
+            .positionGesamtVorher(prevRank != null ? prevRank.getPositionTotal() : null)
+            .positionSpieltagVorher(prevRank != null ? prevRank.getPositionRound() : null)
             .kaderwert(kaderwert)
             .budget(season.getBudget() != null ? season.getBudget() : 0)
             .spieler(spieler)

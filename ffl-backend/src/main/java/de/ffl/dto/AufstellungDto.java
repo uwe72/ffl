@@ -17,6 +17,11 @@ public class AufstellungDto {
     private String teamname;
     private Integer punkteGesamt;
     private Integer punkteSpieltag;
+    private Integer positionGesamt;
+    private Integer positionSpieltag;
+    private Integer teilnehmer;
+    private Integer positionGesamtVorher;
+    private Integer positionSpieltagVorher;
     private Integer kaderwert;
     private Integer budget;
     private List<SpielerAufstellungDto> spieler;

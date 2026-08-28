@@ -19,8 +19,13 @@ const EMPTY_AUFSTELLUNG: Aufstellung = {
   phase: 'SAISON',
   spieltag: 0,
   teamname: '',
-  punkteGesamt: 0,
-  punkteSpieltag: 0,
+  punkteGesamt: null,
+  punkteSpieltag: null,
+  positionGesamt: null,
+  positionSpieltag: null,
+  teilnehmer: null,
+  positionGesamtVorher: null,
+  positionSpieltagVorher: null,
   kaderwert: 0,
   budget: 0,
   spieler: [],
@@ -255,7 +260,7 @@ export default function Home() {
               modus={feldModus}
               overlayLegend
               hideSum
-              overlay={activeManager ? <ManagerOverlay manager={activeManager} /> : undefined}
+              overlay={activeManager ? <ManagerOverlay manager={activeManager} teamname={displayAufstellung.teamname} /> : undefined}
             />
           )}
         </div>,

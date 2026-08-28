@@ -15,6 +15,10 @@ const FIELD_RATIO = 2752 / 1536
 const DESIGN_COL_H = 2 * PAD_V + 4 * CARD_H + 3 * GAP_V
 const DESIGN_ROW_W = 2 * PAD_H + 4 * (CARD_W + 2 * BADGE_PROTRUDE)
 
+const PANEL_W = 252
+const FREE_ZONE = PANEL_W + 16
+const OVERLAY_MIN_WIDTH = 900
+
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
 
 const POSITION_COLOR: Record<string, string> = {
@@ -316,6 +320,96 @@ interface AufstellungsFeldProps {
   hideSum?: boolean
 }
 
+function dash(value: number | null | undefined): string {
+  return value == null ? '–' : String(value)
+}
+
+function ChangeChip({ current, previous }: { current: number | null | undefined; previous: number | null | undefined }) {
+  if (current == null || previous == null) return null
+  const delta = previous - current
+  if (delta === 0) return null
+  const up = delta > 0
+  return (
+    <span
+      className="inline-flex items-center gap-0.5 rounded-badge px-1 py-0.5 text-[10px] font-semibold leading-none"
+      style={{
+        color: up ? 'var(--color-defender)' : 'var(--color-striker)',
+        backgroundColor: up ? 'rgba(15, 118, 110, 0.12)' : 'rgba(190, 18, 60, 0.12)',
+      }}
+    >
+      <i className={`sap-icon ${up ? 'sap-icon-up' : 'sap-icon-down'} text-[9px]`} />
+      {Math.abs(delta)}
+    </span>
+  )
+}
+
+interface PanelValueProps {
+  label: string
+  value: number | null
+  suffix?: string | null
+  previous?: number | null
+}
+
+function PanelValue({ label, value, suffix, previous }: PanelValueProps) {
+  return (
+    <div className="last:mb-0">
+      <div className="text-[11px] text-muted leading-tight">{label}</div>
+      <div className="mt-0.5 flex items-baseline gap-1.5">
+        <span className="text-[26px] font-semibold text-foreground tabular-nums leading-none">
+          {dash(value)}
+        </span>
+        {suffix && value != null && (
+          <span className="text-[11px] text-muted whitespace-nowrap">{suffix}</span>
+        )}
+        <ChangeChip current={value} previous={previous} />
+      </div>
+    </div>
+  )
+}
+
+function StatusPanel({ aufstellung }: { aufstellung: Aufstellung }) {
+  const {
+    positionGesamt,
+    punkteGesamt,
+    positionSpieltag,
+    punkteSpieltag,
+    teilnehmer,
+    positionGesamtVorher,
+    positionSpieltagVorher,
+  } = aufstellung
+
+  const vonTeilnehmer = teilnehmer != null ? `von ${teilnehmer}` : null
+
+  return (
+    <div
+      className="relative bg-stat-card/95 border border-border rounded-card shadow-sm"
+      style={{ width: PANEL_W }}
+    >
+      <div
+        className="absolute left-0 top-0 bottom-0 w-[3px]"
+        style={{ backgroundColor: 'var(--color-stat-accent)' }}
+      />
+      <div className="flex">
+        <div className="flex-1 min-w-0 px-3 pt-2.5 pb-3">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted mb-2.5">Gesamt</div>
+          <div className="space-y-3">
+            <PanelValue label="Position" value={positionGesamt} suffix={vonTeilnehmer} previous={positionGesamtVorher} />
+            <PanelValue label="Punkte" value={punkteGesamt} />
+          </div>
+        </div>
+        <div className="w-px bg-border" />
+        <div className="flex-1 min-w-0 px-3 pt-2.5 pb-3">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted mb-2.5">Spieltag</div>
+          <div className="space-y-3">
+            <PanelValue label="Position" value={positionSpieltag} suffix={vonTeilnehmer} previous={positionSpieltagVorher} />
+            <PanelValue label="Punkte" value={punkteSpieltag} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AufstellungsFeld({
   aufstellung,
   modus,
@@ -345,21 +439,25 @@ export default function AufstellungsFeld({
 
   let cardIndex = 0
 
+  const panelOverlay = !compact && !!slotSize && slotSize.width >= OVERLAY_MIN_WIDTH
+
   const layout = useMemo(() => {
     if (compact || !slotSize || slotSize.width <= 0 || slotSize.height <= 0) {
       return { scale: 1, fieldW: undefined as number | undefined, fieldH: undefined as number | undefined }
     }
     const containW = Math.min(slotSize.width, slotSize.height * FIELD_RATIO)
     const containH = containW / FIELD_RATIO
-    const scale = Math.min(containW / DESIGN_ROW_W, containH / DESIGN_COL_H, 1)
+    const designRowW = panelOverlay ? DESIGN_ROW_W + FREE_ZONE : DESIGN_ROW_W
+    const scale = Math.min(containW / designRowW, containH / DESIGN_COL_H, 1)
     return { scale, fieldW: containW, fieldH: containH }
-  }, [compact, slotSize])
+  }, [compact, slotSize, panelOverlay])
 
   const scale = layout.scale
   const cardWidth = compact ? 64 : CARD_W * scale
   const cardHeight = compact ? 64 : CARD_H * scale
   const padH = PAD_H * scale
   const padV = PAD_V * scale
+  const leftPad = panelOverlay ? FREE_ZONE : padH
 
   const fieldSizeStyle: CSSProperties = compact
     ? { aspectRatio: '2752 / 1536', width: '100%' }
@@ -378,14 +476,29 @@ export default function AufstellungsFeld({
       }}
     >
       <div className="img-overlay" />
+      {panelOverlay && (
+        <div
+          className="absolute left-0 top-0 pointer-events-none"
+          style={{
+            width: FREE_ZONE,
+            height: 240,
+            background: 'linear-gradient(180deg, rgba(28,25,23,0.6) 0%, transparent 100%)',
+          }}
+        />
+      )}
+      {panelOverlay && (
+        <div className="absolute left-3 top-3 z-10">
+          <StatusPanel aufstellung={aufstellung} />
+        </div>
+      )}
       {overlay && (
-        <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2 rounded-md bg-pitch-block/80 p-1.5">
+        <div className="absolute bottom-3 left-3 z-10">
           {overlay}
         </div>
       )}
       <div
         className="absolute inset-0 flex"
-        style={{ padding: `${padV}px ${padH}px`, justifyContent: 'space-around' }}
+        style={{ padding: `${padV}px ${padH}px`, paddingLeft: leftPad, justifyContent: 'space-around' }}
       >
         {COLUMNS.map(pos => {
           const players = grouped[pos]
@@ -465,7 +578,14 @@ export default function AufstellungsFeld({
       {compact ? (
         <div className="w-full">{field}</div>
       ) : (
-        <div ref={slotRef} className="w-full flex-1 min-h-0 flex items-start justify-start">{field}</div>
+        <>
+          {!panelOverlay && (
+            <div className="w-full flex justify-start shrink-0">
+              <StatusPanel aufstellung={aufstellung} />
+            </div>
+          )}
+          <div ref={slotRef} className="w-full flex-1 min-h-0 flex items-start justify-start">{field}</div>
+        </>
       )}
 
       {showLegend && !overlayLegend && (

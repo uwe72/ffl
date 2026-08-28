@@ -26,8 +26,13 @@ export interface Aufstellung {
   phase: DashboardPhase
   spieltag: number
   teamname: string
-  punkteGesamt: number
-  punkteSpieltag: number
+  punkteGesamt: number | null
+  punkteSpieltag: number | null
+  positionGesamt: number | null
+  positionSpieltag: number | null
+  teilnehmer: number | null
+  positionGesamtVorher: number | null
+  positionSpieltagVorher: number | null
   kaderwert: number
   budget: number
   spieler: SpielerAufstellung[]
