@@ -365,6 +365,20 @@ public class ManagerGroupService {
 
     @Transactional(readOnly = true)
     public List<ManagerGroupDto> getGroupsForManager(Long managerId) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return Collections.emptyList();
+        }
+
+        if (!currentUser.getRole().name().equals("ADMIN")) {
+            Optional<Manager> managerOpt = managerRepository.findById(managerId);
+            if (managerOpt.isEmpty()
+                    || managerOpt.get().getUser() == null
+                    || !managerOpt.get().getUser().getId().equals(currentUser.getId())) {
+                return Collections.emptyList();
+            }
+        }
+
         List<ManagerGroup> groups = managerGroupRepository.findByManagerIdWithManagers(managerId);
         
         return groups.stream()

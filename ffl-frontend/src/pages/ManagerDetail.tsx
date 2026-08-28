@@ -781,7 +781,7 @@ export default function ManagerDetail() {
         </div>
       )}
 
-      {managerGroups && managerGroups.length > 0 && (
+      {isOwnManager && managerGroups && managerGroups.length > 0 && (
         <div className="p-6 bg-surface border border-border rounded-card mb-6">
           <h3 className="text-xl font-semibold text-foreground mb-4">Gruppen</h3>
           {managerGroups.map(group => (

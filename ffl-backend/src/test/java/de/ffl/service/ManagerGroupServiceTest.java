@@ -146,6 +146,19 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    void managerSeesOwnGroupsButOtherUserSeesNone() {
+        setupFixture();
+
+        authenticateAs("referenced");
+        List<ManagerGroupDto> ownGroups = managerGroupService.getGroupsForManager(referencedManager.getId());
+        assertFalse(ownGroups.isEmpty());
+
+        authenticateAs("other");
+        List<ManagerGroupDto> foreignGroups = managerGroupService.getGroupsForManager(referencedManager.getId());
+        assertTrue(foreignGroups.isEmpty());
+    }
+
+    @Test
     void referencedManagerCanViewDetailButNotEdit() {
         setupFixture();
         Long groupId = groupIdByName("ReferenzierteGruppe");
