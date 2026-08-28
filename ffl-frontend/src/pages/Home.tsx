@@ -194,7 +194,7 @@ export default function Home() {
               <i className={`sap-icon ${isFavorite ? 'sap-icon-favorite' : 'sap-icon-unfavorite'} text-sm`} />
             </button>
           )}
-          {carouselEnabled && isFavorite && (
+          {carouselEnabled && isFavorite && favoriteManagerIds.length > 1 && (
             <Button
               variant={isStandard ? 'secondary' : 'transparent'}
               size="input"
