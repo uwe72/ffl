@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +45,10 @@ public class SeasonTransparencyMailService {
     private static final String POS_COLOR_MF = "#4338ca";
     private static final String POS_COLOR_ST = "#be123c";
     private static final String POS_COLOR_FREI = "#6b6b6b";
+
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+        "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    );
 
     private final SystemConfigRepository systemConfigRepository;
     private final SeasonRepository seasonRepository;
@@ -130,9 +135,13 @@ public class SeasonTransparencyMailService {
 
                 List<String> recipients = new ArrayList<>();
                 for (String email : emails) {
-                    if (email != null && !email.isBlank()) {
-                        recipients.add(email.trim());
+                    if (email == null || email.isBlank()) continue;
+                    String trimmed = email.trim();
+                    if (!EMAIL_PATTERN.matcher(trimmed).matches()) {
+                        send(emitter, "✗ übersprungen (ungültige Adresse): " + trimmed);
+                        continue;
                     }
+                    recipients.add(trimmed);
                 }
 
                 JavaMailSenderImpl mailSender = buildMailSender(config);
@@ -141,6 +150,14 @@ public class SeasonTransparencyMailService {
                     send(emitter, "Sende Report als Testmail an die Admin-Adresse...");
                 } else {
                     send(emitter, "Sende Report als 1 BCC-Mail an " + recipients.size() + " Empfänger...");
+                }
+
+                if (!testMode && recipients.isEmpty()) {
+                    send(emitter, "");
+                    send(emitter, "Keine gültigen Empfänger.");
+                    emitter.send(SseEmitter.event().name("complete").data(""));
+                    emitter.complete();
+                    return;
                 }
 
                 try {

@@ -14,6 +14,12 @@ function useIsMobile() {
   return isMobile
 }
 
+const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+
+function isValidEmail(email: string) {
+  return EMAIL_PATTERN.test(email)
+}
+
 interface Props {
   isOpen: boolean
   onClose: () => void
@@ -53,12 +59,27 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
     return uniqueEmails.filter((e) => e.toLowerCase().includes(term))
   }, [uniqueEmails, searchTerm])
 
+  const invalidEmails = useMemo(() => {
+    const set = new Set<string>()
+    for (const e of uniqueEmails) {
+      if (!isValidEmail(e)) set.add(e)
+    }
+    return set
+  }, [uniqueEmails])
+
+  const availableValid = useMemo(
+    () => availableEmails.filter((e) => !invalidEmails.has(e)),
+    [availableEmails, invalidEmails],
+  )
+
+  const validCount = uniqueEmails.length - invalidEmails.size
+
   const allSelected =
-    availableEmails.length > 0 && selectedEmails.length === availableEmails.length
+    availableValid.length > 0 && selectedEmails.length === availableValid.length
 
   const toggleAll = () => {
     if (allSelected) setSelectedEmails([])
-    else setSelectedEmails(availableEmails)
+    else setSelectedEmails(availableValid)
   }
 
   const toggleOne = (email: string) => {
@@ -74,9 +95,9 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
     const minId = Math.min(fromId, toId)
     const maxId = Math.max(fromId, toId)
     const emailsToSelect = uniqueEmails
-      .filter((_, index) => {
+      .filter((email, index) => {
         const id = index + 1
-        return id >= minId && id <= maxId
+        return id >= minId && id <= maxId && !invalidEmails.has(email)
       })
     setSelectedEmails((prev) => [...new Set([...prev, ...emailsToSelect])])
   }
@@ -120,7 +141,7 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
                 variant="ghost"
                 size="sm"
                 onClick={toggleAll}
-                disabled={availableEmails.length === 0}
+                disabled={availableValid.length === 0}
               >
                 {allSelected ? 'Alle abwählen' : 'Alle selektieren'}
               </Button>
@@ -156,27 +177,34 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
 
           {isMobile ? (
             <div className="grid gap-3 max-h-[300px] overflow-y-auto">
-              {availableEmails.map((email, index) => (
-                <div
-                  key={email}
-                  className="p-4 bg-surface border border-border"
-                >
-                  <div className="flex gap-4 items-start">
-                    <input
-                      type="checkbox"
-                      checked={selectedEmails.includes(email)}
-                      onChange={() => toggleOne(email)}
-                      className="w-5 h-5 accent-accent mt-1 flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-subtle font-mono">#{index + 1}</span>
-                        <div className="font-semibold text-foreground truncate">{email}</div>
+              {availableEmails.map((email, index) => {
+                const invalid = invalidEmails.has(email)
+                return (
+                  <div
+                    key={email}
+                    className={`p-4 bg-surface border ${invalid ? 'border-danger/50' : 'border-border'}`}
+                  >
+                    <div className="flex gap-4 items-start">
+                      <input
+                        type="checkbox"
+                        disabled={invalid}
+                        checked={selectedEmails.includes(email)}
+                        onChange={() => toggleOne(email)}
+                        className="w-5 h-5 accent-accent mt-1 flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-subtle font-mono">#{index + 1}</span>
+                          <div className={`font-semibold truncate ${invalid ? 'text-danger' : 'text-foreground'}`}>{email}</div>
+                        </div>
+                        {invalid && (
+                          <div className="text-xs text-danger font-medium mt-0.5">ungültige Adresse</div>
+                        )}
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
               {availableEmails.length === 0 && (
                 <div className="py-4 text-center text-muted">
                   Keine E-Mail-Adressen gefunden.
@@ -194,27 +222,38 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
                   </tr>
                 </thead>
                 <tbody>
-                  {availableEmails.map((email, idx) => (
-                    <tr
-                      key={email}
-                      className={`border-b border-border ${
-                        idx % 2 === 1 ? 'bg-zebra hover:bg-card-hover' : 'hover:bg-card-hover'
-                      }`}
-                    >
-                      <td className="py-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedEmails.includes(email)}
-                          onChange={() => toggleOne(email)}
-                          className="w-4 h-4 accent-accent"
-                        />
-                      </td>
-                      <td className="py-2 text-center text-subtle font-mono text-xs">
-                        {uniqueEmails.indexOf(email) + 1}
-                      </td>
-                      <td className="py-2 text-foreground">{email}</td>
-                    </tr>
-                  ))}
+                  {availableEmails.map((email, idx) => {
+                    const invalid = invalidEmails.has(email)
+                    return (
+                      <tr
+                        key={email}
+                        className={`border-b border-border ${
+                          invalid
+                            ? 'bg-danger/5'
+                            : idx % 2 === 1 ? 'bg-zebra hover:bg-card-hover' : 'hover:bg-card-hover'
+                        }`}
+                      >
+                        <td className="py-2">
+                          <input
+                            type="checkbox"
+                            disabled={invalid}
+                            checked={selectedEmails.includes(email)}
+                            onChange={() => toggleOne(email)}
+                            className="w-4 h-4 accent-accent"
+                          />
+                        </td>
+                        <td className="py-2 text-center text-subtle font-mono text-xs">
+                          {uniqueEmails.indexOf(email) + 1}
+                        </td>
+                        <td className="py-2">
+                          <div className={`${invalid ? 'text-danger' : 'text-foreground'}`}>{email}</div>
+                          {invalid && (
+                            <div className="text-xs text-danger font-medium">ungültige Adresse</div>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
                   {availableEmails.length === 0 && (
                     <tr>
                       <td colSpan={3} className="py-4 text-center text-muted">
@@ -229,6 +268,9 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
 
           <div className="mt-4 text-sm text-subtle">
             {uniqueEmails.length} eindeutige E-Mail-Adressen von {managers?.length || 0} Managern
+            {invalidEmails.size > 0 && (
+              <span className="text-danger"> · {validCount} gültig, {invalidEmails.size} ungültig</span>
+            )}
           </div>
         </div>
 
