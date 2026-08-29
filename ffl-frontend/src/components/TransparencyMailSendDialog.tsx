@@ -28,6 +28,8 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
   const [selectedEmails, setSelectedEmails] = useState<string[]>([])
   const [sendDialogOpen, setSendDialogOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [rangeFromId, setRangeFromId] = useState('')
+  const [rangeToId, setRangeToId] = useState('')
   const [testMode, setTestMode] = useState(false)
 
   const uniqueEmails = useMemo(() => {
@@ -63,6 +65,20 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
     setSelectedEmails((prev) =>
       prev.includes(email) ? prev.filter((x) => x !== email) : [...prev, email],
     )
+  }
+
+  const selectRange = () => {
+    const fromId = parseInt(rangeFromId, 10)
+    const toId = parseInt(rangeToId, 10)
+    if (isNaN(fromId) || isNaN(toId)) return
+    const minId = Math.min(fromId, toId)
+    const maxId = Math.max(fromId, toId)
+    const emailsToSelect = uniqueEmails
+      .filter((_, index) => {
+        const id = index + 1
+        return id >= minId && id <= maxId
+      })
+    setSelectedEmails((prev) => [...new Set([...prev, ...emailsToSelect])])
   }
 
   const canSend = selectedEmails.length > 0
@@ -111,9 +127,36 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
             </div>
           </div>
 
+          <div className="mb-4 flex flex-wrap gap-2 items-center">
+            <span className="text-sm text-muted">Bereich selektieren:</span>
+            <input
+              type="number"
+              placeholder="Von ID"
+              value={rangeFromId}
+              onChange={(e) => setRangeFromId(e.target.value)}
+              className="input-field w-24 px-3 py-2 focus:outline-none"
+            />
+            <span className="text-muted">-</span>
+            <input
+              type="number"
+              placeholder="Bis ID"
+              value={rangeToId}
+              onChange={(e) => setRangeToId(e.target.value)}
+              className="input-field w-24 px-3 py-2 focus:outline-none"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={selectRange}
+              disabled={!rangeFromId || !rangeToId}
+            >
+              Selektieren
+            </Button>
+          </div>
+
           {isMobile ? (
             <div className="grid gap-3 max-h-[300px] overflow-y-auto">
-              {availableEmails.map((email) => (
+              {availableEmails.map((email, index) => (
                 <div
                   key={email}
                   className="p-4 bg-surface border border-border"
@@ -126,7 +169,10 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
                       className="w-5 h-5 accent-accent mt-1 flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-foreground truncate">{email}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-subtle font-mono">#{index + 1}</span>
+                        <div className="font-semibold text-foreground truncate">{email}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -143,6 +189,7 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
                 <thead className="sticky top-0 bg-surface">
                   <tr className="text-left text-muted border-b border-border">
                     <th className="py-2 w-10"></th>
+                    <th className="py-2 w-14 text-center">ID</th>
                     <th className="py-2">E-Mail-Adresse</th>
                   </tr>
                 </thead>
@@ -162,12 +209,15 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
                           className="w-4 h-4 accent-accent"
                         />
                       </td>
+                      <td className="py-2 text-center text-subtle font-mono text-xs">
+                        {uniqueEmails.indexOf(email) + 1}
+                      </td>
                       <td className="py-2 text-foreground">{email}</td>
                     </tr>
                   ))}
                   {availableEmails.length === 0 && (
                     <tr>
-                      <td colSpan={2} className="py-4 text-center text-muted">
+                      <td colSpan={3} className="py-4 text-center text-muted">
                         Keine E-Mail-Adressen gefunden.
                       </td>
                     </tr>
