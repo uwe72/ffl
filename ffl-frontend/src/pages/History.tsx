@@ -6,6 +6,7 @@ import Button from '../components/Button'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import { getChartColors } from '../utils/chartColors'
+import useIsMobile from '../hooks/useIsMobile'
 import type { SeasonHistory } from '../types'
 
 const chartColors = getChartColors()
@@ -30,7 +31,12 @@ function shortSaison(saison: string): string {
   return `${short(parts[0])}/${short(parts[1])}`
 }
 
+function formatBudgetShort(value: number): string {
+  return value.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' M€'
+}
+
 export default function History() {
+  const isMobile = useIsMobile()
   const { data: history, isLoading, error } = useSeasonHistory()
   const create = useCreateSeasonHistory()
   const update = useUpdateSeasonHistory()
@@ -200,10 +206,10 @@ export default function History() {
                   Saison<SortIcon column="saison" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 <ThSortable numeric align="right" onClick={() => handleSort('budget')}>
-                  Budget (€)<SortIcon column="budget" activeKey={sortKey} order={sortOrder} />
+                  {isMobile ? 'Budget (M€)' : 'Budget (€)'}<SortIcon column="budget" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 <ThSortable numeric align="right" onClick={() => handleSort('anzahlManager')}>
-                  Anzahl Manager<SortIcon column="anzahlManager" activeKey={sortKey} order={sortOrder} />
+                  {isMobile ? '# Manager' : 'Anzahl Manager'}<SortIcon column="anzahlManager" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 {isAdmin && <Th> </Th>}
               </tr>
@@ -246,9 +252,9 @@ export default function History() {
                       </>
                     ) : (
                       <>
-                        <td className="px-3 py-2 font-medium text-foreground">{entry.saison}</td>
-                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{formatEuro(entry.budget)} €</td>
-                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{entry.anzahlManager}</td>
+                        <td className="px-3 py-2 font-medium text-foreground">{isMobile ? shortSaison(entry.saison) : entry.saison}</td>
+                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{isMobile ? formatBudgetShort(entry.budget) : `${formatEuro(entry.budget)} €`}</td>
+                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{isMobile ? `# ${entry.anzahlManager}` : entry.anzahlManager}</td>
                         {isAdmin && (
                           <td className="px-3 py-2">
                             <div className="flex gap-2 justify-end">
