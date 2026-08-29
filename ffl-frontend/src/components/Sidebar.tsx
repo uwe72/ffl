@@ -92,6 +92,9 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           <SidebarItem to="/games" label="Spiele" icon="sap-icon-calendar" collapsed={collapsed} />
         )}
         <SidebarItem to="/documents" label="Dokumente" icon="sap-icon-documents" collapsed={collapsed} />
+        {!mobile && (
+          <SidebarItem to="/history" label="Historie" icon="sap-icon-history" collapsed={collapsed} />
+        )}
         <button
           onClick={openFeedback}
           title={collapsed ? 'Feedback' : undefined}

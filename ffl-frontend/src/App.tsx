@@ -17,6 +17,7 @@ import ManagerGroupDetail from './pages/ManagerGroupDetail'
 import Documents from './pages/Documents'
 import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
+import History from './pages/History'
 import Users from './pages/Users'
 import UserDetail from './pages/UserDetail'
 import Emails from './pages/Emails'
@@ -116,6 +117,11 @@ function App() {
               <ProtectedRoute><ManagerGroupDetail /></ProtectedRoute>
             } />
             <Route path="documents" element={<Documents />} />
+            <Route path="history" element={
+              <ProtectedRoute>
+                <History />
+              </ProtectedRoute>
+            } />
             <Route path="users" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Users />

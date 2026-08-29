@@ -57,6 +57,13 @@ export interface Season {
 
 export type SeasonState = 'BEFORE_SEASON' | 'RUNNING_HINRUNDE' | 'RUNNING_RUECKRUNDE'
 
+export interface SeasonHistory {
+  id: number
+  saison: string
+  budget: number
+  anzahlManager: number
+}
+
 export interface PublicSeasonInfo {
   id: number
   name: string
