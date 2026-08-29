@@ -371,7 +371,8 @@ public class SeasonTransparencyMailService {
         sb.append("Hallo,\r\n\r\n");
         sb.append("anbei der Transparenz-Report für die Saison ").append(seasonName).append(". ");
         sb.append("Dieser enthält alle Spieler und alle teilnehmenden Manager.\r\n\r\n");
-        sb.append("Dieser Report wird zu Beginn der Saison einmalig versendet um die Transparenz zu erhöhen.\r\n\r\n");
+        sb.append("Dieser Report wird zu Beginn der Saison einmalig versendet um die Transparenz zu erhöhen.\r\n");
+        sb.append("Der vollständige Report liegt dieser Mail als PDF-Datei im Anhang bei.\r\n\r\n");
         sb.append("Viele Grüße\r\n");
         sb.append("Uwe\r\n");
         return sb.toString();
