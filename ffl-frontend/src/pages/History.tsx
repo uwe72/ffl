@@ -206,10 +206,10 @@ export default function History() {
                   Saison<SortIcon column="saison" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 <ThSortable numeric align="right" onClick={() => handleSort('budget')}>
-                  {isMobile ? 'Budget (M€)' : 'Budget (€)'}<SortIcon column="budget" activeKey={sortKey} order={sortOrder} />
+                  {isMobile ? 'Budget' : 'Budget (€)'}<SortIcon column="budget" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 <ThSortable numeric align="right" onClick={() => handleSort('anzahlManager')}>
-                  {isMobile ? '# Manager' : 'Anzahl Manager'}<SortIcon column="anzahlManager" activeKey={sortKey} order={sortOrder} />
+                  {isMobile ? 'Manager' : 'Anzahl Manager'}<SortIcon column="anzahlManager" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 {isAdmin && <Th> </Th>}
               </tr>
