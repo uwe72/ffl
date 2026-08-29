@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
+import FallblattTafel from './FallblattTafel'
 import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
 import { positionLabels } from '../../utils/positions'
 import useElementSize from '../../hooks/useElementSize'
@@ -15,8 +16,10 @@ const FIELD_RATIO = 2752 / 1536
 const DESIGN_COL_H = 2 * PAD_V + 4 * CARD_H + 3 * GAP_V
 const DESIGN_ROW_W = 2 * PAD_H + 4 * (CARD_W + 2 * BADGE_PROTRUDE)
 
-const PANEL_W = 252
-const FREE_ZONE = PANEL_W + 16
+const BOARD_W = 548
+const BOARD_H = 353
+const BOARD_OFFSET = 16
+const FREE_ZONE = BOARD_W + BOARD_OFFSET
 const OVERLAY_MIN_WIDTH = 900
 
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
@@ -320,96 +323,6 @@ interface AufstellungsFeldProps {
   hideSum?: boolean
 }
 
-function dash(value: number | null | undefined): string {
-  return value == null ? '–' : String(value)
-}
-
-function ChangeChip({ current, previous }: { current: number | null | undefined; previous: number | null | undefined }) {
-  if (current == null || previous == null) return null
-  const delta = previous - current
-  if (delta === 0) return null
-  const up = delta > 0
-  return (
-    <span
-      className="inline-flex items-center gap-0.5 rounded-badge px-1 py-0.5 text-[10px] font-semibold leading-none"
-      style={{
-        color: up ? 'var(--color-defender)' : 'var(--color-striker)',
-        backgroundColor: up ? 'rgba(15, 118, 110, 0.12)' : 'rgba(190, 18, 60, 0.12)',
-      }}
-    >
-      <i className={`sap-icon ${up ? 'sap-icon-up' : 'sap-icon-down'} text-[9px]`} />
-      {Math.abs(delta)}
-    </span>
-  )
-}
-
-interface PanelValueProps {
-  label: string
-  value: number | null
-  suffix?: string | null
-  previous?: number | null
-}
-
-function PanelValue({ label, value, suffix, previous }: PanelValueProps) {
-  return (
-    <div className="last:mb-0">
-      <div className="text-[11px] text-muted leading-tight">{label}</div>
-      <div className="mt-0.5 flex items-baseline gap-1.5">
-        <span className="text-[26px] font-semibold text-foreground tabular-nums leading-none">
-          {dash(value)}
-        </span>
-        {suffix && value != null && (
-          <span className="text-[11px] text-muted whitespace-nowrap">{suffix}</span>
-        )}
-        <ChangeChip current={value} previous={previous} />
-      </div>
-    </div>
-  )
-}
-
-function StatusPanel({ aufstellung }: { aufstellung: Aufstellung }) {
-  const {
-    positionGesamt,
-    punkteGesamt,
-    positionSpieltag,
-    punkteSpieltag,
-    teilnehmer,
-    positionGesamtVorher,
-    positionSpieltagVorher,
-  } = aufstellung
-
-  const vonTeilnehmer = teilnehmer != null ? `von ${teilnehmer}` : null
-
-  return (
-    <div
-      className="relative bg-stat-card/95 border border-border rounded-card shadow-sm"
-      style={{ width: PANEL_W }}
-    >
-      <div
-        className="absolute left-0 top-0 bottom-0 w-[3px]"
-        style={{ backgroundColor: 'var(--color-stat-accent)' }}
-      />
-      <div className="flex">
-        <div className="flex-1 min-w-0 px-3 pt-2.5 pb-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted mb-2.5">Gesamt</div>
-          <div className="space-y-3">
-            <PanelValue label="Position" value={positionGesamt} suffix={vonTeilnehmer} previous={positionGesamtVorher} />
-            <PanelValue label="Punkte" value={punkteGesamt} />
-          </div>
-        </div>
-        <div className="w-px bg-border" />
-        <div className="flex-1 min-w-0 px-3 pt-2.5 pb-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted mb-2.5">Spieltag</div>
-          <div className="space-y-3">
-            <PanelValue label="Position" value={positionSpieltag} suffix={vonTeilnehmer} previous={positionSpieltagVorher} />
-            <PanelValue label="Punkte" value={punkteSpieltag} />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function AufstellungsFeld({
   aufstellung,
   modus,
@@ -481,14 +394,17 @@ export default function AufstellungsFeld({
           className="absolute left-0 top-0 pointer-events-none"
           style={{
             width: FREE_ZONE,
-            height: 240,
+            height: BOARD_H,
             background: 'linear-gradient(180deg, rgba(28,25,23,0.6) 0%, transparent 100%)',
           }}
         />
       )}
       {panelOverlay && (
-        <div className="absolute left-3 top-3 z-10">
-          <StatusPanel aufstellung={aufstellung} />
+        <div
+          className="absolute z-10 pointer-events-none"
+          style={{ left: BOARD_OFFSET, top: BOARD_OFFSET }}
+        >
+          <FallblattTafel aufstellung={aufstellung} />
         </div>
       )}
       {overlay && (
@@ -581,7 +497,7 @@ export default function AufstellungsFeld({
         <>
           {!panelOverlay && (
             <div className="w-full flex justify-start shrink-0">
-              <StatusPanel aufstellung={aufstellung} />
+              <FallblattTafel aufstellung={aufstellung} />
             </div>
           )}
           <div ref={slotRef} className="w-full flex-1 min-h-0 flex items-start justify-start">{field}</div>

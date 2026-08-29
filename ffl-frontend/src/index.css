@@ -594,3 +594,83 @@ body {
     --badge-offset: 4px;
   }
 }
+
+/* ================= Fallblatt Tafel, exakt 548 x 353 ================= */
+.ffl-board{
+  --u:1px;                      /* Grundeinheit, 0.5px halbiert die ganze Tafel */
+  --pw:72; --ph:92; --dg:56;    /* Plaettchen breit, hoch, Ziffernhoehe */
+  --plate-a:#343840; --plate-b:#1d2025; --digit:#f0eae0;
+  --frame-a:#2c2f35; --frame-b:#191b1f; --edge:#3d424b; --edge-top:#4e535d;
+  --label:#a6a19a; --unit:#7f7a74; --seam:rgba(0,0,0,.6);
+
+  box-sizing:border-box;
+  width:calc(548 * var(--u));
+  height:calc(353 * var(--u));
+  padding:calc(17 * var(--u)) calc(24 * var(--u));
+  display:flex; flex-direction:column;
+  border:1px solid var(--edge); border-top-color:var(--edge-top);
+  border-radius:calc(8 * var(--u));
+  background:linear-gradient(180deg,var(--frame-a),var(--frame-b));
+  box-shadow:0 calc(14 * var(--u)) calc(28 * var(--u)) rgba(0,0,0,.5);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  user-select:none;
+}
+
+.ffl-board__block{flex:1; display:flex; flex-direction:column; justify-content:center}
+
+.ffl-board__label{
+  font-size:calc(15 * var(--u)); font-weight:700; letter-spacing:.17em;
+  text-transform:uppercase; color:var(--label);
+  margin-bottom:calc(8 * var(--u));
+}
+
+.ffl-board__row{display:flex; justify-content:space-between; align-items:flex-start}
+
+.ffl-board__digits{display:flex; align-items:center; gap:calc(5 * var(--u))}
+
+.ffl-board__plate{
+  position:relative; box-sizing:border-box;
+  width:calc(var(--pw) * var(--u)); height:calc(var(--ph) * var(--u));
+  border-radius:calc(6 * var(--u));
+  background:linear-gradient(180deg,var(--plate-a) 0 49.6%,var(--plate-b) 50.4% 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),
+             0 calc(2 * var(--u)) calc(4 * var(--u)) rgba(0,0,0,.5);
+  display:grid; place-items:center;
+  font-size:calc(var(--dg) * var(--u)); font-weight:600; line-height:1;
+  color:var(--digit); font-variant-numeric:tabular-nums; font-style:normal;
+}
+.ffl-board__plate::after{
+  content:""; position:absolute; left:0; right:0; top:50%; height:1px;
+  background:var(--seam); box-shadow:0 1px 0 rgba(255,255,255,.05);
+}
+.ffl-board__plate--off{color:rgba(240,234,224,.14)}
+
+.ffl-board__unit{
+  font-size:calc(12.5 * var(--u)); letter-spacing:.16em; text-transform:uppercase;
+  color:var(--unit); margin-top:calc(7 * var(--u));
+}
+
+.ffl-board__sep{
+  height:1px; background:rgba(255,255,255,.09);
+  box-shadow:0 1px 0 rgba(0,0,0,.45);
+}
+
+/* Tendenzstein an der Gesamtplatzierung */
+.ffl-board__chip{
+  position:relative; box-sizing:border-box;
+  margin-left:calc(10 * var(--u));
+  height:calc(36 * var(--u)); min-width:calc(62 * var(--u));
+  padding:0 calc(12 * var(--u)); border-radius:calc(5 * var(--u));
+  display:grid; place-items:center;
+  font-size:calc(23 * var(--u)); font-weight:700; line-height:1;
+  font-variant-numeric:tabular-nums;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),
+             0 calc(2 * var(--u)) calc(4 * var(--u)) rgba(0,0,0,.45);
+}
+.ffl-board__chip::after{
+  content:""; position:absolute; left:0; right:0; top:50%; height:1px;
+  background:rgba(0,0,0,.3);
+}
+.ffl-board__chip--up{background:linear-gradient(180deg,#2f8055,#1c5638); color:#dcf7e6}
+.ffl-board__chip--down{background:linear-gradient(180deg,#93413f,#5e2528); color:#ffdedc}
+.ffl-board__chip--even{background:linear-gradient(180deg,#3a3e46,#23262b); color:#a6a19a}
