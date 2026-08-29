@@ -267,7 +267,7 @@ export default function Home() {
               modus={feldModus}
               overlayLegend
               hideSum
-              overlay={activeManager ? <CoachTafel manager={activeManager} /> : undefined}
+              overlay={activeManager ? <CoachTafel manager={activeManager} editable={isOwnTeam} /> : undefined}
             />
           )}
         </div>,
