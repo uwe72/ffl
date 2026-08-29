@@ -383,11 +383,7 @@ export default function AufstellungsFeld({
     >
       <div className="img-overlay" />
       <FallblattTafel aufstellung={aufstellung} />
-      {overlay && (
-        <div className="absolute bottom-3 left-3 z-10">
-          {overlay}
-        </div>
-      )}
+      {overlay}
       <div
         className="absolute inset-0 flex"
         style={{ padding: `${padV}px ${padH}px`, paddingLeft: leftPad, justifyContent: 'space-around' }}

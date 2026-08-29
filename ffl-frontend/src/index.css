@@ -597,8 +597,13 @@ body {
 
 /* ================= Fallblatt Tafel, exakt 548 x 353 ================= */
 .ffl-board{
-  --pw:72; --ph:92; --dg:56;    /* Plaettchen breit, hoch, Ziffernhoehe */
+  position:absolute;
+  z-index:20;
+  --u:max(0.40px, 0.04116cqw);
+
+  --pw:72; --ph:84; --dg:52;    /* Plaettchen breit, hoch, Ziffernhoehe */
   --plate-a:#343840; --plate-b:#1d2025; --digit:#f0eae0;
+  --digit-2:#9d9891;    /* rechts, Platz */
   --frame-a:#2c2f35; --frame-b:#191b1f; --edge:#3d424b; --edge-top:#4e535d;
   --label:#a6a19a; --unit:#7f7a74; --seam:rgba(0,0,0,.6);
 
@@ -615,24 +620,31 @@ body {
   user-select:none;
 }
 
-.ffl-board{
-  position:absolute;
-  top:1.3cqw;
-  left:1.3cqw;
-  --u:max(0.40px, 0.04116cqw);
-}
+/* Anzeigetafel oben links */
+.ffl-board--score{top:1.3cqw; left:1.3cqw; bottom:auto}
+
+/* Trainertafel unten links */
+.ffl-board--coach{bottom:1.3cqw; left:1.3cqw; top:auto;
+                  width:calc(353 * var(--u));
+                  height:calc(353 * var(--u))}
+.ffl-board--coach .ffl-board__label{margin-bottom:calc(10 * var(--u))}
 
 .ffl-board__block{flex:1; display:flex; flex-direction:column; justify-content:center}
+
+.ffl-board__head{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:calc(8 * var(--u));
+}
 
 .ffl-board__label{
   font-size:calc(15 * var(--u)); font-weight:700; letter-spacing:.17em;
   text-transform:uppercase; color:var(--label);
-  margin-bottom:calc(8 * var(--u));
 }
 
 .ffl-board__row{display:flex; justify-content:space-between; align-items:flex-start}
 
 .ffl-board__digits{display:flex; align-items:center; gap:calc(5 * var(--u))}
+.ffl-board__digits--secondary .ffl-board__plate{color:var(--digit-2)}
 
 .ffl-board__plate{
   position:relative; box-sizing:border-box;
@@ -650,7 +662,6 @@ body {
   background:var(--seam); box-shadow:0 1px 0 rgba(255,255,255,.05);
 }
 .ffl-board__plate--off{color:rgba(240,234,224,.14)}
-.ffl-board__plate--muted{color:var(--label)}
 
 .ffl-board__unit{
   font-size:calc(12.5 * var(--u)); letter-spacing:.16em; text-transform:uppercase;
@@ -662,22 +673,70 @@ body {
   box-shadow:0 1px 0 rgba(0,0,0,.45);
 }
 
-/* Tendenzstein an der Gesamtplatzierung */
-.ffl-board__chip{
-  position:relative; box-sizing:border-box;
-  margin-left:calc(10 * var(--u));
-  height:calc(36 * var(--u)); min-width:calc(62 * var(--u));
-  padding:0 calc(12 * var(--u)); border-radius:calc(5 * var(--u));
-  display:grid; place-items:center;
-  font-size:calc(23 * var(--u)); font-weight:700; line-height:1;
-  font-variant-numeric:tabular-nums;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),
-             0 calc(2 * var(--u)) calc(4 * var(--u)) rgba(0,0,0,.45);
+/* Aufkleber oben rechts */
+.ffl-board__badge{
+  position:absolute;
+  top:calc(-18 * var(--u));
+  right:calc(24 * var(--u));
+  box-sizing:border-box;
+  height:calc(44 * var(--u));
+  padding:0 calc(15 * var(--u));
+  border-radius:calc(5 * var(--u));
+  display:inline-flex; align-items:center; gap:calc(8 * var(--u));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),
+             0 calc(4 * var(--u)) calc(9 * var(--u)) rgba(0,0,0,.55);
 }
-.ffl-board__chip::after{
+.ffl-board__badge::after{
   content:""; position:absolute; left:0; right:0; top:50%; height:1px;
-  background:rgba(0,0,0,.3);
+  background:rgba(0,0,0,.28);
 }
-.ffl-board__chip--up{background:linear-gradient(180deg,#2f8055,#1c5638); color:#dcf7e6}
-.ffl-board__chip--down{background:linear-gradient(180deg,#93413f,#5e2528); color:#ffdedc}
-.ffl-board__chip--even{background:linear-gradient(180deg,#3a3e46,#23262b); color:#a6a19a}
+.ffl-board__badge b{
+  font-size:calc(30 * var(--u)); font-weight:700; font-variant-numeric:tabular-nums;
+}
+.ffl-board__badge span{
+  font-size:calc(17 * var(--u)); font-weight:600; letter-spacing:.03em;
+}
+.ffl-board__badge--up{background:linear-gradient(180deg,#2f8055,#1c5638); color:#eafaf0}
+.ffl-board__badge--down{background:linear-gradient(180deg,#93413f,#5e2528); color:#ffeceb}
+
+/* Trainer-Tafel */
+.coach{display:flex; align-items:stretch; flex:1; position:relative}
+
+.coach__plate{
+  position:relative; box-sizing:border-box; flex:1; overflow:hidden;
+  border-radius:calc(6 * var(--u));
+  background:none;
+  display:grid; place-items:center;
+  font-size:calc(48 * var(--u)); font-weight:600; letter-spacing:.02em;
+  color:var(--digit);
+}
+.coach__plate img{width:100%; height:100%; object-fit:cover; display:block}
+
+.coach__initials{
+  width:calc(150 * var(--u)); height:calc(150 * var(--u));
+  border-radius:50%;
+  background:linear-gradient(180deg,var(--plate-a) 0 49.6%,var(--plate-b) 50.4% 100%);
+  box-shadow:0 calc(3 * var(--u)) calc(8 * var(--u)) rgba(0,0,0,.45);
+  display:grid; place-items:center;
+  font-size:calc(68 * var(--u)); font-weight:600; letter-spacing:.02em;
+  color:var(--digit);
+}
+
+.coach__tip{
+  position:absolute;
+  left:calc(100% + calc(10 * var(--u)));
+  top:50%; transform:translateY(-50%);
+  max-width:calc(300 * var(--u));
+  box-sizing:border-box;
+  padding:calc(10 * var(--u)) calc(12 * var(--u));
+  border-radius:calc(5 * var(--u));
+  background:#1a1c20;
+  color:#f0eae0;
+  font-size:calc(26.4 * var(--u)); line-height:1.4;
+  white-space:normal;
+  box-shadow:0 calc(4 * var(--u)) calc(12 * var(--u)) rgba(0,0,0,.5);
+  opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .15s ease;
+  z-index:30;
+}
+.coach:hover .coach__tip{opacity:1; visibility:visible}

@@ -11,7 +11,7 @@ import ManagerSelect from '../components/ManagerSelect'
 import Button from '../components/Button'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
 import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
-import ManagerOverlay from '../components/statistik/ManagerOverlay'
+import CoachTafel from '../components/statistik/CoachTafel'
 import type { Aufstellung } from '../types/dashboard'
 import type { Manager } from '../types'
 
@@ -260,7 +260,7 @@ export default function Home() {
               modus={feldModus}
               overlayLegend
               hideSum
-              overlay={activeManager ? <ManagerOverlay manager={activeManager} teamname={displayAufstellung.teamname} /> : undefined}
+              overlay={activeManager ? <CoachTafel manager={activeManager} /> : undefined}
             />
           )}
         </div>,
