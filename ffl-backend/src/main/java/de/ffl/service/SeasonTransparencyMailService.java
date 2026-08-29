@@ -226,6 +226,7 @@ public class SeasonTransparencyMailService {
             managerSquads.add(buildManagerSquadDto(m, number++));
         }
         context.setVariable("managers", managerSquads);
+        context.setVariable("managerCount", managers.size());
 
         context.setVariable("allPlayers", buildAllPlayersTable(season, managers));
         return context;
@@ -344,7 +345,9 @@ public class SeasonTransparencyMailService {
         String seasonName = season.getName() != null ? season.getName() : "Aktuelle Saison";
         StringBuilder sb = new StringBuilder();
         sb.append("FFL · Fantasy Football League\r\n");
-        sb.append("Transparenz-Report Saison ").append(seasonName).append("\r\n\r\n");
+        sb.append("Transparenz-Report Saison ").append(seasonName).append("\r\n");
+        List<Manager> managers = managerRepository.findBySeasonIdWithPlayers(season.getId());
+        sb.append(managers.size()).append(" teilnehmende Manager!\r\n\r\n");
         sb.append("Hallo,\r\n\r\n");
         sb.append("anbei der Transparenz-Report für die Saison ").append(seasonName).append(". ");
         sb.append("Dieser enthält alle Spieler und alle teilnehmenden Manager.\r\n\r\n");
