@@ -15,18 +15,18 @@ export default function Teams() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {teams.map(team => (
             <div key={team.id} className="p-4 bg-zebra border border-border rounded-card shadow-sm hover:border-primary transition-all">
-              <RouterLink to={`/teams/${team.id}`} className="block link">
+              <RouterLink to={`/teams/${team.id}`} className="block link text-center">
                 {team.logoXxlUrl && (
                   <img 
                     src={team.logoXxlUrl} 
                     alt={team.name} 
-                    className="w-24 h-24 mb-3 object-contain"
+                    className="w-24 h-24 mb-3 object-contain mx-auto"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none'
                     }}
                   />
                 )}
-                <h2 className="text-base font-semibold text-foreground">{team.name}</h2>
+                <h2 className="text-base font-semibold text-foreground truncate">{team.name}</h2>
                 {team.shortName && (
                   <p className="text-muted">{team.shortName}</p>
                 )}
