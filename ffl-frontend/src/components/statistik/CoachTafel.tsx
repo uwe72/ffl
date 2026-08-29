@@ -60,7 +60,7 @@ export default function CoachTafel({ manager, editable = false }: CoachTafelProp
             ) : (
               <span className="coach__upload-hint">
                 <span className="coach__initials">{initials}</span>
-                <span className="coach__upload-hint-text">Gerne Avatar/Profilbild hochladen</span>
+                <span className="coach__upload-hint-text">Gerne hier Avatar/Profilbild hochladen</span>
               </span>
             )}
             {avatarUrl && (
