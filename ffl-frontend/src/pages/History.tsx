@@ -163,7 +163,7 @@ export default function History() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Budget (€)</label>
+                <label className="block text-sm text-muted mb-1">Budget (M€)</label>
                 <input
                   value={addDraft.budget}
                   onChange={e => setAddDraft(d => ({ ...d, budget: e.target.value }))}
@@ -198,7 +198,7 @@ export default function History() {
                   Saison<SortIcon column="saison" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 <ThSortable numeric align="right" onClick={() => handleSort('budget')}>
-                  Budget (€)<SortIcon column="budget" activeKey={sortKey} order={sortOrder} />
+                  Budget (M€)<SortIcon column="budget" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 <ThSortable numeric align="right" onClick={() => handleSort('anzahlManager')}>
                   Anzahl Manager<SortIcon column="anzahlManager" activeKey={sortKey} order={sortOrder} />
@@ -245,7 +245,7 @@ export default function History() {
                     ) : (
                       <>
                         <td className="px-3 py-2 font-medium text-foreground">{entry.saison}</td>
-                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{formatBudget(entry.budget)} €</td>
+                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{formatBudget(entry.budget)} M€</td>
                         <td className="px-3 py-2 text-right text-foreground tabular-nums">{entry.anzahlManager}</td>
                         {isAdmin && (
                           <td className="px-3 py-2">
