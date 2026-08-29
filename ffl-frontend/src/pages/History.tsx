@@ -275,7 +275,7 @@ export default function History() {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                <XAxis dataKey="label" stroke={chartColors.axis} tick={{ fontSize: 11, fill: chartColors.axis }} label={{ value: 'Saison', position: 'bottom', fill: chartColors.axis }} />
+                <XAxis dataKey="label" stroke={chartColors.axis} label={{ value: 'Saison', position: 'bottom', fill: chartColors.axis }} />
                 <YAxis stroke={chartColors.axis} domain={[0, 'auto']} tickCount={10} />
                 <Tooltip
                   cursor={false}
