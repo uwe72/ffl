@@ -53,14 +53,14 @@ function Block({ label, platz, punkte, chipPrevious, showChip = false }: BlockPr
       <div className="ffl-board__row">
         <div>
           <div className="ffl-board__digits">
-            <Platten value={platz} digits={pad(platz, DIGITS)} />
+            <Platten value={platz} digits={pad(platz, DIGITS)} muted />
             {showChip && <Chip current={platz} previous={chipPrevious} />}
           </div>
           <div className="ffl-board__unit">Platz</div>
         </div>
         <div>
           <div className="ffl-board__digits">
-            <Platten value={punkte} digits={pad(punkte, DIGITS)} muted />
+            <Platten value={punkte} digits={pad(punkte, DIGITS)} />
           </div>
           <div className="ffl-board__unit">Punkte</div>
         </div>

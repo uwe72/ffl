@@ -619,7 +619,7 @@ body {
   position:absolute;
   top:1.3cqw;
   left:1.3cqw;
-  --u:max(0.40px, 0.0392cqw);
+  --u:max(0.40px, 0.04116cqw);
 }
 
 .ffl-board__block{flex:1; display:flex; flex-direction:column; justify-content:center}
