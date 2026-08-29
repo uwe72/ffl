@@ -7,15 +7,11 @@ function pad(value: number | null | undefined, size: number): string[] {
   return String(Math.max(0, Math.round(value))).padStart(size, '0').split('')
 }
 
-function Platten({ value, digits }: { value: number | null | undefined; digits: string[] }) {
-  const off = value == null
+function Platten({ digits }: { digits: string[] }) {
   return (
     <>
       {digits.map((d, i) => (
-        <span
-          key={i}
-          className={`ffl-board__plate${off ? ' ffl-board__plate--off' : ''}`}
-        >
+        <span key={i} className="ffl-board__plate">
           {d}
         </span>
       ))}
@@ -53,13 +49,13 @@ function Block({ label, platz, punkte }: BlockProps) {
       <div className="ffl-board__row">
         <div>
           <div className="ffl-board__digits">
-            <Platten value={punkte} digits={pad(punkte, DIGITS)} />
+            <Platten digits={pad(punkte, DIGITS)} />
           </div>
           <div className="ffl-board__unit">Punkte</div>
         </div>
         <div>
           <div className="ffl-board__digits ffl-board__digits--secondary">
-            <Platten value={platz} digits={pad(platz, DIGITS)} />
+            <Platten digits={pad(platz, DIGITS)} />
           </div>
           <div className="ffl-board__unit">Platz</div>
         </div>
