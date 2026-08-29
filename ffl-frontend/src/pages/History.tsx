@@ -133,13 +133,16 @@ export default function History() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-foreground mb-6">Historie</h1>
-
       <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
         <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
-          <h2 className="text-xl font-semibold text-foreground">
-            Saisons ({sortedHistory.length})
-          </h2>
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">
+              Historie ({sortedHistory.length})
+            </h2>
+            <p className="text-sm text-muted mt-1">
+              Zeitlicher Verlauf und Entwicklung von Budget und Anzahl der Manager über die Saisons.
+            </p>
+          </div>
           {isAdmin && !showAdd && (
             <Button variant="secondary" size="input" onClick={startAdd}>
               + Zeile hinzufügen
@@ -205,8 +208,8 @@ export default function History() {
             </TableHead>
             <TableBody>
               {sortedHistory.length > 0 ? (
-                sortedHistory.map(entry => (
-                  <tr key={entry.id} className="border-b border-border hover:bg-card-hover">
+                sortedHistory.map((entry, index) => (
+                  <tr key={entry.id} className={`border-b border-border hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                     {editingId === entry.id ? (
                       <>
                         <td className="px-3 py-2">
