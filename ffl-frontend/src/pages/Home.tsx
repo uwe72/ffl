@@ -191,7 +191,7 @@ export default function Home() {
             <i className="sap-icon sap-icon-edit text-sm" />
           </Button>
         )}
-        {carouselEnabled && activeManagerId != null && (
+        {carouselEnabled && activeManagerId != null && !isOwnTeam && (
           <button
             type="button"
             onClick={handleToggleFavorite}
