@@ -202,11 +202,6 @@ export default function Home() {
             <i className={`sap-icon ${isFavorite ? 'sap-icon-favorite' : 'sap-icon-unfavorite'} text-sm`} />
           </button>
         )}
-        {isStandard && (
-          <span className="text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
-            Standard
-          </span>
-        )}
         {carouselEnabled && isFavorite && favoriteManagerIds.length > 1 && !isStandard && (
           <Button
             variant="transparent"
