@@ -769,7 +769,7 @@ body {
 }
 .coach__upload-hint-text{
   font-size:calc(22 * var(--u)); color:var(--digit); text-align:center;
-  max-width:calc(210 * var(--u)); line-height:1.25;
+  width:100%; max-width:100%; line-height:1.25;
 }
 
 .coach__initials{
