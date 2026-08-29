@@ -743,6 +743,14 @@ body {
 }
 @keyframes coach-spin{to{transform:rotate(360deg)}}
 
+.coach__upload-hint{
+  display:flex; flex-direction:column; align-items:center; gap:calc(14 * var(--u));
+}
+.coach__upload-hint-text{
+  font-size:calc(22 * var(--u)); color:var(--digit); text-align:center;
+  max-width:calc(210 * var(--u)); line-height:1.25;
+}
+
 .coach__initials{
   width:calc(150 * var(--u)); height:calc(150 * var(--u));
   border-radius:50%;

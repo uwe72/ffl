@@ -58,15 +58,20 @@ export default function CoachTafel({ manager, editable = false }: CoachTafelProp
             {avatarUrl ? (
               <img src={avatarUrl} alt={fullName} />
             ) : (
-              <span className="coach__initials">{initials}</span>
+              <span className="coach__upload-hint">
+                <span className="coach__initials">{initials}</span>
+                <span className="coach__upload-hint-text">Gerne Avatar/Profilbild hochladen</span>
+              </span>
             )}
-            <span className="coach__edit">
-              {uploadAvatar.isPending ? (
-                <span className="coach__edit-spinner" />
-              ) : (
-                <i className="sap-icon sap-icon-camera" />
-              )}
-            </span>
+            {avatarUrl && (
+              <span className="coach__edit">
+                {uploadAvatar.isPending ? (
+                  <span className="coach__edit-spinner" />
+                ) : (
+                  <i className="sap-icon sap-icon-camera" />
+                )}
+              </span>
+            )}
           </button>
         ) : avatarUrl ? (
           <span className="coach__plate coach__plate--photo">
