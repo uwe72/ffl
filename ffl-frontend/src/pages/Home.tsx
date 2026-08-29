@@ -215,7 +215,7 @@ export default function Home() {
         <div className="ml-auto flex items-center gap-2">
           {carouselEnabled && (
             <>
-              <span className="text-sm text-muted whitespace-nowrap">Manager suchen</span>
+              <span className="text-sm text-muted whitespace-nowrap">Manager anzeigen</span>
               <ManagerSelect
                 managers={managers ?? []}
                 value={activeManagerId ?? null}
