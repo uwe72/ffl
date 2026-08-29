@@ -89,24 +89,27 @@ public class FriendTeamService {
         Season season = seasonRepository.findById(request.getSeasonId())
             .orElseThrow(() -> new IllegalArgumentException("Saison nicht gefunden."));
 
-        List<FriendTeam> favorites = friendTeamRepository
-            .findByOwnerUserIdAndSeasonIdOrderByPositionAsc(userId, season.getId());
-
-        for (FriendTeam favorite : favorites) {
-            favorite.setStandard(false);
-            friendTeamRepository.save(favorite);
-        }
+        friendTeamRepository.clearStandard(userId, season.getId());
 
         if (request.getFriendManagerId() == null) {
             return null;
         }
 
+        List<FriendTeam> favorites = friendTeamRepository
+            .findByOwnerUserIdAndSeasonIdOrderByPositionAsc(userId, season.getId());
+
         FriendTeam target = favorites.stream()
             .filter(f -> f.getFriendManager().getId().equals(request.getFriendManagerId()))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Team ist kein Favorit."));
+
         target.setStandard(true);
-        friendTeamRepository.save(target);
+        favorites.remove(target);
+        favorites.add(0, target);
+        for (int i = 0; i < favorites.size(); i++) {
+            favorites.get(i).setPosition(i);
+        }
+        friendTeamRepository.saveAll(favorites);
         return FriendTeamDto.fromEntity(target);
     }
 

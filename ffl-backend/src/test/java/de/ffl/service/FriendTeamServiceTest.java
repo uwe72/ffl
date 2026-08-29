@@ -158,7 +158,55 @@ class FriendTeamServiceTest extends AbstractSeasonTestBase {
         friendTeamService.setStandard(userId, standard);
 
         List<FriendTeamDto> list = friendTeamService.listFavorites(userId, season.getId());
-        assertThat(list).extracting(FriendTeamDto::isStandard).containsExactly(false, true);
+        assertThat(list).extracting(FriendTeamDto::getFriendManagerId)
+            .containsExactly(friend2.getId(), friend1.getId());
+        assertThat(list).extracting(FriendTeamDto::isStandard).containsExactly(true, false);
+    }
+
+    @Test
+    void setStandard_reordersStandardToFront() {
+        Manager owner = createManager("owner");
+        Long userId = owner.getUser().getId();
+        Manager friend1 = createManager("friend1");
+        Manager friend2 = createManager("friend2");
+        Manager friend3 = createManager("friend3");
+        friendTeamService.addFavorite(userId, request(friend1.getId()));
+        friendTeamService.addFavorite(userId, request(friend2.getId()));
+        friendTeamService.addFavorite(userId, request(friend3.getId()));
+
+        SetStandardRequest standard = new SetStandardRequest();
+        standard.setSeasonId(season.getId());
+        standard.setFriendManagerId(friend3.getId());
+        friendTeamService.setStandard(userId, standard);
+
+        List<FriendTeamDto> list = friendTeamService.listFavorites(userId, season.getId());
+        assertThat(list).extracting(FriendTeamDto::getFriendManagerId)
+            .containsExactly(friend3.getId(), friend1.getId(), friend2.getId());
+        assertThat(list).extracting(FriendTeamDto::getPosition)
+            .containsExactly(0, 1, 2);
+    }
+
+    @Test
+    void setStandard_targetBeforeCurrentStandard_keepsSingleStandard() {
+        Manager owner = createManager("owner");
+        Long userId = owner.getUser().getId();
+        Manager friend1 = createManager("friend1");
+        Manager friend2 = createManager("friend2");
+        friendTeamService.addFavorite(userId, request(friend1.getId()));
+        friendTeamService.addFavorite(userId, request(friend2.getId()));
+
+        SetStandardRequest standard = new SetStandardRequest();
+        standard.setSeasonId(season.getId());
+        standard.setFriendManagerId(friend2.getId());
+        friendTeamService.setStandard(userId, standard);
+
+        standard.setFriendManagerId(friend1.getId());
+        friendTeamService.setStandard(userId, standard);
+
+        List<FriendTeamDto> list = friendTeamService.listFavorites(userId, season.getId());
+        assertThat(list).extracting(FriendTeamDto::getFriendManagerId)
+            .containsExactly(friend1.getId(), friend2.getId());
+        assertThat(list).extracting(FriendTeamDto::isStandard).containsExactly(true, false);
     }
 
     @Test
