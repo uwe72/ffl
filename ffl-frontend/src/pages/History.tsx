@@ -21,6 +21,13 @@ function parseBudgetInput(value: string): number {
   return parseFloat(value.replace(',', '.')) || 0
 }
 
+function shortSaison(saison: string): string {
+  const parts = saison.split('-')
+  if (parts.length !== 2) return saison
+  const short = (p: string) => p.slice(-2)
+  return `${short(parts[0])}/${short(parts[1])}`
+}
+
 export default function History() {
   const { data: history, isLoading, error } = useSeasonHistory()
   const create = useCreateSeasonHistory()
@@ -70,7 +77,7 @@ export default function History() {
     if (!history) return []
     return [...history]
       .sort((a, b) => a.saison.localeCompare(b.saison))
-      .map(h => ({ saison: h.saison, anzahlManager: h.anzahlManager }))
+      .map(h => ({ saison: h.saison, label: shortSaison(h.saison), anzahlManager: h.anzahlManager }))
   }, [history])
 
   const startEdit = (entry: SeasonHistory) => {
@@ -268,7 +275,7 @@ export default function History() {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                <XAxis dataKey="saison" stroke={chartColors.axis} label={{ value: 'Saison', position: 'bottom', fill: chartColors.axis }} />
+                <XAxis dataKey="label" stroke={chartColors.axis} tick={{ fontSize: 11, fill: chartColors.axis }} label={{ value: 'Saison', position: 'bottom', fill: chartColors.axis }} />
                 <YAxis stroke={chartColors.axis} domain={[0, 'auto']} tickCount={10} />
                 <Tooltip
                   cursor={false}
