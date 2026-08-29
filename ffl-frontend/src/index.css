@@ -713,10 +713,9 @@ body {
   color:var(--digit);
 }
 .coach__plate img{
-  width:calc(150 * var(--u));
-  height:calc(150 * var(--u));
+  position:absolute; inset:0;
+  width:100%; height:100%;
   object-fit:cover;
-  border-radius:50%;
   display:block;
 }
 
