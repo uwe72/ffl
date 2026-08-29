@@ -13,7 +13,6 @@ import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfPageEventHelper;
-import com.lowagie.text.pdf.PdfTemplate;
 import com.lowagie.text.pdf.PdfWriter;
 import org.springframework.stereotype.Service;
 
@@ -62,7 +61,7 @@ public class TransparencyReportPdfService {
             Font cellBold = new Font(bfBold, 9, Font.NORMAL, TEXT);
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            Document document = new Document(PageSize.A4.rotate(), 36, 36, 64, 48);
+            Document document = new Document(PageSize.A4, 36, 36, 64, 48);
             PdfWriter writer = PdfWriter.getInstance(document, out);
             writer.setPageEvent(new FooterEvent(bf));
             document.open();
@@ -84,30 +83,22 @@ public class TransparencyReportPdfService {
 
     private PdfPTable headerBand(String seasonName, int managerCount,
                                  Font eyebrowFont, Font titleFont, Font subFont, Font metaFont) {
-        PdfPTable table = new PdfPTable(new float[]{1f, 1f});
+        PdfPTable table = new PdfPTable(1);
         table.setWidthPercentage(100);
         table.setSpacingAfter(16);
 
-        PdfPCell left = new PdfPCell();
-        left.setBackgroundColor(BANNER);
-        left.setBorder(Rectangle.NO_BORDER);
-        left.setPadding(28);
-        left.setPaddingTop(24);
-        left.setPaddingBottom(24);
-        left.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        left.addElement(paragraph("FFL · FANTASY FOOTBALL LEAGUE", eyebrowFont, 6));
-        left.addElement(paragraph("Transparenz-Report", titleFont, 4));
-        left.addElement(paragraph("Saison " + seasonName, subFont, 0));
+        PdfPCell cell = new PdfPCell();
+        cell.setBackgroundColor(BANNER);
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setPadding(28);
+        cell.setPaddingTop(24);
+        cell.setPaddingBottom(24);
+        cell.addElement(paragraph("FFL · FANTASY FOOTBALL LEAGUE", eyebrowFont, 6));
+        cell.addElement(paragraph("Transparenz-Report", titleFont, 4));
+        cell.addElement(paragraph("Saison " + seasonName, subFont, 6));
+        cell.addElement(paragraph(managerCount + " teilnehmende Manager", metaFont, 0));
 
-        PdfPCell right = new PdfPCell();
-        right.setBackgroundColor(BANNER);
-        right.setBorder(Rectangle.NO_BORDER);
-        right.setPadding(28);
-        right.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        right.addElement(paragraphRight(managerCount + " teilnehmende Manager", metaFont));
-
-        table.addCell(left);
-        table.addCell(right);
+        table.addCell(cell);
         return table;
     }
 
@@ -118,28 +109,20 @@ public class TransparencyReportPdfService {
         return p;
     }
 
-    private PdfPTable managerTitle(ManagerSquadDto squad, Font managerFont) {
-        PdfPTable table = new PdfPTable(new float[]{1f, 1f});
-        table.setWidthPercentage(100);
-
-        PdfPCell titleCell = new PdfPCell();
-        titleCell.setBorder(Rectangle.NO_BORDER);
-        titleCell.setPadding(4);
-        titleCell.setPaddingTop(8);
+    private Paragraph managerTitle(ManagerSquadDto squad, Font managerFont) {
         String title = squad.number() + ".) Spieler von " + squad.displayName();
         if (squad.login() != null && !squad.login().isBlank()) {
             title += " (" + squad.login() + ")";
         }
-        titleCell.addElement(new Paragraph(title, managerFont));
-        table.addCell(titleCell);
-        table.addCell(new PdfPCell(new Phrase("", managerFont)));
-        table.setSpacingAfter(4);
-        return table;
+        Paragraph p = new Paragraph(title, managerFont);
+        p.setSpacingBefore(10);
+        p.setSpacingAfter(4);
+        return p;
     }
 
     private PdfPTable managerSquad(ManagerSquadDto squad, Font groupFont,
                                    Font headerFont, Font cellFont) {
-        PdfPTable squadTable = new PdfPTable(new float[]{0.6f, 4.0f, 2.8f, 1.6f});
+        PdfPTable squadTable = new PdfPTable(new float[]{0.7f, 3.8f, 2.9f, 1.6f});
         squadTable.setWidthPercentage(100);
         squadTable.setSpacingAfter(12);
 
@@ -179,7 +162,7 @@ public class TransparencyReportPdfService {
 
     private PdfPTable allPlayersTable(List<AllPlayerRowDto> allPlayers, Font headerFont,
                                       Font cellFont, Font cellBold) {
-        float[] widths = {0.9f, 4.0f, 2.8f, 1.6f, 1.4f};
+        float[] widths = {0.8f, 3.9f, 2.7f, 1.5f, 1.2f};
         PdfPTable table = new PdfPTable(widths);
         table.setWidthPercentage(100);
 
@@ -254,24 +237,12 @@ public class TransparencyReportPdfService {
         return p;
     }
 
-    private Paragraph paragraphRight(String text, Font font) {
-        Paragraph p = new Paragraph(text, font);
-        p.setAlignment(Element.ALIGN_RIGHT);
-        return p;
-    }
-
     private static class FooterEvent extends PdfPageEventHelper {
         private final BaseFont bf;
-        private PdfTemplate total;
         private int pageCount;
 
         FooterEvent(BaseFont bf) {
             this.bf = bf;
-        }
-
-        @Override
-        public void onOpenDocument(PdfWriter writer, Document document) {
-            total = writer.getDirectContent().createTemplate(50, 12);
         }
 
         @Override
@@ -292,22 +263,9 @@ public class TransparencyReportPdfService {
             Font font = new Font(bf, 8, Font.NORMAL, FAINT);
             ColumnText.showTextAligned(cb, Element.ALIGN_LEFT,
                 new Phrase("FFL — Fantasy Football League", font), left, y, 0);
-
-            String prefix = "Seite " + pageCount + " von ";
             ColumnText.showTextAligned(cb, Element.ALIGN_RIGHT,
-                new Phrase(prefix, font), right, y, 0);
-            float prefixWidth = bf.getWidthPoint(prefix, 8);
-            cb.addTemplate(total, right - prefixWidth, y);
+                new Phrase("Seite " + pageCount, font), right, y, 0);
             cb.restoreState();
-        }
-
-        @Override
-        public void onCloseDocument(PdfWriter writer, Document document) {
-            total.beginText();
-            total.setFontAndSize(bf, 8);
-            total.setColorFill(FAINT);
-            total.showText(String.valueOf(pageCount));
-            total.endText();
         }
     }
 }

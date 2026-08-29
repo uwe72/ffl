@@ -61,7 +61,7 @@ class TransparencyReportPdfServiceTest {
             assertThat(text).contains("Alle verwendeten Spieler");
             assertThat(text).contains("42×");
             assertThat(text).contains("FFL · FANTASY FOOTBALL LEAGUE");
-            assertThat(text).contains("Seite 1 von");
+            assertThat(text).contains("Seite 1");
         } finally {
             reader.close();
         }
