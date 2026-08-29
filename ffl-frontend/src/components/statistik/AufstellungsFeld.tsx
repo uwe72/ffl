@@ -16,13 +16,6 @@ const FIELD_RATIO = 2752 / 1536
 const DESIGN_COL_H = 2 * PAD_V + 4 * CARD_H + 3 * GAP_V
 const DESIGN_ROW_W = 2 * PAD_H + 4 * (CARD_W + 2 * BADGE_PROTRUDE)
 
-const BOARD_U = 0.6
-const BOARD_W = Math.round(548 * BOARD_U)
-const BOARD_H = Math.round(353 * BOARD_U)
-const BOARD_OFFSET = 16
-const FREE_ZONE = BOARD_W + BOARD_OFFSET
-const OVERLAY_MIN_WIDTH = 900
-
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
 
 const POSITION_COLOR: Record<string, string> = {
@@ -353,25 +346,22 @@ export default function AufstellungsFeld({
 
   let cardIndex = 0
 
-  const panelOverlay = !compact && !!slotSize && slotSize.width >= OVERLAY_MIN_WIDTH
-
   const layout = useMemo(() => {
     if (compact || !slotSize || slotSize.width <= 0 || slotSize.height <= 0) {
       return { scale: 1, fieldW: undefined as number | undefined, fieldH: undefined as number | undefined }
     }
     const containW = Math.min(slotSize.width, slotSize.height * FIELD_RATIO)
     const containH = containW / FIELD_RATIO
-    const designRowW = panelOverlay ? DESIGN_ROW_W + FREE_ZONE : DESIGN_ROW_W
-    const scale = Math.min(containW / designRowW, containH / DESIGN_COL_H, 1)
+    const scale = Math.min(containW / DESIGN_ROW_W, containH / DESIGN_COL_H, 1)
     return { scale, fieldW: containW, fieldH: containH }
-  }, [compact, slotSize, panelOverlay])
+  }, [compact, slotSize])
 
   const scale = layout.scale
   const cardWidth = compact ? 64 : CARD_W * scale
   const cardHeight = compact ? 64 : CARD_H * scale
   const padH = PAD_H * scale
   const padV = PAD_V * scale
-  const leftPad = panelOverlay ? FREE_ZONE * scale : padH
+  const leftPad = padH
 
   const fieldSizeStyle: CSSProperties = compact
     ? { aspectRatio: '2752 / 1536', width: '100%' }
@@ -392,17 +382,7 @@ export default function AufstellungsFeld({
       }}
     >
       <div className="img-overlay" />
-      {panelOverlay && (
-        <div
-          className="absolute left-0 top-0 pointer-events-none"
-          style={{
-            width: FREE_ZONE * scale,
-            height: BOARD_H * scale,
-            background: 'linear-gradient(180deg, rgba(28,25,23,0.6) 0%, transparent 100%)',
-          }}
-        />
-      )}
-      {panelOverlay && <FallblattTafel aufstellung={aufstellung} />}
+      <FallblattTafel aufstellung={aufstellung} />
       {overlay && (
         <div className="absolute bottom-3 left-3 z-10">
           {overlay}
