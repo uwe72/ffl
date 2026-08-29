@@ -605,7 +605,9 @@ body {
   --plate-a:#343840; --plate-b:#1d2025; --digit:#f0eae0;
   --digit-2:#9d9891;    /* rechts, Platz */
   --frame-a:#2c2f35; --frame-b:#191b1f; --edge:#3d424b; --edge-top:#4e535d;
-  --label:#a6a19a; --unit:#7f7a74; --seam:rgba(0,0,0,.6);
+  --label:#c6c0b7; --unit:#a29c93;
+  --label-size:17; --unit-size:15; --label-track:.14em; --unit-track:.10em;
+  --seam:rgba(0,0,0,.6);
 
   box-sizing:border-box;
   width:calc(548 * var(--u));
@@ -625,11 +627,8 @@ body {
 
 /* Trainertafel unten links */
 .ffl-board--coach{bottom:1.3cqw; left:1.3cqw; top:auto;
-                  width:calc(353 * var(--u));
-                  height:calc(353 * var(--u));
-                  --u:max(0.29568px, 0.030425472cqw)}
-.ffl-board--coach .ffl-board__label{margin-bottom:calc(10 * var(--u));
-                                    font-size:calc(20.292 * var(--u))}
+                  height:calc(353 * var(--u))}
+.ffl-board--coach .ffl-board__label{margin-bottom:calc(10 * var(--u))}
 
 .ffl-board__block{flex:1; display:flex; flex-direction:column; justify-content:center}
 
@@ -639,7 +638,8 @@ body {
 }
 
 .ffl-board__label{
-  font-size:calc(15 * var(--u)); font-weight:700; letter-spacing:.17em;
+  font-size:calc(var(--label-size) * var(--u)); font-weight:700;
+  letter-spacing:var(--label-track);
   text-transform:uppercase; color:var(--label);
 }
 
@@ -666,8 +666,8 @@ body {
 .ffl-board__plate--off{color:rgba(240,234,224,.14)}
 
 .ffl-board__unit{
-  font-size:calc(12.5 * var(--u)); letter-spacing:.16em; text-transform:uppercase;
-  color:var(--unit); margin-top:calc(7 * var(--u));
+  font-size:calc(var(--unit-size) * var(--u)); letter-spacing:var(--unit-track);
+  text-transform:uppercase; color:var(--unit); margin-top:calc(7 * var(--u));
 }
 
 .ffl-board__sep{
