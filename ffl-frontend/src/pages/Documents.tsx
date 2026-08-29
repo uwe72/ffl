@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from 'react'
 import { Navigate, Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useDocuments, useUploadDocument, useDeleteDocument } from '../hooks/useDocuments'
+import { documentApi } from '../api/documents'
 import { usePublicCurrentSeason } from '../hooks/useSeasons'
 import type { Document } from '../types'
 import Button from '../components/Button'
@@ -49,19 +50,46 @@ function formatDate(iso: string): string {
   }
 }
 
+function openDocument(doc: Document) {
+  documentApi.download(doc.id)
+    .then(res => {
+      const url = URL.createObjectURL(res.data)
+      window.open(url, '_blank')
+      setTimeout(() => URL.revokeObjectURL(url), 30000)
+    })
+    .catch(() => {
+      alert('Öffnen fehlgeschlagen')
+    })
+}
+
+function downloadDocument(doc: Document) {
+  documentApi.download(doc.id)
+    .then(res => {
+      const url = URL.createObjectURL(res.data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = doc.filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 30000)
+    })
+    .catch(() => {
+      alert('Download fehlgeschlagen')
+    })
+}
+
 function DocumentCard({ doc, isAdmin, onDelete }: { doc: Document; isAdmin: boolean; onDelete: (id: number) => void }) {
   return (
     <div className="card p-4 bg-surface border border-border">
       <div className="flex gap-4 items-start">
         <div className="flex-1 min-w-0">
-          <a
-            href={`/api/documents/${doc.id}/content`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold link truncate block"
+          <button
+            onClick={() => openDocument(doc)}
+            className="font-semibold link truncate block w-full text-left"
           >
             {doc.filename}
-          </a>
+          </button>
           <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
             <div>
               <span className="text-foreground">{formatFileSize(doc.fileSize)}</span>
@@ -266,15 +294,13 @@ export default function Documents() {
                     filteredDocs.map((doc, index) => (
                       <tr key={doc.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                         <td className="px-3 py-2">
-                          <a
-                            href={`/api/documents/${doc.id}/content`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            onClick={() => openDocument(doc)}
                             className="link font-medium inline-flex items-center gap-2"
                           >
                             <i className={`sap-icon ${contentTypeIcon(doc.contentType)} text-[16px] shrink-0`} />
                             {doc.filename}
-                          </a>
+                          </button>
                         </td>
                         <td className="px-3 py-2 text-muted">
                           {formatContentType(doc.contentType)}
@@ -290,14 +316,13 @@ export default function Documents() {
                         </td>
                         <td className="px-3 py-2 text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <a
-                              href={`/api/documents/${doc.id}/content`}
-                              download={doc.filename}
+                            <button
+                              onClick={() => downloadDocument(doc)}
                               className="p-1.5 rounded-control text-muted hover:text-primary hover:bg-accent-muted transition-colors"
                               title="Herunterladen"
                             >
                               <i className="sap-icon sap-icon-download text-[16px]" />
-                            </a>
+                            </button>
                             {isAdmin && (
                               <Button
                                 variant="negative"
