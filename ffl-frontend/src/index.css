@@ -597,7 +597,6 @@ body {
 
 /* ================= Fallblatt Tafel, exakt 548 x 353 ================= */
 .ffl-board{
-  --u:0.6px;                    /* Grundeinheit, 0.5px halbiert die ganze Tafel */
   --pw:72; --ph:92; --dg:56;    /* Plaettchen breit, hoch, Ziffernhoehe */
   --plate-a:#343840; --plate-b:#1d2025; --digit:#f0eae0;
   --frame-a:#2c2f35; --frame-b:#191b1f; --edge:#3d424b; --edge-top:#4e535d;
@@ -614,6 +613,13 @@ body {
   box-shadow:0 calc(14 * var(--u)) calc(28 * var(--u)) rgba(0,0,0,.5);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   user-select:none;
+}
+
+.ffl-board{
+  position:absolute;
+  top:1.3cqw;
+  left:1.3cqw;
+  --u:max(0.40px, 0.049cqw);
 }
 
 .ffl-board__block{flex:1; display:flex; flex-direction:column; justify-content:center}

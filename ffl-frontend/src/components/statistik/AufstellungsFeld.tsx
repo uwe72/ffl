@@ -367,7 +367,6 @@ export default function AufstellungsFeld({
   }, [compact, slotSize, panelOverlay])
 
   const scale = layout.scale
-  const boardU = BOARD_U * scale
   const cardWidth = compact ? 64 : CARD_W * scale
   const cardHeight = compact ? 64 : CARD_H * scale
   const padH = PAD_H * scale
@@ -383,6 +382,8 @@ export default function AufstellungsFeld({
       className={`relative overflow-hidden ${compact ? 'w-full' : 'mr-auto'}`}
       style={{
         ...fieldSizeStyle,
+        position: 'relative',
+        containerType: 'inline-size',
         borderRadius: 6,
         border: '1px solid var(--color-pitch-line)',
         backgroundImage: 'url(/stadion.jpg)',
@@ -401,14 +402,7 @@ export default function AufstellungsFeld({
           }}
         />
       )}
-      {panelOverlay && (
-        <div
-          className="absolute z-10 pointer-events-none"
-          style={{ left: BOARD_OFFSET, top: BOARD_OFFSET, ['--u']: `${boardU}px` } as CSSProperties}
-        >
-          <FallblattTafel aufstellung={aufstellung} />
-        </div>
-      )}
+      {panelOverlay && <FallblattTafel aufstellung={aufstellung} />}
       {overlay && (
         <div className="absolute bottom-3 left-3 z-10">
           {overlay}
@@ -497,11 +491,6 @@ export default function AufstellungsFeld({
         <div className="w-full">{field}</div>
       ) : (
         <>
-          {!panelOverlay && (
-            <div className="w-full flex justify-start shrink-0" style={{ ['--u']: `${boardU}px` } as CSSProperties}>
-              <FallblattTafel aufstellung={aufstellung} />
-            </div>
-          )}
           <div ref={slotRef} className="w-full flex-1 min-h-0 flex items-start justify-start">{field}</div>
         </>
       )}
