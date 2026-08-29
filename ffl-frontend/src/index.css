@@ -627,7 +627,7 @@ body {
 .ffl-board--coach{bottom:1.3cqw; left:1.3cqw; top:auto;
                   width:calc(353 * var(--u));
                   height:calc(353 * var(--u));
-                  --u:max(0.2816px, 0.02897664cqw)}
+                  --u:max(0.29568px, 0.030425472cqw)}
 .ffl-board--coach .ffl-board__label{margin-bottom:calc(10 * var(--u));
                                     font-size:calc(17.05 * var(--u))}
 
