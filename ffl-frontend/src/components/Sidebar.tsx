@@ -71,11 +71,15 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         {isAuthenticated && (
           <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
         )}
-        {!mobile && !isRestricted && (
-          <SidebarItem to="/teams" label="Vereine" icon="sap-icon-shield" collapsed={collapsed} />
-        )}
-        <SidebarItem to="/players" label="Spieler" icon="sap-icon-group" collapsed={collapsed} />
-        <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
+        <SidebarItem to="/documents" label="Dokumente" icon="sap-icon-documents" collapsed={collapsed} />
+        <button
+          onClick={openFeedback}
+          title={collapsed ? 'Feedback' : undefined}
+          className={`flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors text-muted hover:bg-card-hover hover:text-primary w-full ${collapsed ? 'justify-center' : ''}`}
+        >
+          <i className="sap-icon sap-icon-discussion text-[18px] shrink-0" />
+          {!collapsed && <span className="text-sm font-medium">Feedback</span>}
+        </button>
         {canAccessGallery ? (
           <SidebarItem to="/manager-galerie" label="Galerie" icon="sap-icon-picture" collapsed={collapsed} />
         ) : (
@@ -88,21 +92,17 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           />
         )}
         <SidebarItem to="/manager-groups" label="Gruppen" icon="sap-icon-group-2" collapsed={collapsed} />
-        {!mobile && !isRestricted && (
-          <SidebarItem to="/games" label="Spiele" icon="sap-icon-calendar" collapsed={collapsed} />
-        )}
-        <SidebarItem to="/documents" label="Dokumente" icon="sap-icon-documents" collapsed={collapsed} />
         {!mobile && (
           <SidebarItem to="/history" label="Historie" icon="sap-icon-history" collapsed={collapsed} />
         )}
-        <button
-          onClick={openFeedback}
-          title={collapsed ? 'Feedback' : undefined}
-          className={`flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors text-muted hover:bg-card-hover hover:text-primary w-full ${collapsed ? 'justify-center' : ''}`}
-        >
-          <i className="sap-icon sap-icon-discussion text-[18px] shrink-0" />
-          {!collapsed && <span className="text-sm font-medium">Feedback</span>}
-        </button>
+        <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
+        {!mobile && !isRestricted && (
+          <SidebarItem to="/games" label="Spiele" icon="sap-icon-calendar" collapsed={collapsed} />
+        )}
+        <SidebarItem to="/players" label="Spieler" icon="sap-icon-group" collapsed={collapsed} />
+        {!mobile && !isRestricted && (
+          <SidebarItem to="/teams" label="Vereine" icon="sap-icon-shield" collapsed={collapsed} />
+        )}
         {isAuthenticated && user?.role === 'ADMIN' && (
           <SidebarItem
             to="/season"
@@ -110,10 +110,10 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
             icon="sap-icon-settings"
             collapsed={collapsed}
             subItems={[
-              { to: '/season', label: 'Saison' },
               { to: '/users', label: 'Benutzer' },
-              { to: '/mailing', label: 'Mailing' },
               { to: '/emails', label: 'E-Mailadressen' },
+              { to: '/mailing', label: 'Mailing' },
+              { to: '/season', label: 'Saison' },
               { to: '/system', label: 'System' },
             ]}
             expanded={effectiveVerwaltungExpanded}
