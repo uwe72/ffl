@@ -705,8 +705,14 @@ body {
 .coach{display:flex; align-items:stretch; flex:1; position:relative}
 
 .coach__plate{
-  position:relative; box-sizing:border-box; flex:1; overflow:hidden;
-  border-radius:calc(6 * var(--u));
+  position:relative; box-sizing:border-box;
+  flex:0 1 auto;
+  height:95%;
+  aspect-ratio:1/1;
+  max-width:95%;
+  margin:auto;
+  overflow:hidden;
+  border-radius:50%;
   background:none;
   display:grid; place-items:center;
   font-size:calc(48 * var(--u)); font-weight:600; letter-spacing:.02em;
@@ -757,7 +763,7 @@ body {
 }
 
 .coach__initials{
-  width:calc(150 * var(--u)); height:calc(150 * var(--u));
+  width:calc(180 * var(--u)); height:calc(180 * var(--u));
   border-radius:50%;
   background:linear-gradient(180deg,var(--plate-a) 0 49.6%,var(--plate-b) 50.4% 100%);
   box-shadow:0 calc(3 * var(--u)) calc(8 * var(--u)) rgba(0,0,0,.45);
@@ -776,7 +782,7 @@ body {
   border-radius:calc(5 * var(--u));
   background:#1a1c20;
   color:#f0eae0;
-  font-size:calc(26.4 * var(--u)); line-height:1.4;
+  font-size:calc(35 * var(--u)); line-height:1.4;
   white-space:normal;
   box-shadow:0 calc(4 * var(--u)) calc(12 * var(--u)) rgba(0,0,0,.5);
   opacity:0; visibility:hidden; pointer-events:none;
