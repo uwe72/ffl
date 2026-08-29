@@ -650,7 +650,7 @@ body {
   background:var(--seam); box-shadow:0 1px 0 rgba(255,255,255,.05);
 }
 .ffl-board__plate--off{color:rgba(240,234,224,.14)}
-.ffl-board__plate--muted{color:var(--unit)}
+.ffl-board__plate--muted{color:var(--label)}
 
 .ffl-board__unit{
   font-size:calc(12.5 * var(--u)); letter-spacing:.16em; text-transform:uppercase;
