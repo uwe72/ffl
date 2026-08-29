@@ -625,8 +625,8 @@ body {
 
 /* Trainertafel unten links */
 .ffl-board--coach{bottom:1.3cqw; left:1.3cqw; top:auto;
-                  width:calc(353 * var(--u));
-                  height:calc(353 * var(--u))}
+                  width:calc(142 * var(--u));
+                  height:calc(146 * var(--u))}
 .ffl-board--coach .ffl-board__label{margin-bottom:calc(10 * var(--u))}
 
 .ffl-board__block{flex:1; display:flex; flex-direction:column; justify-content:center}
