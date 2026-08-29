@@ -9,6 +9,7 @@ import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.SystemConfigRepository;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.util.ByteArrayDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -55,6 +56,7 @@ public class SeasonTransparencyMailService {
     private final ManagerRepository managerRepository;
     private final SpringTemplateEngine templateEngine;
     private final PlatformTransactionManager transactionManager;
+    private final TransparencyReportPdfService transparencyReportPdfService;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -62,12 +64,14 @@ public class SeasonTransparencyMailService {
                                           SeasonRepository seasonRepository,
                                           ManagerRepository managerRepository,
                                           SpringTemplateEngine templateEngine,
-                                          PlatformTransactionManager transactionManager) {
+                                          PlatformTransactionManager transactionManager,
+                                          TransparencyReportPdfService transparencyReportPdfService) {
         this.systemConfigRepository = systemConfigRepository;
         this.seasonRepository = seasonRepository;
         this.managerRepository = managerRepository;
         this.templateEngine = templateEngine;
         this.transactionManager = transactionManager;
+        this.transparencyReportPdfService = transparencyReportPdfService;
     }
 
     @Transactional(readOnly = true)
@@ -86,6 +90,8 @@ public class SeasonTransparencyMailService {
         String html = buildHtml(season);
         String plainText = buildPlainText(season);
         String subject = "FFL | Transparenz-Report Saison " + season.getName();
+        byte[] pdf = buildPdf(season);
+        String pdfFilename = transparencyReportPdfService.buildFilename(season.getName());
 
         try {
             JavaMailSenderImpl mailSender = buildMailSender(config);
@@ -95,6 +101,7 @@ public class SeasonTransparencyMailService {
             helper.setTo(config.getGmailSenderEmail());
             helper.setSubject(subject);
             helper.setText(plainText, html);
+            helper.addAttachment(pdfFilename, new ByteArrayDataSource(pdf, "application/pdf"));
 
             mailSender.send(msg);
             log.info("Transparenz-Report (Test) gesendet an Admin: {}", config.getGmailSenderEmail());
@@ -124,12 +131,16 @@ public class SeasonTransparencyMailService {
                 final String[] baseHtml = new String[1];
                 final String[] basePlainText = new String[1];
                 final String[] subject = new String[1];
+                final byte[][] basePdf = new byte[1][];
+                final String[] pdfFilename = new String[1];
                 tx.execute(status -> {
                     Season season = seasonRepository.findById(seasonId)
                         .orElseThrow(() -> new RuntimeException("Saison nicht gefunden"));
                     baseHtml[0] = buildHtml(season);
                     basePlainText[0] = buildPlainText(season);
                     subject[0] = "FFL | Transparenz-Report Saison " + season.getName();
+                    basePdf[0] = buildPdf(season);
+                    pdfFilename[0] = transparencyReportPdfService.buildFilename(season.getName());
                     return null;
                 });
 
@@ -170,6 +181,7 @@ public class SeasonTransparencyMailService {
                     }
                     helper.setSubject(subject[0]);
                     helper.setText(basePlainText[0], baseHtml[0]);
+                    helper.addAttachment(pdfFilename[0], new ByteArrayDataSource(basePdf[0], "application/pdf"));
 
                     mailSender.send(msg);
 
@@ -208,6 +220,17 @@ public class SeasonTransparencyMailService {
     private String buildHtml(Season season) {
         Context context = buildContext(season);
         return templateEngine.process("mail/season-transparency", context);
+    }
+
+    private byte[] buildPdf(Season season) {
+        Context context = buildContext(season);
+        @SuppressWarnings("unchecked")
+        List<ManagerSquadDto> squads = (List<ManagerSquadDto>) context.getVariable("managers");
+        @SuppressWarnings("unchecked")
+        List<AllPlayerRowDto> allPlayers = (List<AllPlayerRowDto>) context.getVariable("allPlayers");
+        int managerCount = (int) context.getVariable("managerCount");
+        String seasonName = season.getName() != null ? season.getName() : "Aktuelle Saison";
+        return transparencyReportPdfService.generatePdf(seasonName, managerCount, squads, allPlayers);
     }
 
     private Context buildContext(Season season) {
