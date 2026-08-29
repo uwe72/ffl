@@ -7,12 +7,15 @@ function pad(value: number | null | undefined, size: number): string[] {
   return String(Math.max(0, Math.round(value))).padStart(size, '0').split('')
 }
 
-function Platten({ value, digits }: { value: number | null | undefined; digits: string[] }) {
+function Platten({ value, digits, muted = false }: { value: number | null | undefined; digits: string[]; muted?: boolean }) {
   const off = value == null
   return (
     <>
       {digits.map((d, i) => (
-        <span key={i} className={`ffl-board__plate${off ? ' ffl-board__plate--off' : ''}`}>
+        <span
+          key={i}
+          className={`ffl-board__plate${off ? ' ffl-board__plate--off' : muted ? ' ffl-board__plate--muted' : ''}`}
+        >
           {d}
         </span>
       ))}
@@ -57,7 +60,7 @@ function Block({ label, platz, punkte, chipPrevious, showChip = false }: BlockPr
         </div>
         <div>
           <div className="ffl-board__digits">
-            <Platten value={punkte} digits={pad(punkte, DIGITS)} />
+            <Platten value={punkte} digits={pad(punkte, DIGITS)} muted />
           </div>
           <div className="ffl-board__unit">Punkte</div>
         </div>
