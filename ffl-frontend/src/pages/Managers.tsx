@@ -32,23 +32,31 @@ const ManagerCard = forwardRef<HTMLDivElement, { manager: any; beforeSeason: boo
           <p className="text-sm text-muted leading-5 truncate">{manager.login}</p>
         )}
         {!beforeSeason && (
-          <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <span className="text-subtle">Pos: </span>
-                <span className="font-medium text-foreground">
-                  {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
-                </span>
+          <div className="mt-2 grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5 bg-stat-card border border-border rounded-card px-4 py-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Platz</span>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted">Gesamt</span>
+                <span className="font-bold tabular-nums text-foreground">{manager.positionTotal ? `${manager.positionTotal}.` : '-'}</span>
               </div>
-              <div>
-                <span className="text-subtle">Pkt: </span>
-                <span className="font-medium text-foreground">{manager.pointsTotal ?? '-'}</span>
-              </div>
-              <div>
-                <span className="text-subtle">Spieltag: </span>
-                <span className="font-medium text-foreground">{manager.pointsLastRound ?? '-'}</span>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted">Spieltag</span>
+                <span className="font-bold tabular-nums text-foreground">{manager.positionLastRound ? `${manager.positionLastRound}.` : '-'}</span>
               </div>
             </div>
-          )}
+            <div className="flex flex-col gap-1.5 bg-stat-card border border-border rounded-card px-4 py-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Punkte</span>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted">Gesamt</span>
+                <span className="font-bold tabular-nums text-foreground">{manager.pointsTotal ?? '-'}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted">Spieltag</span>
+                <span className="font-bold tabular-nums text-foreground">{manager.pointsLastRound ?? '-'}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
