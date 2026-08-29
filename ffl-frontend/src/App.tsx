@@ -117,11 +117,7 @@ function App() {
               <ProtectedRoute><ManagerGroupDetail /></ProtectedRoute>
             } />
             <Route path="documents" element={<Documents />} />
-            <Route path="history" element={
-              <ProtectedRoute>
-                <History />
-              </ProtectedRoute>
-            } />
+            <Route path="history" element={<History />} />
             <Route path="users" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Users />

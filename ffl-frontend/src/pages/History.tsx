@@ -13,12 +13,14 @@ const chartColors = getChartColors()
 type SortKey = 'saison' | 'budget' | 'anzahlManager'
 type SortOrder = 'asc' | 'desc'
 
-function formatBudget(value: number): string {
-  return value.toLocaleString('de-DE', { maximumFractionDigits: 1 })
+function formatEuro(value: number): string {
+  return (value * 1_000_000).toLocaleString('de-DE', { maximumFractionDigits: 0 })
 }
 
-function parseBudgetInput(value: string): number {
-  return parseFloat(value.replace(',', '.')) || 0
+function parseEuroInput(value: string): number {
+  const normalized = value.replace(/\./g, '').replace(',', '.')
+  const parsed = parseFloat(normalized)
+  return isNaN(parsed) ? 0 : parsed / 1_000_000
 }
 
 function shortSaison(saison: string): string {
@@ -84,7 +86,7 @@ export default function History() {
     setEditingId(entry.id)
     setEditDraft({
       saison: entry.saison,
-      budget: String(entry.budget).replace('.', ','),
+      budget: formatEuro(entry.budget),
       anzahlManager: String(entry.anzahlManager),
     })
   }
@@ -100,7 +102,7 @@ export default function History() {
       id,
       data: {
         saison: editDraft.saison.trim(),
-        budget: parseBudgetInput(editDraft.budget),
+        budget: parseEuroInput(editDraft.budget),
         anzahlManager: parseInt(editDraft.anzahlManager, 10) || 0,
       },
     })
@@ -116,7 +118,7 @@ export default function History() {
     if (!addDraft.saison.trim()) return
     await create.mutateAsync({
       saison: addDraft.saison.trim(),
-      budget: parseBudgetInput(addDraft.budget),
+      budget: parseEuroInput(addDraft.budget),
       anzahlManager: parseInt(addDraft.anzahlManager, 10) || 0,
     })
     setShowAdd(false)
@@ -163,11 +165,11 @@ export default function History() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Budget (M€)</label>
+                <label className="block text-sm text-muted mb-1">Budget (€)</label>
                 <input
                   value={addDraft.budget}
                   onChange={e => setAddDraft(d => ({ ...d, budget: e.target.value }))}
-                  placeholder="z.B. 30"
+                  placeholder="z.B. 30.000.000"
                   className="input-field control w-full px-3 py-2 rounded-control text-sm"
                 />
               </div>
@@ -198,7 +200,7 @@ export default function History() {
                   Saison<SortIcon column="saison" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 <ThSortable numeric align="right" onClick={() => handleSort('budget')}>
-                  Budget (M€)<SortIcon column="budget" activeKey={sortKey} order={sortOrder} />
+                  Budget (€)<SortIcon column="budget" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 <ThSortable numeric align="right" onClick={() => handleSort('anzahlManager')}>
                   Anzahl Manager<SortIcon column="anzahlManager" activeKey={sortKey} order={sortOrder} />
@@ -245,7 +247,7 @@ export default function History() {
                     ) : (
                       <>
                         <td className="px-3 py-2 font-medium text-foreground">{entry.saison}</td>
-                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{formatBudget(entry.budget)} M€</td>
+                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{formatEuro(entry.budget)} €</td>
                         <td className="px-3 py-2 text-right text-foreground tabular-nums">{entry.anzahlManager}</td>
                         {isAdmin && (
                           <td className="px-3 py-2">
