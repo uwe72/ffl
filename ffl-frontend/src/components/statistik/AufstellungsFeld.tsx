@@ -16,8 +16,8 @@ const FIELD_RATIO = 2752 / 1536
 const DESIGN_COL_H = 2 * PAD_V + 4 * CARD_H + 3 * GAP_V
 const DESIGN_ROW_W = 2 * PAD_H + 4 * (CARD_W + 2 * BADGE_PROTRUDE)
 
-const BOARD_W = 548
-const BOARD_H = 353
+const BOARD_W = Math.round(548 * 0.6)
+const BOARD_H = Math.round(353 * 0.6)
 const BOARD_OFFSET = 16
 const FREE_ZONE = BOARD_W + BOARD_OFFSET
 const OVERLAY_MIN_WIDTH = 900

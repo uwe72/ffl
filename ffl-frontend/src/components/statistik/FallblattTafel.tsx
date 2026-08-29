@@ -3,7 +3,7 @@ import type { Aufstellung } from '../../types/dashboard'
 const DIGITS = 3
 
 function pad(value: number | null | undefined, size: number): string[] {
-  if (value == null) return Array(size).fill('')
+  if (value == null) return Array(size).fill('0')
   return String(Math.max(0, Math.round(value))).padStart(size, '0').split('')
 }
 
@@ -80,7 +80,7 @@ export default function FallblattTafel({ aufstellung }: { aufstellung: Aufstellu
     <div className="ffl-board">
       <Block label="Gesamt" platz={positionGesamt} punkte={punkteGesamt} chipPrevious={positionGesamtVorher} showChip />
       <div className="ffl-board__sep" />
-      <Block label={`Spieltag ${spieltag}`} platz={positionSpieltag} punkte={punkteSpieltag} />
+      <Block label={spieltag > 0 ? `Spieltag ${spieltag}` : 'Spieltag'} platz={positionSpieltag} punkte={punkteSpieltag} />
     </div>
   )
 }
