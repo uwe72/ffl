@@ -37,11 +37,11 @@ const ManagerCard = forwardRef<HTMLDivElement, { manager: any; beforeSeason: boo
               <span className="text-xs font-semibold uppercase tracking-wider text-muted">Platz</span>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted">Gesamt</span>
-                <span className="font-bold tabular-nums text-foreground">{manager.positionTotal ? `${manager.positionTotal}.` : '-'}</span>
+                <span className="font-bold tabular-nums text-foreground">{manager.positionTotal ?? '-'}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted">Spieltag</span>
-                <span className="font-bold tabular-nums text-foreground">{manager.positionLastRound ? `${manager.positionLastRound}.` : '-'}</span>
+                <span className="font-bold tabular-nums text-foreground">{manager.positionLastRound ?? '-'}</span>
               </div>
             </div>
             <div className="flex flex-col gap-1.5 bg-stat-card border border-border rounded-card px-4 py-3">
