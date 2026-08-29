@@ -92,9 +92,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           />
         )}
         <SidebarItem to="/manager-groups" label="Gruppen" icon="sap-icon-group-2" collapsed={collapsed} />
-        {!mobile && (
-          <SidebarItem to="/history" label="Historie" icon="sap-icon-history" collapsed={collapsed} />
-        )}
+        <SidebarItem to="/history" label="Historie" icon="sap-icon-history" collapsed={collapsed} />
         <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
         {!mobile && !isRestricted && (
           <SidebarItem to="/games" label="Spiele" icon="sap-icon-calendar" collapsed={collapsed} />
