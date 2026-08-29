@@ -6,6 +6,7 @@ import de.ffl.repository.ManagerRankRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -173,6 +174,31 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
 
         assertThat(own.getPlatz()).isEqualTo(rank.get().getPositionTotal());
         assertThat(own.getPunkteGesamt()).isEqualTo(rank.get().getPointsTotal());
+    }
+
+    @Test
+    void managerRanks_verwendenTieAwareRangliste() {
+        int matchday = season.getCurrentMatchday();
+        List<ManagerRank> ranks = managerRankRepository.findByManagerIdInAndRoundNumber(
+            managerRepository.findBySeasonId(season.getId()).stream().map(Manager::getId).toList(), matchday);
+
+        List<ManagerRank> sorted = ranks.stream()
+            .sorted(Comparator.comparingInt(ManagerRank::getPointsTotal).reversed())
+            .toList();
+
+        assertThat(sorted).isNotEmpty();
+        for (int i = 0; i < sorted.size(); i++) {
+            ManagerRank r = sorted.get(i);
+            int expected;
+            if (i == 0) {
+                expected = 1;
+            } else if (sorted.get(i - 1).getPointsTotal() == r.getPointsTotal()) {
+                expected = sorted.get(i - 1).getPositionTotal();
+            } else {
+                expected = i + 1;
+            }
+            assertThat(r.getPositionTotal()).as("Position bei Index " + i).isEqualTo(expected);
+        }
     }
 
     @Test

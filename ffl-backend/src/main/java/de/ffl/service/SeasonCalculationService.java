@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -553,15 +554,10 @@ public class SeasonCalculationService {
             .sorted((a, b) -> totalPoints.getOrDefault(b.getId(), 0) - totalPoints.getOrDefault(a.getId(), 0))
             .collect(Collectors.toList());
 
-        Map<Long, Integer> roundPosition = new HashMap<>();
-        Map<Long, Integer> totalPosition = new HashMap<>();
-
-        for (int i = 0; i < sortedByRound.size(); i++) {
-            roundPosition.put(sortedByRound.get(i).getId(), i + 1);
-        }
-        for (int i = 0; i < sortedByTotal.size(); i++) {
-            totalPosition.put(sortedByTotal.get(i).getId(), i + 1);
-        }
+        Map<Long, Integer> roundPosition = competitionRank(sortedByRound, Player::getId,
+            p -> roundPoints.getOrDefault(p.getId(), 0));
+        Map<Long, Integer> totalPosition = competitionRank(sortedByTotal, Player::getId,
+            p -> totalPoints.getOrDefault(p.getId(), 0));
 
         List<PlayerRank> ranksToSave = new ArrayList<>();
         for (Player player : players) {
@@ -641,15 +637,10 @@ public class SeasonCalculationService {
             .sorted((a, b) -> totalPoints.getOrDefault(b.getId(), 0) - totalPoints.getOrDefault(a.getId(), 0))
             .collect(Collectors.toList());
 
-        Map<Long, Integer> roundPosition = new HashMap<>();
-        Map<Long, Integer> totalPosition = new HashMap<>();
-
-        for (int i = 0; i < sortedByRound.size(); i++) {
-            roundPosition.put(sortedByRound.get(i).getId(), i + 1);
-        }
-        for (int i = 0; i < sortedByTotal.size(); i++) {
-            totalPosition.put(sortedByTotal.get(i).getId(), i + 1);
-        }
+        Map<Long, Integer> roundPosition = competitionRank(sortedByRound, Manager::getId,
+            m -> roundPoints.getOrDefault(m.getId(), 0));
+        Map<Long, Integer> totalPosition = competitionRank(sortedByTotal, Manager::getId,
+            m -> totalPoints.getOrDefault(m.getId(), 0));
 
         List<ManagerRank> ranksToSave = new ArrayList<>();
         for (Manager manager : managers) {
@@ -663,6 +654,23 @@ public class SeasonCalculationService {
             ranksToSave.add(rank);
         }
         managerRankRepository.saveAll(ranksToSave);
+    }
+
+    private <T> Map<Long, Integer> competitionRank(List<T> sorted, Function<T, Long> idExtractor,
+            Function<T, Integer> pointsExtractor) {
+        Map<Long, Integer> position = new HashMap<>();
+        int rank = 0;
+        Integer prevPoints = null;
+        for (int i = 0; i < sorted.size(); i++) {
+            T item = sorted.get(i);
+            int pts = pointsExtractor.apply(item);
+            if (prevPoints == null || pts != prevPoints) {
+                rank = i + 1;
+                prevPoints = pts;
+            }
+            position.put(idExtractor.apply(item), rank);
+        }
+        return position;
     }
 
     private Set<Player> getActivePlayersForRound(Manager manager, int roundNumber, int transferRound) {

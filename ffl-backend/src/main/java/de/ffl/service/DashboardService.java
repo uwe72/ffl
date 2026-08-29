@@ -156,8 +156,16 @@ public class DashboardService {
         sorted.sort(comp);
 
         Map<Long, Integer> position = new HashMap<>();
+        int rank = 0;
+        Integer prevPoints = null;
         for (int i = 0; i < sorted.size(); i++) {
-            position.put(sorted.get(i).getId(), i + 1);
+            Manager m = sorted.get(i);
+            int pts = points(m, currentRanks.get(m.getId()), spieltagModus);
+            if (prevPoints == null || pts != prevPoints) {
+                rank = i + 1;
+                prevPoints = pts;
+            }
+            position.put(m.getId(), rank);
         }
 
         int ownPoints = points(manager, currentRanks.get(manager.getId()), spieltagModus);
@@ -258,8 +266,14 @@ public class DashboardService {
 
         List<RanglistenEintragDto> eintraege = new ArrayList<>();
         int platz = 0;
-        for (Manager m : sorted) {
-            platz++;
+        Integer prevValue = null;
+        for (int i = 0; i < sorted.size(); i++) {
+            Manager m = sorted.get(i);
+            int v = valueByManager.getOrDefault(m.getId(), 0);
+            if (prevValue == null || v != prevValue) {
+                platz = i + 1;
+                prevValue = v;
+            }
             eintraege.add(RanglistenEintragDto.builder()
                 .managerId(m.getId())
                 .platz(platz)
