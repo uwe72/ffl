@@ -47,12 +47,6 @@ const ManagerCard = forwardRef<HTMLDivElement, { manager: any; beforeSeason: boo
                 <span className="text-subtle">Spieltag: </span>
                 <span className="font-medium text-foreground">{manager.pointsLastRound ?? '-'}</span>
               </div>
-              <div>
-                <span className="text-subtle">Teamwert: </span>
-                <span className="font-medium text-foreground">
-                  {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
-                </span>
-              </div>
             </div>
           )}
       </div>
@@ -207,12 +201,14 @@ export default function Managers() {
               Selektiere mich
             </Button>
             )}
+            {!isMobile && (
             <Button
               onClick={exportToExcel}
               size="compact"
             >
               Excel Export
             </Button>
+            )}
           </div>
         </div>
 
