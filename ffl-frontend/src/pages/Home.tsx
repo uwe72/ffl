@@ -91,6 +91,10 @@ export default function Home() {
   const aufstellungQuery = useDashboardAufstellung(activeManagerId ?? 0)
 
   const activeIndex = favoriteManagerIds.indexOf(activeManagerId ?? -1)
+  const carouselPosition =
+    activeIndex >= 0 && favoriteManagerIds.length > 1
+      ? `${activeIndex + 1}/${favoriteManagerIds.length}`
+      : null
   const carouselPrev = () => {
     if (favoriteManagerIds.length === 0) return
     const idx = activeIndex
@@ -122,11 +126,11 @@ export default function Home() {
     }
   }
 
-  const handleToggleStandard = async () => {
+  const handleSetStandard = async () => {
     setCarouselError('')
     if (!activeManagerId) return
     try {
-      await setStandard.mutateAsync(isStandard ? null : activeManagerId)
+      await setStandard.mutateAsync(activeManagerId)
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: string } }
       setCarouselError(axiosErr.response?.data && typeof axiosErr.response.data === 'string'
@@ -170,12 +174,12 @@ export default function Home() {
             <i className="sap-icon sap-icon-slim-arrow-right text-sm" />
           </button>
         )}
-        <h2 className="text-xl font-semibold text-foreground min-w-0">{title}</h2>
-        {isStandard && (
-          <span className="text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
-            Standard
+        {showCarouselNav && carouselPosition && (
+          <span className="text-sm text-muted whitespace-nowrap tabular-nums min-w-[2.5rem] text-center">
+            {carouselPosition}
           </span>
         )}
+        <h2 className="text-xl font-semibold text-foreground min-w-0">{title}</h2>
         {showBearbeiten && (
           <Button
             variant="ghost"
@@ -187,34 +191,42 @@ export default function Home() {
             <i className="sap-icon sap-icon-edit text-sm" />
           </Button>
         )}
+        {carouselEnabled && activeManagerId != null && (
+          <button
+            type="button"
+            onClick={handleToggleFavorite}
+            aria-label={isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
+            title={isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
+            className={`w-9 h-9 rounded-control border border-border-strong flex items-center justify-center transition-colors ${isFavorite ? 'text-accent bg-accent-soft' : 'text-subtle hover:bg-accent-muted'}`}
+          >
+            <i className={`sap-icon ${isFavorite ? 'sap-icon-favorite' : 'sap-icon-unfavorite'} text-sm`} />
+          </button>
+        )}
+        {isStandard && (
+          <span className="text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
+            Standard
+          </span>
+        )}
+        {carouselEnabled && isFavorite && favoriteManagerIds.length > 1 && !isStandard && (
+          <Button
+            variant="transparent"
+            size="input"
+            onClick={handleSetStandard}
+            title="Als Standard-Team festlegen"
+          >
+            Als Standard
+          </Button>
+        )}
         <div className="ml-auto flex items-center gap-2">
-          {carouselEnabled && activeManagerId != null && (
-            <button
-              type="button"
-              onClick={handleToggleFavorite}
-              aria-label={isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
-              title={isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
-              className={`w-9 h-9 rounded-control border border-border-strong flex items-center justify-center transition-colors ${isFavorite ? 'text-accent bg-accent-soft' : 'text-subtle hover:bg-accent-muted'}`}
-            >
-              <i className={`sap-icon ${isFavorite ? 'sap-icon-favorite' : 'sap-icon-unfavorite'} text-sm`} />
-            </button>
-          )}
-          {carouselEnabled && isFavorite && favoriteManagerIds.length > 1 && (
-            <Button
-              variant={isStandard ? 'secondary' : 'transparent'}
-              size="input"
-              onClick={handleToggleStandard}
-              title={isStandard ? 'Standard-Team entfernen' : 'Als Standard-Team festlegen'}
-            >
-              {isStandard ? 'Standard' : 'Als Standard'}
-            </Button>
-          )}
           {carouselEnabled && (
-            <ManagerSelect
-              managers={managers ?? []}
-              value={activeManagerId ?? null}
-              onChange={id => setActiveManagerId(id)}
-            />
+            <>
+              <span className="text-sm text-muted whitespace-nowrap">Manager suchen</span>
+              <ManagerSelect
+                managers={managers ?? []}
+                value={activeManagerId ?? null}
+                onChange={id => setActiveManagerId(id)}
+              />
+            </>
           )}
         </div>
       </div>
