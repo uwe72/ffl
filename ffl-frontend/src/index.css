@@ -623,7 +623,8 @@ body {
 }
 
 /* Anzeigetafel oben links */
-.ffl-board--score{top:1.3cqw; left:1.3cqw; bottom:auto}
+.ffl-board--score{top:1.3cqw; left:1.3cqw; bottom:auto;
+                  height:calc(400 * var(--u))}
 
 /* Trainertafel unten links */
 .ffl-board--coach{bottom:1.3cqw; left:1.3cqw; top:auto;
@@ -668,12 +669,12 @@ body {
 .ffl-board__unit{
   display:inline-block;
   font-size:calc(var(--unit-size) * var(--u)); letter-spacing:var(--unit-track);
-  text-transform:uppercase; color:var(--unit);
+  text-transform:uppercase; color:var(--label);
   margin-top:calc(7 * var(--u));
   padding:calc(3 * var(--u)) calc(8 * var(--u));
   border-radius:calc(4 * var(--u));
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.09);
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.16);
 }
 
 .ffl-board__sep{
