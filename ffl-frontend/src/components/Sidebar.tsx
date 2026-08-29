@@ -65,13 +65,13 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
     }
   }
 
-  const sidebarContent = (
+  const renderSidebarContent = (mobile: boolean) => (
     <div className="flex flex-col h-full">
       <nav className="flex-1 px-2 py-4 flex flex-col gap-1 overflow-y-auto">
         {isAuthenticated && (
           <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
         )}
-        {!isRestricted && (
+        {!mobile && !isRestricted && (
           <SidebarItem to="/teams" label="Vereine" icon="sap-icon-shield" collapsed={collapsed} />
         )}
         <SidebarItem to="/players" label="Spieler" icon="sap-icon-group" collapsed={collapsed} />
@@ -88,7 +88,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           />
         )}
         <SidebarItem to="/manager-groups" label="Gruppen" icon="sap-icon-group-2" collapsed={collapsed} />
-        {!isRestricted && (
+        {!mobile && !isRestricted && (
           <SidebarItem to="/games" label="Spiele" icon="sap-icon-calendar" collapsed={collapsed} />
         )}
         <SidebarItem to="/documents" label="Dokumente" icon="sap-icon-documents" collapsed={collapsed} />
@@ -237,14 +237,14 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         className={`sidebar hidden md:flex flex-col bg-surface border-r border-border shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out`}
         style={{ width: collapsed ? 64 : 240 }}
       >
-        {sidebarContent}
+        {renderSidebarContent(false)}
       </aside>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-overlay" onClick={onCloseMobile} />
           <aside className="sidebar absolute left-0 top-0 bottom-0 w-60 bg-surface border-r border-border flex flex-col shadow-2xl">
-            {sidebarContent}
+            {renderSidebarContent(true)}
           </aside>
         </div>
       )}

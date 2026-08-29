@@ -589,9 +589,9 @@ body {
   --badge-offset: 12px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .stat-player-card {
-    --badge-offset: 4px;
+    --badge-offset: 0px;
   }
 }
 

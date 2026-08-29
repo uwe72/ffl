@@ -1,25 +1,22 @@
 import { useMemo } from 'react'
+import type { ReactNode } from 'react'
 import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
 import { positionLabels, positionTextColor } from '../../utils/positions'
-import { formatPoints, formatMillionen } from '../../utils/format'
+import { formatPoints } from '../../utils/format'
 import { StatPlayerCard } from './AufstellungsFeld'
 
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
 
 const COLUMNS = ['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const
 
-function bigOf(p: SpielerAufstellung, modus: FeldModus): number {
-  if (modus === 'wert') return p.marktwert
-  if (modus === 'spieltag') return p.punkteSpieltag
-  return p.punkteGesamt
-}
-
 export default function AufstellungVertikal({
   aufstellung,
   modus,
+  searchControl,
 }: {
   aufstellung: Aufstellung
   modus: FeldModus
+  searchControl?: ReactNode
 }) {
   const grouped = useMemo(() => {
     const map: Record<string, SpielerAufstellung[]> = { GOALKEEPER: [], DEFENDER: [], MIDFIELD: [], STRIKER: [] }
@@ -30,16 +27,33 @@ export default function AufstellungVertikal({
   }, [aufstellung.spieler])
 
   const isVorsaison = aufstellung.phase === 'VORSAISON'
-  const sum = aufstellung.spieler.reduce((a, s) => a + bigOf(s, modus), 0)
-  const sumBig = modus === 'wert' ? formatMillionen(sum) : formatPoints(sum)
-  const sumLabel = modus === 'wert' ? 'Kaderwert' : modus === 'spieltag' ? 'Punkte Spieltag' : 'Punkte gesamt'
 
   return (
     <div className="w-full flex flex-col gap-6">
       {!isVorsaison && (
-        <div className="flex items-center justify-between gap-3 bg-stat-card border border-border rounded-card px-4 py-3">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted">{sumLabel}</span>
-          <span className="text-xl font-bold tabular-nums text-foreground">{sumBig}</span>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5 bg-stat-card border border-border rounded-card px-4 py-3">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">Platz</span>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted">Gesamt</span>
+              <span className="font-bold tabular-nums text-foreground">{aufstellung.positionGesamt ?? '-'}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted">Spieltag</span>
+              <span className="font-bold tabular-nums text-foreground">{aufstellung.positionSpieltag ?? '-'}</span>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5 bg-stat-card border border-border rounded-card px-4 py-3">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">Punkte</span>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted">Gesamt</span>
+              <span className="font-bold tabular-nums text-foreground">{formatPoints(aufstellung.punkteGesamt)}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted">Spieltag</span>
+              <span className="font-bold tabular-nums text-foreground">{formatPoints(aufstellung.punkteSpieltag)}</span>
+            </div>
+          </div>
         </div>
       )}
       {COLUMNS.map(pos => {
@@ -47,6 +61,14 @@ export default function AufstellungVertikal({
         if (!players || players.length === 0) return null
         return (
             <div key={pos} className="flex flex-col gap-3">
+              {searchControl && pos === 'GOALKEEPER' && (
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted">
+                    Manager suchen
+                  </span>
+                  {searchControl}
+                </div>
+              )}
               <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[pos]}`}>
                 {positionLabels[pos]}
               </h3>

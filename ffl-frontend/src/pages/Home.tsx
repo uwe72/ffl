@@ -7,6 +7,7 @@ import { useDashboardAufstellung } from '../hooks/useDashboard'
 import { useFavorites, useAddFavorite, useRemoveFavorite, useSetStandard } from '../hooks/useFavorites'
 import { useAuth } from '../context/AuthContext'
 import useIsMobile from '../hooks/useIsMobile'
+import useHorizontalSwipe from '../hooks/useHorizontalSwipe'
 import ManagerSelect from '../components/ManagerSelect'
 import Button from '../components/Button'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
@@ -108,6 +109,8 @@ export default function Home() {
     setActiveManagerId(favoriteManagerIds[ni])
   }
 
+  const swipe = useHorizontalSwipe(carouselNext, carouselPrev)
+
   const handleToggleFavorite = async () => {
     setCarouselError('')
     if (!activeManagerId) return
@@ -179,6 +182,16 @@ export default function Home() {
             {carouselPosition}
           </span>
         )}
+        {carouselEnabled && isFavorite && favoriteManagerIds.length > 1 && !isStandard && (
+          <Button
+            variant="transparent"
+            size="input"
+            onClick={handleSetStandard}
+            title="Als Standard-Team festlegen"
+          >
+            Als Standard
+          </Button>
+        )}
         <h2 className="text-xl font-semibold text-foreground min-w-0">{title}</h2>
         {showBearbeiten && (
           <Button
@@ -202,26 +215,13 @@ export default function Home() {
             <i className={`sap-icon ${isFavorite ? 'sap-icon-favorite' : 'sap-icon-unfavorite'} text-sm`} />
           </button>
         )}
-        {carouselEnabled && isFavorite && favoriteManagerIds.length > 1 && !isStandard && (
-          <Button
-            variant="transparent"
-            size="input"
-            onClick={handleSetStandard}
-            title="Als Standard-Team festlegen"
-          >
-            Als Standard
-          </Button>
-        )}
         <div className="ml-auto flex items-center gap-2">
-          {carouselEnabled && (
-            <>
-              <span className="text-sm text-muted whitespace-nowrap">Manager anzeigen</span>
-              <ManagerSelect
-                managers={managers ?? []}
-                value={activeManagerId ?? null}
-                onChange={id => setActiveManagerId(id)}
-              />
-            </>
+          {carouselEnabled && !isMobile && (
+            <ManagerSelect
+              managers={managers ?? []}
+              value={activeManagerId ?? null}
+              onChange={id => setActiveManagerId(id)}
+            />
           )}
         </div>
       </div>
@@ -239,13 +239,30 @@ export default function Home() {
     return (
       <div className="pb-6">
         {card(
-          !activeManagerId ? (
-            <p className="text-sm text-muted py-10 text-center">Kein Team ausgewählt.</p>
-          ) : aufstellungQuery.isLoading || !aufstellungQuery.data ? (
-            <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
-          ) : (
-            <AufstellungVertikal aufstellung={aufstellungQuery.data} modus={feldModus} />
-          )
+          <div
+            {...swipe}
+            style={{ touchAction: 'pan-y' }}
+          >
+            {!activeManagerId ? (
+              <p className="text-sm text-muted py-10 text-center">Kein Team ausgewählt.</p>
+            ) : aufstellungQuery.isLoading || !aufstellungQuery.data ? (
+              <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+            ) : (
+              <AufstellungVertikal
+                aufstellung={aufstellungQuery.data}
+                modus={feldModus}
+                searchControl={
+                  carouselEnabled ? (
+                    <ManagerSelect
+                      managers={managers ?? []}
+                      value={activeManagerId ?? null}
+                      onChange={id => setActiveManagerId(id)}
+                    />
+                  ) : undefined
+                }
+              />
+            )}
+          </div>
         )}
       </div>
     )

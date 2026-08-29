@@ -264,7 +264,7 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
         )}
       </div>
 
-      {!compact && !mobile && (
+      {!compact && (
         <>
           <div
             className="stat-card-badge absolute z-20 flex items-center justify-center leading-none"
@@ -288,7 +288,8 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
               className="stat-card-badge absolute z-20 flex items-center justify-center font-bold tabular-nums leading-none"
               style={{
                 left: 'calc(var(--badge-offset, 12px) * -1)',
-                bottom: 'calc(var(--badge-offset, 12px) * -1)',
+                top: mobile ? 'calc(var(--badge-offset, 12px) * -1)' : undefined,
+                bottom: mobile ? undefined : 'calc(var(--badge-offset, 12px) * -1)',
                 minWidth: 37,
                 borderRadius: 8,
                 padding: '6px 6px',
