@@ -14,7 +14,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -47,17 +49,20 @@ public class SeasonTransparencyMailService {
     private final SeasonRepository seasonRepository;
     private final ManagerRepository managerRepository;
     private final SpringTemplateEngine templateEngine;
+    private final PlatformTransactionManager transactionManager;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public SeasonTransparencyMailService(SystemConfigRepository systemConfigRepository,
                                           SeasonRepository seasonRepository,
                                           ManagerRepository managerRepository,
-                                          SpringTemplateEngine templateEngine) {
+                                          SpringTemplateEngine templateEngine,
+                                          PlatformTransactionManager transactionManager) {
         this.systemConfigRepository = systemConfigRepository;
         this.seasonRepository = seasonRepository;
         this.managerRepository = managerRepository;
         this.templateEngine = templateEngine;
+        this.transactionManager = transactionManager;
     }
 
     @Transactional(readOnly = true)
@@ -95,7 +100,7 @@ public class SeasonTransparencyMailService {
     }
 
     @Transactional(readOnly = true)
-    public SseEmitter streamTransparencyMail(Long seasonId, List<Long> managerIds, boolean testMode) {
+    public SseEmitter streamTransparencyMail(Long seasonId, List<String> emails, boolean testMode) {
         SseEmitter emitter = new SseEmitter(1_200_000L);
         executor.execute(() -> {
             try {
@@ -109,85 +114,60 @@ public class SeasonTransparencyMailService {
                     return;
                 }
 
-                Season season = seasonRepository.findById(seasonId)
-                    .orElseThrow(() -> new RuntimeException("Saison nicht gefunden"));
+                TransactionTemplate tx = new TransactionTemplate(transactionManager);
+                tx.setReadOnly(true);
+                final String[] baseHtml = new String[1];
+                final String[] basePlainText = new String[1];
+                final String[] subject = new String[1];
+                tx.execute(status -> {
+                    Season season = seasonRepository.findById(seasonId)
+                        .orElseThrow(() -> new RuntimeException("Saison nicht gefunden"));
+                    baseHtml[0] = buildHtml(season);
+                    basePlainText[0] = buildPlainText(season);
+                    subject[0] = "FFL | Transparenz-Report Saison " + season.getName();
+                    return null;
+                });
 
-                List<Manager> allManagersInSeason = managerRepository.findBySeasonIdWithPlayers(seasonId);
-                Map<Long, Manager> managersById = new HashMap<>();
-                for (Manager m : allManagersInSeason) {
-                    managersById.put(m.getId(), m);
+                List<String> recipients = new ArrayList<>();
+                for (String email : emails) {
+                    if (email != null && !email.isBlank()) {
+                        recipients.add(email.trim());
+                    }
                 }
 
                 JavaMailSenderImpl mailSender = buildMailSender(config);
-                String baseHtml = buildHtml(season);
-                String basePlainText = buildPlainText(season);
-                String subject = "FFL | Transparenz-Report Saison " + season.getName();
-
                 send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
-                send(emitter, "Starte Versand an " + managerIds.size() + " Manager...");
+                if (testMode) {
+                    send(emitter, "Sende Report als Testmail an die Admin-Adresse...");
+                } else {
+                    send(emitter, "Sende Report als 1 BCC-Mail an " + recipients.size() + " Empfänger...");
+                }
 
-                int sent = 0;
-                int failed = 0;
-                long lastKeepAlive = System.currentTimeMillis();
-
-                for (Long managerId : managerIds) {
-                    Manager manager = managersById.get(managerId);
-                    if (manager == null) {
-                        send(emitter, "✗ Manager-ID " + managerId + " nicht in Saison gefunden");
-                        failed++;
-                        continue;
+                try {
+                    MimeMessage msg = mailSender.createMimeMessage();
+                    MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+                    helper.setFrom(config.getGmailSenderEmail());
+                    helper.setTo(config.getGmailSenderEmail());
+                    if (!testMode && !recipients.isEmpty()) {
+                        helper.setBcc(recipients.toArray(new String[0]));
                     }
+                    helper.setSubject(subject[0]);
+                    helper.setText(basePlainText[0], baseHtml[0]);
 
-                    String recipientEmail = manager.getUser() != null ? manager.getUser().getEmail() : null;
-                    if (recipientEmail == null || recipientEmail.isBlank()) {
-                        send(emitter, "✗ [" + manager.getId() + "] " + buildManagerDisplayName(manager) + " hat keine Mailadresse");
-                        failed++;
-                        continue;
+                    mailSender.send(msg);
+
+                    if (testMode) {
+                        send(emitter, "[TEST] ✓ Report an die Admin-Adresse gesendet");
+                    } else {
+                        send(emitter, "✓ Report als eine BCC-Mail an " + recipients.size() + " Empfänger gesendet");
                     }
-
-                    try {
-                        MimeMessage msg = mailSender.createMimeMessage();
-                        MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-                        helper.setFrom(config.getGmailSenderEmail());
-                        helper.setTo(testMode ? config.getGmailSenderEmail() : recipientEmail);
-                        helper.setSubject(subject);
-                        helper.setText(basePlainText, baseHtml);
-
-                        mailSender.send(msg);
-
-                        send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + manager.getId() + "] " + buildManagerDisplayName(manager) + " (" + recipientEmail + ")");
-                        sent++;
-
-                        Thread.sleep(1000);
-
-                        long now = System.currentTimeMillis();
-                        if (now - lastKeepAlive > 30000) {
-                            emitter.send(SseEmitter.event().comment("keep-alive"));
-                            lastKeepAlive = now;
-                        }
-
-                        if (sent % 50 == 0 && sent < managerIds.size()) {
-                            for (int remaining = 90; remaining > 0; remaining--) {
-                                send(emitter, "⏳ " + sent + " Mails versendet, warte " + remaining + " Sekunden...");
-                                Thread.sleep(1000);
-                            }
-                            send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
-                            lastKeepAlive = System.currentTimeMillis();
-                        }
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        send(emitter, "✗ Versand unterbrochen: " + e.getMessage());
-                        failed++;
-                        break;
-                    } catch (Exception e) {
-                        send(emitter, "✗ [" + manager.getId() + "] " + buildManagerDisplayName(manager) + " (" + recipientEmail + "): " + e.getMessage());
-                        failed++;
-                        log.error("Fehler beim Senden des Transparenz-Reports an {}", recipientEmail, e);
-                    }
+                } catch (Exception e) {
+                    send(emitter, "✗ Versand fehlgeschlagen: " + e.getMessage());
+                    log.error("Fehler beim Senden des Transparenz-Reports", e);
                 }
 
                 send(emitter, "");
-                send(emitter, "Fertig: " + sent + " versendet, " + failed + " fehlgeschlagen." + (testMode ? " (TEST-MODUS)" : ""));
+                send(emitter, "Fertig." + (testMode ? " (TEST-MODUS)" : ""));
                 emitter.send(SseEmitter.event().name("complete").data(""));
                 emitter.complete();
             } catch (Exception e) {

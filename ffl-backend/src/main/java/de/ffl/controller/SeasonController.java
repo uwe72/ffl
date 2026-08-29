@@ -443,7 +443,7 @@ public class SeasonController {
     @PreAuthorize("hasRole('ADMIN')")
     public SseEmitter streamTransparencyMail(
             @PathVariable Long id,
-            @RequestParam List<Long> managerIds,
+            @RequestParam List<String> emails,
             @RequestParam(required = false, defaultValue = "false") boolean testMode) {
         if (!seasonRepository.existsById(id)) {
             SseEmitter emitter = new SseEmitter();
@@ -453,7 +453,7 @@ public class SeasonController {
             } catch (Exception ignored) {}
             return emitter;
         }
-        return seasonTransparencyMailService.streamTransparencyMail(id, managerIds, testMode);
+        return seasonTransparencyMailService.streamTransparencyMail(id, emails, testMode);
     }
 
     @PostMapping("/{id}/players-pdf")

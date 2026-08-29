@@ -5,7 +5,7 @@ interface TransparencyMailProgressDialogProps {
   isOpen: boolean
   onClose: () => void
   seasonId: number
-  managerIds: number[]
+  emails: string[]
   testMode?: boolean
 }
 
@@ -13,7 +13,7 @@ export default function TransparencyMailProgressDialog({
   isOpen,
   onClose,
   seasonId,
-  managerIds,
+  emails,
   testMode,
 }: TransparencyMailProgressDialogProps) {
   const [logs, setLogs] = useState<string[]>([])
@@ -31,7 +31,7 @@ export default function TransparencyMailProgressDialog({
 
     const token = localStorage.getItem('token')
     const params = new URLSearchParams({
-      managerIds: managerIds.join(','),
+      emails: emails.join(','),
     })
     if (token) params.set('token', token)
     if (testMode) params.set('testMode', 'true')

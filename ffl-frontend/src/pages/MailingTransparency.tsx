@@ -44,8 +44,10 @@ export default function MailingTransparency() {
               Der Transparenz-Report wird zu Beginn der Saison einmalig an alle Manager versendet. Er enthält
               für jeden Manager den kompletten Kader (positionsfarbig gruppiert) sowie eine Tabelle aller
               verwendeten Spieler mit der Anzahl der Manager, die ihn aufgestellt haben. Der Betreff lautet
-              immer <strong>FFL | Transparenz-Report Saison {season.name}</strong>. Sende zuerst eine Testmail
-              an die Admin-Adresse oder öffne die Vorschau, um das Ergebnis zu prüfen.
+              immer <strong>FFL | Transparenz-Report Saison {season.name}</strong>. Empfänger werden als
+              <strong> eine BCC-Mail</strong> an alle ausgewählten E-Mail-Adressen versendet; doppelte Adressen
+              werden nur einmal berücksichtigt. Sende zuerst eine Testmail an die Admin-Adresse oder öffne die
+              Vorschau, um das Ergebnis zu prüfen.
             </p>
           </div>
         </FormCard>
@@ -70,7 +72,7 @@ export default function MailingTransparency() {
           variant="emphasized"
           onClick={() => setShowSendDialog(true)}
         >
-          An Manager senden
+          An E-Mail-Adressen senden
         </Button>
       </div>
 
