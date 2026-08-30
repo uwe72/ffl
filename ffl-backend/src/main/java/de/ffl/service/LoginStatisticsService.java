@@ -9,6 +9,8 @@ import de.ffl.repository.LoginLogRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -29,6 +31,7 @@ public class LoginStatisticsService {
         this.loginLogRepository = loginLogRepository;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recordLogin(User user) {
         try {
             loginLogRepository.save(LoginLog.builder()

@@ -113,7 +113,11 @@ public class AuthController {
         User user = userRepository.findByLoginIgnoreCase(request.getLogin()).orElseThrow();
         log.info("login successful: {} {} ({})", user.getFirstName(), user.getLastName(), user.getLogin());
         if (user.getRole() == UserRole.NORMAL) {
-            loginStatisticsService.recordLogin(user);
+            try {
+                loginStatisticsService.recordLogin(user);
+            } catch (Exception e) {
+                log.warn("Login konnte nicht protokolliert werden für user={}", user.getLogin(), e);
+            }
         }
         return ResponseEntity.ok(new AuthResponse(jwt, refreshToken, user.getLogin(), user.getRole().name()));
     }
