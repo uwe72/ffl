@@ -70,9 +70,9 @@ class AuthControllerLoginTest {
         SecurityContextHolder.clearContext();
     }
 
-    private User user(UserRole role) {
+    private User user(String login, UserRole role) {
         return User.builder()
-            .login("uwe72")
+            .login(login)
             .firstName("Uwe")
             .lastName("Muster")
             .role(role)
@@ -84,37 +84,37 @@ class AuthControllerLoginTest {
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
         when(tokenProvider.generateToken(authentication)).thenReturn("jwt");
         when(tokenProvider.generateRefreshToken(anyString(), anyString())).thenReturn("refresh");
-        when(userRepository.findByLogin("uwe72")).thenReturn(Optional.of(user));
-        when(userRepository.findByLoginIgnoreCase("uwe72")).thenReturn(Optional.of(user));
+        when(userRepository.findByLogin(user.getLogin())).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIgnoreCase(user.getLogin())).thenReturn(Optional.of(user));
     }
 
-    private LoginRequest request() {
+    private LoginRequest request(String login) {
         LoginRequest request = new LoginRequest();
-        request.setLogin("uwe72");
+        request.setLogin(login);
         request.setPassword("password123");
         return request;
     }
 
     @Test
     void login_normalUser_recordsLoginAndReturnsOk() {
-        User user = user(UserRole.NORMAL);
+        User user = user("alice", UserRole.NORMAL);
         stubSuccessfulLogin(user);
 
-        ResponseEntity<?> response = authController.login(request());
+        ResponseEntity<?> response = authController.login(request("alice"));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isInstanceOf(AuthResponse.class);
-        assertThat(((AuthResponse) response.getBody()).getLogin()).isEqualTo("uwe72");
+        assertThat(((AuthResponse) response.getBody()).getLogin()).isEqualTo("alice");
         verify(loginStatisticsService).recordLogin(user);
     }
 
     @Test
     void login_recordLoginFails_loginStillSucceeds() {
-        User user = user(UserRole.NORMAL);
+        User user = user("alice", UserRole.NORMAL);
         stubSuccessfulLogin(user);
         doThrow(new RuntimeException("db down")).when(loginStatisticsService).recordLogin(user);
 
-        ResponseEntity<?> response = authController.login(request());
+        ResponseEntity<?> response = authController.login(request("alice"));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isInstanceOf(AuthResponse.class);
@@ -122,12 +122,24 @@ class AuthControllerLoginTest {
 
     @Test
     void login_adminUser_doesNotRecordLogin() {
-        User user = user(UserRole.ADMIN);
+        User user = user("uwe72", UserRole.ADMIN);
         stubSuccessfulLogin(user);
 
-        ResponseEntity<?> response = authController.login(request());
+        ResponseEntity<?> response = authController.login(request("uwe72"));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(loginStatisticsService, never()).recordLogin(any());
+    }
+
+    @Test
+    void login_excludedNormalUser_doesNotRecordLogin() {
+        User user = user("uwe72", UserRole.NORMAL);
+        stubSuccessfulLogin(user);
+
+        ResponseEntity<?> response = authController.login(request("uwe72"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isInstanceOf(AuthResponse.class);
         verify(loginStatisticsService, never()).recordLogin(any());
     }
 }
