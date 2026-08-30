@@ -336,27 +336,29 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                   </select>
                 </div>
               </div>
-              <label className="flex items-center gap-2 text-sm text-foreground">
-                <input
-                  type="checkbox"
-                  checked={q.required}
-                  onChange={e => setQuestion(qIndex, { required: e.target.checked })}
-                  className="h-4 w-4 accent-accent"
-                />
-                Pflichtfrage
-              </label>
-              {(q.type === 'TEXTFIELD' || q.type === 'TEXTAREA') && (
-                <div>
-                  <label className="block text-sm text-muted mb-1">Max. Länge (Zeichen)</label>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                <label className="flex items-center gap-2 text-sm text-foreground">
                   <input
-                    type="number"
-                    min={1}
-                    value={q.maxLength ?? ''}
-                    onChange={e => setQuestion(qIndex, { maxLength: e.target.value === '' ? null : Number(e.target.value) })}
-                    className="input-field control w-40"
+                    type="checkbox"
+                    checked={q.required}
+                    onChange={e => setQuestion(qIndex, { required: e.target.checked })}
+                    className="h-4 w-4 accent-accent"
                   />
-                </div>
-              )}
+                  Pflichtfrage
+                </label>
+                {(q.type === 'TEXTFIELD' || q.type === 'TEXTAREA') && (
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-muted whitespace-nowrap">Max. Länge (Zeichen)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={q.maxLength ?? ''}
+                      onChange={e => setQuestion(qIndex, { maxLength: e.target.value === '' ? null : Number(e.target.value) })}
+                      className="input-field control w-32"
+                    />
+                  </div>
+                )}
+              </div>
               {(q.type === 'SINGLE' || q.type === 'MULTI') && (
                 <div className="flex flex-col gap-2">
                   <label className="text-sm text-muted">Optionen</label>
