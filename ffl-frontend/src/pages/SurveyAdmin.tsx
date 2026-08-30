@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSurveys, useCreateSurvey, useUpdateSurvey, useDeleteSurvey, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
 import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import Button from '../components/Button'
@@ -191,6 +191,16 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       : { title: '', description: '', questions: [] },
   )
   const [error, setError] = useState<string | null>(null)
+  const optionRefs = useRef<Record<number, Record<number, HTMLInputElement | null>>>({})
+  const pendingOptionFocus = useRef<{ qIndex: number; oIndex: number } | null>(null)
+
+  useEffect(() => {
+    if (pendingOptionFocus.current) {
+      const { qIndex, oIndex } = pendingOptionFocus.current
+      optionRefs.current[qIndex]?.[oIndex]?.focus()
+      pendingOptionFocus.current = null
+    }
+  })
 
   const setQuestion = (index: number, patch: Partial<DraftQuestion>) => {
     setDraft(prev => ({
@@ -217,10 +227,12 @@ function SurveyEditor({ existing, isNew, onCancel }: {
   }
 
   const addOption = (qIndex: number) => {
+    const newIndex = draft.questions[qIndex].options.length
     setDraft(prev => ({
       ...prev,
       questions: prev.questions.map((q, i) => (i === qIndex ? { ...q, options: [...q.options, ''] } : q)),
     }))
+    pendingOptionFocus.current = { qIndex, oIndex: newIndex }
   }
 
   const removeOption = (qIndex: number, oIndex: number) => {
@@ -287,7 +299,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
               type="text"
               value={draft.title}
               onChange={e => setDraft(prev => ({ ...prev, title: e.target.value }))}
-              className="input-field control w-full"
+              className="input-field control w-full px-3 py-2 rounded-control text-sm"
             />
           </div>
           <div>
@@ -296,7 +308,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
               value={draft.description}
               onChange={e => setDraft(prev => ({ ...prev, description: e.target.value }))}
               rows={2}
-              className="input-field control w-full resize-y"
+              className="input-field control w-full px-3 py-2 rounded-control text-sm resize-y"
             />
           </div>
         </div>
@@ -317,7 +329,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                     type="text"
                     value={q.text}
                     onChange={e => setQuestion(qIndex, { text: e.target.value })}
-                    className="input-field control w-full"
+                    className="input-field control w-full px-3 py-2 rounded-control text-sm"
                   />
                 </div>
                 <div>
@@ -328,7 +340,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                       const type = e.target.value as QuestionType
                       setQuestion(qIndex, { type, maxLength: defaultMaxLength(type) })
                     }}
-                    className="input-field control w-full"
+                    className="input-field control w-full px-3 py-2 rounded-control text-sm"
                   >
                     {(Object.keys(TYPE_LABEL) as QuestionType[]).map(t => (
                       <option key={t} value={t}>{TYPE_LABEL[t]}</option>
@@ -336,25 +348,27 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                   </select>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                <label className="flex items-center gap-2 text-sm text-foreground">
-                  <input
-                    type="checkbox"
-                    checked={q.required}
-                    onChange={e => setQuestion(qIndex, { required: e.target.checked })}
-                    className="h-4 w-4 accent-accent"
-                  />
-                  Pflichtfrage
-                </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2 flex items-center">
+                  <label className="flex items-center gap-2 text-sm text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={q.required}
+                      onChange={e => setQuestion(qIndex, { required: e.target.checked })}
+                      className="h-4 w-4 accent-accent"
+                    />
+                    Pflichtfrage
+                  </label>
+                </div>
                 {(q.type === 'TEXTFIELD' || q.type === 'TEXTAREA') && (
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm text-muted whitespace-nowrap">Max. Länge (Zeichen)</label>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm text-muted">Max. Länge (Zeichen)</label>
                     <input
                       type="number"
                       min={1}
                       value={q.maxLength ?? ''}
                       onChange={e => setQuestion(qIndex, { maxLength: e.target.value === '' ? null : Number(e.target.value) })}
-                      className="input-field control w-32"
+                      className="input-field control w-full px-3 py-2 rounded-control text-sm"
                     />
                   </div>
                 )}
@@ -366,14 +380,18 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                     <div key={oIndex} className="flex items-center gap-2">
                       <input
                         type="text"
+                        ref={el => {
+                          if (!optionRefs.current[qIndex]) optionRefs.current[qIndex] = {}
+                          optionRefs.current[qIndex][oIndex] = el
+                        }}
                         value={opt}
                         onChange={e => setOption(qIndex, oIndex, e.target.value)}
-                        className="input-field control w-full"
+                        className="input-field control w-full px-3 py-2 rounded-control text-sm"
                       />
                       <Button variant="negative" size="sm" onClick={() => removeOption(qIndex, oIndex)}>×</Button>
                     </div>
                   ))}
-                  <Button variant="secondary" size="compact" className="self-start" onClick={() => addOption(qIndex)}>
+                  <Button variant="ghost" size="compact" className="self-start" onClick={() => addOption(qIndex)}>
                     + Option
                   </Button>
                 </div>
@@ -384,7 +402,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       </div>
 
       <div className="mt-4">
-        <Button variant="secondary" size="compact" onClick={addQuestion}>
+        <Button variant="ghost" size="compact" onClick={addQuestion}>
           + Frage hinzufügen
         </Button>
       </div>
