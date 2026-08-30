@@ -1167,15 +1167,15 @@ public class MatchdayMailTransactionService {
             }
             sb.append("</td>");
 
-            sb.append("<td align=\"center\" style=\"padding:7px 6px;").append(cellBorder).append("\">");
             if (showHalfBadge) {
+                sb.append("<td align=\"center\" style=\"padding:7px 6px;").append(cellBorder).append("\">");
                 if (e.activeHinrunde && !e.activeRueckrunde) {
                     sb.append("<span style=\"display:inline-block;background:#0A84FF;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">HR</span>");
                 } else if (e.activeRueckrunde && !e.activeHinrunde) {
                     sb.append("<span style=\"display:inline-block;background:#BF5AF2;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">RR</span>");
                 }
+                sb.append("</td>");
             }
-            sb.append("</td>");
             sb.append("</tr>");
         }
         sb.append("</table>");
