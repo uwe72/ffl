@@ -65,18 +65,6 @@ public class DocumentController {
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/api/public/documents/{token}")
-    public ResponseEntity<byte[]> getPublicDocumentContent(@PathVariable String token) {
-        return documentService.findFileDataByShareToken(token)
-            .map(doc -> ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(doc.getContentType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                    "inline; filename=\"" + URLEncoder.encode(doc.getFilename(), StandardCharsets.UTF_8) + "\"")
-                .header(HttpHeaders.CACHE_CONTROL, "no-cache")
-                .body(doc.getData()))
-            .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> uploadDocument(@RequestParam("file") MultipartFile file) {

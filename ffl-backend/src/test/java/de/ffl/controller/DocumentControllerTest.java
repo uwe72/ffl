@@ -150,29 +150,6 @@ class DocumentControllerTest {
     }
 
     @Test
-    void getPublicDocumentContent_knownToken_returnsOk() {
-        Document doc = sampleEntity();
-        doc.setShareToken("abc-123");
-        when(documentService.findFileDataByShareToken("abc-123")).thenReturn(Optional.of(doc));
-
-        ResponseEntity<byte[]> response = documentController.getPublicDocumentContent("abc-123");
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).hasSize(4);
-        assertThat(response.getHeaders().getContentType().toString()).isEqualTo("application/pdf");
-        assertThat(response.getHeaders().getFirst("Content-Disposition")).contains("inline");
-    }
-
-    @Test
-    void getPublicDocumentContent_unknownToken_returnsNotFound() {
-        when(documentService.findFileDataByShareToken("unknown")).thenReturn(Optional.empty());
-
-        ResponseEntity<byte[]> response = documentController.getPublicDocumentContent("unknown");
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-    }
-
-    @Test
     void getDocumentById_anonymous_runningSeason_returnsUnauthorized() {
         setAnonymous();
         mockSeasonState(SeasonState.RUNNING_HINRUNDE);
