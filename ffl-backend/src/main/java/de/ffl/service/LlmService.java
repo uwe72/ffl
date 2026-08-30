@@ -68,7 +68,6 @@ public class LlmService {
 
         Map<String, Object> body = Map.of(
             "model", effectiveModel,
-            "temperature", 0.7,
             "max_tokens", 400,
             "messages", List.of(
                 Map.of("role", "system", "content", effectiveStyle),
