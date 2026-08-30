@@ -203,7 +203,7 @@ export default function SurveyPublic() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto mt-6 px-4">
+    <div>
       <SurveyHero title={survey.title} subtitle={survey.description} />
 
       <div className="p-6 bg-surface border border-border rounded-card">
@@ -303,7 +303,7 @@ function PublicResults({ title, description, responseCount, questions }: {
 }) {
   const maxCount = Math.max(1, ...questions.flatMap(q => q.counts?.map(c => c.count) ?? [q.answerCount ?? 0]))
   return (
-    <div className="max-w-2xl mx-auto mt-6 px-4">
+    <div>
       <SurveyHero title={title} subtitle={description} />
 
       <div className="p-6 bg-surface border border-border rounded-card">
