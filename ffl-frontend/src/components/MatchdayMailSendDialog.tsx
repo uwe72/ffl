@@ -297,7 +297,6 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                     <th className="py-2">Name</th>
                     <th className="py-2">Login</th>
                     <th className="py-2">E-Mail</th>
-                    <th className="py-2">Theme</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -329,13 +328,12 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                         <td className="py-2 text-muted">
                           {m.email || <em>keine Mailadresse</em>}
                         </td>
-                        <td className="py-2 text-muted">{m.mailTheme || 'LIGHTMODE'}</td>
                       </tr>
                     )
                   })}
                   {availableManagers.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-4 text-center text-muted">
+                      <td colSpan={5} className="py-4 text-center text-muted">
                         Keine Manager gefunden.
                       </td>
                     </tr>

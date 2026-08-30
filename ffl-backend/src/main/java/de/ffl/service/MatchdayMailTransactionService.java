@@ -339,7 +339,7 @@ public class MatchdayMailTransactionService {
                     MimeMessage msg = mailSender.createMimeMessage();
                     MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
                     helper.setFrom(config.getGmailSenderEmail());
-                    helper.setTo(recipientEmail);
+                    helper.setTo(testMode ? config.getGmailSenderEmail() : recipientEmail);
                     String managerName = manager.getName();
                     String fullName = buildManagerDisplayName(manager);
                     String subject = "FFL | " + season.getName() + " | " + roundNumber + ". Spieltag | " + fullName + " (" + managerName + ")";
@@ -361,10 +361,8 @@ public class MatchdayMailTransactionService {
                         manager.getMailTheme(), paymentReminder);
 
                     helper.setText(html, true);
-                    if (!testMode) {
-                        mailSender.send(msg);
-                    }
-                    send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + recipientEmail + ") " + (manager.getMailTheme() != null ? manager.getMailTheme().name() : "LIGHTMODE"));
+                    mailSender.send(msg);
+                    send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + (testMode ? config.getGmailSenderEmail() : recipientEmail) + ") " + (manager.getMailTheme() != null ? manager.getMailTheme().name() : "LIGHTMODE"));
                     sent++;
 
                     Thread.sleep(1000);
