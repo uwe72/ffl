@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSurveys, useCreateSurvey, useUpdateSurvey, useDeleteSurvey, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
+import { useSurveys, useCreateSurvey, useUpdateSurvey, useReviseSurvey, useCopySurvey, useDeleteSurvey, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
 import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import Button from '../components/Button'
 import SurveyHero from '../components/SurveyHero'
@@ -58,6 +58,7 @@ export default function SurveyAdmin() {
   const { data: surveys, isLoading } = useSurveys()
   const statusAction = useSurveyStatusAction()
   const deleteMutation = useDeleteSurvey()
+  const copyMutation = useCopySurvey()
   const [mode, setMode] = useState<'list' | 'edit' | 'result'>('list')
   const [editing, setEditing] = useState<SurveyAdmin | null>(null)
   const [isNew, setIsNew] = useState(false)
@@ -73,6 +74,12 @@ export default function SurveyAdmin() {
     if (!window.confirm('Möchtest du diese Umfrage wirklich löschen?')) return
     deleteMutation.mutate(id, {
       onError: err => alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen'),
+    })
+  }
+
+  const copy = (id: number) => {
+    copyMutation.mutate(id, {
+      onError: err => alert(err instanceof Error ? err.message : 'Kopieren fehlgeschlagen'),
     })
   }
 
@@ -137,23 +144,30 @@ export default function SurveyAdmin() {
                     <>
                       <Button variant="secondary" size="compact" onClick={() => startEdit(s)}>Bearbeiten</Button>
                       <Button variant="emphasized" size="compact" onClick={() => changeStatus(s.id, 'start')}>Starten</Button>
+                      <Button variant="secondary" size="compact" onClick={() => copy(s.id)}>Kopieren</Button>
                       <Button variant="negative" size="compact" onClick={() => remove(s.id)}>Löschen</Button>
                     </>
                   )}
                   {s.status === 'GESTARTET' && (
                     <>
+                      <Button variant="secondary" size="compact" onClick={() => startEdit(s)}>Bearbeiten</Button>
                       <Button variant="secondary" size="compact" onClick={() => showResults(s.id)}>Ergebnisse</Button>
                       <Button variant="emphasized" size="compact" onClick={() => changeStatus(s.id, 'end')}>Beenden</Button>
+                      <Button variant="secondary" size="compact" onClick={() => copy(s.id)}>Kopieren</Button>
                     </>
                   )}
                   {s.status === 'BEENDET' && (
                     <>
                       <Button variant="secondary" size="compact" onClick={() => showResults(s.id)}>Ergebnisse</Button>
                       <Button variant="emphasized" size="compact" onClick={() => changeStatus(s.id, 'publish')}>Veröffentlichen</Button>
+                      <Button variant="secondary" size="compact" onClick={() => copy(s.id)}>Kopieren</Button>
                     </>
                   )}
                   {s.status === 'VEROEFFENTLICHT' && (
-                    <Button variant="secondary" size="compact" onClick={() => showResults(s.id)}>Ergebnisse</Button>
+                    <>
+                      <Button variant="secondary" size="compact" onClick={() => showResults(s.id)}>Ergebnisse</Button>
+                      <Button variant="secondary" size="compact" onClick={() => copy(s.id)}>Kopieren</Button>
+                    </>
                   )}
                 </div>
               </div>
@@ -172,6 +186,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
 }) {
   const create = useCreateSurvey()
   const update = useUpdateSurvey()
+  const revise = useReviseSurvey()
   const [draft, setDraft] = useState<Draft>(() =>
     existing
       ? {
@@ -265,12 +280,20 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       return
     }
     setError(null)
+    const isStarted = existing?.status === 'GESTARTET'
+    if (isStarted && !window.confirm('Durch das Speichern werden alle bisherigen Antworten gelöscht. Fortfahren?')) {
+      return
+    }
     try {
       const payload = { title: draft.title, description: draft.description, questions }
       if (isNew) {
         await create.mutateAsync(payload)
       } else if (existing) {
-        await update.mutateAsync({ id: existing.id, data: payload })
+        if (isStarted) {
+          await revise.mutateAsync({ id: existing.id, data: payload })
+        } else {
+          await update.mutateAsync({ id: existing.id, data: payload })
+        }
       }
       onCancel()
     } catch (e) {
@@ -287,6 +310,12 @@ function SurveyEditor({ existing, isNew, onCancel }: {
           Zurück
         </Button>
       </div>
+
+      {existing?.status === 'GESTARTET' && (
+        <div className="mb-4 p-3 rounded-control border border-warning/30 bg-warning-bg text-warning text-sm">
+          Diese Umfrage ist bereits gestartet. Beim Speichern werden alle bisherigen Antworten gelöscht.
+        </div>
+      )}
 
       <div className="p-6 bg-surface border border-border rounded-card">
         <div className="flex flex-col gap-4">

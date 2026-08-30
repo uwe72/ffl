@@ -261,4 +261,62 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         submit(dto.getId(), List.of(answer(qid, null, "ok")));
         assertThat(surveyService.getResult(dto.getId()).getResponseCount()).isEqualTo(1);
     }
+
+    @Test
+    void reviseSurvey_updatesQuestionsAndResetsResponses() {
+        SurveyAdminDto dto = createStartedSurvey();
+        Long oldQid = dto.getQuestions().get(0).getId();
+        Long singleId = dto.getQuestions().get(1).getId();
+        Long singleYes = dto.getQuestions().get(1).getOptions().get(0).getId();
+        submit(dto.getId(), List.of(answer(oldQid, null, "4"), answer(singleId, List.of(singleYes), null)));
+        assertThat(surveyService.getResult(dto.getId()).getResponseCount()).isEqualTo(1);
+
+        SurveyCreateRequest revised = new SurveyCreateRequest();
+        revised.setTitle("Überarbeitet");
+        revised.setDescription("Neue Beschreibung");
+        SurveyQuestionRequest newQ = new SurveyQuestionRequest();
+        newQ.setType(QuestionType.TEXTAREA);
+        newQ.setText("Neue Frage");
+        revised.setQuestions(List.of(newQ));
+
+        SurveyAdminDto updated = surveyService.reviseSurvey(dto.getId(), revised);
+        assertThat(updated.getTitle()).isEqualTo("Überarbeitet");
+        assertThat(updated.getStatus()).isEqualTo(SurveyStatus.GESTARTET);
+        assertThat(updated.getQuestions()).hasSize(1);
+        assertThat(updated.getQuestions().get(0).getText()).isEqualTo("Neue Frage");
+        assertThat(surveyService.getResult(dto.getId()).getResponseCount()).isZero();
+    }
+
+    @Test
+    void reviseSurvey_requiresStartedStatus() {
+        SurveyAdminDto dto = surveyService.createSurvey(fullSurveyRequest());
+        assertThatThrownBy(() -> surveyService.reviseSurvey(dto.getId(), fullSurveyRequest()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Nur gestartete");
+    }
+
+    @Test
+    void reviseSurvey_requiresAtLeastOneQuestion() {
+        SurveyAdminDto dto = createStartedSurvey();
+        SurveyCreateRequest empty = new SurveyCreateRequest();
+        empty.setTitle("Leer");
+        empty.setQuestions(List.of());
+        assertThatThrownBy(() -> surveyService.reviseSurvey(dto.getId(), empty))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("mindestens eine Frage");
+    }
+
+    @Test
+    void copySurvey_createsAngelegtCopyWithQuestions() {
+        SurveyAdminDto dto = createStartedSurvey();
+        SurveyAdminDto copy = surveyService.copySurvey(dto.getId());
+        assertThat(copy.getId()).isNotEqualTo(dto.getId());
+        assertThat(copy.getTitle()).isEqualTo("Kopie von " + dto.getTitle());
+        assertThat(copy.getStatus()).isEqualTo(SurveyStatus.ANGELEGT);
+        assertThat(copy.getQuestions()).hasSize(dto.getQuestions().size());
+        assertThat(copy.getQuestions().get(1).getType()).isEqualTo(QuestionType.SINGLE);
+        assertThat(copy.getQuestions().get(1).getOptions()).extracting(QuestionOptionDto::getText)
+            .containsExactly("Ja", "Nein");
+        assertThat(copy.getResponseCount()).isZero();
+    }
 }

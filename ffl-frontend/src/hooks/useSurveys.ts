@@ -58,6 +58,26 @@ export const useUpdateSurvey = () => {
   })
 }
 
+export const useReviseSurvey = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: SurveyCreateRequest }) =>
+      surveyApi.revise(id, data).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] })
+      queryClient.invalidateQueries({ queryKey: ['survey', 'active'] })
+    },
+  })
+}
+
+export const useCopySurvey = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => surveyApi.copy(id).then(res => res.data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['surveys'] }),
+  })
+}
+
 export const useDeleteSurvey = () => {
   const queryClient = useQueryClient()
   return useMutation({

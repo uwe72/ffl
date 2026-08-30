@@ -64,6 +64,48 @@ public class SurveyService {
     }
 
     @Transactional
+    public SurveyAdminDto reviseSurvey(Long id, SurveyCreateRequest request) {
+        Survey survey = requireSurvey(id);
+        if (survey.getStatus() != SurveyStatus.GESTARTET) {
+            throw new IllegalArgumentException("Nur gestartete Umfragen können überarbeitet werden");
+        }
+        if (request.getQuestions() == null || request.getQuestions().isEmpty()) {
+            throw new IllegalArgumentException("Die Umfrage benötigt mindestens eine Frage");
+        }
+        surveyResponseRepository.deleteBySurveyId(id);
+        survey.setTitle(request.getTitle());
+        survey.setDescription(request.getDescription());
+        survey.setUpdatedAt(LocalDateTime.now());
+        survey.getQuestions().clear();
+        applyQuestions(survey, request.getQuestions());
+        Survey saved = surveyRepository.save(survey);
+        return toAdminDto(saved, 0);
+    }
+
+    @Transactional
+    public SurveyAdminDto copySurvey(Long id) {
+        Survey source = requireSurvey(id);
+        SurveyCreateRequest request = new SurveyCreateRequest();
+        request.setTitle("Kopie von " + source.getTitle());
+        request.setDescription(source.getDescription());
+        request.setQuestions(source.getQuestions().stream()
+            .map(q -> {
+                SurveyQuestionRequest qr = new SurveyQuestionRequest();
+                qr.setType(q.getType());
+                qr.setText(q.getText());
+                qr.setOrderIndex(q.getOrderIndex());
+                qr.setRequired(q.getRequired());
+                qr.setMaxLength(q.getMaxLength());
+                qr.setOptions(q.getOptions().stream()
+                    .map(QuestionOption::getText)
+                    .toList());
+                return qr;
+            })
+            .toList());
+        return createSurvey(request);
+    }
+
+    @Transactional
     public void deleteSurvey(Long id) {
         Survey survey = requireSurvey(id);
         if (survey.getStatus() != SurveyStatus.ANGELEGT) {

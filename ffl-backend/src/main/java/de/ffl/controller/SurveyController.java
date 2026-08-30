@@ -42,6 +42,16 @@ public class SurveyController {
         return ResponseEntity.ok(surveyService.updateSurvey(id, request));
     }
 
+    @PostMapping("/{id}/revise")
+    public ResponseEntity<SurveyAdminDto> revise(@PathVariable Long id, @Valid @RequestBody SurveyCreateRequest request) {
+        return ResponseEntity.ok(surveyService.reviseSurvey(id, request));
+    }
+
+    @PostMapping("/{id}/copy")
+    public ResponseEntity<SurveyAdminDto> copy(@PathVariable Long id) {
+        return ResponseEntity.ok(surveyService.copySurvey(id));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         surveyService.deleteSurvey(id);
