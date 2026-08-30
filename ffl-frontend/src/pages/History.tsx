@@ -254,7 +254,7 @@ export default function History() {
                       <>
                         <td className="px-3 py-2 font-medium text-foreground">{isMobile ? shortSaison(entry.saison) : entry.saison}</td>
                         <td className="px-3 py-2 text-right text-foreground tabular-nums">{isMobile ? formatBudgetShort(entry.budget) : `${formatEuro(entry.budget)} €`}</td>
-                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{isMobile ? `# ${entry.anzahlManager}` : entry.anzahlManager}</td>
+                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{entry.anzahlManager}</td>
                         {isAdmin && (
                           <td className="px-3 py-2">
                             <div className="flex gap-2 justify-end">
