@@ -559,7 +559,7 @@ public class MatchdayMailTransactionService {
         roster.sort((a, b) -> Integer.compare(
             mePointsByPlayer.getOrDefault(b.player.getId(), 0),
             mePointsByPlayer.getOrDefault(a.player.getId(), 0)));
-        appendRosterTable(sb, roster, mePointsByPlayer, playerRankByPlayerId, teamsByPlayerId, roundNumber, transferRound, isDark, textPrimary, textSecondary, textTertiary, cardBg);
+        appendRosterTable(sb, roster, mePointsByPlayer, playerRankByPlayerId, teamsByPlayerId, roundNumber, transferRound, season.getSeasonState(), isDark, textPrimary, textSecondary, textTertiary, cardBg);
 
         if (rankingExcerpt != null && !rankingExcerpt.isEmpty()) {
             appendRankingTable(sb, rankingExcerpt, manager.getId(), prevRankByManagerId, managersById, isDark, textPrimary, textSecondary, textTertiary);
@@ -1057,7 +1057,8 @@ public class MatchdayMailTransactionService {
                                     Map<Long, PlayerRank> playerRankByPlayerId,
                                     Map<Long, List<Team>> teamsByPlayerId,
                                     int roundNumber, int transferRound,
-                                    boolean isDark, String textPrimary, String textSecondary, String textTertiary, String cardBg) {
+                                    SeasonState seasonState, boolean isDark, String textPrimary, String textSecondary, String textTertiary, String cardBg) {
+        boolean showHalfBadge = seasonState != SeasonState.RUNNING_HINRUNDE;
         boolean isRueckrundeCurrent = roundNumber >= transferRound;
         sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine ")
           .append(roster.size()).append(" Spieler</div>");
@@ -1090,11 +1091,12 @@ public class MatchdayMailTransactionService {
         sb.append("<th align=\"right\" style=\"padding:7px 10px 7px 6px;font-weight:500;");
         if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
         sb.append("\">Sp.</th>");
-        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">H/R</th>");
+        if (showHalfBadge) {
+            sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
+            if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
+            sb.append("\">H/R</th>");
+        }
         sb.append("</tr>");
-
         int rowIndex = 0;
         for (RosterEntry e : roster) {
             Player player = e.player;
@@ -1171,10 +1173,12 @@ public class MatchdayMailTransactionService {
             sb.append("</td>");
 
             sb.append("<td align=\"center\" style=\"padding:7px 6px;").append(cellBorder).append("\">");
-            if (e.activeHinrunde && !e.activeRueckrunde) {
-                sb.append("<span style=\"display:inline-block;background:#0A84FF;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">HR</span>");
-            } else if (e.activeRueckrunde && !e.activeHinrunde) {
-                sb.append("<span style=\"display:inline-block;background:#BF5AF2;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">RR</span>");
+            if (showHalfBadge) {
+                if (e.activeHinrunde && !e.activeRueckrunde) {
+                    sb.append("<span style=\"display:inline-block;background:#0A84FF;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">HR</span>");
+                } else if (e.activeRueckrunde && !e.activeHinrunde) {
+                    sb.append("<span style=\"display:inline-block;background:#BF5AF2;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">RR</span>");
+                }
             }
             sb.append("</td>");
             sb.append("</tr>");
