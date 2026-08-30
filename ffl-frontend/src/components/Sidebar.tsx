@@ -3,7 +3,6 @@ import { useLocation, Link } from 'react-router-dom'
 import SidebarItem from './SidebarItem'
 import InfoDialog from './InfoDialog'
 import { useAuth } from '../context/AuthContext'
-import { useFeedback } from '../context/FeedbackContext'
 import { useAvatar, useUploadAvatar } from '../hooks/useAvatar'
 import { useCurrentSeason } from '../hooks/useSeasons'
 
@@ -25,7 +24,6 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
   const [showGalleryHint, setShowGalleryHint] = useState(false)
   const { user, isAuthenticated, logout } = useAuth()
   const location = useLocation()
-  const { open: openFeedback } = useFeedback()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadAvatar = useUploadAvatar()
   const { data: avatarUrl } = useAvatar(user?.id ?? null)
@@ -72,14 +70,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
         )}
         <SidebarItem to="/documents" label="Dokumente" icon="sap-icon-documents" collapsed={collapsed} />
-        <button
-          onClick={openFeedback}
-          title={collapsed ? 'Feedback' : undefined}
-          className={`flex items-center gap-3 px-3 h-[38px] rounded-control transition-colors text-muted hover:bg-card-hover hover:text-primary w-full ${collapsed ? 'justify-center' : ''}`}
-        >
-          <i className="sap-icon sap-icon-discussion text-[18px] shrink-0" />
-          {!collapsed && <span className="text-sm font-medium">Feedback</span>}
-        </button>
+        <SidebarItem to="/feedback" label="Feedback" icon="sap-icon-discussion" collapsed={collapsed} />
         {canAccessGallery ? (
           <SidebarItem to="/manager-galerie" label="Galerie" icon="sap-icon-picture" collapsed={collapsed} />
         ) : (

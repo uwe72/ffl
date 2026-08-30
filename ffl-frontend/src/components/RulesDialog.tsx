@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react'
-import { useFeedback } from '../context/FeedbackContext'
+import { useNavigate } from 'react-router-dom'
 import Button from './Button'
 import RulesContent from './RulesContent'
 
@@ -11,7 +11,7 @@ interface Props {
 export default function RulesDialog({ isOpen, onClose }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
-  const { open: openFeedback } = useFeedback()
+  const navigate = useNavigate()
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -102,7 +102,7 @@ export default function RulesDialog({ isOpen, onClose }: Props) {
         </div>
 
         <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-border">
-          <Button variant="transparent" type="button" onClick={openFeedback}>
+          <Button variant="transparent" type="button" onClick={() => navigate('/feedback')}>
             <i className="sap-icon sap-icon-feedback text-[18px]" />
             Feedback
           </Button>

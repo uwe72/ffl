@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import { FeedbackProvider } from './context/FeedbackContext'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import Season from './pages/Season'
@@ -17,6 +16,7 @@ import ManagerGroupDetail from './pages/ManagerGroupDetail'
 import Documents from './pages/Documents'
 import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
+import Feedback from './pages/Feedback'
 import History from './pages/History'
 import Users from './pages/Users'
 import UserDetail from './pages/UserDetail'
@@ -49,8 +49,7 @@ function MatomoTracker() {
 function App() {
   return (
     <AuthProvider>
-      <FeedbackProvider>
-        <BrowserRouter>
+      <BrowserRouter>
         <MatomoTracker />
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -95,6 +94,7 @@ function App() {
                 <BeforeSeasonDetailRoute redirectTo="/players"><PlayerDetail /></BeforeSeasonDetailRoute>
               </ProtectedRoute>
             } />
+            <Route path="feedback" element={<Feedback />} />
             <Route path="managers" element={
               <ProtectedRoute>
                 <Managers />
@@ -191,7 +191,6 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-      </FeedbackProvider>
     </AuthProvider>
   )
 }
