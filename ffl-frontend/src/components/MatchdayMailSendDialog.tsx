@@ -25,11 +25,13 @@ function useIsMobile() {
 
 function ManagerCard({
   manager,
+  position,
   isSelected,
   hasEmail,
   onToggle,
 }: {
   manager: Manager
+  position: number
   isSelected: boolean
   hasEmail: boolean
   onToggle: () => void
@@ -48,7 +50,7 @@ function ManagerCard({
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-subtle font-mono">#{manager.id}</span>
+            <span className="text-xs text-subtle font-mono">#{position}</span>
             <div className="font-semibold text-foreground truncate">{displayName}</div>
           </div>
           {manager.shortName && (
@@ -88,8 +90,8 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
   const [searchTerm, setSearchTerm] = useState('')
   const [adminFilter, setAdminFilter] = useState(false)
   const [comment, setComment] = useState('')
-  const [rangeFromId, setRangeFromId] = useState('')
-  const [rangeToId, setRangeToId] = useState('')
+  const [rangeFrom, setRangeFrom] = useState('')
+  const [rangeTo, setRangeTo] = useState('')
   const [testMode, setTestMode] = useState(false)
 
   useEffect(() => {
@@ -157,13 +159,16 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
   }
 
   const selectRange = () => {
-    const fromId = parseInt(rangeFromId, 10)
-    const toId = parseInt(rangeToId, 10)
-    if (isNaN(fromId) || isNaN(toId)) return
-    const minId = Math.min(fromId, toId)
-    const maxId = Math.max(fromId, toId)
-    const idsToSelect = eligibleManagers
-      .filter((m) => m.id >= minId && m.id <= maxId)
+    const from = parseInt(rangeFrom, 10)
+    const to = parseInt(rangeTo, 10)
+    if (isNaN(from) || isNaN(to)) return
+    const min = Math.min(from, to)
+    const max = Math.max(from, to)
+    const idsToSelect = availableManagers
+      .filter((m, i) => {
+        const pos = i + 1
+        return pos >= min && pos <= max && !!m.email
+      })
       .map((m) => m.id)
     setSelectedManagerIds((prev) => [...new Set([...prev, ...idsToSelect])])
   }
@@ -244,24 +249,24 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
             <span className="text-sm text-muted">Bereich selektieren:</span>
             <input
               type="number"
-              placeholder="Von ID"
-              value={rangeFromId}
-              onChange={(e) => setRangeFromId(e.target.value)}
+              placeholder="Von Nr."
+              value={rangeFrom}
+              onChange={(e) => setRangeFrom(e.target.value)}
               className="input-field w-24 px-3 py-2 focus:outline-none"
             />
             <span className="text-muted">-</span>
             <input
               type="number"
-              placeholder="Bis ID"
-              value={rangeToId}
-              onChange={(e) => setRangeToId(e.target.value)}
+              placeholder="Bis Nr."
+              value={rangeTo}
+              onChange={(e) => setRangeTo(e.target.value)}
               className="input-field w-24 px-3 py-2 focus:outline-none"
             />
             <Button
               variant="ghost"
               size="sm"
               onClick={selectRange}
-              disabled={!rangeFromId || !rangeToId}
+              disabled={!rangeFrom || !rangeTo}
             >
               Selektieren
             </Button>
@@ -269,12 +274,13 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
 
           {isMobile ? (
             <div className="grid gap-3 max-h-[300px] overflow-y-auto">
-              {availableManagers.map((m) => {
+              {availableManagers.map((m, idx) => {
                 const hasEmail = !!m.email
                 return (
                   <ManagerCard
                     key={m.id}
                     manager={m}
+                    position={idx + 1}
                     isSelected={selectedManagerIds.includes(m.id)}
                     hasEmail={hasEmail}
                     onToggle={() => toggleOne(m.id)}
@@ -293,7 +299,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                 <thead className="sticky top-0 bg-surface">
                   <tr className="text-left text-muted border-b border-border">
                     <th className="py-2 w-10"></th>
-                    <th className="py-2 w-14 text-center">ID</th>
+                    <th className="py-2 w-14 text-center">Nr.</th>
                     <th className="py-2">Name</th>
                     <th className="py-2">Login</th>
                     <th className="py-2">E-Mail</th>
@@ -322,7 +328,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
                             className="w-4 h-4 accent-accent"
                           />
                         </td>
-                        <td className="py-2 text-center text-subtle font-mono text-xs">{m.id}</td>
+                        <td className="py-2 text-center text-subtle font-mono text-xs">{idx + 1}</td>
                         <td className="py-2 text-foreground">{displayName}</td>
                         <td className="py-2 text-muted">{m.login || '-'}</td>
                         <td className="py-2 text-muted">
