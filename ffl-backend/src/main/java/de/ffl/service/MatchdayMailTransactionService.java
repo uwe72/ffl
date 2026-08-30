@@ -511,7 +511,7 @@ public class MatchdayMailTransactionService {
             sb.append("<div style=\"").append(cardStyle).append("\">");
             sb.append("<div style=\"").append(bigNum).append("\">").append(nz(ownDayRank.getPointsTotal()));
             if (ownDayRank.getPointsRound() != null && ownDayRank.getPointsRound() > 0) {
-                sb.append("<span style=\"").append(badgeUp).append("\">\u2191").append(ownDayRank.getPointsRound()).append("</span>");
+                sb.append("<span style=\"").append(badgeUp).append("\">+").append(ownDayRank.getPointsRound()).append("</span>");
             }
             sb.append("</div>");
             sb.append("<div style=\"").append(label).append("\">Punkte gesamt</div>");
@@ -525,9 +525,9 @@ public class MatchdayMailTransactionService {
             if (prevRank != null && prevRank.getPositionTotal() != null) {
                 int diff = prevRank.getPositionTotal() - ownDayRank.getPositionTotal();
                 if (diff > 0) {
-                    sb.append("<span style=\"").append(badgeUp).append("\">\u2191").append(diff).append("</span>");
+                    sb.append("<span style=\"").append(badgeUp).append("\">+").append(diff).append("</span>");
                 } else if (diff < 0) {
-                    sb.append("<span style=\"").append(badgeDown).append("\">\u2193").append(Math.abs(diff)).append("</span>");
+                    sb.append("<span style=\"").append(badgeDown).append("\">-").append(Math.abs(diff)).append("</span>");
                 }
             }
             sb.append("</div>");
