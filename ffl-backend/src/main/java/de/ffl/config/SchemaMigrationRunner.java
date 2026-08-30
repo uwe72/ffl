@@ -35,6 +35,10 @@ public class SchemaMigrationRunner implements CommandLineRunner {
             migrations.add("ALTER TABLE ffl_deposit ADD CONSTRAINT ffl_deposit_payment_method_check " +
                     "CHECK (payment_method IN ('PAYPAL','UEBERWEISUNG','OTHER') OR payment_method IS NULL)");
 
+            migrations.add("UPDATE ffl_survey_question SET type = 'TEXTAREA' WHERE type = 'FREETEXT'");
+            migrations.add("UPDATE ffl_survey_question SET max_length = 255 WHERE type = 'TEXTFIELD' AND max_length IS NULL");
+            migrations.add("UPDATE ffl_survey_question SET max_length = 4000 WHERE type = 'TEXTAREA' AND max_length IS NULL");
+
             if (columnExists(conn, "ffl_manager", "name")) {
                 migrations.add("ALTER TABLE ffl_manager DROP COLUMN IF EXISTS name");
             }
