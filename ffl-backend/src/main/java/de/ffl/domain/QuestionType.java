@@ -4,5 +4,6 @@ public enum QuestionType {
     RATING,
     SINGLE,
     MULTI,
-    FREETEXT
+    TEXTFIELD,
+    TEXTAREA
 }

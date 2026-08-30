@@ -14,7 +14,14 @@ const TYPE_LABEL: Record<QuestionType, string> = {
   RATING: 'Bewertung (1–5)',
   SINGLE: 'Einzelauswahl',
   MULTI: 'Mehrfachauswahl',
-  FREETEXT: 'Freitext',
+  TEXTFIELD: 'Textfeld',
+  TEXTAREA: 'Textarea',
+}
+
+function defaultMaxLength(type: QuestionType): number | null {
+  if (type === 'TEXTFIELD') return 255
+  if (type === 'TEXTAREA') return 4000
+  return null
 }
 
 function statusClass(status: string) {
@@ -36,6 +43,7 @@ interface DraftQuestion {
   type: QuestionType
   text: string
   required: boolean
+  maxLength: number | null
   options: string[]
 }
 
@@ -176,6 +184,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
             type: q.type,
             text: q.text,
             required: q.required,
+            maxLength: q.maxLength ?? defaultMaxLength(q.type),
             options: q.options.map(o => o.text),
           })),
         }
@@ -191,7 +200,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
   }
 
   const addQuestion = () => {
-    setDraft(prev => ({ ...prev, questions: [...prev.questions, { type: 'FREETEXT', text: '', required: false, options: [] }] }))
+    setDraft(prev => ({ ...prev, questions: [...prev.questions, { type: 'TEXTAREA', text: '', required: false, maxLength: 4000, options: [] }] }))
   }
 
   const removeQuestion = (index: number) => {
@@ -233,6 +242,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       text: q.text,
       orderIndex: i,
       required: q.required,
+      maxLength: q.type === 'TEXTFIELD' || q.type === 'TEXTAREA' ? q.maxLength : null,
       options: q.options.filter(o => o.trim() !== ''),
     }))
     const missing = questions.findIndex(q => !q.text.trim())
@@ -314,7 +324,10 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                   <label className="block text-sm text-muted mb-1">Typ</label>
                   <select
                     value={q.type}
-                    onChange={e => setQuestion(qIndex, { type: e.target.value as QuestionType })}
+                    onChange={e => {
+                      const type = e.target.value as QuestionType
+                      setQuestion(qIndex, { type, maxLength: defaultMaxLength(type) })
+                    }}
                     className="input-field control w-full"
                   >
                     {(Object.keys(TYPE_LABEL) as QuestionType[]).map(t => (
@@ -332,6 +345,18 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                 />
                 Pflichtfrage
               </label>
+              {(q.type === 'TEXTFIELD' || q.type === 'TEXTAREA') && (
+                <div>
+                  <label className="block text-sm text-muted mb-1">Max. Länge (Zeichen)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={q.maxLength ?? ''}
+                    onChange={e => setQuestion(qIndex, { maxLength: e.target.value === '' ? null : Number(e.target.value) })}
+                    className="input-field control w-40"
+                  />
+                </div>
+              )}
               {(q.type === 'SINGLE' || q.type === 'MULTI') && (
                 <div className="flex flex-col gap-2">
                   <label className="text-sm text-muted">Optionen</label>

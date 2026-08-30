@@ -41,6 +41,9 @@ public class Question {
     @Builder.Default
     private Boolean required = false;
 
+    @Column(name = "max_length")
+    private Integer maxLength;
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     @Builder.Default

@@ -40,7 +40,7 @@ function clearDraft(surveyId: number) {
 function isAnswered(question: SurveyQuestion, input: SurveyAnswerInput | undefined): boolean {
   if (!input) return false
   if (question.type === 'RATING') return !!input.value
-  if (question.type === 'FREETEXT') return !!input.value && input.value.trim() !== ''
+  if (question.type === 'TEXTFIELD' || question.type === 'TEXTAREA') return !!input.value && input.value.trim() !== ''
   return !!input.optionIds && input.optionIds.length > 0
 }
 
@@ -228,7 +228,7 @@ export default function SurveyPublic() {
                     {question.required && <span className="text-danger ml-1">*</span>}
                   </p>
                   <span className="text-xs text-subtle shrink-0 mt-0.5">
-                    {question.type === 'RATING' ? 'Bewertung' : question.type === 'SINGLE' ? 'Einzelauswahl' : question.type === 'MULTI' ? 'Mehrfachauswahl' : 'Freitext'}
+                    {question.type === 'RATING' ? 'Bewertung' : question.type === 'SINGLE' ? 'Einzelauswahl' : question.type === 'MULTI' ? 'Mehrfachauswahl' : question.type === 'TEXTFIELD' ? 'Textfeld' : 'Textarea'}
                   </span>
                 </div>
                 {question.type === 'RATING' && (
@@ -237,11 +237,22 @@ export default function SurveyPublic() {
                     onChange={v => setAnswers(prev => ({ ...prev, [question.id]: { questionId: question.id, value: v } }))}
                   />
                 )}
-                {question.type === 'FREETEXT' && (
+                {question.type === 'TEXTFIELD' && (
+                  <input
+                    type="text"
+                    value={input?.value ?? ''}
+                    onChange={e => setAnswers(prev => ({ ...prev, [question.id]: { questionId: question.id, value: e.target.value } }))}
+                    maxLength={question.maxLength ?? undefined}
+                    className="input-field control w-full"
+                    placeholder="Deine Antwort..."
+                  />
+                )}
+                {question.type === 'TEXTAREA' && (
                   <textarea
                     value={input?.value ?? ''}
                     onChange={e => setAnswers(prev => ({ ...prev, [question.id]: { questionId: question.id, value: e.target.value } }))}
                     rows={3}
+                    maxLength={question.maxLength ?? undefined}
                     className="input-field control w-full resize-y"
                     placeholder="Deine Antwort..."
                   />

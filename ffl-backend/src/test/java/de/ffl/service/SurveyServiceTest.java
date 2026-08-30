@@ -46,7 +46,7 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         multi.setOptions(List.of("Punkte", "Geld", "Regeln"));
 
         SurveyQuestionRequest free = new SurveyQuestionRequest();
-        free.setType(QuestionType.FREETEXT);
+        free.setType(QuestionType.TEXTAREA);
         free.setText("Anregungen");
         free.setOrderIndex(3);
 
@@ -219,5 +219,46 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         SurveyAnswerRequest req = new SurveyAnswerRequest();
         req.setAnswers(answers);
         surveyService.submitResponse(surveyId, req);
+    }
+
+    @Test
+    void textQuestions_applyDefaultMaxLength() {
+        SurveyCreateRequest req = new SurveyCreateRequest();
+        req.setTitle("Text");
+        SurveyQuestionRequest tf = new SurveyQuestionRequest();
+        tf.setType(QuestionType.TEXTFIELD);
+        tf.setText("Kurztext");
+        SurveyQuestionRequest ta = new SurveyQuestionRequest();
+        ta.setType(QuestionType.TEXTAREA);
+        ta.setText("Langtext");
+        ta.setMaxLength(100);
+        req.setQuestions(List.of(tf, ta));
+
+        SurveyAdminDto dto = surveyService.createSurvey(req);
+        assertThat(dto.getQuestions().get(0).getMaxLength()).isEqualTo(SurveyService.TEXTFIELD_MAX_LENGTH);
+        assertThat(dto.getQuestions().get(1).getMaxLength()).isEqualTo(100);
+    }
+
+    @Test
+    void textField_enforcesMaxLength() {
+        SurveyCreateRequest req = new SurveyCreateRequest();
+        req.setTitle("Kurz");
+        SurveyQuestionRequest tf = new SurveyQuestionRequest();
+        tf.setType(QuestionType.TEXTFIELD);
+        tf.setText("Kurztext");
+        tf.setRequired(true);
+        req.setQuestions(List.of(tf));
+
+        SurveyAdminDto dto = surveyService.createSurvey(req);
+        surveyService.startSurvey(dto.getId());
+        Long qid = dto.getQuestions().get(0).getId();
+
+        assertThatThrownBy(() -> submit(dto.getId(),
+            List.of(answer(qid, null, "x".repeat(SurveyService.TEXTFIELD_MAX_LENGTH + 1)))))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("maximal");
+
+        submit(dto.getId(), List.of(answer(qid, null, "ok")));
+        assertThat(surveyService.getResult(dto.getId()).getResponseCount()).isEqualTo(1);
     }
 }

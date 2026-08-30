@@ -15,5 +15,6 @@ public class SurveyQuestionPublicDto {
     private String text;
     private Integer orderIndex;
     private Boolean required;
+    private Integer maxLength;
     private List<QuestionOptionDto> options;
 }

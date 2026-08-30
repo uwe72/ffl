@@ -639,7 +639,7 @@ export interface SetupPreviewTeamBreakdown {
 }
 
 export type SurveyStatus = 'ANGELEGT' | 'GESTARTET' | 'BEENDET' | 'VEROEFFENTLICHT'
-export type QuestionType = 'RATING' | 'SINGLE' | 'MULTI' | 'FREETEXT'
+export type QuestionType = 'RATING' | 'SINGLE' | 'MULTI' | 'TEXTFIELD' | 'TEXTAREA'
 
 export interface SurveyQuestionOption {
   id: number
@@ -653,6 +653,7 @@ export interface SurveyQuestion {
   text: string
   orderIndex: number
   required: boolean
+  maxLength?: number | null
   options: SurveyQuestionOption[]
 }
 
@@ -680,6 +681,7 @@ export interface SurveyQuestionRequest {
   text: string
   orderIndex?: number
   required?: boolean
+  maxLength?: number | null
   options?: string[]
 }
 

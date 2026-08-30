@@ -19,6 +19,9 @@ import java.util.stream.Collectors;
 @Service
 public class SurveyService {
 
+    public static final int TEXTFIELD_MAX_LENGTH = 255;
+    public static final int TEXTAREA_MAX_LENGTH = 4000;
+
     private final SurveyRepository surveyRepository;
     private final SurveyResponseRepository surveyResponseRepository;
     private final SurveyNotificationService surveyNotificationService;
@@ -147,6 +150,7 @@ public class SurveyService {
                     .text(q.getText())
                     .orderIndex(q.getOrderIndex())
                     .required(q.getRequired())
+                    .maxLength(q.getMaxLength())
                     .options(q.getOptions().stream()
                         .map(o -> QuestionOptionDto.builder()
                             .id(o.getId())
@@ -242,13 +246,14 @@ public class SurveyService {
         }
         int qi = 0;
         for (SurveyQuestionRequest r : questionRequests) {
-            QuestionType type = r.getType() == null ? QuestionType.FREETEXT : r.getType();
+            QuestionType type = r.getType() == null ? QuestionType.TEXTAREA : r.getType();
             Question q = Question.builder()
                 .survey(survey)
                 .type(type)
                 .text(r.getText())
                 .orderIndex(r.getOrderIndex() != null ? r.getOrderIndex() : qi)
                 .required(r.getRequired() != null ? r.getRequired() : false)
+                .maxLength(r.getMaxLength() != null ? r.getMaxLength() : defaultMaxLength(type))
                 .options(new ArrayList<>())
                 .build();
             if (r.getOptions() != null) {
@@ -291,17 +296,27 @@ public class SurveyService {
             }
             case SINGLE -> buildSingleAnswer(q, input, response);
             case MULTI -> buildMultiAnswer(q, input, response);
-            case FREETEXT -> {
+            case TEXTFIELD, TEXTAREA -> {
                 if (input == null || input.getValue() == null || input.getValue().isBlank()) {
                     if (Boolean.TRUE.equals(q.getRequired())) {
                         throw new IllegalArgumentException("Pflichtfrage: " + q.getText());
                     }
                     return;
                 }
+                String value = input.getValue().trim();
+                int maxLength = q.getMaxLength() != null ? q.getMaxLength() : defaultMaxLength(q.getType());
+                if (value.length() > maxLength) {
+                    throw new IllegalArgumentException("Antwort für Frage \"" + q.getText() + "\" darf maximal "
+                        + maxLength + " Zeichen lang sein");
+                }
                 response.getAnswers().add(Answer.builder()
-                    .surveyResponse(response).question(q).value(input.getValue().trim()).build());
+                    .surveyResponse(response).question(q).value(value).build());
             }
         }
+    }
+
+    private int defaultMaxLength(QuestionType type) {
+        return type == QuestionType.TEXTFIELD ? TEXTFIELD_MAX_LENGTH : TEXTAREA_MAX_LENGTH;
     }
 
     private void buildSingleAnswer(Question q, SurveyAnswerInput input, SurveyResponse response) {
@@ -396,7 +411,7 @@ public class SurveyService {
                 builder.answerCount(answers.size());
                 builder.counts(optionCounts);
             }
-            case FREETEXT -> {
+            case TEXTFIELD, TEXTAREA -> {
                 List<String> texts = answers.stream()
                     .map(Answer::getValue)
                     .filter(v -> v != null && !v.isBlank())
@@ -474,6 +489,7 @@ public class SurveyService {
                     .text(q.getText())
                     .orderIndex(q.getOrderIndex())
                     .required(q.getRequired())
+                    .maxLength(q.getMaxLength())
                     .options(q.getOptions().stream()
                         .map(o -> QuestionOptionDto.builder()
                             .id(o.getId())
