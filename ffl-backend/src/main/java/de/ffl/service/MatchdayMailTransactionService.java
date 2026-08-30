@@ -25,6 +25,8 @@ import de.ffl.repository.PointsRepository;
 import de.ffl.repository.RoundRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.SystemConfigRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Transport;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +50,11 @@ import java.util.stream.Collectors;
 public class MatchdayMailTransactionService {
 
     private static final Logger log = LoggerFactory.getLogger(MatchdayMailTransactionService.class);
+
+    private static final int MAX_MAILS_PER_CONNECTION = 40;
+    private static final int MAX_ATTEMPTS = 3;
+    private static final long PAUSE_BETWEEN_MAILS_MS = 1200;
+    private static final long[] RETRY_BACKOFF_MS = { 10_000L, 30_000L, 60_000L };
 
     private final SeasonRepository seasonRepository;
     private final ManagerRepository managerRepository;
@@ -88,6 +95,7 @@ public class MatchdayMailTransactionService {
     public void runMailJob(SseEmitter emitter, Long seasonId, Integer roundNumber,
                            List<Long> managerIds, JavaMailSenderImpl mailSender,
                            SystemConfig config, String comment, boolean testMode) {
+        TransportState transportState = new TransportState();
         try {
             send(emitter, "Lade Spieltags-Daten…");
 
@@ -361,11 +369,17 @@ public class MatchdayMailTransactionService {
                         manager.getMailTheme(), paymentReminder);
 
                     helper.setText(html, true);
-                    mailSender.send(msg);
+
+                    boolean gesendet = sendWithRetry(transportState, mailSender, emitter, msg,
+                        manager, recipientEmail, testMode, config);
+                    if (!gesendet) {
+                        failed++;
+                        continue;
+                    }
                     send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + (testMode ? config.getGmailSenderEmail() : recipientEmail) + ") " + (manager.getMailTheme() != null ? manager.getMailTheme().name() : "LIGHTMODE"));
                     sent++;
 
-                    Thread.sleep(1000);
+                    Thread.sleep(PAUSE_BETWEEN_MAILS_MS);
 
                     long now = System.currentTimeMillis();
                     if (now - lastKeepAlive > 30000) {
@@ -386,7 +400,8 @@ public class MatchdayMailTransactionService {
                     send(emitter, "✗ Versand unterbrochen: " + e.getMessage());
                     failed++;
                 } catch (Exception e) {
-                    send(emitter, "✗ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + recipientEmail + "): " + e.getMessage());
+                    log.error("Unerwarteter Fehler bei Mail an {} (Manager {}): {}", recipientEmail, manager.getId(), e.getMessage(), e);
+                    send(emitter, "✗ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + recipientEmail + "): " + describeMailError(e));
                     failed++;
                 }
             }
@@ -395,16 +410,95 @@ public class MatchdayMailTransactionService {
             emitter.send(SseEmitter.event().name("complete").data(""));
             emitter.complete();
         } catch (Exception e) {
+            log.error("Matchday-Mail-Versand abgebrochen", e);
             try {
                 emitter.send(SseEmitter.event().name("error").data("FEHLER: " + e.getMessage()));
             } catch (IOException ignored) {
             }
             emitter.completeWithError(e);
+        } finally {
+            closeQuietly(transportState.transport);
         }
     }
 
     private void send(SseEmitter emitter, String message) throws IOException {
         emitter.send(SseEmitter.event().data(message));
+    }
+
+    private boolean sendWithRetry(TransportState state, JavaMailSenderImpl mailSender,
+                                  SseEmitter emitter, MimeMessage msg, Manager manager,
+                                  String recipientEmail, boolean testMode, SystemConfig config)
+            throws IOException, InterruptedException {
+        String recipient = testMode ? config.getGmailSenderEmail() : recipientEmail;
+        int attempt = 0;
+        while (true) {
+            attempt++;
+            try {
+                if (state.transport == null || !state.transport.isConnected()
+                        || state.mailsOnConnection >= MAX_MAILS_PER_CONNECTION) {
+                    closeQuietly(state.transport);
+                    state.transport = connectTransport(mailSender);
+                    state.mailsOnConnection = 0;
+                    send(emitter, "Neue SMTP-Verbindung ...");
+                }
+                msg.saveChanges();
+                state.transport.sendMessage(msg, msg.getAllRecipients());
+                state.mailsOnConnection++;
+                return true;
+            } catch (MessagingException e) {
+                log.error("SMTP-Fehler bei Mail an {} (Manager {}): {}",
+                        recipient, manager.getId(), e.getMessage(), e);
+                closeQuietly(state.transport);
+                state.transport = null;
+                if (attempt >= MAX_ATTEMPTS) {
+                    send(emitter, "✗ [" + manager.getId() + "] "
+                            + (manager.getShortName() != null ? manager.getShortName() + " - " : "")
+                            + manager.getName() + " (" + recipient + "): " + describeMailError(e));
+                    return false;
+                }
+                long backoff = RETRY_BACKOFF_MS[attempt - 1];
+                send(emitter, "⏳ Retry " + attempt + "/" + MAX_ATTEMPTS + " in "
+                        + (backoff / 1000) + "s (" + describeMailError(e) + ")");
+                Thread.sleep(backoff);
+            }
+        }
+    }
+
+    private Transport connectTransport(JavaMailSenderImpl mailSender) throws MessagingException {
+        Transport transport = mailSender.getSession().getTransport("smtp");
+        transport.connect(mailSender.getHost(), mailSender.getPort(),
+                mailSender.getUsername(), mailSender.getPassword());
+        return transport;
+    }
+
+    private void closeQuietly(Transport transport) {
+        if (transport != null) {
+            try {
+                transport.close();
+            } catch (MessagingException ignored) {
+            }
+        }
+    }
+
+    private String describeMailError(Throwable e) {
+        StringBuilder sb = new StringBuilder();
+        Throwable cur = e;
+        while (cur != null) {
+            String msg = cur.getMessage();
+            if (msg != null && !msg.isBlank()) {
+                if (sb.length() > 0) {
+                    sb.append(" -> ");
+                }
+                sb.append(msg);
+            }
+            cur = cur.getCause();
+        }
+        return sb.length() > 0 ? sb.toString() : e.getClass().getSimpleName();
+    }
+
+    private static final class TransportState {
+        Transport transport;
+        int mailsOnConnection;
     }
 
     private String buildManagerDisplayName(Manager m) {
