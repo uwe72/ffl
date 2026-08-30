@@ -36,7 +36,7 @@ function contentTypeIcon(ct: string): string {
     case 'application/pdf': return 'sap-icon-pdf-attachment'
     case 'text/plain': return 'sap-icon-document-text'
     case 'image/png':
-    case 'image/jpeg': return 'sap-icon-photo'
+    case 'image/jpeg': return 'sap-icon-attachment-photo'
     default: return 'sap-icon-document'
   }
 }
