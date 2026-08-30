@@ -203,10 +203,30 @@ export default function SurveyPublic() {
 
   return (
     <div className="max-w-2xl mx-auto mt-6 px-4">
-      <div className="p-6 bg-surface border border-border rounded-card">
-        <h1 className="text-2xl font-bold text-foreground mb-1">{survey.title}</h1>
-        {survey.description && <p className="text-muted text-sm mb-4 whitespace-pre-wrap">{survey.description}</p>}
+      <div className="relative h-[140px] md:h-[180px] rounded-card overflow-hidden mb-6 border border-border">
+        <div
+          className="absolute inset-0 bg-cover bg-no-repeat"
+          style={{
+            backgroundImage: 'url(/hero-banner.png)',
+            backgroundPosition: 'center 10%',
+            filter: 'brightness(0.65) contrast(1.05)',
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to right, rgba(10,14,20,0.65) 0%, rgba(10,14,20,0.35) 60%, rgba(10,14,20,0.15) 100%)' }}
+        />
+        <div className="relative h-full flex items-center px-6 md:px-8">
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold text-on-dark leading-tight">{survey.title}</h1>
+            {survey.description && (
+              <p className="text-sm text-on-dark-muted mt-1 line-clamp-2 whitespace-pre-wrap">{survey.description}</p>
+            )}
+          </div>
+        </div>
+      </div>
 
+      <div className="p-6 bg-surface border border-border rounded-card">
         <div className="mb-6">
           <div className="flex items-center justify-between text-xs text-muted mb-1">
             <span>Fortschritt</span>
@@ -285,7 +305,7 @@ export default function SurveyPublic() {
             {submit.isPending ? 'Wird gesendet...' : 'Absenden'}
           </Button>
           <p className="text-xs text-subtle text-center">
-            Deine Antworten sind anonym. Ein Zwischenstand wird automatisch auf diesem Gerät gespeichert.
+            Deine Antworten sind anonym.
           </p>
         </div>
       </div>
@@ -302,9 +322,28 @@ function PublicResults({ title, description, responseCount, questions }: {
   const maxCount = Math.max(1, ...questions.flatMap(q => q.counts?.map(c => c.count) ?? [q.answerCount ?? 0]))
   return (
     <div className="max-w-2xl mx-auto mt-6 px-4">
+      <div className="relative h-[140px] md:h-[180px] rounded-card overflow-hidden mb-6 border border-border">
+        <div
+          className="absolute inset-0 bg-cover bg-no-repeat"
+          style={{
+            backgroundImage: 'url(/hero-banner.png)',
+            backgroundPosition: 'center 10%',
+            filter: 'brightness(0.65) contrast(1.05)',
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to right, rgba(10,14,20,0.65) 0%, rgba(10,14,20,0.35) 60%, rgba(10,14,20,0.15) 100%)' }}
+        />
+        <div className="relative h-full flex items-center px-6 md:px-8">
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold text-on-dark leading-tight">{title}</h1>
+            {description && <p className="text-sm text-on-dark-muted mt-1 line-clamp-2 whitespace-pre-wrap">{description}</p>}
+          </div>
+        </div>
+      </div>
+
       <div className="p-6 bg-surface border border-border rounded-card">
-        <h1 className="text-2xl font-bold text-foreground mb-1">{title}</h1>
-        {description && <p className="text-muted text-sm mb-2 whitespace-pre-wrap">{description}</p>}
         <p className="text-sm text-subtle mb-5">{responseCount} Antworten</p>
 
         <div className="flex flex-col gap-6">
