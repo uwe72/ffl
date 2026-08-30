@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import Home from './pages/Home'
 import Season from './pages/Season'
 import System from './pages/System'
+import Statistik from './pages/Statistik'
 import Teams from './pages/Teams'
 import TeamDetail from './pages/TeamDetail'
 import Players from './pages/Players'
@@ -151,6 +152,11 @@ function App() {
             <Route path="system" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <System />
+              </ProtectedRoute>
+            } />
+            <Route path="statistik" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <Statistik />
               </ProtectedRoute>
             } />
             <Route path="emails" element={

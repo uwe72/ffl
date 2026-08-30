@@ -514,6 +514,22 @@ export interface ManagerGroupRoundStats {
   }[]
 }
 
+export interface LoginStatUser {
+  login: string
+  logins: number
+}
+
+export interface LoginStatMonth {
+  year: number
+  month: number
+  totalLogins: number
+  users: LoginStatUser[]
+}
+
+export interface LoginStatistics {
+  months: LoginStatMonth[]
+}
+
 export interface Game {
   id: number
   name: string

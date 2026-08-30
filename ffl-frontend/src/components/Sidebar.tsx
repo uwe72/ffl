@@ -39,7 +39,8 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
     location.pathname.startsWith('/users') ||
     location.pathname.startsWith('/mailing') ||
     location.pathname.startsWith('/emails') ||
-    location.pathname.startsWith('/system')
+    location.pathname.startsWith('/system') ||
+    location.pathname.startsWith('/statistik')
   const effectiveVerwaltungExpanded = verwaltungExpanded || isOnVerwaltung
 
   const handleLogout = () => {
@@ -104,6 +105,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
               { to: '/emails', label: 'E-Mailadressen' },
               { to: '/mailing', label: 'Mailing' },
               { to: '/season', label: 'Saison' },
+              { to: '/statistik', label: 'Statistik' },
               { to: '/system', label: 'System' },
               { to: '/umfragen', label: 'Umfragen' },
             ]}

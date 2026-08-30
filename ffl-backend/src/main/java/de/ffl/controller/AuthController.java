@@ -26,6 +26,7 @@ import de.ffl.service.RegistrationMailService;
 import de.ffl.service.UserService;
 import de.ffl.service.EmailAddressService;
 import de.ffl.service.FriendTeamService;
+import de.ffl.service.LoginStatisticsService;
 import de.ffl.dto.RegisterStepLogRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -65,6 +66,7 @@ public class AuthController {
     private final PasswordResetService passwordResetService;
     private final EmailAddressService emailAddressService;
     private final FriendTeamService friendTeamService;
+    private final LoginStatisticsService loginStatisticsService;
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
@@ -78,7 +80,8 @@ public class AuthController {
                           RegistrationMailService registrationMailService,
                           PasswordResetService passwordResetService,
                           EmailAddressService emailAddressService,
-                          FriendTeamService friendTeamService) {
+                          FriendTeamService friendTeamService,
+                          LoginStatisticsService loginStatisticsService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -92,6 +95,7 @@ public class AuthController {
         this.passwordResetService = passwordResetService;
         this.emailAddressService = emailAddressService;
         this.friendTeamService = friendTeamService;
+        this.loginStatisticsService = loginStatisticsService;
     }
 
     @Transactional(readOnly = true)
@@ -108,6 +112,9 @@ public class AuthController {
 
         User user = userRepository.findByLoginIgnoreCase(request.getLogin()).orElseThrow();
         log.info("login successful: {} {} ({})", user.getFirstName(), user.getLastName(), user.getLogin());
+        if (user.getRole() == UserRole.NORMAL) {
+            loginStatisticsService.recordLogin(user);
+        }
         return ResponseEntity.ok(new AuthResponse(jwt, refreshToken, user.getLogin(), user.getRole().name()));
     }
 
