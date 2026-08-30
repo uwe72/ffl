@@ -338,7 +338,7 @@ export interface Player {
 
 ## Workflow Preferences
 
-- **Always commit and push** - After every change, always commit and push to the remote repository. This applies across all sessions.
+- **No automatic git commits/pushes** - Do NOT run `git commit` or `git push` on your own. Only commit/push when the user explicitly requests it (e.g. "commit", "push", "commit and push"). Leave changes in the working tree until told otherwise.
 - **Consistent UI** - All UI patterns that have been unified (colors, sorting, table styles, accent colors, hover states, layout spacing, card designs, etc.) must be maintained consistently in all future changes. Never introduce deviating styles or patterns.
 - **Tests are sacrosanct** - Existing tests must NEVER be removed, weakened, or modified to make them pass after a refactoring. Tests may only be adjusted when the expected business behavior intentionally changes. If a test fails after a code change, fix the code -- not the test. New features should be accompanied by new tests where possible.
 - **Sidebar alphabetically sorted** - Sidebar menu items and subitems (in `ffl-frontend/src/components/Sidebar.tsx`) must always be alphabetically sorted. When adding new menu items, insert them at the correct alphabetical position.
