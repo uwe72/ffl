@@ -22,6 +22,9 @@ import Users from './pages/Users'
 import UserDetail from './pages/UserDetail'
 import Emails from './pages/Emails'
 import Mailing from './pages/Mailing'
+import SurveyLanding from './pages/SurveyLanding'
+import SurveyPublic from './pages/SurveyPublic'
+import SurveyAdmin from './pages/SurveyAdmin'
 import MailingInvitation from './pages/MailingInvitation'
 import MailingReminder from './pages/MailingReminder'
 import MailingMatchday from './pages/MailingMatchday'
@@ -95,6 +98,13 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="feedback" element={<Feedback />} />
+            <Route path="umfrage" element={<SurveyLanding />} />
+            <Route path="umfrage/:id" element={<SurveyPublic />} />
+            <Route path="umfragen" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <SurveyAdmin />
+              </ProtectedRoute>
+            } />
             <Route path="managers" element={
               <ProtectedRoute>
                 <Managers />

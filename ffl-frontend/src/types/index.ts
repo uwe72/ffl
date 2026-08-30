@@ -638,6 +638,118 @@ export interface SetupPreviewTeamBreakdown {
   hasStriker: boolean
 }
 
+export type SurveyStatus = 'ANGELEGT' | 'GESTARTET' | 'BEENDET' | 'VEROEFFENTLICHT'
+export type QuestionType = 'RATING' | 'SINGLE' | 'MULTI' | 'FREETEXT'
+
+export interface SurveyQuestionOption {
+  id: number
+  text: string
+  orderIndex: number
+}
+
+export interface SurveyQuestion {
+  id: number
+  type: QuestionType
+  text: string
+  orderIndex: number
+  required: boolean
+  options: SurveyQuestionOption[]
+}
+
+export interface SurveyAdmin {
+  id: number
+  title: string
+  description?: string | null
+  status: SurveyStatus
+  createdAt: string
+  updatedAt?: string | null
+  responseCount: number
+  questions: SurveyQuestion[]
+}
+
+export interface SurveyPublic {
+  id: number
+  title: string
+  description?: string | null
+  status: SurveyStatus
+  questions: SurveyQuestion[]
+}
+
+export interface SurveyQuestionRequest {
+  type: QuestionType
+  text: string
+  orderIndex?: number
+  required?: boolean
+  options?: string[]
+}
+
+export interface SurveyCreateRequest {
+  title: string
+  description?: string
+  questions: SurveyQuestionRequest[]
+}
+
+export interface SurveyAnswerInput {
+  questionId: number
+  optionIds?: number[]
+  value?: string
+}
+
+export interface SurveyAnswerRequest {
+  answers: SurveyAnswerInput[]
+}
+
+export interface OptionCount {
+  optionId: number
+  optionText: string
+  count: number
+}
+
+export interface QuestionResult {
+  questionId: number
+  text: string
+  type: QuestionType
+  orderIndex: number
+  required: boolean
+  answerCount?: number
+  mean?: number
+  ratingDistribution?: number[]
+  counts?: OptionCount[]
+  freeTexts?: string[] | null
+}
+
+export interface AnswerDetail {
+  questionId: number
+  questionText: string
+  answerText: string
+}
+
+export interface SurveyResponseDetail {
+  submittedAt: string
+  answers: AnswerDetail[]
+}
+
+export interface SurveyResult {
+  id: number
+  title: string
+  description?: string | null
+  status: SurveyStatus
+  createdAt: string
+  updatedAt?: string | null
+  responseCount: number
+  questions: QuestionResult[]
+  responses: SurveyResponseDetail[]
+}
+
+export interface PublicSurveyResult {
+  id: number
+  title: string
+  description?: string | null
+  status: SurveyStatus
+  responseCount: number
+  questions: QuestionResult[]
+}
+
 export interface SetupPreviewDto {
   teamCount: number
   playersTotal: number

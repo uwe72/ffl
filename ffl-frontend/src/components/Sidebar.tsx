@@ -69,6 +69,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         {isAuthenticated && (
           <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
         )}
+        <SidebarItem to="/umfrage" label="Umfrage" icon="sap-icon-survey" collapsed={collapsed} />
         <SidebarItem to="/documents" label="Dokumente" icon="sap-icon-documents" collapsed={collapsed} />
         <SidebarItem to="/feedback" label="Feedback" icon="sap-icon-discussion" collapsed={collapsed} />
         {canAccessGallery ? (
@@ -102,6 +103,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
               { to: '/users', label: 'Benutzer' },
               { to: '/emails', label: 'E-Mailadressen' },
               { to: '/mailing', label: 'Mailing' },
+              { to: '/umfragen', label: 'Umfragen' },
               { to: '/season', label: 'Saison' },
               { to: '/system', label: 'System' },
             ]}
