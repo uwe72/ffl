@@ -3,6 +3,7 @@ import { useParams, Link as RouterLink } from 'react-router-dom'
 import { usePublicSurvey, usePublicSurveyResult, useSubmitSurvey } from '../hooks/useSurveys'
 import type { SurveyQuestion, SurveyAnswerInput } from '../types'
 import Button from '../components/Button'
+import SurveyHero from '../components/SurveyHero'
 
 type AnswerState = Record<number, SurveyAnswerInput>
 
@@ -203,28 +204,7 @@ export default function SurveyPublic() {
 
   return (
     <div className="max-w-2xl mx-auto mt-6 px-4">
-      <div className="relative h-[140px] md:h-[180px] rounded-card overflow-hidden mb-6 border border-border">
-        <div
-          className="absolute inset-0 bg-cover bg-no-repeat"
-          style={{
-            backgroundImage: 'url(/hero-banner.png)',
-            backgroundPosition: 'center 10%',
-            filter: 'brightness(0.65) contrast(1.05)',
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(to right, rgba(10,14,20,0.65) 0%, rgba(10,14,20,0.35) 60%, rgba(10,14,20,0.15) 100%)' }}
-        />
-        <div className="relative h-full flex items-center px-6 md:px-8">
-          <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-on-dark leading-tight">{survey.title}</h1>
-            {survey.description && (
-              <p className="text-sm text-on-dark-muted mt-1 line-clamp-2 whitespace-pre-wrap">{survey.description}</p>
-            )}
-          </div>
-        </div>
-      </div>
+      <SurveyHero title={survey.title} subtitle={survey.description} />
 
       <div className="p-6 bg-surface border border-border rounded-card">
         <div className="mb-6">
@@ -238,18 +218,20 @@ export default function SurveyPublic() {
         </div>
 
         <div className="flex flex-col gap-6">
-          {survey.questions.map(question => {
+          {survey.questions.map((question, index) => {
             const input = answers[question.id]
             return (
               <div key={question.id} className="border-t border-border pt-5">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <p className="font-medium text-foreground">
-                    {question.text}
+                    <span className="text-subtle">Frage {index + 1}:</span> {question.text}
                     {question.required && <span className="text-danger ml-1">*</span>}
                   </p>
-                  <span className="text-xs text-subtle shrink-0 mt-0.5">
-                    {question.type === 'RATING' ? 'Bewertung' : question.type === 'SINGLE' ? 'Einzelauswahl' : question.type === 'MULTI' ? 'Mehrfachauswahl' : question.type === 'TEXTFIELD' ? 'Textfeld' : 'Textarea'}
-                  </span>
+                  {question.type !== 'TEXTFIELD' && question.type !== 'TEXTAREA' && (
+                    <span className="text-xs text-subtle shrink-0 mt-0.5">
+                      {question.type === 'RATING' ? 'Bewertung' : question.type === 'SINGLE' ? 'Einzelauswahl' : 'Mehrfachauswahl'}
+                    </span>
+                  )}
                 </div>
                 {question.type === 'RATING' && (
                   <RatingInput
@@ -322,26 +304,7 @@ function PublicResults({ title, description, responseCount, questions }: {
   const maxCount = Math.max(1, ...questions.flatMap(q => q.counts?.map(c => c.count) ?? [q.answerCount ?? 0]))
   return (
     <div className="max-w-2xl mx-auto mt-6 px-4">
-      <div className="relative h-[140px] md:h-[180px] rounded-card overflow-hidden mb-6 border border-border">
-        <div
-          className="absolute inset-0 bg-cover bg-no-repeat"
-          style={{
-            backgroundImage: 'url(/hero-banner.png)',
-            backgroundPosition: 'center 10%',
-            filter: 'brightness(0.65) contrast(1.05)',
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(to right, rgba(10,14,20,0.65) 0%, rgba(10,14,20,0.35) 60%, rgba(10,14,20,0.15) 100%)' }}
-        />
-        <div className="relative h-full flex items-center px-6 md:px-8">
-          <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-on-dark leading-tight">{title}</h1>
-            {description && <p className="text-sm text-on-dark-muted mt-1 line-clamp-2 whitespace-pre-wrap">{description}</p>}
-          </div>
-        </div>
-      </div>
+      <SurveyHero title={title} subtitle={description} />
 
       <div className="p-6 bg-surface border border-border rounded-card">
         <p className="text-sm text-subtle mb-5">{responseCount} Antworten</p>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useSurveys, useCreateSurvey, useUpdateSurvey, useDeleteSurvey, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
 import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import Button from '../components/Button'
+import SurveyHero from '../components/SurveyHero'
 
 const STATUS_LABEL: Record<string, string> = {
   ANGELEGT: 'Angelegt',
@@ -102,13 +103,9 @@ export default function SurveyAdmin() {
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Umfragen</h1>
-          <p className="text-sm text-muted">Verwaltung und Auswertung</p>
-        </div>
+      <SurveyHero title="Umfragen" subtitle="Verwaltung und Auswertung">
         <Button onClick={startCreate}>+ Neue Umfrage</Button>
-      </div>
+      </SurveyHero>
 
       {isLoading ? (
         <div className="text-center py-8 text-muted">Laden...</div>
@@ -283,8 +280,8 @@ function SurveyEditor({ existing, isNew, onCancel }: {
 
   return (
     <div className="max-w-3xl">
+      <SurveyHero title={isNew ? 'Neue Umfrage' : 'Umfrage bearbeiten'} />
       <div className="flex items-center justify-between gap-4 mb-6">
-        <h1 className="text-xl font-bold text-foreground">{isNew ? 'Neue Umfrage' : 'Umfrage bearbeiten'}</h1>
         <Button variant="transparent" size="compact" onClick={onCancel}>
           <i className="sap-icon sap-icon-nav-back text-base" />
           Zurück
@@ -434,16 +431,11 @@ function SurveyResults({ id, onBack }: { id: number; onBack: () => void }) {
 
   return (
     <div>
+      <SurveyHero title={result.title} subtitle={`${result.responseCount} Antworten`} />
       <div className="flex items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">{result.title}</h1>
-          <div className="flex items-center gap-3 text-sm text-muted">
-            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusClass(result.status)}`}>
-              {STATUS_LABEL[result.status]}
-            </span>
-            <span>{result.responseCount} Antworten</span>
-          </div>
-        </div>
+        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusClass(result.status)}`}>
+          {STATUS_LABEL[result.status]}
+        </span>
         <Button variant="transparent" size="compact" onClick={onBack}>
           <i className="sap-icon sap-icon-nav-back text-base" />
           Zurück
