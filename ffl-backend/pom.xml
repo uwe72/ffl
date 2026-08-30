@@ -13,7 +13,7 @@
     
     <groupId>de.ffl</groupId>
     <artifactId>ffl-backend</artifactId>
-    <version>1.2.231</version>
+    <version>1.2.232</version>
     <name>FFL Backend</name>
     <description>Fantasy Football League Backend</description>
     
@@ -45,6 +45,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.18.1</version>
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>

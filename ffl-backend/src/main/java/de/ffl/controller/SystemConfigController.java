@@ -1,5 +1,6 @@
 package de.ffl.controller;
 
+import de.ffl.dto.MatchdayMailRequestDto;
 import de.ffl.dto.PaymentCheckRequest;
 import de.ffl.dto.SystemConfigDto;
 import de.ffl.dto.TestMailResultDto;
@@ -10,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/system")
@@ -52,22 +51,17 @@ public class SystemConfigController {
     }
 
     /**
-     * SSE-Stream fuer den Versand der Spieltagsmail. Token wird per Query-Parameter
-     * akzeptiert, da EventSource keine Custom-Header unterstuetzt (analog Season).
+     * SSE-Stream fuer den Versand der Spieltagsmail. Der Kommentar wird als
+     * Rich-Text-HTML im JSON-Body uebertragen und im Backend bereinigt.
      */
-    @GetMapping(value = "/matchday-mail/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(value = "/matchday-mail/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    public SseEmitter streamMatchdayMail(@RequestParam Long seasonId,
-                                         @RequestParam Integer roundNumber,
-                                         @RequestParam String managerIds,
-                                         @RequestParam(required = false) String token,
-                                         @RequestParam(required = false) String comment,
-                                         @RequestParam(required = false, defaultValue = "false") boolean testMode) {
-        List<Long> managerIdList = java.util.Arrays.stream(managerIds.split(","))
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .map(Long::parseLong)
-            .collect(java.util.stream.Collectors.toList());
-        return matchdayMailService.streamMatchdayMail(seasonId, roundNumber, managerIdList, comment, testMode);
+    public SseEmitter streamMatchdayMail(@RequestBody MatchdayMailRequestDto request) {
+        return matchdayMailService.streamMatchdayMail(
+            request.getSeasonId(),
+            request.getRoundNumber(),
+            request.getManagerIds(),
+            request.getComment(),
+            request.isTestMode());
     }
 }

@@ -538,12 +538,7 @@ public class MatchdayMailTransactionService {
         }
 
         if (comment != null && !comment.isBlank()) {
-            String commentCardStyle = "background:" + cardBgAlt + ";border-radius:12px;padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;white-space:pre-wrap;border:1px solid #555555;";
-            if (!isDark) {
-                commentCardStyle = "background:" + cardBgAlt + ";border-radius:12px;padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;white-space:pre-wrap;border:1px solid #c0c0c0;";
-            }
-            sb.append("<div style=\"").append(commentCardStyle).append("\">")
-              .append(escape(comment)).append("</div>");
+            sb.append(renderCommentCard(comment, cardBgAlt, textPrimary, isDark));
         }
 
         if (paymentReminder != null && paymentReminder.isOpen()) {
@@ -1444,6 +1439,28 @@ public class MatchdayMailTransactionService {
     private static String escape(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    }
+
+    private static final org.jsoup.safety.Safelist COMMENT_SAFELIST = org.jsoup.safety.Safelist.basic()
+        .addAttributes(":all", "style")
+        .addAttributes("a", "href", "target", "rel")
+        .addProtocols("a", "href", "http", "https", "mailto");
+
+    static String sanitizeCommentHtml(String comment) {
+        if (comment == null) return null;
+        return org.jsoup.Jsoup.clean(comment, "",
+            COMMENT_SAFELIST,
+            new org.jsoup.nodes.Document.OutputSettings().prettyPrint(false));
+    }
+
+    static String renderCommentCard(String comment, String cardBgAlt, String textPrimary, boolean isDark) {
+        String commentCardStyle = "background:" + cardBgAlt + ";border-radius:12px;padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;border:1px solid " + (isDark ? "#555555" : "#c0c0c0") + ";";
+        String commentHtml = sanitizeCommentHtml(comment);
+        if (commentHtml != null && !commentHtml.isBlank()) {
+            commentHtml = PrizeDistributionHtmlBuilder.prepareMailText(commentHtml);
+            return "<div style=\"" + commentCardStyle + "\">" + commentHtml + "</div>";
+        }
+        return "";
     }
 
     private static String renderIntroMarkdown(String s, String textPrimary) {

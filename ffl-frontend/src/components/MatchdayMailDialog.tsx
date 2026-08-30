@@ -34,47 +34,89 @@ export default function MatchdayMailDialog({
     }
 
     const token = localStorage.getItem('token')
-    const params = new URLSearchParams({
-      seasonId: String(seasonId),
-      roundNumber: String(roundNumber),
-      managerIds: managerIds.join(','),
-    })
-    if (token) params.set('token', token)
-    if (comment && comment.trim()) params.set('comment', comment)
-    if (testMode) params.set('testMode', 'true')
+    const controller = new AbortController()
 
-    const url = `/api/system/matchday-mail/stream?${params.toString()}`
-    const eventSource = new EventSource(url)
-
-    eventSource.onmessage = (event) => {
-      setLogs((prev) => [...prev, event.data])
-    }
-
-    eventSource.addEventListener('complete', () => {
-      setIsComplete(true)
-      eventSource.close()
-    })
-
-    eventSource.addEventListener('error', (event) => {
-      if (event instanceof MessageEvent) {
-        setError(event.data)
-      } else {
-        setError('Verbindung zum Server verloren')
+    async function run() {
+      const body = {
+        seasonId,
+        roundNumber,
+        managerIds,
+        comment: comment && comment.trim() ? comment : undefined,
+        testMode: testMode ?? false,
       }
-      setIsComplete(true)
-      eventSource.close()
-    })
 
-    eventSource.onerror = () => {
-      if (!isComplete) {
+      try {
+        const response = await fetch('/api/system/matchday-mail/stream', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        })
+
+        if (!response.ok || !response.body) {
+          setError(`Serverfehler (${response.status})`)
+          setIsComplete(true)
+          return
+        }
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let eventName = 'message'
+        let eventData: string[] = []
+
+        const flushEvent = () => {
+          if (eventName === 'message') {
+            const text = eventData.join('\n')
+            if (text) setLogs((prev) => [...prev, text])
+          } else if (eventName === 'complete') {
+            setIsComplete(true)
+          } else if (eventName === 'error') {
+            setError(eventData.join('\n'))
+            setIsComplete(true)
+          }
+          eventName = 'message'
+          eventData = []
+        }
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          buffer += decoder.decode(value, { stream: true })
+
+          let newlineIndex: number
+          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+            const rawLine = buffer.slice(0, newlineIndex)
+            buffer = buffer.slice(newlineIndex + 1)
+            const line = rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine
+
+            if (line === '') {
+              flushEvent()
+            } else if (line.startsWith(':')) {
+              // keep-alive comment
+            } else if (line.startsWith('event:')) {
+              eventName = line.slice(6).trim()
+            } else if (line.startsWith('data:')) {
+              eventData.push(line.slice(5).trimStart())
+            }
+          }
+        }
+        flushEvent()
+        setIsComplete(true)
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return
         setError('Verbindung zum Server verloren')
         setIsComplete(true)
       }
-      eventSource.close()
     }
 
+    run()
+
     return () => {
-      eventSource.close()
+      controller.abort()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, seasonId, roundNumber])

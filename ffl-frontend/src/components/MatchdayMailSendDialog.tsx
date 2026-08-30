@@ -1,9 +1,16 @@
 import { useState, useMemo, useEffect } from 'react'
+import ReactQuill, { Quill } from 'react-quill-new'
+import 'react-quill-new/dist/quill.snow.css'
 import { useSystemConfig, useUpdateSystemConfig } from '../hooks/useSystemConfig'
 import { useManagersBySeason } from '../hooks/useManagers'
 import type { SystemConfig, Manager } from '../types'
 import Button from './Button'
 import MatchdayMailDialog from './MatchdayMailDialog'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Size = Quill.import('formats/size') as any
+Size.whitelist = ['8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px']
+Quill.register(Size, true)
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false)
@@ -347,13 +354,23 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           <label className="text-base md:text-lg font-semibold text-primary block mb-2">
             Kommentar (optional)
           </label>
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            rows={4}
-            placeholder="Optionaler Kommentar, der als eigene Kachel vor &quot;Deine punktenden Spieler&quot; in der Mail angezeigt wird."
-            className="input-field w-full px-3 py-2 text-sm focus:outline-none"
-          />
+          <div className="quill-mail">
+            <ReactQuill
+              theme="snow"
+              value={comment}
+              onChange={setComment}
+              placeholder="Optionaler Kommentar, der als eigene Kachel in der Mail angezeigt wird. Formatierung (fett, Listen, Links) und Zeilenumbrüche werden übernommen."
+              modules={{
+                toolbar: [
+                  [{ 'size': ['8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px'] }],
+                  ['bold', 'italic', 'underline'],
+                  [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                  ['link'],
+                  ['clean']
+                ]
+              }}
+            />
+          </div>
         </div>
 
         <div className="p-4 bg-surface border border-border mb-4">
