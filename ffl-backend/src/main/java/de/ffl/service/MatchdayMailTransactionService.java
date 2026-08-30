@@ -109,6 +109,14 @@ public class MatchdayMailTransactionService {
             }
             List<Long> allManagerIds = allManagersInSeason.stream().map(Manager::getId).toList();
 
+            List<Manager> managersSortedById = allManagersInSeason.stream()
+                .sorted(Comparator.comparing(Manager::getId))
+                .toList();
+            Map<Long, Integer> positionByManagerId = new HashMap<>();
+            for (int i = 0; i < managersSortedById.size(); i++) {
+                positionByManagerId.put(managersSortedById.get(i).getId(), i + 1);
+            }
+
             List<ManagerRank> dayRanks = managerRankRepository.findByManagerIdInAndRoundNumber(
                 allManagerIds, roundNumber);
             Map<Long, ManagerRank> dayRankByManagerId = new HashMap<>();
@@ -339,7 +347,7 @@ public class MatchdayMailTransactionService {
                 }
                 String recipientEmail = manager.getUser() != null ? manager.getUser().getEmail() : null;
                 if (recipientEmail == null || recipientEmail.isBlank()) {
-                    send(emitter, "✗ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " hat keine Mailadresse");
+                    send(emitter, "✗ [" + positionByManagerId.get(manager.getId()) + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " hat keine Mailadresse");
                     failed++;
                     continue;
                 }
@@ -350,7 +358,7 @@ public class MatchdayMailTransactionService {
                     helper.setTo(testMode ? config.getGmailSenderEmail() : recipientEmail);
                     String managerName = manager.getName();
                     String fullName = buildManagerDisplayName(manager);
-                    String subject = "FFL | " + season.getName() + " | " + roundNumber + ". Spieltag | " + fullName + " (" + managerName + ")";
+                    String subject = "FFL | " + season.getName() + " | " + roundNumber + ". Spieltag | " + fullName + " (" + (manager.getShortName() != null ? manager.getShortName() : managerName) + ")";
                     helper.setSubject(subject);
 
                     List<RankingRow> rankingExcerpt = buildRankingExcerpt(dayRanksSorted, managerId);
@@ -371,12 +379,12 @@ public class MatchdayMailTransactionService {
                     helper.setText(html, true);
 
                     boolean gesendet = sendWithRetry(transportState, mailSender, emitter, msg,
-                        manager, recipientEmail, testMode, config);
+                        manager, positionByManagerId.get(manager.getId()), recipientEmail, testMode, config);
                     if (!gesendet) {
                         failed++;
                         continue;
                     }
-                    send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + (testMode ? config.getGmailSenderEmail() : recipientEmail) + ") " + (manager.getMailTheme() != null ? manager.getMailTheme().name() : "LIGHTMODE"));
+                    send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + positionByManagerId.get(manager.getId()) + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + (testMode ? config.getGmailSenderEmail() : recipientEmail) + ")");
                     sent++;
 
                     Thread.sleep(PAUSE_BETWEEN_MAILS_MS);
@@ -401,7 +409,7 @@ public class MatchdayMailTransactionService {
                     failed++;
                 } catch (Exception e) {
                     log.error("Unerwarteter Fehler bei Mail an {} (Manager {}): {}", recipientEmail, manager.getId(), e.getMessage(), e);
-                    send(emitter, "✗ [" + manager.getId() + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + recipientEmail + "): " + describeMailError(e));
+                    send(emitter, "✗ [" + positionByManagerId.get(manager.getId()) + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + recipientEmail + "): " + describeMailError(e));
                     failed++;
                 }
             }
@@ -427,7 +435,7 @@ public class MatchdayMailTransactionService {
 
     private boolean sendWithRetry(TransportState state, JavaMailSenderImpl mailSender,
                                   SseEmitter emitter, MimeMessage msg, Manager manager,
-                                  String recipientEmail, boolean testMode, SystemConfig config)
+                                  int position, String recipientEmail, boolean testMode, SystemConfig config)
             throws IOException, InterruptedException {
         String recipient = testMode ? config.getGmailSenderEmail() : recipientEmail;
         int attempt = 0;
@@ -451,7 +459,7 @@ public class MatchdayMailTransactionService {
                 closeQuietly(state.transport);
                 state.transport = null;
                 if (attempt >= MAX_ATTEMPTS) {
-                    send(emitter, "✗ [" + manager.getId() + "] "
+                    send(emitter, "✗ [" + position + "] "
                             + (manager.getShortName() != null ? manager.getShortName() + " - " : "")
                             + manager.getName() + " (" + recipient + "): " + describeMailError(e));
                     return false;
