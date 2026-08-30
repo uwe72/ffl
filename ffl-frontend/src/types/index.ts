@@ -626,6 +626,7 @@ export interface Document {
   fileSize: number
   uploadedAt: string
   uploadedBy: string
+  shareToken: string
 }
 
 export interface SetupPreviewTeamBreakdown {

@@ -36,4 +36,7 @@ public class Document {
 
     @Column(columnDefinition = "bytea", nullable = false)
     private byte[] data;
+
+    @Column(unique = true)
+    private String shareToken;
 }

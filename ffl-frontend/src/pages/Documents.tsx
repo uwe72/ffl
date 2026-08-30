@@ -51,15 +51,11 @@ function formatDate(iso: string): string {
 }
 
 function openDocument(doc: Document) {
-  documentApi.download(doc.id)
-    .then(res => {
-      const url = URL.createObjectURL(res.data)
-      window.open(url, '_blank')
-      setTimeout(() => URL.revokeObjectURL(url), 30000)
-    })
-    .catch(() => {
-      alert('Öffnen fehlgeschlagen')
-    })
+  window.open(docShareUrl(doc), '_blank')
+}
+
+function docShareUrl(doc: Document): string {
+  return `${window.location.origin}/api/public/documents/${doc.shareToken}`
 }
 
 function downloadDocument(doc: Document) {
@@ -79,7 +75,9 @@ function downloadDocument(doc: Document) {
     })
 }
 
-function DocumentCard({ doc, isAdmin, onDelete }: { doc: Document; isAdmin: boolean; onDelete: (id: number) => void }) {
+function DocumentCard({ doc, isAdmin, onDelete, onCopyLink, copied }: {
+  doc: Document; isAdmin: boolean; onDelete: (id: number) => void; onCopyLink: (id: number) => void; copied: boolean
+}) {
   return (
     <div className="card p-4 bg-surface border border-border">
       <div className="flex gap-4 items-start">
@@ -99,15 +97,20 @@ function DocumentCard({ doc, isAdmin, onDelete }: { doc: Document; isAdmin: bool
             </div>
           </div>
         </div>
-        {isAdmin && (
-          <Button
-            variant="negative"
-            size="sm"
-            onClick={() => onDelete(doc.id)}
-          >
-            Löschen
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <Button variant="secondary" size="compact" onClick={() => onCopyLink(doc.id)}>
+            {copied ? 'Kopiert' : 'Link kopieren'}
           </Button>
-        )}
+          {isAdmin && (
+            <Button
+              variant="negative"
+              size="sm"
+              onClick={() => onDelete(doc.id)}
+            >
+              Löschen
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -120,6 +123,7 @@ export default function Documents() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('uploadedAt')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+  const [copiedId, setCopiedId] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: publicSeason, isLoading: isLoadingSeason } = usePublicCurrentSeason()
@@ -181,6 +185,18 @@ export default function Documents() {
       alert('Upload fehlgeschlagen: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'))
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleCopyLink = async (id: number) => {
+    const doc = documents?.find(d => d.id === id)
+    if (!doc) return
+    try {
+      await navigator.clipboard.writeText(docShareUrl(doc))
+      setCopiedId(id)
+      setTimeout(() => setCopiedId(prev => (prev === id ? null : prev)), 2000)
+    } catch {
+      alert('Link kopieren fehlgeschlagen')
     }
   }
 
@@ -317,6 +333,13 @@ export default function Documents() {
                         <td className="px-3 py-2 text-right">
                           <div className="flex items-center justify-end gap-1">
                             <button
+                              onClick={() => handleCopyLink(doc.id)}
+                              className="p-1.5 rounded-control text-muted hover:text-primary hover:bg-accent-muted transition-colors"
+                              title="Link kopieren"
+                            >
+                              <i className={`sap-icon ${copiedId === doc.id ? 'sap-icon-status-completed' : 'sap-icon-chain-link'} text-[16px]`} />
+                            </button>
+                            <button
                               onClick={() => downloadDocument(doc)}
                               className="p-1.5 rounded-control text-muted hover:text-primary hover:bg-accent-muted transition-colors"
                               title="Herunterladen"
@@ -358,7 +381,14 @@ export default function Documents() {
             <div className="grid gap-4">
               {filteredDocs.length > 0 ? (
                 filteredDocs.map((doc) => (
-                  <DocumentCard key={doc.id} doc={doc} isAdmin={isAdmin} onDelete={handleDelete} />
+                  <DocumentCard
+                    key={doc.id}
+                    doc={doc}
+                    isAdmin={isAdmin}
+                    onDelete={handleDelete}
+                    onCopyLink={handleCopyLink}
+                    copied={copiedId === doc.id}
+                  />
                 ))
               ) : (
                 <div className="text-center text-subtle py-8">

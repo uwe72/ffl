@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +32,17 @@ public class DocumentService {
         this.documentRepository = documentRepository;
     }
 
+    @jakarta.annotation.PostConstruct
+    public void backfillShareTokens() {
+        List<Document> missing = documentRepository.findAll().stream()
+            .filter(doc -> doc.getShareToken() == null || doc.getShareToken().isBlank())
+            .toList();
+        missing.forEach(doc -> {
+            doc.setShareToken(UUID.randomUUID().toString());
+            documentRepository.save(doc);
+        });
+    }
+
     @Transactional(readOnly = true)
     public List<DocumentDto> findAll() {
         return documentRepository.findAll().stream()
@@ -48,6 +60,11 @@ public class DocumentService {
     @Transactional(readOnly = true)
     public Optional<Document> findFileData(Long id) {
         return documentRepository.findById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Document> findFileDataByShareToken(String shareToken) {
+        return documentRepository.findByShareToken(shareToken);
     }
 
     @Transactional
@@ -71,6 +88,7 @@ public class DocumentService {
             .uploadedAt(Instant.now())
             .uploadedBy(uploaderLogin)
             .data(file.getBytes())
+            .shareToken(UUID.randomUUID().toString())
             .build();
 
         Document saved = documentRepository.save(doc);
@@ -96,6 +114,7 @@ public class DocumentService {
             .uploadedAt(Instant.now())
             .uploadedBy(uploaderLogin)
             .data(data)
+            .shareToken(UUID.randomUUID().toString())
             .build();
 
         Document saved = documentRepository.save(doc);
