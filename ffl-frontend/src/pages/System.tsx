@@ -120,7 +120,7 @@ export default function System() {
                     type="url"
                     value={formData.llmBaseUrl || ''}
                     onChange={(e) => handleChange('llmBaseUrl', e.target.value)}
-                    placeholder="http://localhost:4000/chat/completions"
+                    placeholder="https://litellm.prod.example.de/v1/chat/completions"
                     className="input-field w-full px-3 py-2 rounded-badge focus:outline-none font-mono"
                   />
                 </div>
@@ -146,7 +146,10 @@ export default function System() {
                 </div>
               </div>
               <p className="text-xs text-subtle mt-2">
-                OpenAI-kompatible Chat-Completions-URL (z.B. LiteLLM-Proxy oder OpenRouter).
+                OpenAI-kompatible Chat-Completions-URL (z.B. LiteLLM-Proxy oder OpenRouter). Du kannst entweder die
+                Basis-URL (z.B. <span className="font-mono">https://…/v1</span>) oder den vollen Pfad inkl.
+                <span className="font-mono"> /chat/completions</span> angeben — <span className="font-mono">/chat/completions</span> wird
+                bei Bedarf automatisch ergänzt.
               </p>
             </FormCard>
           </div>

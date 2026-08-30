@@ -34,6 +34,7 @@ public class LlmService {
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException("LLM API-Key ist nicht konfiguriert");
         }
+        String effectiveUrl = normalizeChatCompletionsUrl(baseUrl);
         String effectiveModel = (model != null && !model.isBlank()) ? model : "openai/gpt-4o-mini";
         String effectiveStyle = (promptStyle != null && !promptStyle.isBlank())
             ? promptStyle
@@ -84,7 +85,7 @@ public class LlmService {
 
         String responseJson;
         try {
-            responseJson = restTemplate.postForObject(baseUrl, request, String.class);
+            responseJson = restTemplate.postForObject(effectiveUrl, request, String.class);
         } catch (Exception e) {
             throw new RuntimeException("LLM-Anfrage fehlgeschlagen: " + e.getMessage(), e);
         }
@@ -99,5 +100,16 @@ public class LlmService {
         } catch (Exception e) {
             throw new RuntimeException("LLM-Antwort konnte nicht gelesen werden: " + e.getMessage(), e);
         }
+    }
+
+    static String normalizeChatCompletionsUrl(String baseUrl) {
+        String url = baseUrl.trim();
+        while (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+        if (!url.endsWith("/chat/completions")) {
+            url = url + "/chat/completions";
+        }
+        return url;
     }
 }
