@@ -19,10 +19,11 @@ public interface LoginLogRepository extends JpaRepository<LoginLog, Long> {
            "ORDER BY YEAR(l.loginAt), MONTH(l.loginAt)")
     List<Object[]> countLoginsByMonth(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    @Query("SELECT YEAR(l.loginAt) as year, MONTH(l.loginAt) as month, l.user.login as login, COUNT(l) as cnt " +
+    @Query("SELECT YEAR(l.loginAt) as year, MONTH(l.loginAt) as month, l.user.login as login, " +
+           "l.user.firstName as firstName, l.user.lastName as lastName, COUNT(l) as cnt " +
            "FROM LoginLog l " +
            "WHERE l.loginAt >= :from AND l.loginAt < :to " +
-           "GROUP BY YEAR(l.loginAt), MONTH(l.loginAt), l.user.login " +
+           "GROUP BY YEAR(l.loginAt), MONTH(l.loginAt), l.user.login, l.user.firstName, l.user.lastName " +
            "ORDER BY YEAR(l.loginAt), MONTH(l.loginAt), l.user.login")
     List<Object[]> countLoginsByUserAndMonth(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

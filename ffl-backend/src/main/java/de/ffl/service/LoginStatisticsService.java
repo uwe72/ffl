@@ -45,10 +45,13 @@ public class LoginStatisticsService {
 
     public LoginStatisticDto getStatistics(LocalDateTime from, LocalDateTime to) {
         Map<YearMonth, Map<String, Long>> counts = new LinkedHashMap<>();
+        Map<String, String[]> userNames = new LinkedHashMap<>();
         for (Object[] row : loginLogRepository.countLoginsByUserAndMonth(from, to)) {
             YearMonth key = YearMonth.of(((Number) row[0]).intValue(), ((Number) row[1]).intValue());
+            String login = (String) row[2];
+            userNames.putIfAbsent(login, new String[]{(String) row[3], (String) row[4]});
             counts.computeIfAbsent(key, k -> new LinkedHashMap<>())
-                .merge((String) row[2], ((Number) row[3]).longValue(), Long::sum);
+                .merge(login, ((Number) row[5]).longValue(), Long::sum);
         }
 
         List<LoginStatMonthDto> months = new ArrayList<>();
@@ -57,7 +60,15 @@ public class LoginStatisticsService {
         while (!current.isAfter(end)) {
             Map<String, Long> userCounts = counts.getOrDefault(current, Map.of());
             List<LoginStatUserDto> users = userCounts.entrySet().stream()
-                .map(e -> LoginStatUserDto.builder().login(e.getKey()).logins(e.getValue()).build())
+                .map(e -> {
+                    String[] names = userNames.get(e.getKey());
+                    return LoginStatUserDto.builder()
+                        .login(e.getKey())
+                        .firstName(names != null ? names[0] : null)
+                        .lastName(names != null ? names[1] : null)
+                        .logins(e.getValue())
+                        .build();
+                })
                 .sorted(Comparator.comparingLong(LoginStatUserDto::getLogins).reversed()
                     .thenComparing(LoginStatUserDto::getLogin))
                 .toList();

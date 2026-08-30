@@ -11,5 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class LoginStatUserDto {
     private String login;
+    private String firstName;
+    private String lastName;
     private long logins;
 }

@@ -26,8 +26,8 @@ class LoginStatisticsServiceTest {
     @InjectMocks
     private LoginStatisticsService loginStatisticsService;
 
-    private Object[] row(int year, int month, String login, long count) {
-        return new Object[]{year, month, login, count};
+    private Object[] row(int year, int month, String login, String firstName, String lastName, long count) {
+        return new Object[]{year, month, login, firstName, lastName, count};
     }
 
     @Test
@@ -35,9 +35,9 @@ class LoginStatisticsServiceTest {
         LocalDate from = LocalDate.of(2026, 1, 1);
         LocalDate to = LocalDate.of(2026, 4, 1);
         when(loginLogRepository.countLoginsByUserAndMonth(any(), any())).thenReturn(List.of(
-            row(2026, 1, "alice", 3L),
-            row(2026, 1, "bob", 5L),
-            row(2026, 3, "alice", 2L)
+            row(2026, 1, "alice", "Alice", "Muster", 3L),
+            row(2026, 1, "bob", "Bob", "Beispiel", 5L),
+            row(2026, 3, "alice", "Alice", "Muster", 2L)
         ));
 
         LoginStatisticDto result = loginStatisticsService.getStatistics(from.atStartOfDay(), to.atStartOfDay());
@@ -48,6 +48,10 @@ class LoginStatisticsServiceTest {
         assertThat(result.getMonths().get(0).getTotalLogins()).isEqualTo(8);
         assertThat(result.getMonths().get(0).getUsers()).extracting(LoginStatUserDto::getLogin)
             .containsExactly("bob", "alice");
+        assertThat(result.getMonths().get(0).getUsers()).extracting(LoginStatUserDto::getFirstName)
+            .containsExactly("Bob", "Alice");
+        assertThat(result.getMonths().get(0).getUsers()).extracting(LoginStatUserDto::getLastName)
+            .containsExactly("Beispiel", "Muster");
         assertThat(result.getMonths().get(1).getTotalLogins()).isZero();
         assertThat(result.getMonths().get(1).getUsers()).isEmpty();
         assertThat(result.getMonths().get(2).getTotalLogins()).isEqualTo(2);
@@ -60,8 +64,8 @@ class LoginStatisticsServiceTest {
         LocalDate from = LocalDate.of(2025, 11, 1);
         LocalDate to = LocalDate.of(2026, 1, 1);
         when(loginLogRepository.countLoginsByUserAndMonth(any(), any())).thenReturn(List.of(
-            row(2025, 11, "alice", 4L),
-            row(2025, 12, "bob", 1L)
+            row(2025, 11, "alice", "Alice", "Muster", 4L),
+            row(2025, 12, "bob", "Bob", "Beispiel", 1L)
         ));
 
         LoginStatisticDto result = loginStatisticsService.getStatistics(from.atStartOfDay(), to.atStartOfDay());

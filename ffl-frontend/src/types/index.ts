@@ -516,6 +516,8 @@ export interface ManagerGroupRoundStats {
 
 export interface LoginStatUser {
   login: string
+  firstName?: string
+  lastName?: string
   logins: number
 }
 

@@ -210,6 +210,11 @@ interface MonthRowsProps {
 
 function MonthRows({ month, isExpanded, onToggle, subSort, onSubSort, sortedUsers }: MonthRowsProps) {
   const activeSubSort = subSort ?? { key: 'logins' as SubSortKey, order: 'desc' as const }
+  const userLabel = (user: LoginStatUser): string => {
+    const fullName = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
+    if (fullName && user.login) return `${fullName} (${user.login})`
+    return user.login
+  }
   return (
     <>
       <tr
@@ -250,7 +255,7 @@ function MonthRows({ month, isExpanded, onToggle, subSort, onSubSort, sortedUser
                 <tbody className="text-[13px]">
                   {sortedUsers.map(user => (
                     <tr key={user.login} className="border-t border-border">
-                      <Td className="pl-3">{user.login}</Td>
+                      <Td className="pl-3">{userLabel(user)}</Td>
                       <Td numeric>{user.logins}</Td>
                     </tr>
                   ))}
