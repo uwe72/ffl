@@ -4,6 +4,7 @@ import de.ffl.domain.Team;
 import de.ffl.dto.PlayerDto;
 import de.ffl.repository.TeamRepository;
 import de.ffl.service.PlayerService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -49,16 +50,17 @@ public class TeamController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public Team createTeam(@RequestBody Team team) {
+    public Team createTeam(@Valid @RequestBody Team team) {
         return teamRepository.save(team);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Team> updateTeam(@PathVariable Long id, @RequestBody Team updateData) {
+    public ResponseEntity<Team> updateTeam(@PathVariable Long id, @Valid @RequestBody Team updateData) {
         return teamRepository.findById(id)
             .map(team -> {
                 team.setShortName(updateData.getShortName());
+                team.setSlogan(updateData.getSlogan());
                 team.setLogoSUrl(updateData.getLogoSUrl());
                 return ResponseEntity.ok(teamRepository.save(team));
             })

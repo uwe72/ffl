@@ -2,6 +2,8 @@ package de.ffl.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -26,7 +28,13 @@ public class Team {
     @Column(nullable = false)
     private String name;
 
+    @NotBlank(message = "Kurzname ist erforderlich")
     private String shortName;
+
+    @Size(max = 22, message = "Slogan darf maximal 22 Zeichen lang sein")
+    @Column(length = 60)
+    private String slogan;
+
     private String logoXxlUrl;
     @Column(name = "logo_s_url")
     private String logoSUrl;

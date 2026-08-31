@@ -14,7 +14,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,15 +22,18 @@ public class MatchdayMailService {
 
     private final SystemConfigRepository systemConfigRepository;
     private final MatchdayMailTransactionService transactionService;
+    private final SmtpMailTransport smtpMailTransport;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     private static final Logger log = LoggerFactory.getLogger(MatchdayMailService.class);
 
     public MatchdayMailService(SystemConfigRepository systemConfigRepository,
-                               MatchdayMailTransactionService transactionService) {
+                               MatchdayMailTransactionService transactionService,
+                               SmtpMailTransport smtpMailTransport) {
         this.systemConfigRepository = systemConfigRepository;
         this.transactionService = transactionService;
+        this.smtpMailTransport = smtpMailTransport;
     }
 
     public TestMailResultDto sendTestMail(String toEmail) {
@@ -55,20 +57,7 @@ public class MatchdayMailService {
                 return new TestMailResultDto(false, "Gmail-Zugangsdaten sind nicht vollständig konfiguriert", email, password, server, port);
             }
 
-            JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-            mailSender.setHost(server);
-            mailSender.setPort(port);
-            mailSender.setUsername(email);
-            mailSender.setPassword(password);
-
-            Properties props = mailSender.getJavaMailProperties();
-            props.put("mail.transport.protocol", "smtp");
-            props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
-            props.put("mail.smtp.starttls.required", "true");
-            props.put("mail.smtp.connectiontimeout", "30000");
-            props.put("mail.smtp.timeout", "120000");
-            props.put("mail.smtp.writetimeout", "120000");
+            JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"));
             String subject = "FFL Test-Mail";
@@ -116,7 +105,7 @@ public class MatchdayMailService {
                     return;
                 }
 
-                JavaMailSenderImpl mailSender = buildMailSender(config);
+                JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
                 transactionService.runMailJob(emitter, seasonId, roundNumber, managerIds, mailSender, config, comment, testMode);
             } catch (Exception e) {
                 try {
@@ -127,23 +116,5 @@ public class MatchdayMailService {
             }
         });
         return emitter;
-    }
-
-    private JavaMailSenderImpl buildMailSender(SystemConfig config) {
-        JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(config.getGmailSmtpServer() != null ? config.getGmailSmtpServer() : "smtp.gmail.com");
-        sender.setPort(config.getGmailSmtpPort() != null ? config.getGmailSmtpPort() : 587);
-        sender.setUsername(config.getGmailSenderEmail());
-        sender.setPassword(config.getGmailAppPassword());
-
-        Properties props = sender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.connectiontimeout", "15000");
-        props.put("mail.smtp.timeout", "60000");
-        props.put("mail.smtp.writetimeout", "60000");
-        return sender;
     }
 }

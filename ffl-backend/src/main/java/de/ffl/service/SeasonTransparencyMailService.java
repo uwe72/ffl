@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -57,6 +56,7 @@ public class SeasonTransparencyMailService {
     private final SpringTemplateEngine templateEngine;
     private final PlatformTransactionManager transactionManager;
     private final TransparencyReportPdfService transparencyReportPdfService;
+    private final SmtpMailTransport smtpMailTransport;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -65,13 +65,15 @@ public class SeasonTransparencyMailService {
                                           ManagerRepository managerRepository,
                                           SpringTemplateEngine templateEngine,
                                           PlatformTransactionManager transactionManager,
-                                          TransparencyReportPdfService transparencyReportPdfService) {
+                                          TransparencyReportPdfService transparencyReportPdfService,
+                                          SmtpMailTransport smtpMailTransport) {
         this.systemConfigRepository = systemConfigRepository;
         this.seasonRepository = seasonRepository;
         this.managerRepository = managerRepository;
         this.templateEngine = templateEngine;
         this.transactionManager = transactionManager;
         this.transparencyReportPdfService = transparencyReportPdfService;
+        this.smtpMailTransport = smtpMailTransport;
     }
 
     @Transactional(readOnly = true)
@@ -94,7 +96,7 @@ public class SeasonTransparencyMailService {
         String pdfFilename = transparencyReportPdfService.buildFilename(season.getName());
 
         try {
-            JavaMailSenderImpl mailSender = buildMailSender(config);
+            JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
             MimeMessage msg = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
             helper.setFrom(config.getGmailSenderEmail());
@@ -149,28 +151,29 @@ public class SeasonTransparencyMailService {
                     if (email == null || email.isBlank()) continue;
                     String trimmed = email.trim();
                     if (!EMAIL_PATTERN.matcher(trimmed).matches()) {
-                        send(emitter, "✗ übersprungen (ungültige Adresse): " + trimmed);
+                        smtpMailTransport.send(emitter, "✗ übersprungen (ungültige Adresse): " + trimmed);
                         continue;
                     }
                     recipients.add(trimmed);
                 }
 
-                JavaMailSenderImpl mailSender = buildMailSender(config);
-                send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
+                JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
+                smtpMailTransport.send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
                 if (testMode) {
-                    send(emitter, "Sende Report als Testmail an die Admin-Adresse...");
+                    smtpMailTransport.send(emitter, "Sende Report als Testmail an die Admin-Adresse...");
                 } else {
-                    send(emitter, "Sende Report als 1 BCC-Mail an " + recipients.size() + " Empfänger...");
+                    smtpMailTransport.send(emitter, "Sende Report als 1 BCC-Mail an " + recipients.size() + " Empfänger...");
                 }
 
                 if (!testMode && recipients.isEmpty()) {
-                    send(emitter, "");
-                    send(emitter, "Keine gültigen Empfänger.");
+                    smtpMailTransport.send(emitter, "");
+                    smtpMailTransport.send(emitter, "Keine gültigen Empfänger.");
                     emitter.send(SseEmitter.event().name("complete").data(""));
                     emitter.complete();
                     return;
                 }
 
+                SmtpMailTransport.TransportState transportState = new SmtpMailTransport.TransportState();
                 try {
                     MimeMessage msg = mailSender.createMimeMessage();
                     MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
@@ -183,20 +186,26 @@ public class SeasonTransparencyMailService {
                     helper.setText(basePlainText[0], baseHtml[0]);
                     helper.addAttachment(pdfFilename[0], new ByteArrayDataSource(basePdf[0], "application/pdf"));
 
-                    mailSender.send(msg);
-
-                    if (testMode) {
-                        send(emitter, "[TEST] ✓ Report an die Admin-Adresse gesendet");
-                    } else {
-                        send(emitter, "✓ Report als eine BCC-Mail an " + recipients.size() + " Empfänger gesendet");
+                    String label = testMode ? "Report (Test)" : "Report (BCC-Mail)";
+                    String recipient = testMode ? config.getGmailSenderEmail() : "BCC an " + recipients.size() + " Empfänger";
+                    boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
+                        label, recipient, emitter);
+                    if (gesendet) {
+                        if (testMode) {
+                            smtpMailTransport.send(emitter, "[TEST] ✓ Report an die Admin-Adresse gesendet");
+                        } else {
+                            smtpMailTransport.send(emitter, "✓ Report als eine BCC-Mail an " + recipients.size() + " Empfänger gesendet");
+                        }
                     }
                 } catch (Exception e) {
-                    send(emitter, "✗ Versand fehlgeschlagen: " + e.getMessage());
+                    smtpMailTransport.send(emitter, "✗ Versand fehlgeschlagen: " + e.getMessage());
                     log.error("Fehler beim Senden des Transparenz-Reports", e);
+                } finally {
+                    smtpMailTransport.closeQuietly(transportState.transport);
                 }
 
-                send(emitter, "");
-                send(emitter, "Fertig." + (testMode ? " (TEST-MODUS)" : ""));
+                smtpMailTransport.send(emitter, "");
+                smtpMailTransport.send(emitter, "Fertig." + (testMode ? " (TEST-MODUS)" : ""));
                 emitter.send(SseEmitter.event().name("complete").data(""));
                 emitter.complete();
             } catch (Exception e) {
@@ -450,32 +459,6 @@ public class SeasonTransparencyMailService {
             case "ST" -> POS_COLOR_ST;
             default -> POS_COLOR_FREI;
         };
-    }
-
-    private void send(SseEmitter emitter, String message) {
-        try {
-            emitter.send(SseEmitter.event().data(message));
-        } catch (Exception e) {
-            log.warn("SSE send failed: {}", e.getMessage());
-        }
-    }
-
-    private JavaMailSenderImpl buildMailSender(SystemConfig config) {
-        JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(config.getGmailSmtpServer() != null ? config.getGmailSmtpServer() : "smtp.gmail.com");
-        sender.setPort(config.getGmailSmtpPort() != null ? config.getGmailSmtpPort() : 587);
-        sender.setUsername(config.getGmailSenderEmail());
-        sender.setPassword(config.getGmailAppPassword());
-
-        Properties props = sender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.connectiontimeout", "30000");
-        props.put("mail.smtp.timeout", "120000");
-        props.put("mail.smtp.writetimeout", "120000");
-        return sender;
     }
 
     public record PlayerRowDto(String posLabel, String posColorHex, String name, String teamName, String prizeFormatted) {}

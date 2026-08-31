@@ -48,4 +48,11 @@ class MatchdayMailCommentRenderTest {
         assertTrue(MatchdayMailTransactionService.renderCommentCard(null, "#f5f5f5", "#111111", false).isEmpty());
         assertTrue(MatchdayMailTransactionService.renderCommentCard("   ", "#f5f5f5", "#111111", false).isEmpty());
     }
+
+    @Test
+    void renderCommentCard_whitespaceOnlyHtml_returnsEmpty() {
+        assertTrue(MatchdayMailTransactionService.renderCommentCard("<p><br></p>", "#f5f5f5", "#111111", false).isEmpty());
+        assertTrue(MatchdayMailTransactionService.renderCommentCard("<p>&nbsp;</p>", "#f5f5f5", "#111111", false).isEmpty());
+        assertTrue(MatchdayMailTransactionService.renderCommentCard("<p>   </p>", "#f5f5f5", "#111111", false).isEmpty());
+    }
 }

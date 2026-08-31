@@ -32,7 +32,9 @@ class PlayerDeactivationMailServiceTest {
     private SpringTemplateEngine templateEngine;
 
     private PlayerDeactivationMailService service() {
-        return new PlayerDeactivationMailService(systemConfigRepository, templateEngine);
+        SmtpMailTransport smtp = new SmtpMailTransport();
+        smtp.retryBackoffMs = new long[] { 1L, 1L, 1L };
+        return new PlayerDeactivationMailService(systemConfigRepository, templateEngine, smtp);
     }
 
     private SystemConfig config() {

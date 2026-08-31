@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -30,6 +29,7 @@ public class PrizeDistributionMailService {
     private final PrizeDistributionLogRepository prizeDistributionLogRepository;
     private final PrizeDistributionMailTransactionService transactionService;
     private final PrizeDistributionHtmlBuilder htmlBuilder;
+    private final SmtpMailTransport smtpMailTransport;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -38,13 +38,15 @@ public class PrizeDistributionMailService {
                                          PrizePayoutRepository prizePayoutRepository,
                                          PrizeDistributionLogRepository prizeDistributionLogRepository,
                                          PrizeDistributionMailTransactionService transactionService,
-                                         PrizeDistributionHtmlBuilder htmlBuilder) {
+                                         PrizeDistributionHtmlBuilder htmlBuilder,
+                                         SmtpMailTransport smtpMailTransport) {
         this.systemConfigRepository = systemConfigRepository;
         this.seasonRepository = seasonRepository;
         this.prizePayoutRepository = prizePayoutRepository;
         this.prizeDistributionLogRepository = prizeDistributionLogRepository;
         this.transactionService = transactionService;
         this.htmlBuilder = htmlBuilder;
+        this.smtpMailTransport = smtpMailTransport;
     }
 
     public SseEmitter streamPrizeDistributionMail(Long seasonId, List<Long> managerIds, boolean testMode) {
@@ -61,7 +63,7 @@ public class PrizeDistributionMailService {
                     return;
                 }
 
-                JavaMailSenderImpl mailSender = buildMailSender(config);
+                JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
                 transactionService.runMailJob(emitter, seasonId, managerIds, mailSender, config, testMode);
             } catch (Exception e) {
                 try {
@@ -72,24 +74,6 @@ public class PrizeDistributionMailService {
             }
         });
         return emitter;
-    }
-
-    private JavaMailSenderImpl buildMailSender(SystemConfig config) {
-        JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(config.getGmailSmtpServer() != null ? config.getGmailSmtpServer() : "smtp.gmail.com");
-        sender.setPort(config.getGmailSmtpPort() != null ? config.getGmailSmtpPort() : 587);
-        sender.setUsername(config.getGmailSenderEmail());
-        sender.setPassword(config.getGmailAppPassword());
-
-        Properties props = sender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.connectiontimeout", "30000");
-        props.put("mail.smtp.timeout", "120000");
-        props.put("mail.smtp.writetimeout", "120000");
-        return sender;
     }
 
     public String generatePreviewHtml(Long seasonId) {

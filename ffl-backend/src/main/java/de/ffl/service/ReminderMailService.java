@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +48,7 @@ public class ReminderMailService {
     private final UnsubscribeService unsubscribeService;
     private final InvitationMailService invitationMailService;
     private final SpringTemplateEngine templateEngine;
+    private final SmtpMailTransport smtpMailTransport;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -58,7 +58,8 @@ public class ReminderMailService {
                                ManagerRepository managerRepository,
                                UnsubscribeService unsubscribeService,
                                InvitationMailService invitationMailService,
-                               SpringTemplateEngine templateEngine) {
+                               SpringTemplateEngine templateEngine,
+                               SmtpMailTransport smtpMailTransport) {
         this.systemConfigRepository = systemConfigRepository;
         this.seasonRepository = seasonRepository;
         this.emailAddressRepository = emailAddressRepository;
@@ -66,6 +67,7 @@ public class ReminderMailService {
         this.unsubscribeService = unsubscribeService;
         this.invitationMailService = invitationMailService;
         this.templateEngine = templateEngine;
+        this.smtpMailTransport = smtpMailTransport;
     }
 
     public void sendTestMail(Long seasonId, boolean registered) {
@@ -93,7 +95,7 @@ public class ReminderMailService {
         String subject = buildSubject(season, registered);
 
         try {
-            JavaMailSenderImpl mailSender = buildMailSender(config);
+            JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
             MimeMessage msg = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
             helper.setFrom(config.getGmailSenderEmail());
@@ -120,6 +122,7 @@ public class ReminderMailService {
     public SseEmitter streamReminderMail(Long seasonId, List<Long> emailIds, boolean testMode, String sendMode) {
         SseEmitter emitter = new SseEmitter(1_200_000L);
         executor.execute(() -> {
+            SmtpMailTransport.TransportState transportState = new SmtpMailTransport.TransportState();
             try {
                 SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc()
                     .orElseThrow(() -> new RuntimeException("Keine Systemkonfiguration vorhanden"));
@@ -144,12 +147,12 @@ public class ReminderMailService {
                 Map<Long, EmailAddress> emailsById = allEmails.stream()
                     .collect(Collectors.toMap(EmailAddress::getId, e -> e));
 
-                JavaMailSenderImpl mailSender = buildMailSender(config);
+                JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
                 String webUrl = normalizeWebUrl(config.getWebUrl());
 
-                send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
-                send(emitter, "Registrierte Manager der Saison: " + anzahlManager);
-                send(emitter, "Starte Versand an " + emailIds.size() + " Empfänger...");
+                smtpMailTransport.send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
+                smtpMailTransport.send(emitter, "Registrierte Manager der Saison: " + anzahlManager);
+                smtpMailTransport.send(emitter, "Starte Versand an " + emailIds.size() + " Empfänger...");
 
                 int sent = 0;
                 int failed = 0;
@@ -163,7 +166,7 @@ public class ReminderMailService {
                 for (Long emailId : emailIds) {
                     EmailAddress emailAddress = emailsById.get(emailId);
                     if (emailAddress == null) {
-                        send(emitter, "✗ E-Mail-ID " + emailId + " nicht gefunden");
+                        smtpMailTransport.send(emitter, "✗ E-Mail-ID " + emailId + " nicht gefunden");
                         failed++;
                         continue;
                     }
@@ -172,7 +175,7 @@ public class ReminderMailService {
                         case DANKE -> registeredList.add(emailAddress);
                         case ERINNERUNG -> nonRegisteredList.add(emailAddress);
                         case SKIP -> {
-                            send(emitter, "⤼ [" + emailAddress.getId() + "] " + emailAddress.getEmail()
+                            smtpMailTransport.send(emitter, "⤼ [" + emailAddress.getId() + "] " + emailAddress.getEmail()
                                 + " übersprungen (bereits angemeldet)");
                             skipped++;
                         }
@@ -192,14 +195,18 @@ public class ReminderMailService {
                             helper.setSubject(buildSubject(season, true));
                             helper.setText(plainText, html);
 
-                            mailSender.send(msg);
+                            boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
+                                "Danke-Testmail", config.getGmailSenderEmail(), emitter);
+                            if (!gesendet) {
+                                throw new RuntimeException("Danke-Testmail fehlgeschlagen");
+                            }
                             bccMails++;
                             bccRecipients += registeredList.size();
                             sent += registeredList.size();
-                            send(emitter, "[TEST] ✓ Danke-Mail an Admin (stellvertretend für " + registeredList.size() + " registrierte Empfänger)");
+                            smtpMailTransport.send(emitter, "[TEST] ✓ Danke-Mail an Admin (stellvertretend für " + registeredList.size() + " registrierte Empfänger)");
                         } catch (Exception e) {
                             failed += registeredList.size();
-                            send(emitter, "✗ Danke-Testmail fehlgeschlagen: " + e.getMessage());
+                            smtpMailTransport.send(emitter, "✗ Danke-Testmail fehlgeschlagen: " + e.getMessage());
                             log.error("Fehler beim Senden der Danke-Testmail", e);
                         }
                     } else {
@@ -221,14 +228,18 @@ public class ReminderMailService {
                                 helper.setSubject(buildSubject(season, true));
                                 helper.setText(plainText, html);
 
-                                mailSender.send(msg);
+                                boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
+                                    "BCC-Mail (Danke)", config.getGmailSenderEmail(), emitter);
+                                if (!gesendet) {
+                                    throw new RuntimeException("BCC-Mail (Danke) fehlgeschlagen");
+                                }
                                 bccMails++;
                                 bccRecipients += recipients.size();
                                 sent += recipients.size();
-                                send(emitter, "✓ BCC-Mail (Danke) an " + recipients.size() + " Empfänger");
+                                smtpMailTransport.send(emitter, "✓ BCC-Mail (Danke) an " + recipients.size() + " Empfänger");
                             } catch (Exception e) {
                                 failed += recipients.size();
-                                send(emitter, "✗ BCC-Mail (Danke) fehlgeschlagen: " + e.getMessage());
+                                smtpMailTransport.send(emitter, "✗ BCC-Mail (Danke) fehlgeschlagen: " + e.getMessage());
                                 log.error("Fehler beim Senden der Danke-BCC-Mail", e);
                             }
                         }
@@ -254,10 +265,15 @@ public class ReminderMailService {
                         helper.setSubject(buildSubject(season, false));
                         helper.setText(plainText, html);
 
-                        mailSender.send(msg);
+                        String label = "[" + emailAddress.getId() + "] " + recipientEmail + " (Erinnerung)";
+                        boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
+                            label, testMode ? config.getGmailSenderEmail() : recipientEmail, emitter);
+                        if (!gesendet) {
+                            failed++;
+                            continue;
+                        }
 
-                        send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + emailAddress.getId() + "] " + recipientEmail
-                            + " (Erinnerung)");
+                        smtpMailTransport.send(emitter, (testMode ? "[TEST] " : "") + "✓ " + label);
                         individualSent++;
                         sent++;
 
@@ -271,26 +287,26 @@ public class ReminderMailService {
 
                         if (individualSent % 50 == 0 && individualSent < individualTotal) {
                             for (int remaining = 90; remaining > 0; remaining--) {
-                                send(emitter, "⏳ " + individualSent + " Mails versendet, warte " + remaining + " Sekunden...");
+                                smtpMailTransport.send(emitter, "⏳ " + individualSent + " Mails versendet, warte " + remaining + " Sekunden...");
                                 Thread.sleep(1000);
                             }
-                            send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
+                            smtpMailTransport.send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
                             lastKeepAlive = System.currentTimeMillis();
                         }
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        send(emitter, "✗ Versand unterbrochen: " + e.getMessage());
+                        smtpMailTransport.send(emitter, "✗ Versand unterbrochen: " + e.getMessage());
                         failed++;
                         break;
                     } catch (Exception e) {
-                        send(emitter, "✗ [" + emailAddress.getId() + "] " + recipientEmail + ": " + e.getMessage());
+                        smtpMailTransport.send(emitter, "✗ [" + emailAddress.getId() + "] " + recipientEmail + ": " + e.getMessage());
                         failed++;
                         log.error("Fehler beim Senden der Erinnerungsmail an {}", recipientEmail, e);
                     }
                 }
 
-                send(emitter, "");
-                send(emitter, "Fertig: " + bccMails + " Danke-BCC-Mail(s) an " + bccRecipients + " Empfänger, "
+                smtpMailTransport.send(emitter, "");
+                smtpMailTransport.send(emitter, "Fertig: " + bccMails + " Danke-BCC-Mail(s) an " + bccRecipients + " Empfänger, "
                     + individualSent + " einzeln versendet, " + skipped + " übersprungen, " + failed + " fehlgeschlagen."
                     + (testMode ? " (TEST-MODUS)" : ""));
                 emitter.send(SseEmitter.event().name("complete").data(""));
@@ -301,6 +317,8 @@ public class ReminderMailService {
                 } catch (Exception ignored) {
                 }
                 emitter.completeWithError(e);
+            } finally {
+                smtpMailTransport.closeQuietly(transportState.transport);
             }
         });
         return emitter;
@@ -445,32 +463,6 @@ public class ReminderMailService {
 
     private String appendUnsubscribePlainText(String text, String unsubscribeUrl) {
         return text + "\r\n\r\nWenn Du keine weiteren Mails der FFL erhalten möchtest, kannst Du dich hier austragen: " + unsubscribeUrl + "\r\n";
-    }
-
-    private JavaMailSenderImpl buildMailSender(SystemConfig config) {
-        JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(config.getGmailSmtpServer() != null ? config.getGmailSmtpServer() : "smtp.gmail.com");
-        sender.setPort(config.getGmailSmtpPort() != null ? config.getGmailSmtpPort() : 587);
-        sender.setUsername(config.getGmailSenderEmail());
-        sender.setPassword(config.getGmailAppPassword());
-
-        Properties props = sender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.connectiontimeout", "30000");
-        props.put("mail.smtp.timeout", "120000");
-        props.put("mail.smtp.writetimeout", "120000");
-        return sender;
-    }
-
-    private void send(SseEmitter emitter, String message) {
-        try {
-            emitter.send(SseEmitter.event().data(message));
-        } catch (Exception e) {
-            log.warn("SSE send failed: {}", e.getMessage());
-        }
     }
 
     private String escapeHtml(String text) {

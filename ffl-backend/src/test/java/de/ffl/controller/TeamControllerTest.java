@@ -47,13 +47,14 @@ class TeamControllerTest {
     }
 
     @Test
-    void updateTeam_updatesShortNameAndLogoSUrl() {
+    void updateTeam_updatesShortNameSloganAndLogoSUrl() {
         when(teamRepository.findById(73L)).thenReturn(Optional.of(existingTeam));
         when(teamRepository.save(any(Team.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Team updateData = Team.builder()
                 .name("Sollte ignoriert werden")
                 .shortName("LEV")
+                .slogan("Werkself")
                 .logoXxlUrl("neu-xxl")
                 .logoSUrl("neu-s")
                 .build();
@@ -67,6 +68,7 @@ class TeamControllerTest {
 
         Team persisted = saved.getValue();
         assertThat(persisted.getShortName()).isEqualTo("LEV");
+        assertThat(persisted.getSlogan()).isEqualTo("Werkself");
         assertThat(persisted.getName()).isEqualTo("Bayer 04 Leverkusen");
         assertThat(persisted.getLogoSUrl()).isEqualTo("neu-s");
         assertThat(persisted.getLogoXxlUrl()).isEqualTo("xxl");

@@ -540,10 +540,11 @@ public class SeasonCalculationService {
                 Long playerId = p.getPlayer().getId();
                 roundPoints.merge(playerId, p.getNumber(), Integer::sum);
                 totalPoints.merge(playerId, p.getNumber(), Integer::sum);
-                if (playingPlayerIds.contains(playerId)) {
-                    matchesPlayed.merge(playerId, 1, Integer::sum);
-                }
             }
+        }
+
+        for (Long playerId : playingPlayerIds) {
+            matchesPlayed.merge(playerId, 1, Integer::sum);
         }
 
         List<Player> sortedByRound = players.stream()

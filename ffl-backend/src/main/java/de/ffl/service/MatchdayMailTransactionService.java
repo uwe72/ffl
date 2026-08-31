@@ -25,8 +25,6 @@ import de.ffl.repository.PointsRepository;
 import de.ffl.repository.RoundRepository;
 import de.ffl.repository.SeasonRepository;
 import de.ffl.repository.SystemConfigRepository;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Transport;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -51,10 +50,7 @@ public class MatchdayMailTransactionService {
 
     private static final Logger log = LoggerFactory.getLogger(MatchdayMailTransactionService.class);
 
-    private static final int MAX_MAILS_PER_CONNECTION = 40;
-    private static final int MAX_ATTEMPTS = 3;
     private static final long PAUSE_BETWEEN_MAILS_MS = 1200;
-    private static final long[] RETRY_BACKOFF_MS = { 10_000L, 30_000L, 60_000L };
 
     private final SeasonRepository seasonRepository;
     private final ManagerRepository managerRepository;
@@ -67,6 +63,7 @@ public class MatchdayMailTransactionService {
     private final ManagerGroupRepository managerGroupRepository;
     private final LlmService llmService;
     private final PaymentReminderService paymentReminderService;
+    private final SmtpMailTransport smtpMailTransport;
 
     public MatchdayMailTransactionService(SeasonRepository seasonRepository,
                                           ManagerRepository managerRepository,
@@ -78,7 +75,8 @@ public class MatchdayMailTransactionService {
                                           PointsRepository pointsRepository,
                                           ManagerGroupRepository managerGroupRepository,
                                           LlmService llmService,
-                                          PaymentReminderService paymentReminderService) {
+                                          PaymentReminderService paymentReminderService,
+                                          SmtpMailTransport smtpMailTransport) {
         this.seasonRepository = seasonRepository;
         this.managerRepository = managerRepository;
         this.managerRankRepository = managerRankRepository;
@@ -90,14 +88,15 @@ public class MatchdayMailTransactionService {
         this.managerGroupRepository = managerGroupRepository;
         this.llmService = llmService;
         this.paymentReminderService = paymentReminderService;
+        this.smtpMailTransport = smtpMailTransport;
     }
 
     public void runMailJob(SseEmitter emitter, Long seasonId, Integer roundNumber,
                            List<Long> managerIds, JavaMailSenderImpl mailSender,
                            SystemConfig config, String comment, boolean testMode) {
-        TransportState transportState = new TransportState();
+        SmtpMailTransport.TransportState transportState = new SmtpMailTransport.TransportState();
         try {
-            send(emitter, "Lade Spieltags-Daten…");
+            smtpMailTransport.send(emitter, "Lade Spieltags-Daten…");
 
             Season season = seasonRepository.findById(seasonId)
                 .orElseThrow(() -> new RuntimeException("Saison " + seasonId + " nicht gefunden"));
@@ -183,16 +182,6 @@ public class MatchdayMailTransactionService {
                 }
             }
 
-            Map<Long, List<PlayerRank>> seasonRanksByPlayerId = new HashMap<>();
-            if (!allPlayerIds.isEmpty()) {
-                List<PlayerRank> seasonRanks = playerRankRepository.findByPlayerIdInWithRound(allPlayerIds);
-                for (PlayerRank pr : seasonRanks) {
-                    if (pr.getRound() == null || pr.getRound().getNumber() == null) continue;
-                    if (pr.getRound().getNumber() > roundNumber) continue;
-                    seasonRanksByPlayerId.computeIfAbsent(pr.getPlayer().getId(), k -> new ArrayList<>()).add(pr);
-                }
-            }
-
             int transferRound = season.getStartRoundRueckrunde() != null ? season.getStartRoundRueckrunde() : 16;
 
             Map<Long, List<Team>> teamsByPlayerId = new HashMap<>();
@@ -215,7 +204,7 @@ public class MatchdayMailTransactionService {
                     .collect(Collectors.groupingBy(p -> p.getPlayer().getId()));
             }
 
-            send(emitter, "Generiere LLM-Einleitung…");
+            smtpMailTransport.send(emitter, "Generiere LLM-Einleitung…");
             List<Map<String, Object>> managerPoints = new ArrayList<>();
             List<Map<String, Object>> allMovers = new ArrayList<>();
             for (Manager m : allManagersInSeason) {
@@ -269,7 +258,7 @@ public class MatchdayMailTransactionService {
                 String teamName = "";
                 List<Team> teams = teamsByPlayerId.get(e.getKey());
                 if (teams != null && !teams.isEmpty()) {
-                    teamName = teams.get(teams.size() - 1).getName();
+                    teamName = teamShortName(teams);
                 }
                 Map<String, Object> tp = new HashMap<>();
                 tp.put("name", p.getNameKicker());
@@ -323,15 +312,15 @@ public class MatchdayMailTransactionService {
                     config.getLlmModel(),
                     config.getMatchdayMailPrompt(),
                     summary);
-                send(emitter, "LLM-Einleitung erhalten.");
+                smtpMailTransport.send(emitter, "LLM-Einleitung erhalten.");
             } catch (Exception e) {
-                send(emitter, "⚠ LLM-Fehler, verwende Fallback-Einleitung: " + e.getMessage());
+                smtpMailTransport.send(emitter, "⚠ LLM-Fehler, verwende Fallback-Einleitung: " + e.getMessage());
                 intro = "Spieltag " + roundNumber + " in der Saison " + season.getName() + " ist abgeschlossen. "
                       + "Tagessieger: " + topScorerName
                       + (topScorerPoints != null ? " mit " + topScorerPoints + " Punkten" : "") + ".";
             }
 
-            send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
+            smtpMailTransport.send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
 
             int sent = 0;
             int failed = 0;
@@ -341,13 +330,13 @@ public class MatchdayMailTransactionService {
                     .filter(m -> m.getId().equals(managerId))
                     .findFirst().orElse(null);
                 if (manager == null) {
-                    send(emitter, "✗ Manager-ID " + managerId + " nicht in Saison gefunden");
+                    smtpMailTransport.send(emitter, "✗ Manager-ID " + managerId + " nicht in Saison gefunden");
                     failed++;
                     continue;
                 }
                 String recipientEmail = manager.getUser() != null ? manager.getUser().getEmail() : null;
                 if (recipientEmail == null || recipientEmail.isBlank()) {
-                    send(emitter, "✗ [" + positionByManagerId.get(manager.getId()) + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " hat keine Mailadresse");
+                    smtpMailTransport.send(emitter, "✗ [" + positionByManagerId.get(manager.getId()) + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " hat keine Mailadresse");
                     failed++;
                     continue;
                 }
@@ -372,19 +361,22 @@ public class MatchdayMailTransactionService {
                     String html = buildHtmlForManager(manager, season, roundNumber, intro,
                         dayRankByManagerId.get(managerId), topScorerName, topScorerPoints,
                         playerRankByPlayerId, teamsByPlayerId, playerById, pointsByPlayerId,
-                        prevRankByManagerId, seasonRanksByPlayerId, transferRound, config.getWebUrl(),
+                        prevRankByManagerId, transferRound, config.getWebUrl(),
                         rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment,
                         manager.getMailTheme(), paymentReminder);
 
                     helper.setText(html, true);
 
-                    boolean gesendet = sendWithRetry(transportState, mailSender, emitter, msg,
-                        manager, positionByManagerId.get(manager.getId()), recipientEmail, testMode, config);
+                    String label = "[" + positionByManagerId.get(manager.getId()) + "] "
+                        + (manager.getShortName() != null ? manager.getShortName() + " - " : "")
+                        + manager.getName();
+                    boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
+                        label, recipientEmail, emitter);
                     if (!gesendet) {
                         failed++;
                         continue;
                     }
-                    send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + positionByManagerId.get(manager.getId()) + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + (testMode ? config.getGmailSenderEmail() : recipientEmail) + ")");
+                    smtpMailTransport.send(emitter, (testMode ? "[TEST] " : "") + "✓ " + label + " (" + (testMode ? config.getGmailSenderEmail() : recipientEmail) + ")");
                     sent++;
 
                     Thread.sleep(PAUSE_BETWEEN_MAILS_MS);
@@ -397,24 +389,24 @@ public class MatchdayMailTransactionService {
 
                     if (sent % 50 == 0 && sent < managerIds.size()) {
                         for (int remaining = 90; remaining > 0; remaining--) {
-                            send(emitter, "⏳ " + sent + " Mails versendet, warte " + remaining + " Sekunden...");
+                            smtpMailTransport.send(emitter, "⏳ " + sent + " Mails versendet, warte " + remaining + " Sekunden...");
                             Thread.sleep(1000);
                         }
-                        send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
+                        smtpMailTransport.send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
                         lastKeepAlive = System.currentTimeMillis();
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    send(emitter, "✗ Versand unterbrochen: " + e.getMessage());
+                    smtpMailTransport.send(emitter, "✗ Versand unterbrochen: " + e.getMessage());
                     failed++;
                 } catch (Exception e) {
                     log.error("Unerwarteter Fehler bei Mail an {} (Manager {}): {}", recipientEmail, manager.getId(), e.getMessage(), e);
-                    send(emitter, "✗ [" + positionByManagerId.get(manager.getId()) + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + recipientEmail + "): " + describeMailError(e));
+                    smtpMailTransport.send(emitter, "✗ [" + positionByManagerId.get(manager.getId()) + "] " + (manager.getShortName() != null ? manager.getShortName() + " - " : "") + manager.getName() + " (" + recipientEmail + "): " + smtpMailTransport.describeMailError(e));
                     failed++;
                 }
             }
 
-            send(emitter, "Fertig: " + sent + " versendet, " + failed + " fehlgeschlagen.");
+            smtpMailTransport.send(emitter, "Fertig: " + sent + " versendet, " + failed + " fehlgeschlagen.");
             emitter.send(SseEmitter.event().name("complete").data(""));
             emitter.complete();
         } catch (Exception e) {
@@ -425,88 +417,8 @@ public class MatchdayMailTransactionService {
             }
             emitter.completeWithError(e);
         } finally {
-            closeQuietly(transportState.transport);
+            smtpMailTransport.closeQuietly(transportState.transport);
         }
-    }
-
-    private void send(SseEmitter emitter, String message) throws IOException {
-        emitter.send(SseEmitter.event().data(message));
-    }
-
-    private boolean sendWithRetry(TransportState state, JavaMailSenderImpl mailSender,
-                                  SseEmitter emitter, MimeMessage msg, Manager manager,
-                                  int position, String recipientEmail, boolean testMode, SystemConfig config)
-            throws IOException, InterruptedException {
-        String recipient = testMode ? config.getGmailSenderEmail() : recipientEmail;
-        int attempt = 0;
-        while (true) {
-            attempt++;
-            try {
-                if (state.transport == null || !state.transport.isConnected()
-                        || state.mailsOnConnection >= MAX_MAILS_PER_CONNECTION) {
-                    closeQuietly(state.transport);
-                    state.transport = connectTransport(mailSender);
-                    state.mailsOnConnection = 0;
-                    send(emitter, "Neue SMTP-Verbindung ...");
-                }
-                msg.saveChanges();
-                state.transport.sendMessage(msg, msg.getAllRecipients());
-                state.mailsOnConnection++;
-                return true;
-            } catch (MessagingException e) {
-                log.error("SMTP-Fehler bei Mail an {} (Manager {}): {}",
-                        recipient, manager.getId(), e.getMessage(), e);
-                closeQuietly(state.transport);
-                state.transport = null;
-                if (attempt >= MAX_ATTEMPTS) {
-                    send(emitter, "✗ [" + position + "] "
-                            + (manager.getShortName() != null ? manager.getShortName() + " - " : "")
-                            + manager.getName() + " (" + recipient + "): " + describeMailError(e));
-                    return false;
-                }
-                long backoff = RETRY_BACKOFF_MS[attempt - 1];
-                send(emitter, "⏳ Retry " + attempt + "/" + MAX_ATTEMPTS + " in "
-                        + (backoff / 1000) + "s (" + describeMailError(e) + ")");
-                Thread.sleep(backoff);
-            }
-        }
-    }
-
-    private Transport connectTransport(JavaMailSenderImpl mailSender) throws MessagingException {
-        Transport transport = mailSender.getSession().getTransport("smtp");
-        transport.connect(mailSender.getHost(), mailSender.getPort(),
-                mailSender.getUsername(), mailSender.getPassword());
-        return transport;
-    }
-
-    private void closeQuietly(Transport transport) {
-        if (transport != null) {
-            try {
-                transport.close();
-            } catch (MessagingException ignored) {
-            }
-        }
-    }
-
-    private String describeMailError(Throwable e) {
-        StringBuilder sb = new StringBuilder();
-        Throwable cur = e;
-        while (cur != null) {
-            String msg = cur.getMessage();
-            if (msg != null && !msg.isBlank()) {
-                if (sb.length() > 0) {
-                    sb.append(" -> ");
-                }
-                sb.append(msg);
-            }
-            cur = cur.getCause();
-        }
-        return sb.length() > 0 ? sb.toString() : e.getClass().getSimpleName();
-    }
-
-    private static final class TransportState {
-        Transport transport;
-        int mailsOnConnection;
     }
 
     private String buildManagerDisplayName(Manager m) {
@@ -540,7 +452,6 @@ public class MatchdayMailTransactionService {
                                         Map<Long, Player> playerById,
                                         Map<Long, List<Points>> pointsByPlayerId,
                                         Map<Long, ManagerRank> prevRankByManagerId,
-                                        Map<Long, List<PlayerRank>> seasonRanksByPlayerId,
                                         int transferRound, String webUrl,
                                         List<RankingRow> rankingExcerpt,
                                         Map<Long, Manager> managersById,
@@ -646,18 +557,21 @@ public class MatchdayMailTransactionService {
         }
 
         List<RosterEntry> roster = collectFullRoster(manager, playerById);
-        Map<Long, Integer> mePointsByPlayer = new HashMap<>();
-        for (RosterEntry e : roster) {
-            mePointsByPlayer.put(e.player.getId(),
-                computePointsForMe(e, seasonRanksByPlayerId, transferRound, roundNumber));
-        }
-        roster.sort((a, b) -> Integer.compare(
-            mePointsByPlayer.getOrDefault(b.player.getId(), 0),
-            mePointsByPlayer.getOrDefault(a.player.getId(), 0)));
-        appendRosterTable(sb, roster, mePointsByPlayer, playerRankByPlayerId, teamsByPlayerId, roundNumber, transferRound, season.getSeasonState(), isDark, textPrimary, textSecondary, textTertiary, cardBg);
+        roster.sort((a, b) -> {
+            PlayerRank pra = playerRankByPlayerId.get(a.player.getId());
+            PlayerRank prb = playerRankByPlayerId.get(b.player.getId());
+            int posA = pra != null && pra.getPositionTotal() != null ? pra.getPositionTotal() : Integer.MAX_VALUE;
+            int posB = prb != null && prb.getPositionTotal() != null ? prb.getPositionTotal() : Integer.MAX_VALUE;
+            int byPos = Integer.compare(posA, posB);
+            if (byPos != 0) return byPos;
+            int einsA = pra != null && pra.getNumberMatches() != null ? pra.getNumberMatches() : 0;
+            int einsB = prb != null && prb.getNumberMatches() != null ? prb.getNumberMatches() : 0;
+            return Integer.compare(einsB, einsA);
+        });
+        appendRosterTable(sb, roster, playerRankByPlayerId, teamsByPlayerId, roundNumber, transferRound, isDark, textPrimary, textSecondary, textTertiary);
 
         if (rankingExcerpt != null && !rankingExcerpt.isEmpty()) {
-            appendRankingTable(sb, rankingExcerpt, manager.getId(), prevRankByManagerId, managersById, isDark, textPrimary, textSecondary, textTertiary);
+            appendRankingTable(sb, rankingExcerpt, roundNumber, manager.getId(), prevRankByManagerId, managersById, isDark, textPrimary, textSecondary, textTertiary);
             if (webUrl != null && !webUrl.isBlank()) {
                 String base = webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
                 sb.append("<div style=\"margin-top:8px;text-align:right;font-size:12px;\">")
@@ -671,7 +585,7 @@ public class MatchdayMailTransactionService {
                 .sorted(Comparator.comparing(g -> Optional.ofNullable(g.getName()).orElse("")))
                 .toList();
             for (ManagerGroup group : sortedGroups) {
-                appendManagerGroupTable(sb, group, manager.getId(), dayRankByManagerId,
+                appendManagerGroupTable(sb, group, roundNumber, manager.getId(), dayRankByManagerId,
                     prevRankByManagerId, managersById, isDark, textPrimary, textSecondary, textTertiary, cardBg);
             }
         }
@@ -776,7 +690,7 @@ public class MatchdayMailTransactionService {
         return rows;
     }
 
-    private void appendRankingTable(StringBuilder sb, List<RankingRow> rows, Long ownManagerId,
+    private void appendRankingTable(StringBuilder sb, List<RankingRow> rows, int roundNumber, Long ownManagerId,
                                      Map<Long, ManagerRank> prevRankByManagerId,
                                      Map<Long, Manager> managersById,
                                      boolean isDark, String textPrimary, String textSecondary, String textTertiary) {
@@ -788,28 +702,19 @@ public class MatchdayMailTransactionService {
             sb.append("border:1px solid #555555;\"");
         }
         sb.append(">");
-        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;");
-        if (!isDark) {
-            sb.append("background:#f0f0f0;");
-        } else {
-            sb.append("background:#1c1c1e;");
-        }
-        sb.append("\">");
-        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Pos</th>");
-        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">+/-</th>");
-        sb.append("<th align=\"left\" style=\"padding:7px 8px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Manager</th>");
-        sb.append("<th align=\"right\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Pkt</th>");
-        sb.append("<th align=\"right\" style=\"padding:7px 10px 7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Sp.</th>");
+        String borderColor = isDark ? "#555555" : "#c0c0c0";
+        String headerBg = isDark ? "background:#1c1c1e;" : "background:#f0f0f0;";
+        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;").append(headerBg).append("\">");
+        sb.append("<th colspan=\"3\" align=\"left\" style=\"padding:7px 8px;font-weight:700;font-size:13px;border:1px solid ").append(borderColor).append(";\">")
+          .append(roundNumber).append(". Spieltag</th>");
+        sb.append("<th colspan=\"2\" align=\"center\" style=\"padding:7px 6px;font-weight:700;border:1px solid ").append(borderColor).append(";\">Punkte</th>");
+        sb.append("</tr>");
+        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;").append(headerBg).append("\">");
+        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;border:1px solid ").append(borderColor).append(";\">Pos</th>");
+        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;border:1px solid ").append(borderColor).append(";\">+/-</th>");
+        sb.append("<th align=\"left\" style=\"padding:7px 8px;font-weight:500;border:1px solid ").append(borderColor).append(";\">Manager</th>");
+        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;border:1px solid ").append(borderColor).append(";\">Sp.</th>");
+        sb.append("<th align=\"center\" style=\"padding:7px 10px 7px 6px;font-weight:500;border:1px solid ").append(borderColor).append(";\">Ges.</th>");
         sb.append("</tr>");
 
         int rowIndex = 0;
@@ -866,23 +771,27 @@ public class MatchdayMailTransactionService {
             sb.append("<div style=\"color:").append(textColor).append(";font-weight:").append(fontWeight).append(";font-size:13px;line-height:1.2;\">")
               .append(escape(displayName)).append("</div>");
             if (m != null && m.getUser() != null && m.getUser().getLogin() != null && !m.getUser().getLogin().isBlank()) {
+                String login = m.getUser().getLogin();
+                if (login.length() > 15) {
+                    login = login.substring(0, 12) + "...";
+                }
                 sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;margin-top:2px;line-height:1.2;\">")
-                  .append(escape(m.getUser().getLogin())).append("</div>");
+                  .append(escape(login)).append("</div>");
             }
             sb.append("</td>");
 
-            sb.append("<td align=\"right\" style=\"padding:7px 6px;color:").append(textColor).append(";font-weight:").append(fontWeight).append(";").append(cellBorder).append("\">")
-              .append(nz(mr.getPointsTotal())).append("</td>");
-
-            sb.append("<td align=\"right\" style=\"padding:7px 10px 7px 6px;color:").append(secondary).append(";").append(cellBorder).append("\">")
+            sb.append("<td align=\"center\" style=\"padding:7px 6px;color:").append(secondary).append(";").append(cellBorder).append("\">")
               .append(nz(mr.getPointsRound())).append("</td>");
+
+            sb.append("<td align=\"center\" style=\"padding:7px 10px 7px 6px;color:").append(textColor).append(";font-weight:").append(fontWeight).append(";").append(cellBorder).append("\">")
+              .append(nz(mr.getPointsTotal())).append("</td>");
 
             sb.append("</tr>");
         }
         sb.append("</table>");
     }
 
-    private void appendManagerGroupTable(StringBuilder sb, ManagerGroup group, Long ownManagerId,
+    private void appendManagerGroupTable(StringBuilder sb, ManagerGroup group, int roundNumber, Long ownManagerId,
                                           Map<Long, ManagerRank> dayRankByManagerId,
                                           Map<Long, ManagerRank> prevRankByManagerId,
                                           Map<Long, Manager> managersById,
@@ -906,28 +815,19 @@ public class MatchdayMailTransactionService {
             sb.append("border:1px solid #555555;\"");
         }
         sb.append(">");
-        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;");
-        if (!isDark) {
-            sb.append("background:#f0f0f0;");
-        } else {
-            sb.append("background:#1c1c1e;");
-        }
-        sb.append("\">");
-        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Pos</th>");
-        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">+/-</th>");
-        sb.append("<th align=\"left\" style=\"padding:7px 8px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Manager</th>");
-        sb.append("<th align=\"right\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Pkt</th>");
-        sb.append("<th align=\"right\" style=\"padding:7px 10px 7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Sp.</th>");
+        String borderColor = isDark ? "#555555" : "#c0c0c0";
+        String headerBg = isDark ? "background:#1c1c1e;" : "background:#f0f0f0;";
+        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;").append(headerBg).append("\">");
+        sb.append("<th colspan=\"3\" align=\"left\" style=\"padding:7px 8px;font-weight:700;font-size:13px;border:1px solid ").append(borderColor).append(";\">")
+          .append(roundNumber).append(". Spieltag</th>");
+        sb.append("<th colspan=\"2\" align=\"center\" style=\"padding:7px 6px;font-weight:700;border:1px solid ").append(borderColor).append(";\">Punkte</th>");
+        sb.append("</tr>");
+        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;").append(headerBg).append("\">");
+        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;border:1px solid ").append(borderColor).append(";\">Pos</th>");
+        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;border:1px solid ").append(borderColor).append(";\">+/-</th>");
+        sb.append("<th align=\"left\" style=\"padding:7px 8px;font-weight:500;border:1px solid ").append(borderColor).append(";\">Manager</th>");
+        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;border:1px solid ").append(borderColor).append(";\">Sp.</th>");
+        sb.append("<th align=\"center\" style=\"padding:7px 10px 7px 6px;font-weight:500;border:1px solid ").append(borderColor).append(";\">Ges.</th>");
         sb.append("</tr>");
 
         int rowIndex = 0;
@@ -976,16 +876,20 @@ public class MatchdayMailTransactionService {
             sb.append("<div style=\"color:").append(textColor).append(";font-weight:").append(fontWeight).append(";font-size:13px;line-height:1.2;\">")
               .append(escape(displayName)).append("</div>");
             if (m != null && m.getUser() != null && m.getUser().getLogin() != null && !m.getUser().getLogin().isBlank()) {
+                String login = m.getUser().getLogin();
+                if (login.length() > 15) {
+                    login = login.substring(0, 12) + "...";
+                }
                 sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;margin-top:2px;line-height:1.2;\">")
-                  .append(escape(m.getUser().getLogin())).append("</div>");
+                  .append(escape(login)).append("</div>");
             }
             sb.append("</td>");
 
-            sb.append("<td align=\"right\" style=\"padding:7px 6px;color:").append(textColor).append(";font-weight:").append(fontWeight).append(";").append(cellBorder).append("\">")
-              .append(nz(mr.getPointsTotal())).append("</td>");
-
-            sb.append("<td align=\"right\" style=\"padding:7px 10px 7px 6px;color:").append(secondary).append(";").append(cellBorder).append("\">")
+            sb.append("<td align=\"center\" style=\"padding:7px 6px;color:").append(secondary).append(";").append(cellBorder).append("\">")
               .append(nz(mr.getPointsRound())).append("</td>");
+
+            sb.append("<td align=\"center\" style=\"padding:7px 10px 7px 6px;color:").append(textColor).append(";font-weight:").append(fontWeight).append(";").append(cellBorder).append("\">")
+              .append(nz(mr.getPointsTotal())).append("</td>");
 
             sb.append("</tr>");
         }
@@ -1018,7 +922,7 @@ public class MatchdayMailTransactionService {
             manager.getPlayerFreeChoice()
         };
         String[] labels = new String[] {
-            "TW", "ABW", "ABW", "ABW", "MF", "MF", "MF", "ST", "ST", "ST", "FREI"
+            "TW", "VT", "VT", "VT", "MF", "MF", "MF", "ST", "ST", "ST", "FREI"
         };
         String[] colors = new String[] {
             "#30D158", "#FF9F0A", "#FF9F0A", "#FF9F0A", "#FF2D55", "#FF2D55", "#FF2D55",
@@ -1059,29 +963,11 @@ public class MatchdayMailTransactionService {
             || p.equals(m.getPlayerExchangedOld3());
     }
 
-    private int computePointsForMe(RosterEntry e,
-                                    Map<Long, List<PlayerRank>> seasonRanksByPlayerId,
-                                    int transferRound, int currentRound) {
-        List<PlayerRank> ranks = seasonRanksByPlayerId.get(e.player.getId());
-        if (ranks == null) return 0;
-        int sum = 0;
-        for (PlayerRank pr : ranks) {
-            if (pr.getRound() == null || pr.getRound().getNumber() == null) continue;
-            int rn = pr.getRound().getNumber();
-            if (rn > currentRound) continue;
-            boolean isRueckrunde = rn >= transferRound;
-            boolean active = isRueckrunde ? e.activeRueckrunde : e.activeHinrunde;
-            if (!active) continue;
-            if (pr.getPointsRound() != null) sum += pr.getPointsRound();
-        }
-        return sum;
-    }
-
     private String positionLabelFromEnum(Position pos) {
         if (pos == null) return "SP";
         return switch (pos) {
             case GOALKEEPER -> "TW";
-            case DEFENDER -> "ABW";
+            case DEFENDER -> "VT";
             case MIDFIELD -> "MF";
             case STRIKER -> "ST";
         };
@@ -1095,22 +981,6 @@ public class MatchdayMailTransactionService {
             case MIDFIELD -> "#FF2D55";
             case STRIKER -> "#0A84FF";
         };
-    }
-
-    private static String shortenPlayerName(String full) {
-        if (full == null) return "";
-        String trimmed = full.trim();
-        if (trimmed.isEmpty()) return trimmed;
-        String[] parts = trimmed.split("\\s+");
-        if (parts.length < 2) return trimmed;
-        String first = parts[0];
-        String initial = first.substring(0, 1).toUpperCase() + ".";
-        StringBuilder rest = new StringBuilder();
-        for (int i = 1; i < parts.length; i++) {
-            if (i > 1) rest.append(" ");
-            rest.append(parts[i]);
-        }
-        return initial + " " + rest.toString();
     }
 
     private String positionBadgeTextColor(String hex, boolean isDark) {
@@ -1147,60 +1017,57 @@ public class MatchdayMailTransactionService {
         }
     }
 
+    static String formatMio(int value) {
+        return String.format(Locale.GERMAN, "%.1f", value / 1_000_000.0);
+    }
+
+    static String teamShortName(List<Team> teams) {
+        if (teams == null || teams.isEmpty()) return "";
+        return teams.get(teams.size() - 1).getShortName();
+    }
+
     private void appendRosterTable(StringBuilder sb, List<RosterEntry> roster,
-                                    Map<Long, Integer> mePointsByPlayer,
                                     Map<Long, PlayerRank> playerRankByPlayerId,
                                     Map<Long, List<Team>> teamsByPlayerId,
                                     int roundNumber, int transferRound,
-                                    SeasonState seasonState, boolean isDark, String textPrimary, String textSecondary, String textTertiary, String cardBg) {
-        boolean showHalfBadge = seasonState != SeasonState.RUNNING_HINRUNDE;
+                                    boolean isDark, String textPrimary, String textSecondary, String textTertiary) {
         boolean isRueckrundeCurrent = roundNumber >= transferRound;
+        String accentPoints = isDark ? "#FF9F0A" : "#c2410c";
+        String borderColor = isDark ? "#555555" : "#c0c0c0";
         sb.append("<div style=\"color:").append(textTertiary).append(";font-size:13px;font-weight:700;margin:18px 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;\">Deine ")
           .append(roster.size()).append(" Spieler</div>");
-        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;border-collapse:collapse;");
-        if (!isDark) {
-            sb.append("border:1px solid #c0c0c0;\"");
-        } else {
-            sb.append("border:1px solid #555555;\"");
-        }
-        sb.append(">");
-        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;");
-        if (!isDark) {
-            sb.append("background:#f0f0f0;");
-        } else {
-            sb.append("background:#1c1c1e;");
-        }
-        sb.append("\">");
-        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">#</th>");
-        sb.append("<th align=\"left\" style=\"padding:7px 8px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Spieler</th>");
-        sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Pos</th>");
-        sb.append("<th align=\"right\" style=\"padding:7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Pkt</th>");
-        sb.append("<th align=\"right\" style=\"padding:7px 10px 7px 6px;font-weight:500;");
-        if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-        sb.append("\">Sp.</th>");
-        if (showHalfBadge) {
-            sb.append("<th align=\"center\" style=\"padding:7px 6px;font-weight:500;");
-            if (!isDark) sb.append("border:1px solid #c0c0c0;"); else sb.append("border:1px solid #555555;");
-            sb.append("\">H/R</th>");
-        }
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;border-collapse:collapse;border:1px solid ").append(borderColor).append(";\">");
+        String thStyle = "font-weight:500;padding:7px 6px;border:1px solid " + borderColor + ";";
+        String headerBg = isDark ? "background:#1c1c1e;" : "background:#f0f0f0;";
+        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;").append(headerBg).append("\">");
+        sb.append("<th colspan=\"4\" align=\"left\" style=\"padding:7px 8px;font-weight:700;font-size:13px;border:1px solid ").append(borderColor).append(";\">")
+          .append(roundNumber).append(". Spieltag</th>");
+        sb.append("<th colspan=\"2\" align=\"center\" style=\"padding:7px 6px;font-weight:700;border:1px solid ").append(borderColor).append(";\">Punkte</th>");
+        sb.append("<th colspan=\"2\" align=\"center\" style=\"padding:7px 6px;font-weight:700;border:1px solid ").append(borderColor).append(";\">Einsatz</th>");
         sb.append("</tr>");
+        sb.append("<tr style=\"color:").append(textSecondary).append(";font-size:11px;").append(headerBg).append("\">");
+        sb.append("<th align=\"center\" style=\"").append(thStyle).append("\">Pos.</th>");
+        sb.append("<th align=\"left\" style=\"font-weight:500;padding:7px 8px;border:1px solid ").append(borderColor).append(";\">Spieler</th>");
+        sb.append("<th align=\"center\" style=\"").append(thStyle).append("\">Pos</th>");
+        sb.append("<th align=\"center\" style=\"").append(thStyle).append("\">Preis</th>");
+        sb.append("<th align=\"center\" style=\"").append(thStyle).append("\">Sp.</th>");
+        sb.append("<th align=\"center\" style=\"").append(thStyle).append("\">Ges.</th>");
+        sb.append("<th align=\"center\" style=\"").append(thStyle).append("\">Sp.</th>");
+        sb.append("<th align=\"center\" style=\"").append(thStyle).append("\">Ges.</th>");
+        sb.append("</tr>");
+
         int rowIndex = 0;
         for (RosterEntry e : roster) {
             Player player = e.player;
             PlayerRank pr = playerRankByPlayerId.get(player.getId());
             Integer positionTotal = pr != null ? pr.getPositionTotal() : null;
-            int mePoints = mePointsByPlayer.getOrDefault(player.getId(), 0);
             boolean activeNow = isRueckrundeCurrent ? e.activeRueckrunde : e.activeHinrunde;
-            int pointsRound = activeNow && pr != null && pr.getPointsRound() != null ? pr.getPointsRound() : 0;
-            boolean scoredToday = pointsRound > 0;
+            boolean deployed = activeNow && pr != null && Boolean.TRUE.equals(pr.getPlayed());
+            int pointsRound = pr != null && pr.getPointsRound() != null ? pr.getPointsRound() : 0;
+            Integer gesTotal = pr != null ? pr.getPointsTotal() : null;
+            Integer einsaetze = pr != null ? pr.getNumberMatches() : null;
+            int einsaetzeGesamt = Math.max(einsaetze != null ? einsaetze : 0, deployed ? 1 : 0);
+            int prize = player.getPrize() != null ? player.getPrize() : 0;
 
             String textColor = textPrimary;
             String secondary = textSecondary;
@@ -1209,7 +1076,7 @@ public class MatchdayMailTransactionService {
             String teamName = "";
             List<Team> teams = teamsByPlayerId.get(player.getId());
             if (teams != null && !teams.isEmpty()) {
-                teamName = teams.get(teams.size() - 1).getName();
+                teamName = teamShortName(teams);
             }
 
             String darkBg = positionDarkBgFromHex(e.posColor, isDark);
@@ -1227,55 +1094,65 @@ public class MatchdayMailTransactionService {
 
             sb.append("<tr style=\"").append(rowBg).append("\">");
 
-            sb.append("<td align=\"center\" style=\"padding:7px 6px;color:").append(textColor)
-              .append(";font-weight:").append(fontWeight).append(";").append(cellBorder).append("\">");
-            if (positionTotal != null) {
-                sb.append(positionTotal).append(".");
-            } else {
-                sb.append("–");
-            }
+            sb.append("<td align=\"center\" style=\"padding:6px 4px;color:").append(textColor)
+              .append(";font-weight:").append(fontWeight).append(";white-space:nowrap;").append(cellBorder).append("\">");
+            sb.append(positionTotal != null ? positionTotal + "." : "&nbsp;");
             sb.append("</td>");
 
-            sb.append("<td align=\"left\" style=\"padding:7px 8px;").append(cellBorder).append("\">");
-            sb.append("<div style=\"color:").append(textColor).append(";font-weight:600;font-size:13px;line-height:1.2;white-space:nowrap;\">")
-              .append("<span style=\"vertical-align:middle;\">")
-              .append(escape(shortenPlayerName(player.getNameKicker())))
-              .append("</span>");
-            sb.append("</div>");
+            sb.append("<td align=\"left\" style=\"padding:6px 8px;").append(cellBorder).append("\">");
+            String nameKicker = player.getNameKicker();
+            if (nameKicker != null && nameKicker.length() > 10) {
+                nameKicker = nameKicker.substring(0, 10) + "...";
+            }
+            sb.append("<div style=\"color:").append(textColor).append(";font-weight:700;font-size:14px;line-height:1.2;\">")
+              .append(escape(nameKicker))
+              .append("</div>");
             if (!teamName.isEmpty()) {
-                sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;margin-top:2px;line-height:1.2;white-space:nowrap;\">")
+                sb.append("<div style=\"color:").append(secondary).append(";font-size:11px;margin-top:2px;line-height:1.2;\">")
                   .append(escape(teamName))
                   .append("</div>");
             }
             sb.append("</td>");
 
-            sb.append("<td align=\"center\" style=\"padding:7px 6px;").append(cellBorder).append("\">");
+            sb.append("<td align=\"center\" style=\"padding:6px 4px;").append(cellBorder).append("\">");
             sb.append("<span style=\"display:inline-block;background:").append(darkBg)
               .append(";color:").append(positionBadgeTextColor(e.posColor, isDark))
               .append(";padding:3px 8px;border-radius:9px;font-size:10px;font-weight:700;line-height:1.2;letter-spacing:0.3px;\">")
               .append(escape(e.posLabel)).append("</span>");
             sb.append("</td>");
 
-            sb.append("<td align=\"right\" style=\"padding:7px 6px;color:").append(textColor)
-              .append(";font-weight:").append(fontWeight).append(";white-space:nowrap;").append(cellBorder).append("\">")
-              .append(mePoints).append("</td>");
+            sb.append("<td align=\"center\" style=\"padding:6px 4px;color:").append(textColor)
+              .append(";font-weight:").append(fontWeight).append(";white-space:nowrap;").append(cellBorder).append("\">");
+            sb.append(formatMio(prize));
+            sb.append("</td>");
 
-            sb.append("<td align=\"right\" style=\"padding:7px 10px 7px 6px;").append(cellBorder).append("\">");
-            if (scoredToday) {
-                sb.append("<span style=\"display:inline-block;background:#FFD60A;color:#000;font-weight:700;padding:2px 8px;border-radius:9px;font-size:12px;\">+")
+            sb.append("<td align=\"center\" style=\"padding:6px 4px;white-space:nowrap;").append(cellBorder).append("\">");
+            if (pointsRound > 0) {
+                sb.append("<span style=\"color:").append(accentPoints).append(";font-weight:700;\">")
                   .append(pointsRound).append("</span>");
+            } else {
+                sb.append("&nbsp;");
             }
             sb.append("</td>");
 
-            if (showHalfBadge) {
-                sb.append("<td align=\"center\" style=\"padding:7px 6px;").append(cellBorder).append("\">");
-                if (e.activeHinrunde && !e.activeRueckrunde) {
-                    sb.append("<span style=\"display:inline-block;background:#0A84FF;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">HR</span>");
-                } else if (e.activeRueckrunde && !e.activeHinrunde) {
-                    sb.append("<span style=\"display:inline-block;background:#BF5AF2;color:#ffffff;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;line-height:1.2;\">RR</span>");
-                }
-                sb.append("</td>");
+            sb.append("<td align=\"center\" style=\"padding:6px 4px;color:").append(textColor)
+              .append(";font-weight:").append(fontWeight).append(";white-space:nowrap;").append(cellBorder).append("\">");
+            sb.append(gesTotal != null && gesTotal > 0 ? gesTotal : "&nbsp;");
+            sb.append("</td>");
+
+            sb.append("<td align=\"center\" style=\"padding:6px 4px;white-space:nowrap;").append(cellBorder).append("\">");
+            if (deployed) {
+                sb.append("<span style=\"color:").append(textColor).append(";font-weight:600;\">√</span>");
+            } else {
+                sb.append("&nbsp;");
             }
+            sb.append("</td>");
+
+            sb.append("<td align=\"center\" style=\"padding:6px 4px;color:").append(textColor)
+              .append(";font-weight:").append(fontWeight).append(";white-space:nowrap;").append(cellBorder).append("\">");
+            sb.append(einsaetzeGesamt > 0 ? einsaetzeGesamt : "&nbsp;");
+            sb.append("</td>");
+
             sb.append("</tr>");
         }
         sb.append("</table>");
@@ -1301,7 +1178,7 @@ public class MatchdayMailTransactionService {
             String teamName = "";
             List<Team> teams = teamsByPlayerId.get(player.getId());
             if (teams != null && !teams.isEmpty()) {
-                teamName = teams.get(teams.size() - 1).getName();
+                teamName = teamShortName(teams);
             }
 
             String posLabel = positionLabelFromEnum(player.getPosition());
@@ -1340,7 +1217,7 @@ public class MatchdayMailTransactionService {
         String teamName = "";
         List<Team> teams = teamsByPlayerId.get(player.getId());
         if (teams != null && !teams.isEmpty()) {
-            teamName = teams.get(teams.size() - 1).getName();
+            teamName = teamShortName(teams);
         }
 
         sb.append("<div style=\"background:").append(cardBg).append(";border-radius:16px;padding:14px;\">");
@@ -1432,7 +1309,7 @@ public class MatchdayMailTransactionService {
         String teamName = "";
         List<Team> teams = teamsByPlayerId.get(player.getId());
         if (teams != null && !teams.isEmpty()) {
-            teamName = teams.get(teams.size() - 1).getName();
+            teamName = teamShortName(teams);
         }
 
         String posLabel = positionLabelFromEnum(player.getPosition());
@@ -1494,9 +1371,9 @@ public class MatchdayMailTransactionService {
 
     private String getPositionLabel(Player player, Manager manager) {
         if (player.equals(manager.getPlayerGoalkeeper())) return "TW";
-        if (player.equals(manager.getPlayerDefender1())) return "ABW";
-        if (player.equals(manager.getPlayerDefender2())) return "ABW";
-        if (player.equals(manager.getPlayerDefender3())) return "ABW";
+        if (player.equals(manager.getPlayerDefender1())) return "VT";
+        if (player.equals(manager.getPlayerDefender2())) return "VT";
+        if (player.equals(manager.getPlayerDefender3())) return "VT";
         if (player.equals(manager.getPlayerMidfield1())) return "MF";
         if (player.equals(manager.getPlayerMidfield2())) return "MF";
         if (player.equals(manager.getPlayerMidfield3())) return "MF";
@@ -1556,11 +1433,17 @@ public class MatchdayMailTransactionService {
     static String renderCommentCard(String comment, String cardBgAlt, String textPrimary, boolean isDark) {
         String commentCardStyle = "background:" + cardBgAlt + ";border-radius:12px;padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;border:1px solid " + (isDark ? "#555555" : "#c0c0c0") + ";";
         String commentHtml = sanitizeCommentHtml(comment);
-        if (commentHtml != null && !commentHtml.isBlank()) {
+        if (commentHtml != null && !commentHtml.isBlank() && hasVisibleText(commentHtml)) {
             commentHtml = PrizeDistributionHtmlBuilder.prepareMailText(commentHtml);
             return "<div style=\"" + commentCardStyle + "\">" + commentHtml + "</div>";
         }
         return "";
+    }
+
+    private static boolean hasVisibleText(String html) {
+        if (html == null) return false;
+        String text = org.jsoup.Jsoup.parse(html).text().replace('\u00A0', ' ').trim();
+        return !text.isEmpty();
     }
 
     private static String renderIntroMarkdown(String s, String textPrimary) {

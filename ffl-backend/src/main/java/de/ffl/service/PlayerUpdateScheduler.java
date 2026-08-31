@@ -24,7 +24,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Properties;
 
 @Service
 public class PlayerUpdateScheduler {
@@ -38,19 +37,22 @@ public class PlayerUpdateScheduler {
     private final NewSeasonSetupService setupService;
     private final SpringTemplateEngine templateEngine;
     private final EnvironmentProvider environmentProvider;
+    private final SmtpMailTransport smtpMailTransport;
 
     public PlayerUpdateScheduler(SystemConfigRepository configRepository,
                                  SeasonRepository seasonRepository,
                                  UserRepository userRepository,
                                  NewSeasonSetupService setupService,
                                  SpringTemplateEngine templateEngine,
-                                 EnvironmentProvider environmentProvider) {
+                                 EnvironmentProvider environmentProvider,
+                                 SmtpMailTransport smtpMailTransport) {
         this.configRepository = configRepository;
         this.seasonRepository = seasonRepository;
         this.userRepository = userRepository;
         this.setupService = setupService;
         this.templateEngine = templateEngine;
         this.environmentProvider = environmentProvider;
+        this.smtpMailTransport = smtpMailTransport;
     }
 
     @Scheduled(fixedRate = 60000)
@@ -193,20 +195,8 @@ public class PlayerUpdateScheduler {
             return;
         }
 
-        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(config.getGmailSmtpServer() != null ? config.getGmailSmtpServer() : "smtp.gmail.com");
-        mailSender.setPort(config.getGmailSmtpPort() != null ? config.getGmailSmtpPort() : 587);
-        mailSender.setUsername(config.getGmailSenderEmail());
-        mailSender.setPassword(config.getGmailAppPassword());
-
-        Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.connectiontimeout", "30000");
-        props.put("mail.smtp.timeout", "120000");
-        props.put("mail.smtp.writetimeout", "120000");
+        JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
+        SmtpMailTransport.TransportState transportState = new SmtpMailTransport.TransportState();
 
         try {
             for (String recipient : adminEmails) {
@@ -216,11 +206,18 @@ public class PlayerUpdateScheduler {
                 helper.setTo(recipient);
                 helper.setSubject(subject);
                 helper.setText(htmlContent, true);
-                mailSender.send(msg);
+
+                boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
+                    recipient, recipient, null);
+                if (!gesendet) {
+                    throw new RuntimeException("Auto-Update-Mail an " + recipient + " fehlgeschlagen");
+                }
             }
             log.info("Auto-Update-Mail an {} Admin(s) gesendet (Betreff: {})", adminEmails.size(), subject);
         } catch (Exception e) {
             throw new RuntimeException("Fehler beim Senden der Auto-Update-Mail: " + e.getMessage(), e);
+        } finally {
+            smtpMailTransport.closeQuietly(transportState.transport);
         }
     }
 }

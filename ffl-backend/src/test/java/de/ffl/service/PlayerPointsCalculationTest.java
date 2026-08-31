@@ -121,6 +121,26 @@ class PlayerPointsCalculationTest extends AbstractSeasonTestBase {
         }
     }
 
+    @Test
+    void numberMatches_countsAllAppearancesIndependentOfPoints() {
+        Round round34 = roundMap.get(34);
+        Optional<PlayerRank> rank = playerRankRepository.findByPlayerIdAndRoundId(
+                harryKane.getId(), round34.getId());
+        assertThat(rank).isPresent();
+
+        long playedRounds = 0;
+        for (int i = 1; i <= 34; i++) {
+            Round round = roundMap.get(i);
+            Optional<PlayerRank> r = playerRankRepository.findByPlayerIdAndRoundId(
+                    harryKane.getId(), round.getId());
+            if (r.isPresent() && Boolean.TRUE.equals(r.get().getPlayed())) {
+                playedRounds++;
+            }
+        }
+
+        assertThat(rank.get().getNumberMatches()).isEqualTo((int) playedRounds);
+    }
+
     private Player findPlayerByName(String name) {
         return playerMap.values().stream()
                 .filter(p -> p.getNameKicker().equals(name))

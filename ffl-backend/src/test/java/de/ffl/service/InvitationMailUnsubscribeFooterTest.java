@@ -35,7 +35,7 @@ class InvitationMailUnsubscribeFooterTest {
 
     private InvitationMailService service() {
         return new InvitationMailService(systemConfigRepository, seasonRepository,
-            emailAddressRepository, unsubscribeService, templateEngine);
+            emailAddressRepository, unsubscribeService, templateEngine, new SmtpMailTransport());
     }
 
     @Test

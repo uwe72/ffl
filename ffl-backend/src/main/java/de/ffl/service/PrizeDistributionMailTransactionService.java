@@ -35,30 +35,34 @@ public class PrizeDistributionMailTransactionService {
     private final PrizePayoutRepository prizePayoutRepository;
     private final PrizeDistributionLogRepository prizeDistributionLogRepository;
     private final PrizeDistributionHtmlBuilder htmlBuilder;
+    private final SmtpMailTransport smtpMailTransport;
 
     public PrizeDistributionMailTransactionService(SeasonRepository seasonRepository,
                                                    ManagerRepository managerRepository,
                                                    PrizePayoutRepository prizePayoutRepository,
                                                    PrizeDistributionLogRepository prizeDistributionLogRepository,
-                                                   PrizeDistributionHtmlBuilder htmlBuilder) {
+                                                   PrizeDistributionHtmlBuilder htmlBuilder,
+                                                   SmtpMailTransport smtpMailTransport) {
         this.seasonRepository = seasonRepository;
         this.managerRepository = managerRepository;
         this.prizePayoutRepository = prizePayoutRepository;
         this.prizeDistributionLogRepository = prizeDistributionLogRepository;
         this.htmlBuilder = htmlBuilder;
+        this.smtpMailTransport = smtpMailTransport;
     }
 
     public void runMailJob(SseEmitter emitter, Long seasonId, List<Long> managerIds,
                            JavaMailSenderImpl mailSender, SystemConfig config, boolean testMode) {
+        SmtpMailTransport.TransportState transportState = new SmtpMailTransport.TransportState();
         try {
-            send(emitter, "Lade Saisonabschluss-Daten…");
+            smtpMailTransport.send(emitter, "Lade Saisonabschluss-Daten…");
 
             Season season = seasonRepository.findById(seasonId)
                 .orElseThrow(() -> new RuntimeException("Saison " + seasonId + " nicht gefunden"));
 
             List<PrizePayout> payouts = prizePayoutRepository.findBySeasonIdOrderByPositionAsc(seasonId);
             if (payouts.isEmpty()) {
-                send(emitter, "FEHLER: Keine Gewinnverteilung für Saison " + seasonId + " vorhanden");
+                smtpMailTransport.send(emitter, "FEHLER: Keine Gewinnverteilung für Saison " + seasonId + " vorhanden");
                 emitter.send(SseEmitter.event().name("error").data("Keine Gewinnverteilung vorhanden"));
                 emitter.complete();
                 return;
@@ -73,7 +77,7 @@ public class PrizeDistributionMailTransactionService {
                 managersById.put(m.getId(), m);
             }
 
-            send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
+            smtpMailTransport.send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
 
             int sent = 0;
             int failed = 0;
@@ -82,14 +86,14 @@ public class PrizeDistributionMailTransactionService {
             for (Long managerId : managerIds) {
                 Manager manager = managersById.get(managerId);
                 if (manager == null) {
-                    send(emitter, "✗ Manager-ID " + managerId + " nicht in Saison gefunden");
+                    smtpMailTransport.send(emitter, "✗ Manager-ID " + managerId + " nicht in Saison gefunden");
                     failed++;
                     continue;
                 }
 
                 String recipientEmail = manager.getUser() != null ? manager.getUser().getEmail() : null;
                 if (recipientEmail == null || recipientEmail.isBlank()) {
-                    send(emitter, "✗ [" + manager.getId() + "] " + buildManagerDisplayName(manager) + " hat keine Mailadresse");
+                    smtpMailTransport.send(emitter, "✗ [" + manager.getId() + "] " + buildManagerDisplayName(manager) + " hat keine Mailadresse");
                     failed++;
                     continue;
                 }
@@ -105,11 +109,17 @@ public class PrizeDistributionMailTransactionService {
                     String html = htmlBuilder.buildHtmlContent(season, payouts, distributionLog, manager);
                     helper.setText(html, true);
 
+                    String label = "[" + manager.getId() + "] " + buildManagerDisplayName(manager);
                     if (!testMode) {
-                        mailSender.send(msg);
+                        boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
+                            label, recipientEmail, emitter);
+                        if (!gesendet) {
+                            failed++;
+                            continue;
+                        }
                     }
 
-                    send(emitter, (testMode ? "[TEST] " : "") + "✓ [" + manager.getId() + "] " + buildManagerDisplayName(manager) + " (" + recipientEmail + ")");
+                    smtpMailTransport.send(emitter, (testMode ? "[TEST] " : "") + "✓ " + label + " (" + recipientEmail + ")");
                     sent++;
 
                     Thread.sleep(1000);
@@ -122,23 +132,23 @@ public class PrizeDistributionMailTransactionService {
 
                     if (sent % 50 == 0 && sent < managerIds.size()) {
                         for (int remaining = 90; remaining > 0; remaining--) {
-                            send(emitter, "⏳ " + sent + " Mails versendet, warte " + remaining + " Sekunden...");
+                            smtpMailTransport.send(emitter, "⏳ " + sent + " Mails versendet, warte " + remaining + " Sekunden...");
                             Thread.sleep(1000);
                         }
-                        send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
+                        smtpMailTransport.send(emitter, "⏳ Wartezeit beendet, weiter mit nächstem Block...");
                         lastKeepAlive = System.currentTimeMillis();
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    send(emitter, "✗ Versand unterbrochen: " + e.getMessage());
+                    smtpMailTransport.send(emitter, "✗ Versand unterbrochen: " + e.getMessage());
                     failed++;
                 } catch (Exception e) {
-                    send(emitter, "✗ [" + manager.getId() + "] " + buildManagerDisplayName(manager) + " (" + recipientEmail + "): " + e.getMessage());
+                    smtpMailTransport.send(emitter, "✗ [" + manager.getId() + "] " + buildManagerDisplayName(manager) + " (" + recipientEmail + "): " + e.getMessage());
                     failed++;
                 }
             }
 
-            send(emitter, "Fertig: " + sent + " versendet, " + failed + " fehlgeschlagen.");
+            smtpMailTransport.send(emitter, "Fertig: " + sent + " versendet, " + failed + " fehlgeschlagen.");
             emitter.send(SseEmitter.event().name("complete").data(""));
             emitter.complete();
         } catch (Exception e) {
@@ -147,11 +157,9 @@ public class PrizeDistributionMailTransactionService {
             } catch (IOException ignored) {
             }
             emitter.completeWithError(e);
+        } finally {
+            smtpMailTransport.closeQuietly(transportState.transport);
         }
-    }
-
-    private void send(SseEmitter emitter, String message) throws IOException {
-        emitter.send(SseEmitter.event().data(message));
     }
 
     private String buildManagerDisplayName(Manager m) {

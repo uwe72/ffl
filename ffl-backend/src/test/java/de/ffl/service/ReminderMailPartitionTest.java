@@ -37,7 +37,7 @@ class ReminderMailPartitionTest {
 
     private ReminderMailService service() {
         return new ReminderMailService(systemConfigRepository, seasonRepository,
-            emailAddressRepository, managerRepository, unsubscribeService, invitationMailService, templateEngine);
+            emailAddressRepository, managerRepository, unsubscribeService, invitationMailService, templateEngine, new SmtpMailTransport());
     }
 
     @Test

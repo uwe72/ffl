@@ -178,17 +178,17 @@ export default function TeamDetail() {
   const isAdmin = user?.role === 'ADMIN'
   const updateTeam = useUpdateTeam()
 
-  const [editData, setEditData] = useState({ shortName: '', logoSUrl: '' })
+  const [editData, setEditData] = useState({ shortName: '', slogan: '', logoSUrl: '' })
   const [isSaving, setIsSaving] = useState(false)
   const [stammdatenOpen, setStammdatenOpen] = useState(false)
 
   useEffect(() => {
     if (team) {
-      setEditData({ shortName: team.shortName || '', logoSUrl: team.logoSUrl || '' })
+      setEditData({ shortName: team.shortName || '', slogan: team.slogan || '', logoSUrl: team.logoSUrl || '' })
     }
   }, [team])
 
-  const hasChanges = team && (editData.shortName !== (team.shortName || '') || editData.logoSUrl !== (team.logoSUrl || ''))
+  const hasChanges = team && (editData.shortName !== (team.shortName || '') || editData.slogan !== (team.slogan || '') || editData.logoSUrl !== (team.logoSUrl || ''))
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -202,7 +202,7 @@ export default function TeamDetail() {
 
   const handleReset = () => {
     if (team) {
-      setEditData({ shortName: team.shortName || '', logoSUrl: team.logoSUrl || '' })
+      setEditData({ shortName: team.shortName || '', slogan: team.slogan || '', logoSUrl: team.logoSUrl || '' })
     }
   }
 
@@ -296,7 +296,7 @@ export default function TeamDetail() {
                 <div>
                   <h2 className="text-3xl font-bold text-foreground truncate">{team.name}</h2>
                   <p className="text-xs uppercase tracking-wide text-subtle mt-2">
-                    {team.shortName || '-'}
+                    {team.slogan || '-'}
                   </p>
                 </div>
               )}
@@ -319,6 +319,17 @@ export default function TeamDetail() {
                         type="text"
                         value={editData.shortName}
                         onChange={(e) => setEditData({ ...editData, shortName: e.target.value })}
+                        required
+                        className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted">Slogan</span>
+                      <input
+                        type="text"
+                        value={editData.slogan}
+                        onChange={(e) => setEditData({ ...editData, slogan: e.target.value })}
+                        maxLength={22}
                         className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
                       />
                     </div>

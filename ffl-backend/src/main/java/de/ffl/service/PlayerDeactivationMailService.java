@@ -15,7 +15,6 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Properties;
 
 @Service
 public class PlayerDeactivationMailService {
@@ -24,11 +23,14 @@ public class PlayerDeactivationMailService {
 
     private final SystemConfigRepository systemConfigRepository;
     private final SpringTemplateEngine templateEngine;
+    private final SmtpMailTransport smtpMailTransport;
 
     public PlayerDeactivationMailService(SystemConfigRepository systemConfigRepository,
-                                         SpringTemplateEngine templateEngine) {
+                                         SpringTemplateEngine templateEngine,
+                                         SmtpMailTransport smtpMailTransport) {
         this.systemConfigRepository = systemConfigRepository;
         this.templateEngine = templateEngine;
+        this.smtpMailTransport = smtpMailTransport;
     }
 
     @Async
@@ -54,28 +56,37 @@ public class PlayerDeactivationMailService {
         }
 
         boolean beforeSeason = state == SeasonState.BEFORE_SEASON;
-        JavaMailSenderImpl mailSender = buildMailSender(config);
+        JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
         String webUrl = normalizeWebUrl(config.getWebUrl());
         int sent = 0;
+        SmtpMailTransport.TransportState transportState = new SmtpMailTransport.TransportState();
 
-        for (ManagerNotificationDto notification : notifications) {
-            if (notification.email() == null || notification.email().isBlank()) {
-                continue;
+        try {
+            for (ManagerNotificationDto notification : notifications) {
+                if (notification.email() == null || notification.email().isBlank()) {
+                    continue;
+                }
+                try {
+                    MimeMessage msg = mailSender.createMimeMessage();
+                    MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+                    helper.setFrom(config.getGmailSenderEmail());
+                    helper.setTo(notification.email());
+                    helper.setBcc(config.getGmailSenderEmail());
+                    helper.setSubject("FFL | Spieler nicht mehr verfügbar | " + seasonName);
+                    helper.setText(buildHtml(notification, seasonName, beforeSeason, webUrl), true);
+
+                    boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
+                        notification.email(), notification.email(), null);
+                    if (gesendet) {
+                        sent++;
+                    }
+                } catch (Exception e) {
+                    log.error("Fehler beim Senden der Spieler-Deaktivierungs-Mail an {}: {}",
+                            notification.email(), e.getMessage(), e);
+                }
             }
-            try {
-                MimeMessage msg = mailSender.createMimeMessage();
-                MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-                helper.setFrom(config.getGmailSenderEmail());
-                helper.setTo(notification.email());
-                helper.setBcc(config.getGmailSenderEmail());
-                helper.setSubject("FFL | Spieler nicht mehr verfügbar | " + seasonName);
-                helper.setText(buildHtml(notification, seasonName, beforeSeason, webUrl), true);
-                mailSender.send(msg);
-                sent++;
-            } catch (Exception e) {
-                log.error("Fehler beim Senden der Spieler-Deaktivierungs-Mail an {}: {}",
-                        notification.email(), e.getMessage(), e);
-            }
+        } finally {
+            smtpMailTransport.closeQuietly(transportState.transport);
         }
         log.info("Spieler-Deaktivierungs-Mails an {} Manager gesendet", sent);
     }
@@ -89,24 +100,6 @@ public class PlayerDeactivationMailService {
         context.setVariable("beforeSeason", beforeSeason);
         context.setVariable("webUrl", webUrl);
         return templateEngine.process("mail/player-deactivation", context);
-    }
-
-    private JavaMailSenderImpl buildMailSender(SystemConfig config) {
-        JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(config.getGmailSmtpServer() != null ? config.getGmailSmtpServer() : "smtp.gmail.com");
-        sender.setPort(config.getGmailSmtpPort() != null ? config.getGmailSmtpPort() : 587);
-        sender.setUsername(config.getGmailSenderEmail());
-        sender.setPassword(config.getGmailAppPassword());
-
-        Properties props = sender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.connectiontimeout", "30000");
-        props.put("mail.smtp.timeout", "120000");
-        props.put("mail.smtp.writetimeout", "120000");
-        return sender;
     }
 
     private String normalizeWebUrl(String webUrl) {

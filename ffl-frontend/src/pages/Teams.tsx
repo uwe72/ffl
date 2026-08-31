@@ -27,8 +27,8 @@ export default function Teams() {
                   />
                 )}
                 <h2 className="text-base font-semibold text-foreground truncate">{team.name}</h2>
-                {team.shortName && (
-                  <p className="text-muted">{team.shortName}</p>
+                {team.slogan && (
+                  <p className="text-muted truncate">{team.slogan}</p>
                 )}
               </RouterLink>
             </div>

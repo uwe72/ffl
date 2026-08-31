@@ -133,6 +133,7 @@ export interface Team {
   id: number
   name: string
   shortName?: string
+  slogan?: string
   logoXxlUrl?: string
   logoSUrl?: string
 }

@@ -46,7 +46,7 @@ class PlayerUpdateSchedulerTest {
 
     private PlayerUpdateScheduler scheduler() {
         EnvironmentProvider environmentProvider = new EnvironmentProvider("test");
-        return new PlayerUpdateScheduler(configRepository, seasonRepository, userRepository, setupService, templateEngine, environmentProvider);
+        return new PlayerUpdateScheduler(configRepository, seasonRepository, userRepository, setupService, templateEngine, environmentProvider, new SmtpMailTransport());
     }
 
     private SystemConfig configEnabled(String cron, LocalDateTime lastRun) {
@@ -287,7 +287,7 @@ class PlayerUpdateSchedulerTest {
 
         EnvironmentProvider prodProvider = new EnvironmentProvider("docker");
         PlayerUpdateScheduler prodScheduler = new PlayerUpdateScheduler(
-                configRepository, seasonRepository, userRepository, setupService, templateEngine, prodProvider);
+                configRepository, seasonRepository, userRepository, setupService, templateEngine, prodProvider, new SmtpMailTransport());
 
         String html = prodScheduler.buildHtml("2026/27", true,
                 new NewSeasonSetupService.UpdateResult(0, 0, 0), "08.08.2026 08:00", lines, null, prodProvider.getEnvironment());
