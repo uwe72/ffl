@@ -56,6 +56,7 @@ public class Player {
         inverseJoinColumns = @JoinColumn(name = "team_id")
     )
     @JsonIgnore
+    @Builder.Default
     private List<Team> teams = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -309,29 +309,21 @@ class NewSeasonSetupUpdatePlayersTest {
 
     @Test
     void updatePlayers_reactivatesPlayersBackInActiveKickerData() {
-        List<Team> alphaTeams = new ArrayList<>();
-        alphaTeams.add(alpha);
-        playerRepository.save(Player.builder()
-                .kickerId("pl-test-gk-01")
-                .nameKicker("Mustermann")
-                .firstName("Max")
-                .lastName("Mustermann")
-                .position(Position.GOALKEEPER)
-                .prize(1000000)
-                .season(season)
-                .teams(alphaTeams)
-                .aktiv(false)
-                .build());
+        Player gk01 = playerRepository.findBySeasonIdWithTeams(season.getId()).stream()
+                .filter(p -> "pl-test-gk-01".equals(p.getKickerId()))
+                .findFirst().orElseThrow();
+        gk01.setAktiv(false);
+        playerRepository.save(gk01);
         entityManager.flush();
         entityManager.clear();
 
         AtomicReference<String> log = new AtomicReference<>("");
         setupService.updatePlayers("test-url", msg -> log.set(log.get() + msg + "\n"));
 
-        Player gk01 = playerRepository.findBySeasonIdWithTeams(season.getId()).stream()
+        Player reactivated = playerRepository.findBySeasonIdWithTeams(season.getId()).stream()
                 .filter(p -> "pl-test-gk-01".equals(p.getKickerId()))
                 .findFirst().orElseThrow();
-        assertThat(gk01.getAktiv()).isTrue();
+        assertThat(reactivated.getAktiv()).isTrue();
         assertThat(log.get()).contains("Spieler reaktiviert: Mustermann");
     }
 
