@@ -854,9 +854,13 @@ public class ManagerService {
             boolean showTopPaymentNotice = paymentReminder != null && paymentReminder.isOpen()
                 && season.getSeasonState() != SeasonState.BEFORE_SEASON;
 
+            boolean startgeldReceived = paymentReminder != null && paymentReminder.isReceived()
+                && season.getSeasonState() == SeasonState.BEFORE_SEASON;
+
             teamChangeMailService.sendTeamChangeConfirmation(
                 user.getEmail(), user.getLogin(), greeting, userName, seasonName, changeTypeLabel,
-                exchanges, positionGroups, budgetDto, webUrl, teamChangeCount, paymentReminder, showTopPaymentNotice);
+                exchanges, positionGroups, budgetDto, webUrl, teamChangeCount, paymentReminder, showTopPaymentNotice,
+                startgeldReceived);
         } catch (Exception e) {
             org.slf4j.LoggerFactory.getLogger(ManagerService.class)
                 .warn("Teamänderungsmail konnte nicht gesendet werden: {}", e.getMessage());

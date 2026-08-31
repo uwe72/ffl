@@ -52,7 +52,8 @@ public class TeamChangeMailService {
                                            String webUrl,
                                            int teamChangeCount,
                                            PaymentReminderDto paymentReminder,
-                                           boolean showTopPaymentNotice) {
+                                           boolean showTopPaymentNotice,
+                                           boolean startgeldReceived) {
         try {
             SystemConfig config = systemConfigRepository.findFirstByOrderByIdAsc().orElse(null);
             if (config == null) {
@@ -80,7 +81,7 @@ public class TeamChangeMailService {
 
             helper.setSubject("↻ FFL | " + teamChangeCount + ". Änderung | " + userLogin + " | " + seasonName);
 
-            String html = buildTeamChangeHtml(greeting, userName, seasonName, changeTypeLabel, exchanges, positionGroups, budget, webUrl, teamChangeCount, paymentReminder, showTopPaymentNotice);
+            String html = buildTeamChangeHtml(greeting, userName, seasonName, changeTypeLabel, exchanges, positionGroups, budget, webUrl, teamChangeCount, paymentReminder, showTopPaymentNotice, startgeldReceived);
             helper.setText(html, true);
 
             mailSender.send(msg);
@@ -95,7 +96,8 @@ public class TeamChangeMailService {
                                        List<ExchangeDto> exchanges, List<PositionGroupDto> positionGroups,
                                        BudgetDto budget, String webUrl, int teamChangeCount,
                                        PaymentReminderDto paymentReminder,
-                                       boolean showTopPaymentNotice) {
+                                       boolean showTopPaymentNotice,
+                                       boolean startgeldReceived) {
         Context context = new Context(Locale.GERMAN);
         context.setVariable("greeting", greeting);
         context.setVariable("userName", userName);
@@ -107,7 +109,7 @@ public class TeamChangeMailService {
         context.setVariable("budget", budget);
         context.setVariable("webUrl", normalizeWebUrl(webUrl));
         context.setVariable("payment", paymentReminder != null && paymentReminder.isOpen() ? paymentReminder : null);
-        context.setVariable("startgeldReceived", paymentReminder != null && paymentReminder.isReceived());
+        context.setVariable("startgeldReceived", startgeldReceived);
         context.setVariable("showTopPaymentNotice", showTopPaymentNotice);
         return templateEngine.process("mail/team-change-confirmation", context);
     }
