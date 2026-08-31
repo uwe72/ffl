@@ -117,7 +117,7 @@ export default function SurveyPublic() {
   const { id } = useParams<{ id: string }>()
   const surveyId = Number(id)
   const { data: survey, isLoading, error } = usePublicSurvey(surveyId)
-  const { data: result } = usePublicSurveyResult(surveyId)
+  const { data: result } = usePublicSurveyResult(surveyId, survey?.status === 'VEROEFFENTLICHT')
   const submit = useSubmitSurvey()
   const [answers, setAnswers] = useState<AnswerState>({})
   const [submitted, setSubmitted] = useState(false)

@@ -33,11 +33,11 @@ export const usePublicSurvey = (id: number) => {
   })
 }
 
-export const usePublicSurveyResult = (id: number) => {
+export const usePublicSurveyResult = (id: number, enabled?: boolean) => {
   return useQuery({
     queryKey: ['survey', 'public', id, 'result'],
     queryFn: () => surveyPublicApi.result(id).then(res => res.data),
-    enabled: !!id,
+    enabled: !!id && enabled !== false,
   })
 }
 
