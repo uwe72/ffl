@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, forwardRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import * as XLSX from 'xlsx'
 import { useManagers, useCurrentManager } from '../hooks/useManagers'
@@ -11,56 +11,6 @@ import { TableHead, ThSortable, TableBody, TableRow } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 
 type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
-
-const ManagerCard = forwardRef<HTMLDivElement, { manager: any; beforeSeason: boolean; beforeSeasonNonAdmin: boolean; active?: boolean }>(
-  function ManagerCard({ manager, beforeSeason, beforeSeasonNonAdmin, active = false }, ref) {
-  const fullName = [manager.firstName, manager.lastName].filter(Boolean).join(' ') || manager.shortName || manager.name || '-'
-  return (
-    <div ref={ref} className={`group relative overflow-hidden bg-surface border rounded-none p-3 pl-4 transition-colors hover:border-border-hover ${active ? 'border-accent bg-accent-muted' : 'border-border'}`}>
-      <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent" />
-      <div className="flex-1 min-w-0">
-        {beforeSeasonNonAdmin ? (
-          <p className="text-base font-semibold text-foreground leading-6 truncate">
-            {fullName}
-          </p>
-        ) : (
-          <RouterLink to={`/managers/${manager.id}`} className="link text-base font-semibold leading-6 truncate block">
-            {fullName}
-          </RouterLink>
-        )}
-        {manager.login && (
-          <p className="text-sm text-muted leading-5 truncate">{manager.login}</p>
-        )}
-        {!beforeSeason && (
-          <div className="mt-2 grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5 bg-stat-card border border-border rounded-card px-4 py-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Platz</span>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted">Gesamt</span>
-                <span className="font-bold tabular-nums text-foreground">{manager.positionTotal ?? '-'}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted">Spieltag</span>
-                <span className="font-bold tabular-nums text-foreground">{manager.positionLastRound ?? '-'}</span>
-              </div>
-            </div>
-            <div className="flex flex-col gap-1.5 bg-stat-card border border-border rounded-card px-4 py-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Punkte</span>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted">Gesamt</span>
-                <span className="font-bold tabular-nums text-foreground">{manager.pointsTotal ?? '-'}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted">Spieltag</span>
-                <span className="font-bold tabular-nums text-foreground">{manager.pointsLastRound ?? '-'}</span>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-})
 
 export default function Managers() {
   const isMobile = useIsMobile()
@@ -81,7 +31,6 @@ export default function Managers() {
   const myManagerId = isAdmin ? uwe72?.id : currentManager?.id
 
   const rowRef = useRef<HTMLTableRowElement | null>(null)
-  const cardRef = useRef<HTMLDivElement | null>(null)
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -176,7 +125,7 @@ export default function Managers() {
 
   useEffect(() => {
     if (!selected || myManagerId == null) return
-    const el = isMobile ? cardRef.current : rowRef.current
+    const el = rowRef.current
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [selected, myManagerId, isMobile, searchTerm, filteredManagers])
 
@@ -351,27 +300,116 @@ export default function Managers() {
         )}
 
         {isMobile && (
-          <div>
-            <div className="grid gap-4">
-              {filteredManagers && filteredManagers.length > 0 ? (
-                filteredManagers.map((manager) => {
-                  const isMe = selected && manager.id === myManagerId
-                  return (
-                    <ManagerCard key={manager.id} ref={isMe ? cardRef : undefined} active={isMe} manager={manager} beforeSeason={beforeSeason} beforeSeasonNonAdmin={beforeSeasonNonAdmin} />
-                  )
-                })
-              ) : (
-                <div className="text-center text-subtle py-8">
-                  Keine Manager gefunden
-                </div>
-              )}
+          <>
+            <div className="rounded-card border border-border w-full overflow-x-auto">
+              <table className="w-full table-fixed">
+                <colgroup>
+                  {!beforeSeason && <col className="w-9" />}
+                  {!beforeSeason && <col className="w-9" />}
+                  <col className="w-auto" />
+                  {!beforeSeason && <col className="w-8" />}
+                  {!beforeSeason && <col className="w-9" />}
+                </colgroup>
+                <TableHead>
+                  {!beforeSeason && (
+                  <tr>
+                    <th colSpan={3} align="left" className="px-2 py-2 h-[32px] text-[12px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none" />
+                    <th colSpan={2} align="center" className="px-2 py-2 h-[32px] text-[12px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none">
+                      Punkte
+                    </th>
+                  </tr>
+                  )}
+                  <tr>
+                    {!beforeSeason && (
+                    <th align="center" onClick={() => handleSort('positionTotal')} className="px-2 py-2 h-[32px] text-[12px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
+                      Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
+                    </th>
+                    )}
+                    {!beforeSeason && (
+                    <th align="center" onClick={() => handleSort('positionChange')} className="px-2 py-2 h-[32px] text-[12px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
+                      +/-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
+                    </th>
+                    )}
+                    <th align="left" onClick={() => handleSort('shortName')} className="px-2 py-2 h-[32px] text-[12px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
+                      Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
+                    </th>
+                    {!beforeSeason && (
+                    <th align="center" onClick={() => handleSort('pointsLastRound')} className="px-2 py-2 h-[32px] text-[12px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
+                      Sp.<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                    </th>
+                    )}
+                    {!beforeSeason && (
+                    <th align="center" onClick={() => handleSort('pointsTotal')} className="px-2 py-2 h-[32px] text-[12px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
+                      Ges.<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
+                    </th>
+                    )}
+                  </tr>
+                </TableHead>
+                <TableBody>
+                  {filteredManagers && filteredManagers.length > 0 ? (
+                    filteredManagers.map((manager, index) => {
+                      const isMe = selected && manager.id === myManagerId
+                      return (
+                      <tr
+                        key={manager.id}
+                        ref={isMe ? rowRef : undefined}
+                        className={`border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-accent-muted font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
+                      >
+                        {!beforeSeason && (
+                        <td className="px-2 py-2 text-center text-foreground overflow-hidden">
+                          {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
+                        </td>
+                        )}
+                        {!beforeSeason && (
+                        <td className="px-2 py-2 text-center overflow-hidden">
+                          {manager.positionChange != null && manager.positionChange !== 0 ? (
+                            <span className={`${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                              {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
+                            </span>
+                          ) : (
+                            <span className="text-subtle">-</span>
+                          )}
+                        </td>
+                        )}
+                        <td className="px-2 py-2 min-w-0 overflow-hidden">
+                          {beforeSeasonNonAdmin ? (
+                            <span className="font-medium text-foreground">{manager.shortName || '-'}</span>
+                          ) : (
+                            <RouterLink to={`/managers/${manager.id}`} className="link font-medium truncate block">
+                              {manager.shortName || '-'}
+                            </RouterLink>
+                          )}
+                          {manager.login && (
+                            <div className="text-xs text-muted truncate">{manager.login}</div>
+                          )}
+                        </td>
+                        {!beforeSeason && (
+                        <td className="px-2 py-2 text-center text-muted overflow-hidden">
+                          {manager.pointsLastRound ?? '-'}
+                        </td>
+                        )}
+                        {!beforeSeason && (
+                        <td className="px-2 py-2 text-center text-foreground font-medium overflow-hidden">
+                          {manager.pointsTotal ?? '-'}
+                        </td>
+                        )}
+                      </tr>
+                      )
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={beforeSeason ? 1 : 5} className="text-center text-subtle py-8">
+                        Keine Manager gefunden
+                      </td>
+                    </tr>
+                  )}
+                </TableBody>
+              </table>
             </div>
-            {filteredManagers && (
-              <div className="mt-4 text-sm text-subtle">
-                {filteredManagers.length} von {managers?.length || 0} Managern
-              </div>
-            )}
-          </div>
+            <div className="mt-4 text-sm text-subtle">
+              {filteredManagers.length} von {managers?.length || 0} Managern
+            </div>
+          </>
         )}
       </div>
     </div>

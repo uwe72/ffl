@@ -75,8 +75,8 @@ function downloadDocument(doc: Document) {
     })
 }
 
-function DocumentCard({ doc, isAdmin, onDelete, onCopyLink, copied }: {
-  doc: Document; isAdmin: boolean; onDelete: (id: number) => void; onCopyLink: (id: number) => void; copied: boolean
+function DocumentCard({ doc, isAdmin, onDelete }: {
+  doc: Document; isAdmin: boolean; onDelete: (id: number) => void
 }) {
   return (
     <div className="card p-4 bg-surface border border-border">
@@ -98,9 +98,6 @@ function DocumentCard({ doc, isAdmin, onDelete, onCopyLink, copied }: {
           </div>
         </div>
         <div className="flex flex-col items-end gap-2 shrink-0">
-          <Button variant="secondary" size="compact" onClick={() => onCopyLink(doc.id)}>
-            {copied ? 'Kopiert' : 'Link kopieren'}
-          </Button>
           {isAdmin && (
             <Button
               variant="negative"
@@ -386,8 +383,6 @@ export default function Documents() {
                     doc={doc}
                     isAdmin={isAdmin}
                     onDelete={handleDelete}
-                    onCopyLink={handleCopyLink}
-                    copied={copiedId === doc.id}
                   />
                 ))
               ) : (
