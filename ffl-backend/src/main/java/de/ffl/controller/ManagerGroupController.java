@@ -5,6 +5,7 @@ import de.ffl.dto.CreateManagerGroupDto;
 import de.ffl.dto.ManagerGroupDto;
 import de.ffl.dto.ManagerGroupListDto;
 import de.ffl.dto.ManagerGroupRoundStatsDto;
+import de.ffl.dto.SetStandardGroupRequest;
 import de.ffl.service.ManagerGroupService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -39,6 +40,16 @@ public class ManagerGroupController {
     public ResponseEntity<List<ManagerGroupRoundStatsDto>> getMyGroupsWithStats() {
         List<ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
         return ResponseEntity.ok(groups);
+    }
+
+    @PutMapping("/standard")
+    public ResponseEntity<?> setStandard(@RequestBody SetStandardGroupRequest request) {
+        try {
+            managerGroupService.setStandardGroup(request.getGroupId());
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/manager/{managerId}/with-stats")

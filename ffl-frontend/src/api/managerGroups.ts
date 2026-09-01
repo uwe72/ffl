@@ -21,6 +21,7 @@ export const managerGroupApi = {
   changeCreator: (groupId: number, newCreatorId: number) => 
     api.put<ManagerGroup>(`/manager-groups/${groupId}/creator`, { newCreatorId }),
   getMyGroupsWithStats: () => api.get<ManagerGroupRoundStats[]>('/manager-groups/my-groups-with-stats'),
+  setStandard: (groupId: number | null) => api.put('/manager-groups/standard', { groupId }),
   getGroupsWithStatsByManagerId: (managerId: number) => api.get<ManagerGroupRoundStats[]>(`/manager-groups/manager/${managerId}/with-stats`),
   uploadLogo: (groupId: number, file: File) => {
     const formData = new FormData()

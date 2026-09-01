@@ -30,7 +30,7 @@ export default function AufstellungVertikal({
 
   const title = isVorsaison ? 'Kader' : `${aufstellung.spieltag}. Spieltag`
 
-  const th = 'px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
+  const th = 'px-3 py-1 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
   const td = 'px-3 py-1 border-b border-border whitespace-nowrap tabular-nums'
 
   return (
@@ -46,10 +46,10 @@ export default function AufstellungVertikal({
             <tr>
               <th align="left" className={th}>Spieler</th>
               <th className={th}>Pos</th>
-              <th className={th}>Sp.</th>
               <th className={th}>Ges.</th>
               <th className={th}>Sp.</th>
               <th className={th}>Ges.</th>
+              <th className={th}>Sp.</th>
             </tr>
           </thead>
           <tbody className="bg-surface">
@@ -72,14 +72,14 @@ export default function AufstellungVertikal({
                     {POS_BADGE[p.position] ?? p.position}
                   </span>
                 </td>
+                <td className={`${td} text-center text-foreground`}>{p.punkteGesamt > 0 ? p.punkteGesamt : ''}</td>
                 <td className={`${td} text-center`}>
                   {p.punkteSpieltag > 0 ? (
                     <span className="font-bold text-accent">{p.punkteSpieltag}</span>
                   ) : ''}
                 </td>
-                <td className={`${td} text-center text-foreground`}>{p.punkteGesamt > 0 ? p.punkteGesamt : ''}</td>
-                <td className={`${td} text-center text-foreground`}>{p.gespielt ? '√' : ''}</td>
                 <td className={`${td} text-center text-foreground`}>{p.einsaetze > 0 ? p.einsaetze : ''}</td>
+                <td className={`${td} text-center text-foreground`}>{p.gespielt ? '√' : ''}</td>
               </tr>
             ))}
           </tbody>

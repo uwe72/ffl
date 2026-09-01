@@ -150,6 +150,16 @@ export const useMyGroupsWithStats = (enabled = true) => {
   })
 }
 
+export const useSetStandardGroup = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (groupId: number | null) => managerGroupApi.setStandard(groupId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['manager-groups', 'my-stats'] })
+    },
+  })
+}
+
 export const useManagerGroupsWithStats = (managerId: number, enabled = true) => {
   return useQuery({
     queryKey: ['manager-groups', 'stats', managerId],

@@ -7,6 +7,7 @@ import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.CreateManagerGroupDto;
 import de.ffl.dto.ManagerGroupDto;
+import de.ffl.dto.ManagerGroupRoundStatsDto;
 import de.ffl.repository.ManagerGroupRepository;
 import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.UserRepository;
@@ -284,5 +285,70 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
         authenticateAs("admin");
         List<de.ffl.dto.ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
         assertTrue(groups.stream().anyMatch(g -> g.getGroupId().equals(groupId)));
+    }
+
+    @Test
+    void setStandardGroup_putsStandardGroupFirst() {
+        creatorUser = createUser("creator");
+        createManager(creatorUser, season);
+
+        authenticateAs("creator");
+        Long groupA = createGroup("A-Gruppe", season.getId(), List.of());
+        Long groupB = createGroup("B-Gruppe", season.getId(), List.of());
+
+        managerGroupService.setStandardGroup(groupB);
+
+        List<ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
+        assertEquals(groupB, groups.get(0).getGroupId());
+        assertTrue(groups.get(0).isStandard());
+        assertEquals(1, groups.stream().filter(ManagerGroupRoundStatsDto::isStandard).count());
+    }
+
+    @Test
+    void setStandardGroup_switchingKeepsSingleStandard() {
+        creatorUser = createUser("creator");
+        createManager(creatorUser, season);
+
+        authenticateAs("creator");
+        Long groupA = createGroup("A-Gruppe", season.getId(), List.of());
+        Long groupB = createGroup("B-Gruppe", season.getId(), List.of());
+
+        managerGroupService.setStandardGroup(groupA);
+        managerGroupService.setStandardGroup(groupB);
+
+        List<ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
+        assertEquals(1, groups.stream().filter(ManagerGroupRoundStatsDto::isStandard).count());
+        assertEquals(groupB, groups.stream()
+            .filter(ManagerGroupRoundStatsDto::isStandard)
+            .findFirst().orElseThrow().getGroupId());
+    }
+
+    @Test
+    void setStandardGroup_nullClearsStandard() {
+        creatorUser = createUser("creator");
+        createManager(creatorUser, season);
+
+        authenticateAs("creator");
+        Long groupA = createGroup("A-Gruppe", season.getId(), List.of());
+
+        managerGroupService.setStandardGroup(groupA);
+        managerGroupService.setStandardGroup(null);
+
+        List<ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
+        assertTrue(groups.stream().noneMatch(ManagerGroupRoundStatsDto::isStandard));
+    }
+
+    @Test
+    void setStandardGroup_nonMemberThrows() {
+        creatorUser = createUser("creator");
+        createManager(creatorUser, season);
+        User outsider = createUser("outsider");
+        createManager(outsider, season);
+
+        authenticateAs("creator");
+        Long groupId = createGroup("NurErsteller", season.getId(), List.of());
+
+        authenticateAs("outsider");
+        assertThrows(IllegalArgumentException.class, () -> managerGroupService.setStandardGroup(groupId));
     }
 }

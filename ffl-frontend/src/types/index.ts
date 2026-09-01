@@ -510,6 +510,7 @@ export interface ManagerGroupRoundStats {
   createdByLastName?: string
   hasLogo?: boolean
   editable?: boolean
+  standard?: boolean
   managers: {
     managerId: number
     managerName: string

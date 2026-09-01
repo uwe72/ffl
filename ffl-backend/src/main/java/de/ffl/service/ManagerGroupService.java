@@ -2,6 +2,7 @@ package de.ffl.service;
 
 import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerGroup;
+import de.ffl.domain.ManagerGroupStandard;
 import de.ffl.domain.ManagerRank;
 import de.ffl.domain.Season;
 import de.ffl.domain.User;
@@ -10,6 +11,7 @@ import de.ffl.dto.ManagerGroupDto;
 import de.ffl.dto.ManagerGroupListDto;
 import de.ffl.dto.ManagerGroupRoundStatsDto;
 import de.ffl.repository.ManagerGroupRepository;
+import de.ffl.repository.ManagerGroupStandardRepository;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.SeasonRepository;
@@ -37,13 +39,15 @@ public class ManagerGroupService {
     private final ManagerRepository managerRepository;
     private final UserRepository userRepository;
     private final SeasonRepository seasonRepository;
+    private final ManagerGroupStandardRepository managerGroupStandardRepository;
 
-    public ManagerGroupService(ManagerGroupRepository managerGroupRepository, ManagerRankRepository managerRankRepository, ManagerRepository managerRepository, UserRepository userRepository, SeasonRepository seasonRepository) {
+    public ManagerGroupService(ManagerGroupRepository managerGroupRepository, ManagerRankRepository managerRankRepository, ManagerRepository managerRepository, UserRepository userRepository, SeasonRepository seasonRepository, ManagerGroupStandardRepository managerGroupStandardRepository) {
         this.managerGroupRepository = managerGroupRepository;
         this.managerRankRepository = managerRankRepository;
         this.managerRepository = managerRepository;
         this.userRepository = userRepository;
         this.seasonRepository = seasonRepository;
+        this.managerGroupStandardRepository = managerGroupStandardRepository;
     }
 
     @Transactional(readOnly = true)
@@ -537,7 +541,55 @@ public class ManagerGroupService {
             return Collections.emptyList();
         }
 
-        return getGroupsWithStatsByManagerId(sourceManager.getId());
+        Long standardGroupId = managerGroupStandardRepository.findByOwner_Id(sourceUser.getId())
+            .map(s -> s.getManagerGroup().getId())
+            .orElse(null);
+
+        return getGroupsWithStatsByManagerId(sourceManager.getId()).stream()
+            .peek(dto -> dto.setStandard(Objects.equals(dto.getGroupId(), standardGroupId)))
+            .sorted(Comparator
+                .comparing((ManagerGroupRoundStatsDto d) -> !Objects.equals(d.getGroupId(), standardGroupId))
+                .thenComparing(d -> d.getGroupName() == null ? "" : d.getGroupName(), String.CASE_INSENSITIVE_ORDER))
+            .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void setStandardGroup(Long groupId) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return;
+        }
+        User sourceUser = currentUser;
+        if (currentUser.getRole().name().equals("ADMIN")) {
+            sourceUser = userRepository.findByLogin("uwe72").orElse(null);
+            if (sourceUser == null) {
+                return;
+            }
+        }
+
+        managerGroupStandardRepository.deleteByOwnerUserId(sourceUser.getId());
+
+        if (groupId == null) {
+            return;
+        }
+
+        ManagerGroup group = managerGroupRepository.findById(groupId)
+            .orElseThrow(() -> new IllegalArgumentException("Gruppe nicht gefunden."));
+
+        Manager sourceManager = managerRepository.findAllByUserId(sourceUser.getId()).stream()
+            .max(java.util.Comparator.comparing(Manager::getId))
+            .orElse(null);
+        boolean isMember = sourceManager != null
+            && group.getManagers().stream().anyMatch(m -> m.getId().equals(sourceManager.getId()));
+        if (!isMember) {
+            throw new IllegalArgumentException("Du bist kein Mitglied dieser Gruppe.");
+        }
+
+        managerGroupStandardRepository.save(
+            ManagerGroupStandard.builder()
+                .owner(sourceUser)
+                .managerGroup(group)
+                .build());
     }
 
     @Transactional(readOnly = true)

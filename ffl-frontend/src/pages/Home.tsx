@@ -5,7 +5,7 @@ import { useCurrentManager, useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useDashboardAufstellung } from '../hooks/useDashboard'
 import { useFavorites, useAddFavorite, useRemoveFavorite, useSetStandard } from '../hooks/useFavorites'
-import { useMyGroupsWithStats, useGroupLogo } from '../hooks/useManagerGroups'
+import { useMyGroupsWithStats, useGroupLogo, useSetStandardGroup } from '../hooks/useManagerGroups'
 import { useAuth } from '../context/AuthContext'
 import useIsMobile from '../hooks/useIsMobile'
 import useHorizontalSwipe from '../hooks/useHorizontalSwipe'
@@ -47,9 +47,25 @@ function managerLabel(m?: { firstName?: string; lastName?: string; login?: strin
   return m.shortName ?? m.managerName ?? ''
 }
 
-function managerLabelShort(m?: { firstName?: string; lastName?: string; login?: string; shortName?: string; managerName?: string }): string {
-  const label = managerLabel(m)
-  return label.length > 30 ? `${label.slice(0, 27)}…` : label
+function groupCreatorName(group: { createdByFirstName?: string; createdByLastName?: string; createdByLogin?: string }): string {
+  if (group.createdByFirstName && group.createdByLastName) {
+    return `${group.createdByFirstName} ${group.createdByLastName} (${group.createdByLogin})`
+  }
+  return group.createdByLogin || '-'
+}
+
+function isGroupCreator(login: string | undefined, group: { createdByLogin?: string }): boolean {
+  return !!login && login === group.createdByLogin
+}
+
+function managerLogin(m: { login?: string; managerName?: string; shortName?: string }): string {
+  const v = m.login ?? m.managerName ?? m.shortName ?? '-'
+  return v.length > 10 ? `${v.slice(0, 10)}…` : v
+}
+
+function managerFullName(m: { firstName?: string; lastName?: string; managerName?: string }): string {
+  const v = [m.firstName, m.lastName].filter(Boolean).join(' ') || m.managerName || '-'
+  return v.length > 18 ? `${v.slice(0, 18)}…` : v
 }
 
 function DeltaBadge({ value }: { value: number | null }) {
@@ -175,71 +191,74 @@ function GroupHomeCard({ group, canNavigateToManager }: { group: ManagerGroupRou
   )
 }
 
-function GroupMobileItem({ group, canNavigateToManager }: { group: ManagerGroupRoundStats, canNavigateToManager: boolean }) {
-  const { user } = useAuth()
-  const isCreator = !!user?.login && user.login === group.createdByLogin
+function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group: ManagerGroupRoundStats, canNavigateToManager: boolean, headerTitle: string }) {
+  const th = 'px-3 py-1 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
+  const td = 'px-2 py-2 border-b border-border whitespace-nowrap tabular-nums'
   return (
-    <div className="p-4 bg-surface border border-border rounded-card">
-      <div className="mb-3">
-        {isCreator ? (
-          <RouterLink to={`/manager-groups/${group.groupId}`} className="link font-semibold">
-            {group.groupName}
-          </RouterLink>
-        ) : (
-          <span className="font-semibold text-foreground">{group.groupName}</span>
-        )}
-      </div>
-      <div className="overflow-x-auto rounded-card border border-border w-fit max-w-full">
-        <table className="w-full">
-          <TableHead>
-            <tr>
-              <Th align="center">POS</Th>
-              <Th>Manager</Th>
-              <Th align="center">Pkt.</Th>
-              <Th align="center">Sp.</Th>
-            </tr>
-          </TableHead>
-          <TableBody>
-            {[...group.managers]
-              .sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999))
-              .map((m, index) => (
-                <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                  <td className="px-2 py-2 text-center font-medium text-foreground">
-                    {m.positionTotal ? `${m.positionTotal}.` : '-'}
-                  </td>
-                  <td className="px-2 py-2 min-w-0">
-                    {canNavigateToManager ? (
-                      <RouterLink
-                        to={`/managers/${m.managerId}`}
-                        className="link font-medium truncate block min-w-0"
-                        title={managerLabel(m)}
-                      >
-                        {managerLabelShort(m)}
-                      </RouterLink>
-                    ) : (
-                      <span className="font-medium text-foreground truncate block min-w-0" title={managerLabel(m)}>
-                        {managerLabelShort(m)}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-2 py-2 text-center font-bold text-foreground">
-                    {m.pointsTotal ?? '-'}
-                  </td>
-                  <td className="px-2 py-2 text-center text-muted">
-                    {m.pointsLastRound ?? '-'}
-                  </td>
-                </tr>
-              ))}
-            {group.managers.length === 0 && (
-              <tr>
-                <td colSpan={4} className="text-center text-subtle py-8">
-                  Keine Manager in dieser Gruppe
+    <div className="overflow-x-auto rounded-card w-full">
+      <table className="w-full border-collapse text-sm">
+        <thead className="bg-elevated sticky top-0">
+          <tr>
+            <th colSpan={3} align="left" className={th}>
+              {headerTitle}
+            </th>
+            <th colSpan={2} align="center" className={th}>
+              Punkte
+            </th>
+          </tr>
+          <tr>
+            <th align="center" className={th}>POS</th>
+            <th align="left" className={th}>Manager</th>
+            <th align="left" className={th}>Name</th>
+            <th align="center" className={th}>GES.</th>
+            <th align="center" className={th}>Sp.</th>
+          </tr>
+        </thead>
+        <tbody className="bg-surface">
+          {[...group.managers]
+            .sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999))
+            .map((m, index) => (
+              <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                <td className={`${td} text-center font-medium text-foreground`}>
+                  {m.positionTotal ? `${m.positionTotal}.` : '-'}
+                </td>
+                <td className={`${td} min-w-0`}>
+                  {canNavigateToManager ? (
+                    <RouterLink
+                      to={`/managers/${m.managerId}`}
+                      className="link font-medium truncate block min-w-0"
+                      title={m.login ?? m.managerName}
+                    >
+                      {managerLogin(m)}
+                    </RouterLink>
+                  ) : (
+                    <span className="font-medium text-foreground truncate block min-w-0" title={m.login ?? m.managerName}>
+                      {managerLogin(m)}
+                    </span>
+                  )}
+                </td>
+                <td className={`${td} min-w-0`}>
+                  <span className="text-foreground truncate block min-w-0" title={managerLabel(m)}>
+                    {managerFullName(m)}
+                  </span>
+                </td>
+                <td className={`${td} text-center font-bold text-foreground`}>
+                  {m.pointsTotal ?? '-'}
+                </td>
+                <td className={`${td} text-center text-muted`}>
+                  {m.pointsLastRound ?? '-'}
                 </td>
               </tr>
-            )}
-          </TableBody>
+            ))}
+          {group.managers.length === 0 && (
+            <tr>
+              <td colSpan={5} className="text-center text-subtle py-8">
+                Keine Manager in dieser Gruppe
+              </td>
+            </tr>
+          )}
+        </tbody>
         </table>
-      </div>
     </div>
   )
 }
@@ -260,10 +279,15 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [carouselError, setCarouselError] = useState('')
+  const [activeGroupId, setActiveGroupId] = useState<number | null>(null)
+  const [groupMenuOpen, setGroupMenuOpen] = useState(false)
+  const [groupError, setGroupError] = useState('')
+  const groupMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+      if (groupMenuRef.current && !groupMenuRef.current.contains(e.target as Node)) setGroupMenuOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -272,6 +296,7 @@ export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams()
   const activeTab: 'spieler' | 'gruppen' = searchParams.get('tab') === 'gruppen' ? 'gruppen' : 'spieler'
   const { data: myGroups, isLoading: groupsLoading } = useMyGroupsWithStats(activeTab === 'gruppen')
+  const setStandardGroup = useSetStandardGroup()
 
   const handleTabChange = (key: string) => {
     setSearchParams(key === 'gruppen' ? { tab: 'gruppen' } : {}, { replace: false })
@@ -372,11 +397,60 @@ export default function Home() {
   const showCarouselNav = carouselEnabled && favoriteManagerIds.length > 1
 
   const canNavigateToManager = isAdmin || !isBeforeSeason
+  const groupHeaderTitle = season?.seasonState === 'BEFORE_SEASON'
+    ? 'Kader'
+    : `${season?.currentMatchday ?? 1}. Spieltag`
 
   const sortedGroups = useMemo(() => {
     if (!myGroups) return []
-    return [...myGroups].sort((a, b) => (a.groupName || '').localeCompare(b.groupName || ''))
+    const stdId = myGroups.find(g => g.standard)?.groupId ?? null
+    return [...myGroups].sort((a, b) => {
+      const aStd = a.groupId === stdId ? 0 : 1
+      const bStd = b.groupId === stdId ? 0 : 1
+      if (aStd !== bStd) return aStd - bStd
+      return (a.groupName || '').localeCompare(b.groupName || '')
+    })
   }, [myGroups])
+
+  const standardGroupId = sortedGroups.find(g => g.standard)?.groupId ?? null
+
+  useEffect(() => {
+    if (sortedGroups.length === 0) return
+    if (activeGroupId == null || !sortedGroups.some(g => g.groupId === activeGroupId)) {
+      setActiveGroupId(sortedGroups[0].groupId)
+    }
+  }, [sortedGroups, activeGroupId])
+
+  const activeGroup = sortedGroups.find(g => g.groupId === activeGroupId) ?? sortedGroups[0]
+  const activeGroupIndex = sortedGroups.findIndex(g => g.groupId === activeGroup?.groupId)
+  const showGroupCarouselNav = sortedGroups.length > 1
+  const groupCarouselPosition = showGroupCarouselNav ? `${activeGroupIndex + 1}/${sortedGroups.length}` : null
+
+  const groupPrev = () => {
+    if (sortedGroups.length === 0) return
+    const pi = activeGroupIndex === -1 ? sortedGroups.length - 1 : (activeGroupIndex - 1 + sortedGroups.length) % sortedGroups.length
+    setActiveGroupId(sortedGroups[pi].groupId)
+  }
+  const groupNext = () => {
+    if (sortedGroups.length === 0) return
+    const ni = activeGroupIndex === -1 ? 0 : (activeGroupIndex + 1) % sortedGroups.length
+    setActiveGroupId(sortedGroups[ni].groupId)
+  }
+  const groupSwipe = useHorizontalSwipe(groupNext, groupPrev)
+
+  const handleSetStandardGroup = async () => {
+    setGroupError('')
+    if (activeGroupId == null) return
+    try {
+      await setStandardGroup.mutateAsync(activeGroupId)
+      setGroupMenuOpen(false)
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: string } }
+      setGroupError(axiosErr.response?.data && typeof axiosErr.response.data === 'string'
+        ? axiosErr.response.data
+        : 'Standard-Gruppe konnte nicht aktualisiert werden.')
+    }
+  }
 
   const renderGroups = () =>
     groupsLoading ? (
@@ -427,9 +501,96 @@ export default function Home() {
         </div>
       </div>
     ) : (
-      sortedGroups.map(group => (
-        <GroupMobileItem key={group.groupId} group={group} canNavigateToManager={canNavigateToManager} />
-      ))
+      <div {...groupSwipe} className="flex flex-col gap-0 flex-1" style={{ touchAction: 'pan-y' }}>
+        <div className="p-6 bg-surface border border-border rounded-card px-3 py-0.5">
+          <div className="relative z-20 shrink-0 mb-1">
+            <div className="flex items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="text-base font-semibold text-foreground truncate">
+                  {activeGroup && isGroupCreator(user?.login, activeGroup) ? (
+                    <RouterLink to={`/manager-groups/${activeGroup.groupId}`} className="link font-semibold">
+                      {activeGroup.groupName}
+                    </RouterLink>
+                  ) : (
+                    <span className="font-semibold text-foreground truncate">{activeGroup?.groupName ?? ''}</span>
+                  )}
+                </div>
+                {activeGroup && (
+                  <div className="mt-0.5 text-xs text-muted leading-relaxed">
+                    <span className="font-semibold text-foreground">Ersteller:</span> {groupCreatorName(activeGroup)}
+                  </div>
+                )}
+              </div>
+              <div className="relative shrink-0">
+                <div className="flex items-center gap-2">
+                  {showGroupCarouselNav && groupCarouselPosition && (
+                    <span className="text-sm text-muted whitespace-nowrap tabular-nums">
+                      {groupCarouselPosition.replace('/', ' / ')}
+                    </span>
+                  )}
+                  {showGroupCarouselNav && (
+                    <div className="relative" ref={groupMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setGroupMenuOpen(o => !o)}
+                        aria-label="Mehr Optionen"
+                        title="Mehr Optionen"
+                        className={`w-8 h-8 rounded-control border border-border-strong flex items-center justify-center transition-colors ${groupMenuOpen ? 'text-accent bg-accent-soft' : 'text-subtle hover:bg-accent-muted'}`}
+                      >
+                        <i className="sap-icon sap-icon-overflow text-sm" />
+                      </button>
+                    {groupMenuOpen && (
+                      <div className="absolute right-0 top-full mt-2 z-50 w-64 bg-surface border border-border rounded-card shadow-xl p-3 flex flex-col gap-3">
+                        {showGroupCarouselNav && (
+                          <div className="flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={groupPrev}
+                              aria-label="Vorherige Gruppe"
+                              title="Vorherige Gruppe"
+                              className="w-9 h-9 rounded-control border border-border-strong text-accent hover:bg-accent-muted flex items-center justify-center transition-colors"
+                            >
+                              <i className="sap-icon sap-icon-slim-arrow-left text-sm" />
+                            </button>
+                            <span className="text-sm text-muted whitespace-nowrap tabular-nums">{groupCarouselPosition}</span>
+                            <button
+                              type="button"
+                              onClick={groupNext}
+                              aria-label="Nächste Gruppe"
+                              title="Nächste Gruppe"
+                              className="w-9 h-9 rounded-control border border-border-strong text-accent hover:bg-accent-muted flex items-center justify-center transition-colors"
+                            >
+                              <i className="sap-icon sap-icon-slim-arrow-right text-sm" />
+                            </button>
+                          </div>
+                        )}
+                        {showGroupCarouselNav && (
+                          <div className="text-center text-xs text-subtle">Alternative: Wischen zum Wechseln</div>
+                        )}
+                        {showGroupCarouselNav && activeGroup && activeGroup.groupId !== standardGroupId && (
+                          <Button variant="ghost" size="input" onClick={handleSetStandardGroup}>
+                            Als Standard
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+                </div>
+              </div>
+            </div>
+          </div>
+          {groupError && (
+            <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card mt-2">
+              <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
+              <p className="text-danger text-sm">{groupError}</p>
+            </div>
+          )}
+        </div>
+        {activeGroup && (
+          <GroupMobileTable group={activeGroup} canNavigateToManager={canNavigateToManager} headerTitle={groupHeaderTitle} />
+        )}
+      </div>
     )
 
   const card = (children: ReactNode, fill = false) => (
@@ -616,7 +777,7 @@ export default function Home() {
 
   if (isMobile) {
     return (
-      <div className="pb-6 flex flex-col gap-0">
+      <div className="pb-6 min-h-full flex flex-col gap-0">
         <SegmentedTabs
           items={[
             { key: 'spieler', label: 'Spieler' },

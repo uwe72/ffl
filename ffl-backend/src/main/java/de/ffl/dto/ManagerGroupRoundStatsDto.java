@@ -12,6 +12,7 @@ public class ManagerGroupRoundStatsDto {
     private String createdByLastName;
     private boolean hasLogo;
     private boolean editable;
+    private boolean standard;
     private List<ManagerRoundDataDto> managers;
 
     public Long getGroupId() { return groupId; }
@@ -32,6 +33,8 @@ public class ManagerGroupRoundStatsDto {
     public void setHasLogo(boolean hasLogo) { this.hasLogo = hasLogo; }
     public boolean isEditable() { return editable; }
     public void setEditable(boolean editable) { this.editable = editable; }
+    public boolean isStandard() { return standard; }
+    public void setStandard(boolean standard) { this.standard = standard; }
     public List<ManagerRoundDataDto> getManagers() { return managers; }
     public void setManagers(List<ManagerRoundDataDto> managers) { this.managers = managers; }
 
