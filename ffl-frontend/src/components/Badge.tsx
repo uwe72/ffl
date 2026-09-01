@@ -30,7 +30,7 @@ const variantClasses: Record<string, string> = {
 
 export default function Badge({ children, variant = 'accent' }: BadgeProps) {
   return (
-    <span className={`inline-flex items-center justify-center h-6 px-2.5 text-xs font-medium leading-none ${variantClasses[variant]}`}>
+    <span className={`inline-flex items-center justify-center h-6 px-2.5 text-xs font-medium leading-none whitespace-nowrap ${variantClasses[variant]}`}>
       {children}
     </span>
   )

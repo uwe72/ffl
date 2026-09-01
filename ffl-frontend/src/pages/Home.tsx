@@ -434,11 +434,11 @@ export default function Home() {
 
   const card = (children: ReactNode, fill = false) => (
     <div
-      className={`p-6 bg-surface border border-border rounded-card${isMobile ? ' px-3 py-2' : ''}${fill ? ' h-full flex flex-col min-h-0 max-w-[1300px]' : ''}`}
+      className={`p-6 bg-surface border border-border rounded-card${isMobile ? ' px-3 py-0.5' : ''}${fill ? ' h-full flex flex-col min-h-0 max-w-[1300px]' : ''}`}
     >
-      <div className={`relative z-20 shrink-0${isMobile ? ' mb-2' : ' mb-4'}`}>
+      <div className={`relative z-20 shrink-0${isMobile ? ' mb-1' : ' mb-4'}`}>
         {isMobile ? (
-          <div className="flex items-start gap-2">
+          <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
               <div className="text-base font-semibold text-foreground truncate">
                 {activeManager
@@ -472,7 +472,7 @@ export default function Home() {
                 onClick={() => setMenuOpen(o => !o)}
                 aria-label="Mehr Optionen"
                 title="Mehr Optionen"
-                className={`w-9 h-9 rounded-control border border-border-strong flex items-center justify-center transition-colors ${menuOpen ? 'text-accent bg-accent-soft' : 'text-subtle hover:bg-accent-muted'}`}
+                className={`w-8 h-8 rounded-control border border-border-strong flex items-center justify-center transition-colors ${menuOpen ? 'text-accent bg-accent-soft' : 'text-subtle hover:bg-accent-muted'}`}
               >
                 <i className="sap-icon sap-icon-overflow text-sm" />
               </button>
