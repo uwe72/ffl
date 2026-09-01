@@ -72,11 +72,9 @@ export default function AufstellungVertikal({
                     {POS_BADGE[p.position] ?? p.position}
                   </span>
                 </td>
-                <td className={`${td} text-center text-foreground`}>{p.punkteGesamt > 0 ? p.punkteGesamt : ''}</td>
-                <td className={`${td} text-center`}>
-                  {p.punkteSpieltag > 0 ? (
-                    <span className="font-bold text-accent">{p.punkteSpieltag}</span>
-                  ) : ''}
+                <td className={`${td} text-center font-bold text-foreground`}>{p.punkteGesamt > 0 ? p.punkteGesamt : ''}</td>
+                <td className={`${td} text-center text-foreground`}>
+                  {p.punkteSpieltag > 0 ? p.punkteSpieltag : ''}
                 </td>
                 <td className={`${td} text-center text-foreground`}>{p.einsaetze > 0 ? p.einsaetze : ''}</td>
                 <td className={`${td} text-center text-foreground`}>{p.gespielt ? '√' : ''}</td>

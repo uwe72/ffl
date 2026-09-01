@@ -17,8 +17,9 @@ import { TableHead, Th, TableBody } from '../components/Table'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
 import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
 import CoachTafel from '../components/statistik/CoachTafel'
+import ScoreLine from '../components/statistik/ScoreLine'
 import type { Aufstellung } from '../types/dashboard'
-import type { ManagerGroupRoundStats } from '../types'
+import type { ManagerGroupRoundStats, Manager } from '../types'
 
 const EMPTY_AUFSTELLUNG: Aufstellung = {
   phase: 'SAISON',
@@ -65,38 +66,7 @@ function managerLogin(m: { login?: string; managerName?: string; shortName?: str
 
 function managerFullName(m: { firstName?: string; lastName?: string; managerName?: string }): string {
   const v = [m.firstName, m.lastName].filter(Boolean).join(' ') || m.managerName || '-'
-  return v.length > 18 ? `${v.slice(0, 18)}…` : v
-}
-
-function DeltaBadge({ value }: { value: number | null }) {
-  if (value == null || value === 0) return null
-  return (
-    <span className={`font-semibold tabular-nums ${value > 0 ? 'text-success' : 'text-danger'}`}>
-      ({value > 0 ? `+${value}` : `\u2212${Math.abs(value)}`})
-    </span>
-  )
-}
-
-function ScoreLine({
-  position,
-  positionVorher,
-  punkte,
-  punkteVorher,
-}: {
-  position: number | null
-  positionVorher: number | null
-  punkte: number | null
-  punkteVorher: number | null
-}) {
-  const posDelta = position != null && positionVorher != null ? positionVorher - position : null
-  const ptsDelta = punkte != null && punkteVorher != null ? punkte - punkteVorher : null
-  return (
-    <div className="flex flex-wrap items-center gap-x-1.5">
-      <span className="text-foreground">Platz {position ?? '-'}<DeltaBadge value={posDelta} /></span>
-      <span className="text-muted">·</span>
-      <span className="text-foreground">Punkte: {punkte != null ? Math.round(punkte) : '-'}<DeltaBadge value={ptsDelta} /></span>
-    </div>
-  )
+  return v.length > 17 ? `${v.slice(0, 17)}…` : v
 }
 
 function GroupHomeCard({ group, canNavigateToManager }: { group: ManagerGroupRoundStats, canNavigateToManager: boolean }) {
@@ -263,6 +233,189 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
   )
 }
 
+function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, selected, myManagerId, rowRef }: {
+  managers: Manager[]
+  canNavigateToManager: boolean
+  headerTitle: string
+  selected: boolean
+  myManagerId: number | undefined
+  rowRef: React.RefObject<HTMLTableRowElement | null>
+}) {
+  const th = 'px-3 py-1 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
+  const td = 'px-2 py-2 border-b border-border whitespace-nowrap tabular-nums'
+  const sorted = useMemo(
+    () => [...(managers ?? [])].sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999)),
+    [managers]
+  )
+  return (
+    <div className="overflow-x-auto rounded-card w-full">
+      <table className="w-full border-collapse text-sm">
+        <thead className="bg-elevated sticky top-0">
+          <tr>
+            <th colSpan={3} align="left" className={th}>
+              {headerTitle}
+            </th>
+            <th colSpan={2} align="center" className={th}>
+              Punkte
+            </th>
+          </tr>
+          <tr>
+            <th align="center" className={th}>POS</th>
+            <th align="left" className={th}>Manager</th>
+            <th align="left" className={th}>Name</th>
+            <th align="center" className={th}>GES.</th>
+            <th align="center" className={th}>Sp.</th>
+          </tr>
+        </thead>
+        <tbody className="bg-surface">
+          {sorted.map((m, index) => {
+            const isMe = selected && myManagerId != null && m.id === myManagerId
+            return (
+            <tr
+              key={m.id}
+              ref={isMe ? rowRef : undefined}
+              className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-accent-muted font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
+            >
+              <td className={`${td} text-center font-medium text-foreground`}>
+                {m.positionTotal ? `${m.positionTotal}.` : '-'}
+              </td>
+              <td className={`${td} min-w-0`}>
+                {canNavigateToManager ? (
+                  <RouterLink
+                    to={`/managers/${m.id}`}
+                    className="link font-medium truncate block min-w-0"
+                    title={m.login ?? m.shortName ?? m.name}
+                  >
+                    {managerLogin(m)}
+                  </RouterLink>
+                ) : (
+                  <span className="font-medium text-foreground truncate block min-w-0" title={m.login ?? m.shortName ?? m.name}>
+                    {managerLogin(m)}
+                  </span>
+                )}
+              </td>
+              <td className={`${td} min-w-0`}>
+                <span className="text-foreground truncate block min-w-0" title={managerLabel(m)}>
+                  {managerFullName(m)}
+                </span>
+              </td>
+              <td className={`${td} text-center font-bold text-foreground`}>
+                {m.pointsTotal ?? '-'}
+              </td>
+              <td className={`${td} text-center text-muted`}>
+                {m.pointsLastRound ?? '-'}
+              </td>
+            </tr>
+            )
+          })}
+          {sorted.length === 0 && (
+            <tr>
+              <td colSpan={5} className="text-center text-subtle py-8">
+                Keine Manager gefunden
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
+  managers: Manager[]
+  canNavigateToManager: boolean
+  headerTitle: string
+}) {
+  const { user } = useAuth()
+  const { data: currentManager } = useCurrentManager()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selected, setSelected] = useState(false)
+  const rowRef = useRef<HTMLTableRowElement | null>(null)
+
+  const isAdmin = user?.role === 'ADMIN'
+  const uwe72 = useMemo(() => managers?.find(m => m.shortName === 'uwe72'), [managers])
+  const myManagerId = isAdmin ? uwe72?.id : currentManager?.id
+
+  const filteredManagers = useMemo(() => {
+    if (!managers) return []
+    const term = searchTerm.toLowerCase()
+    return managers.filter(m =>
+      !term ||
+      m.name?.toLowerCase().includes(term) ||
+      m.shortName?.toLowerCase().includes(term) ||
+      m.firstName?.toLowerCase().includes(term) ||
+      m.lastName?.toLowerCase().includes(term)
+    )
+  }, [managers, searchTerm])
+
+  const hasActiveFilter = searchTerm !== ''
+
+  const handleSelectMe = () => {
+    if (selected) {
+      setSelected(false)
+      return
+    }
+    if (searchTerm !== '') setSearchTerm('')
+    setSelected(true)
+  }
+
+  useEffect(() => {
+    if (!selected || myManagerId == null) return
+    const el = rowRef.current
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [selected, myManagerId, searchTerm, filteredManagers])
+
+  return (
+    <div className="flex flex-col gap-0">
+      <div className="p-6 bg-surface border border-border rounded-card px-3 py-3">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-base font-semibold text-foreground">Manager ({filteredManagers.length})</h3>
+            {myManagerId != null && (
+              <Button
+                onClick={handleSelectMe}
+                size="input"
+                variant={selected ? 'emphasized' : 'secondary'}
+              >
+                <i className="sap-icon sap-icon-account text-[14px]" />
+                Selektiere mich
+              </Button>
+            )}
+          </div>
+          <div className="relative">
+            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Manager suchen..."
+              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
+            />
+          </div>
+          {hasActiveFilter && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="self-start flex items-center gap-1.5 p-1 rounded-control text-subtle hover:text-danger transition-colors"
+              title="Filter zurücksetzen"
+            >
+              <i className="sap-icon sap-icon-decline text-[14px]" />
+              <span className="text-sm">Filter zurücksetzen</span>
+            </button>
+          )}
+        </div>
+      </div>
+      <ManagersMobileTable
+        managers={filteredManagers}
+        canNavigateToManager={canNavigateToManager}
+        headerTitle={headerTitle}
+        selected={selected}
+        myManagerId={myManagerId}
+        rowRef={rowRef}
+      />
+    </div>
+  )
+}
+
 export default function Home() {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
@@ -294,12 +447,15 @@ export default function Home() {
   }, [])
 
   const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab: 'spieler' | 'gruppen' = searchParams.get('tab') === 'gruppen' ? 'gruppen' : 'spieler'
+  const activeTab: 'spieler' | 'gruppen' | 'manager' =
+    searchParams.get('tab') === 'gruppen' ? 'gruppen' : searchParams.get('tab') === 'manager' ? 'manager' : 'spieler'
   const { data: myGroups, isLoading: groupsLoading } = useMyGroupsWithStats(activeTab === 'gruppen')
   const setStandardGroup = useSetStandardGroup()
 
   const handleTabChange = (key: string) => {
-    setSearchParams(key === 'gruppen' ? { tab: 'gruppen' } : {}, { replace: false })
+    if (key === 'gruppen') setSearchParams({ tab: 'gruppen' }, { replace: false })
+    else if (key === 'manager') setSearchParams({ tab: 'manager' }, { replace: false })
+    else setSearchParams({}, { replace: false })
   }
 
   useEffect(() => {
@@ -782,12 +938,19 @@ export default function Home() {
           items={[
             { key: 'spieler', label: 'Spieler' },
             { key: 'gruppen', label: 'Gruppen' },
+            { key: 'manager', label: 'Manager' },
           ]}
           active={activeTab}
           onChange={handleTabChange}
         />
         {activeTab === 'gruppen' ? (
           renderMobileGroups()
+        ) : activeTab === 'manager' ? (
+          <ManagersMobilePanel
+            managers={managers ?? []}
+            canNavigateToManager={canNavigateToManager}
+            headerTitle={groupHeaderTitle}
+          />
         ) : (
           <div
             {...swipe}

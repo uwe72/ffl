@@ -3,13 +3,17 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { useManager, useManagerRoundDetails, useManagerGroups, useUpdateManagerDetails } from '../hooks/useManagers'
 import { useManagerGroupsWithStats } from '../hooks/useManagerGroups'
+import { useDashboardAufstellung } from '../hooks/useDashboard'
 import { useAuth } from '../context/AuthContext'
 import { useAvatar, useUploadAvatar, useDeleteAvatar } from '../hooks/useAvatar'
 import { positionLabels, positionColors } from './Players'
 import Button from '../components/Button'
 import BackButton from '../components/BackButton'
+import useIsMobile from '../hooks/useIsMobile'
 import SortIcon from '../components/SortIcon'
 import Badge from '../components/Badge'
+import ScoreLine from '../components/statistik/ScoreLine'
+import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import { getChartColors, CHART_SERIES_PALETTE } from '../utils/chartColors'
 import type { Player, ManagerGroup, RulePoint } from '../types'
@@ -34,6 +38,7 @@ type SortOrder = 'asc' | 'desc'
 
 function PlayerRow({ player }: { player: Player }) {
   const currentTeam = player.teams[player.teams.length - 1]
+  const isMobile = useIsMobile()
   return (
     <tr className="border-b border-border hover:bg-card-hover">
       <td className="px-3 py-2 text-center font-medium text-foreground">
@@ -50,12 +55,12 @@ function PlayerRow({ player }: { player: Player }) {
       </td>
       <td className="px-3 py-2">
         <RouterLink to={`/players/${player.id}`} className="flex items-center link">
-          {player.pictureUrl && (
+          {!isMobile && player.pictureUrl && (
             <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
           )}
           <div>
             <div className={player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-link'}>{player.nameKicker}</div>
-            {player.firstName && player.lastName && (
+            {!isMobile && player.firstName && player.lastName && (
               <div className="text-sm text-subtle">
                 {player.firstName} {player.lastName}
               </div>
@@ -300,12 +305,16 @@ export default function ManagerDetail() {
   const { data: roundDetails } = useManagerRoundDetails(Number(id))
   const { data: managerGroups } = useManagerGroups(Number(id))
   const { data: managerGroupsWithStats } = useManagerGroupsWithStats(Number(id), true)
+  const { data: aufstellung } = useDashboardAufstellung(Number(id))
+  const isVorsaison = aufstellung?.phase === 'VORSAISON'
+  const feldModus = isVorsaison ? 'wert' : 'gesamt'
   const { user } = useAuth()
   const uploadAvatar = useUploadAvatar()
   const deleteAvatar = useDeleteAvatar()
   const updateDetails = useUpdateManagerDetails()
   const { data: managerAvatarUrl } = useAvatar(manager?.userId ?? null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const isMobile = useIsMobile()
 
   const isAdmin = user?.role === 'ADMIN'
   const isOwnManager = !!(user && manager && manager.login === user.login)
@@ -576,65 +585,91 @@ export default function ManagerDetail() {
 
   return (
     <div className="max-w-6xl">
-      <BackButton to="/managers" className="mb-4" />
+      {!isMobile && <BackButton to="/managers" className="mb-4" />}
 
-      <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+      <div className={`${isMobile ? 'px-3 py-0.5 bg-surface mb-0' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
         <div className="flex items-center gap-4">
-          <div className="relative group w-20 h-20 shrink-0">
-            <button
-              onClick={handleAvatarClick}
-              className={`w-20 h-20 p-0 rounded-full overflow-hidden ${isOwnManager ? 'cursor-pointer' : 'cursor-default'}`}
-              disabled={!isOwnManager || uploadAvatar.isPending || deleteAvatar.isPending}
-              title={isOwnManager ? 'Profilbild ändern' : undefined}
-            >
-              {managerAvatarUrl ? (
-                <img
-                  src={managerAvatarUrl}
-                  alt={manager.name}
-                  className="w-20 h-20 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-elevated border border-border flex items-center justify-center">
-                  {managerInitials ? (
-                    <span className="text-2xl font-bold text-primary">{managerInitials}</span>
+          {isMobile && <BackButton to="/managers" className="shrink-0" />}
+          {!isMobile && (
+            <>
+              <div className="relative group w-20 h-20 shrink-0">
+                <button
+                  onClick={handleAvatarClick}
+                  className={`w-20 h-20 p-0 rounded-full overflow-hidden ${isOwnManager ? 'cursor-pointer' : 'cursor-default'}`}
+                  disabled={!isOwnManager || uploadAvatar.isPending || deleteAvatar.isPending}
+                  title={isOwnManager ? 'Profilbild ändern' : undefined}
+                >
+                  {managerAvatarUrl ? (
+                    <img
+                      src={managerAvatarUrl}
+                      alt={manager.name}
+                      className="w-20 h-20 rounded-full object-cover"
+                    />
                   ) : (
-                    <i className="sap-icon sap-icon-employee text-[28px] text-primary" />
+                    <div className="w-20 h-20 rounded-full bg-elevated border border-border flex items-center justify-center">
+                      {managerInitials ? (
+                        <span className="text-2xl font-bold text-primary">{managerInitials}</span>
+                      ) : (
+                        <i className="sap-icon sap-icon-employee text-[28px] text-primary" />
+                      )}
+                    </div>
                   )}
-                </div>
-              )}
-            </button>
-            {isOwnManager && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
-                <i className="sap-icon sap-icon-camera text-white text-xl" />
+                </button>
+                {isOwnManager && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 pointer-events-none">
+                    <i className="sap-icon sap-icon-camera text-white text-xl" />
+                  </div>
+                )}
+                {isOwnManager && managerAvatarUrl && (
+                  <button
+                    type="button"
+                    onClick={handleAvatarDelete}
+                    disabled={deleteAvatar.isPending || uploadAvatar.isPending}
+                    className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
+                    title="Profilbild löschen"
+                  >
+                    <i className="sap-icon sap-icon-delete text-sm" />
+                  </button>
+                )}
+                {(uploadAvatar.isPending || deleteAvatar.isPending) && (
+                  <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
+                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
               </div>
-            )}
-            {isOwnManager && managerAvatarUrl && (
-              <button
-                type="button"
-                onClick={handleAvatarDelete}
-                disabled={deleteAvatar.isPending || uploadAvatar.isPending}
-                className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-md"
-                title="Profilbild löschen"
-              >
-                <i className="sap-icon sap-icon-delete text-sm" />
-              </button>
-            )}
-            {(uploadAvatar.isPending || deleteAvatar.isPending) && (
-              <div className="absolute inset-0 bg-surface/80 flex items-center justify-center rounded-full">
-                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="hidden"
-            onChange={handleAvatarChange}
-          />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            </>
+          )}
 
           <div className="flex-1 min-w-0">
-            {!stammdatenOpen && (
+            {!stammdatenOpen && isMobile && (
+              <div className="min-w-0">
+                <div className="text-base font-semibold text-foreground truncate">
+                  {manager.firstName || manager.lastName
+                    ? `${manager.firstName} ${manager.lastName}`.trim()
+                    : manager.name}
+                  {manager.login && (
+                    <span className="text-sm font-normal text-muted"> ({manager.login})</span>
+                  )}
+                </div>
+                <div className="mt-0.5 text-xs text-muted leading-relaxed">
+                  <ScoreLine
+                    position={aufstellung?.positionSpieltag ?? null}
+                    positionVorher={aufstellung?.positionSpieltagVorher ?? null}
+                    punkte={aufstellung?.punkteSpieltag ?? null}
+                    punkteVorher={aufstellung?.punkteSpieltagVorher ?? null}
+                  />
+                </div>
+              </div>
+            )}
+
+            {!stammdatenOpen && !isMobile && (
               <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
                 <div className="min-w-0">
                   <h2 className="text-3xl font-bold text-foreground truncate">
@@ -769,6 +804,14 @@ export default function ManagerDetail() {
         </div>
       </div>
 
+      {isMobile && (
+        aufstellung ? (
+          <AufstellungVertikal aufstellung={aufstellung} modus={feldModus} />
+        ) : (
+          <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+        )
+      )}
+
       {lastRoundPlayerPoints.length > 0 && (
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <h3 className="text-xl font-semibold text-foreground mb-4">Punkte letzte Runde</h3>
@@ -776,7 +819,7 @@ export default function ManagerDetail() {
         </div>
       )}
 
-      {isOwnManager && managerGroups && managerGroups.length > 0 && (
+      {!isMobile && isOwnManager && managerGroups && managerGroups.length > 0 && (
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <h3 className="text-xl font-semibold text-foreground mb-4">Gruppen</h3>
           {managerGroups.map(group => (
@@ -785,7 +828,7 @@ export default function ManagerDetail() {
         </div>
       )}
 
-      {(hinrundePlayers.length > 0 || hasExchanges) && (
+      {(hinrundePlayers.length > 0 || hasExchanges) && !isMobile && (
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           {hinrundePlayers.length > 0 && (
             <PlayerTable players={hinrundePlayers} title="Hinrunde-Aufstellung" />
@@ -814,7 +857,7 @@ export default function ManagerDetail() {
       )}
 
       {chartData.length > 0 && (
-        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+        <div className={`px-3 py-4 md:p-6 bg-surface border border-border ${isMobile ? 'mb-0' : 'mb-6'}`}>
           <h3 className="text-xl font-semibold text-foreground mb-3">Punkte pro Spieltag</h3>
           <div className="bg-card p-4 rounded-card border border-border">
             <ResponsiveContainer width="100%" height={300}>
@@ -861,7 +904,7 @@ export default function ManagerDetail() {
         </div>
       )}
 
-      {managerGroupsWithStats && managerGroupsWithStats.length > 0 && (
+      {!isMobile && managerGroupsWithStats && managerGroupsWithStats.length > 0 && (
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-foreground">Punkte-Entwicklung in Gruppe</h3>
