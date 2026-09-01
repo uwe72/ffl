@@ -176,8 +176,18 @@ export default function ManagerGroups() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="text-center text-subtle py-8">
-                        Keine Gruppen gefunden
+                      <td colSpan={4} className="py-8">
+                        <div className="flex gap-3 items-start max-w-2xl mx-auto text-left px-4">
+                          <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0 mt-0.5" />
+                          <div className="text-sm text-muted">
+                            <p>
+                              Mit einer Manager‑Gruppe vergleichst du dich mit einem eigenen, kleinen
+                              Kreis statt mit der ganzen Liga, zum Beispiel mit Freunden oder Kollegen.
+                              Eure Rangliste taucht auch in der Spieltagsmail auf.
+                            </p>
+                            <p className="mt-2">Hier kannst du deine erste Gruppe anlegen.</p>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   )}
@@ -198,8 +208,16 @@ export default function ManagerGroups() {
                   <ManagerGroupCard key={group.id} group={group} />
                 ))
               ) : (
-                <div className="text-center text-subtle py-8">
-                  Keine Gruppen gefunden
+                <div className="flex gap-3 items-start max-w-2xl mx-auto text-left px-4 py-6">
+                  <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0 mt-0.5" />
+                  <div className="text-sm text-muted">
+                    <p>
+                      Mit einer Manager‑Gruppe vergleichst du dich mit einem eigenen, kleinen Kreis
+                      statt mit der ganzen Liga, zum Beispiel mit Freunden oder Kollegen. Eure
+                      Rangliste taucht auch in der Spieltagsmail auf.
+                    </p>
+                    <p className="mt-2">Hier kannst du deine erste Gruppe anlegen.</p>
+                  </div>
                 </div>
               )}
             </div>

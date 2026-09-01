@@ -265,4 +265,24 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
         assertFalse(own.isEditable());
         assertEquals(creatorUser.getId(), own.getCreatedById());
     }
+
+    @Test
+    void adminSeesGroupsOfHardcodedUserUwe72() {
+        authenticateAs("uwe72");
+        Long groupId = createGroup("Uwe72Gruppe", season.getId(), List.of());
+
+        User admin = User.builder()
+            .login("admin")
+            .password("$2a$10$test")
+            .email("admin@test.de")
+            .firstName("Admin")
+            .lastName("Test")
+            .role(UserRole.ADMIN)
+            .build();
+        userRepository.save(admin);
+
+        authenticateAs("admin");
+        List<de.ffl.dto.ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
+        assertTrue(groups.stream().anyMatch(g -> g.getGroupId().equals(groupId)));
+    }
 }

@@ -124,6 +124,8 @@ public class DashboardService {
             .teilnehmer(teilnehmer)
             .positionGesamtVorher(prevRank != null ? prevRank.getPositionTotal() : null)
             .positionSpieltagVorher(prevRank != null ? prevRank.getPositionRound() : null)
+            .punkteGesamtVorher(prevRank != null ? prevRank.getPointsTotal() : null)
+            .punkteSpieltagVorher(prevRank != null ? prevRank.getPointsRound() : null)
             .kaderwert(kaderwert)
             .budget(season.getBudget() != null ? season.getBudget() : 0)
             .spieler(spieler)

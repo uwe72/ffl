@@ -22,7 +22,7 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
   const phaseLabel = seasonStateLabel(season?.seasonState)
 
   return (
-    <div className="hero relative h-[120px] shrink-0 overflow-hidden bg-header">
+    <div className="hero relative h-[86px] md:h-[120px] shrink-0 overflow-hidden bg-header">
       <div
         className="absolute inset-0 bg-cover bg-no-repeat"
         style={{

@@ -22,6 +22,8 @@ public class AufstellungDto {
     private Integer teilnehmer;
     private Integer positionGesamtVorher;
     private Integer positionSpieltagVorher;
+    private Integer punkteGesamtVorher;
+    private Integer punkteSpieltagVorher;
     private Integer kaderwert;
     private Integer budget;
     private List<SpielerAufstellungDto> spieler;

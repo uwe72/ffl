@@ -522,14 +522,22 @@ public class ManagerGroupService {
             return Collections.emptyList();
         }
 
-        Manager currentManager = managerRepository.findAllByUserId(currentUser.getId()).stream()
+        User sourceUser = currentUser;
+        if (currentUser.getRole().name().equals("ADMIN")) {
+            sourceUser = userRepository.findByLogin("uwe72").orElse(null);
+            if (sourceUser == null) {
+                return Collections.emptyList();
+            }
+        }
+
+        Manager sourceManager = managerRepository.findAllByUserId(sourceUser.getId()).stream()
             .max(java.util.Comparator.comparing(Manager::getId))
             .orElse(null);
-        if (currentManager == null) {
+        if (sourceManager == null) {
             return Collections.emptyList();
         }
 
-        return getGroupsWithStatsByManagerId(currentManager.getId());
+        return getGroupsWithStatsByManagerId(sourceManager.getId());
     }
 
     @Transactional(readOnly = true)

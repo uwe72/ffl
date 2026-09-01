@@ -35,6 +35,8 @@ export interface Aufstellung {
   teilnehmer: number | null
   positionGesamtVorher: number | null
   positionSpieltagVorher: number | null
+  punkteGesamtVorher: number | null
+  punkteSpieltagVorher: number | null
   kaderwert: number
   budget: number
   spieler: SpielerAufstellung[]

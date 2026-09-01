@@ -444,7 +444,7 @@ export default function PlayerTable({
         <h2 className="hidden sm:block text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
         )}
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          {enableExport && (
+          {enableExport && !isMobile && (
             <Button onClick={exportToExcel} size="input">
               Excel Export
             </Button>
