@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSurveys, useCreateSurvey, useUpdateSurvey, useReviseSurvey, useCopySurvey, useDeleteSurvey, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
 import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
+import BackButton from '../components/BackButton'
 import Button from '../components/Button'
-import SurveyHero from '../components/SurveyHero'
 
 const STATUS_LABEL: Record<string, string> = {
   ANGELEGT: 'Angelegt',
@@ -110,14 +110,21 @@ export default function SurveyAdmin() {
 
   return (
     <div>
-      <SurveyHero title="Umfragen" subtitle="Verwaltung und Auswertung">
-        <Button onClick={startCreate}>+ Neue Umfrage</Button>
-      </SurveyHero>
+      <BackButton to="/" className="mb-4" />
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
+        <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">Umfragen</h2>
+            <p className="text-sm text-muted mt-1">Verwaltung und Auswertung</p>
+          </div>
+          <Button onClick={startCreate}>+ Neue Umfrage</Button>
+        </div>
+      </div>
 
       {isLoading ? (
         <div className="text-center py-8 text-muted">Laden...</div>
       ) : !surveys || surveys.length === 0 ? (
-        <div className="p-6 bg-surface border border-border rounded-card text-center text-subtle">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card text-center text-subtle">
           Noch keine Umfragen vorhanden.
         </div>
       ) : (
@@ -303,12 +310,14 @@ function SurveyEditor({ existing, isNew, onCancel }: {
 
   return (
     <div className="max-w-3xl">
-      <SurveyHero title={isNew ? 'Neue Umfrage' : 'Umfrage bearbeiten'} />
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <Button variant="transparent" size="compact" onClick={onCancel}>
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück
-        </Button>
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-xl font-semibold text-foreground">{isNew ? 'Neue Umfrage' : 'Umfrage bearbeiten'}</h2>
+          <Button variant="transparent" size="compact" onClick={onCancel}>
+            <i className="sap-icon sap-icon-nav-back text-base" />
+            Zurück
+          </Button>
+        </div>
       </div>
 
       {existing?.status === 'GESTARTET' && (
@@ -317,7 +326,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
         </div>
       )}
 
-      <div className="p-6 bg-surface border border-border rounded-card">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
         <div className="flex flex-col gap-4">
           <div>
             <label className="block text-sm text-muted mb-1">Titel *</label>
@@ -460,15 +469,22 @@ function SurveyResults({ id, onBack }: { id: number; onBack: () => void }) {
 
   return (
     <div>
-      <SurveyHero title={result.title} subtitle={`${result.responseCount} Antworten`} />
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusClass(result.status)}`}>
-          {STATUS_LABEL[result.status]}
-        </span>
-        <Button variant="transparent" size="compact" onClick={onBack}>
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück
-        </Button>
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">{result.title}</h2>
+            <p className="text-sm text-muted mt-1">{result.responseCount} Antworten</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusClass(result.status)}`}>
+              {STATUS_LABEL[result.status]}
+            </span>
+            <Button variant="transparent" size="compact" onClick={onBack}>
+              <i className="sap-icon sap-icon-nav-back text-base" />
+              Zurück
+            </Button>
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-col gap-4">

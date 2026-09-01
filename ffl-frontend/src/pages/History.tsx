@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useAuth } from '../context/AuthContext'
 import { useSeasonHistory, useCreateSeasonHistory, useUpdateSeasonHistory, useDeleteSeasonHistory } from '../hooks/useSeasonHistory'
+import BackButton from '../components/BackButton'
 import Button from '../components/Button'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
@@ -141,7 +142,8 @@ export default function History() {
 
   return (
     <div>
-      <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
+      <BackButton to="/" className="mb-4" />
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
         <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
           <div>
             <h2 className="text-xl font-semibold text-foreground">
@@ -198,8 +200,8 @@ export default function History() {
           </div>
         )}
 
-        <div className="overflow-x-auto rounded-card border border-border">
-          <table className="w-full">
+        <div className="overflow-x-auto md:w-fit max-w-full">
+          <table className="w-full md:w-auto">
             <TableHead>
               <tr>
                 <ThSortable onClick={() => handleSort('saison')}>
@@ -280,7 +282,7 @@ export default function History() {
       </div>
 
       {chartData.length > 0 && (
-        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="p-6 bg-surface border border-border rounded-card mb-6 mt-6">
           <h3 className="text-xl font-semibold text-foreground mb-3">Entwicklung der Anzahl Mitspieler</h3>
           <div className="bg-card p-4 rounded-card border border-border">
             <ResponsiveContainer width="100%" height={300}>
@@ -309,6 +311,8 @@ export default function History() {
           </div>
         </div>
       )}
+
+      <div className="h-10" />
     </div>
   )
 }

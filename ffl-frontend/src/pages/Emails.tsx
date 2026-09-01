@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { useEmails, useCreateEmail, useBulkCreateEmails, useDeleteEmail } from '../hooks/useEmails'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useManagersBySeason } from '../hooks/useManagers'
+import BackButton from '../components/BackButton'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
@@ -159,9 +160,7 @@ export default function Emails() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <span className="text-sm text-muted">({emails?.length ?? 0})</span>
-      </div>
+      <BackButton to="/" className="mb-4" />
 
       <CardContainer>
         <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap">
@@ -371,6 +370,8 @@ export default function Emails() {
           </div>
         </div>
       )}
+
+      <div className="h-10" />
     </div>
   )
 }

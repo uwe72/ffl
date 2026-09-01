@@ -90,7 +90,7 @@ function PlayerCard({ player, hideManager, hideStats, onSelect }: { player: Play
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-foreground truncate">{player.nameKicker}</div>
+          <div className={player.aktiv === false ? 'font-semibold text-danger line-through truncate' : 'font-semibold text-foreground truncate'}>{player.nameKicker}</div>
           <div className="mt-1 flex items-center gap-1.5 flex-wrap">
             <span className={`${positionChipClass[player.position]} text-xs font-medium px-2 py-0.5`}>
               {positionShortLabels[player.position]}
@@ -151,7 +151,7 @@ function PlayerCard({ player, hideManager, hideStats, onSelect }: { player: Play
   )
 }
 
-function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter, fixedPosition, aktivFilter, setAktivFilter }: {
+function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter, fixedPosition, aktivFilter, setAktivFilter, searchTerm, setSearchTerm, searchInputRef }: {
   selectedPositions: Set<string>
   setSelectedPositions: (s: Set<string>) => void
   selectedTeamId: number | 'ALL'
@@ -165,6 +165,9 @@ function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeam
   fixedPosition?: Position
   aktivFilter: 'aktiv' | 'inaktiv' | 'alle'
   setAktivFilter: (v: 'aktiv' | 'inaktiv' | 'alle') => void
+  searchTerm: string
+  setSearchTerm: (s: string) => void
+  searchInputRef: React.RefObject<HTMLInputElement | null>
 }) {
   const togglePosition = (pos: string) => {
     if (fixedPosition) return
@@ -256,6 +259,18 @@ function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeam
         />
       </div>
 
+      <div className="relative flex-1 min-w-0 sm:w-56">
+        <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+        <input
+          ref={searchInputRef}
+          type="text"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          placeholder="Spieler suchen..."
+          className="input-field control pl-8 pr-3 py-1.5 text-xs text-left w-full"
+        />
+      </div>
+
       {hasFilter && (
         <button
           onClick={clearFilter}
@@ -280,6 +295,7 @@ export default function PlayerTable({
   defaultAktivFilter = 'alle',
   autoFocus = false,
   enableExport = false,
+  hideFilters = false,
 }: {
   players: Player[]
   fixedPosition?: Position
@@ -291,6 +307,7 @@ export default function PlayerTable({
   defaultAktivFilter?: 'aktiv' | 'inaktiv' | 'alle'
   autoFocus?: boolean
   enableExport?: boolean
+  hideFilters?: boolean
 }) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
@@ -423,19 +440,10 @@ export default function PlayerTable({
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
+        {!hideFilters && (
         <h2 className="hidden sm:block text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
+        )}
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
-            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Spieler suchen..."
-              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
-            />
-          </div>
           {enableExport && (
             <Button onClick={exportToExcel} size="input">
               Excel Export
@@ -444,6 +452,7 @@ export default function PlayerTable({
         </div>
       </div>
 
+      {!hideFilters && (
       <PlayerFilterBar
         selectedPositions={selectedPositions}
         setSelectedPositions={setSelectedPositions}
@@ -458,7 +467,11 @@ export default function PlayerTable({
         fixedPosition={fixedPosition}
         aktivFilter={aktivFilter}
         setAktivFilter={setAktivFilter}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        searchInputRef={searchInputRef}
       />
+      )}
 
       {!isMobile && (
         <>
@@ -468,7 +481,7 @@ export default function PlayerTable({
                 <tr>
                   {!isBeforeSeason && (
                   <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
-                    Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
+                    Position<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
                   )}
                   {!isBeforeSeason && (
@@ -481,12 +494,12 @@ export default function PlayerTable({
                   </ThSortable>
                   {!isBeforeSeason && (
                   <ThSortable align="center" onClick={() => handleSort('points')}>
-                    Pkt<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
+                    Punkte<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
                   )}
                   {!isBeforeSeason && (
                   <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
-                    Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                    1. Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
                   )}
                   {!isBeforeSeasonNonAdmin && (
@@ -540,26 +553,26 @@ export default function PlayerTable({
                             {player.pictureUrl && (
                               <img src={player.pictureUrl} alt={fullName(player)} className="w-10 h-10 rounded-full object-cover mr-3" />
                             )}
-                            <div className="font-medium text-foreground">{fullName(player)}</div>
+                            <div className={player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-foreground'}>{fullName(player)}</div>
                           </div>
                         ) : isBeforeSeasonNonAdmin ? (
                           <div className="flex items-center">
                             {player.pictureUrl && (
                               <img src={player.pictureUrl} alt={fullName(player)} className="w-10 h-10 rounded-full object-cover mr-3" />
                             )}
-                            <div className="font-medium text-foreground">{fullName(player)}</div>
+                            <div className={player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-foreground'}>{fullName(player)}</div>
                           </div>
                         ) : (
                           <RouterLink to={`/players/${player.id}`} className="flex items-center link">
                             {player.pictureUrl && (
                               <img src={player.pictureUrl} alt={fullName(player)} className="w-10 h-10 rounded-full object-cover mr-3" />
                             )}
-                            <div className="font-medium text-link">{fullName(player)}</div>
+                            <div className={player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-link'}>{fullName(player)}</div>
                           </RouterLink>
                         )}
                       </td>
                       {!isBeforeSeason && (
-                      <td className="px-3 py-2 text-center text-foreground">
+                      <td className="px-3 py-2 text-center font-bold text-foreground">
                         {player.points ?? '-'}
                       </td>
                       )}

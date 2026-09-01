@@ -10,7 +10,7 @@ interface TableContentProps {
 
 export function TableContent({ children, count, total, countLabel }: TableContentProps) {
   return (
-    <div className="flex-1 px-6 pt-6 pb-6 overflow-x-auto">
+    <div className="flex-1 px-0 md:px-6 pt-6 pb-6 overflow-x-auto">
       <div className="rounded-card border border-border">
         {children}
       </div>

@@ -4,6 +4,7 @@ import { useManagers } from '../hooks/useManagers'
 import { useAvatar } from '../hooks/useAvatar'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason } from '../hooks/useSeasons'
+import BackButton from '../components/BackButton'
 import type { Manager } from '../types'
 
 function ManagerGalleryCard({ manager, canClick, showRanking }: { manager: Manager; canClick: boolean; showRanking: boolean }) {
@@ -13,7 +14,7 @@ function ManagerGalleryCard({ manager, canClick, showRanking }: { manager: Manag
   const showSkeleton = isLoading || !imgLoaded
   const fullName = `${manager.firstName ?? ''} ${manager.lastName ?? ''}`.trim() || manager.name
   const positionLabel = manager.positionTotal ? `${manager.positionTotal}.` : '-'
-  const badgeLabel = manager.pointsTotal != null ? `${positionLabel} · ${manager.pointsTotal} Pkt` : positionLabel
+  const badgeLabel = positionLabel
 
   const cardInner = (
     <>
@@ -103,54 +104,43 @@ export default function ManagerGallery() {
 
   return (
     <div>
-      <div className="relative h-[140px] md:h-[180px] rounded-card overflow-hidden mb-6 border border-border">
-        <div
-          className="absolute inset-0 bg-cover bg-no-repeat"
-          style={{
-            backgroundImage: 'url(/hero-banner.png)',
-            backgroundPosition: 'center 10%',
-            filter: 'brightness(0.65) contrast(1.05)',
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(to right, rgba(10,14,20,0.65) 0%, rgba(10,14,20,0.35) 60%, rgba(10,14,20,0.15) 100%)' }}
-        />
-        <div className="relative h-full flex items-center px-6 md:px-8">
+      <BackButton to="/" className="mb-4" />
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full max-w-full">
+        <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-on-dark leading-tight">Manager-Galerie</h1>
-            <p className="text-sm text-on-dark-muted mt-1">
+            <h2 className="text-xl font-semibold text-foreground">
+              Manager-Galerie ({withPicture})
+            </h2>
+            <p className="text-sm text-muted mt-1">
               Alle {withPicture} Manager ({percent}%) der aktuellen Saison mit Profilbild
             </p>
           </div>
         </div>
-      </div>
 
-      {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="aspect-square rounded-card bg-elevated animate-pulse" />
-          ))}
-        </div>
-      )}
-      {error && (
-        <div className="text-center py-8 text-danger">Fehler beim Laden</div>
-      )}
-      {!isLoading && !error && galleryManagers.length === 0 && (
-        <div className="card p-8 text-center">
-          <i className="sap-icon sap-icon-employee text-[32px] text-subtle mb-3" />
-          <p className="text-muted">Noch kein Manager hat ein Bild hinterlegt</p>
-        </div>
-      )}
-      {!isLoading && !error && galleryManagers.length > 0 && (
-        <>
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="aspect-square rounded-card bg-elevated animate-pulse" />
+            ))}
+          </div>
+        )}
+        {error && (
+          <div className="text-center py-8 text-danger">Fehler beim Laden</div>
+        )}
+        {!isLoading && !error && galleryManagers.length === 0 && (
+          <div className="card p-8 text-center">
+            <i className="sap-icon sap-icon-employee text-[32px] text-subtle mb-3" />
+            <p className="text-muted">Noch kein Manager hat ein Bild hinterlegt</p>
+          </div>
+        )}
+        {!isLoading && !error && galleryManagers.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {galleryManagers.map(manager => (
               <ManagerGalleryCard key={manager.id} manager={manager} canClick={canClick} showRanking={showRanking} />
             ))}
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   )
 }

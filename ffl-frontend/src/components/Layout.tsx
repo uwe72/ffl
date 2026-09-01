@@ -40,8 +40,8 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className="flex-1 min-w-0 overflow-y-auto bg-page pt-[30px] pb-4 md:pb-6">
-          <div className="w-full max-w-[1440px] mx-auto px-[30px]">
+        <main className="flex-1 min-w-0 overflow-y-auto bg-page pt-0 md:pt-[30px] pb-4 md:pb-6">
+          <div className="w-full max-w-[1440px] mx-auto px-0 md:px-[30px]">
             <Outlet />
           </div>
         </main>
@@ -61,8 +61,8 @@ export default function Layout() {
           onCloseMobile={handleCloseMobile}
         />
 
-        <main className="flex-1 min-w-0 overflow-y-auto bg-page pt-[30px] pb-4 md:pb-6">
-          <div className="w-full max-w-[1440px] px-[30px] h-full">
+        <main className="flex-1 min-w-0 overflow-y-auto bg-page pt-0 md:pt-[30px] pb-4 md:pb-6">
+          <div className="w-full max-w-[1440px] px-0 md:px-[30px] h-full">
             <Outlet />
           </div>
         </main>

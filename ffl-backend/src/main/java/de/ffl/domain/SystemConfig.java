@@ -42,7 +42,7 @@ public class SystemConfig {
     @Column(name = "llm_base_url")
     private String llmBaseUrl;
 
-    @Column(name = "matchday_mail_prompt", length = 4000)
+    @Column(name = "matchday_mail_prompt", columnDefinition = "TEXT")
     private String matchdayMailPrompt;
 
     @Column(name = "web_url")

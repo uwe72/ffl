@@ -1,4 +1,5 @@
 import { Link as RouterLink } from 'react-router-dom'
+import BackButton from '../components/BackButton'
 import FormCard from '../components/FormCard'
 
 interface MailCard {
@@ -79,6 +80,7 @@ const sections: { label: string; cards: MailCard[] }[] = [
 export default function Mailing() {
   return (
     <div>
+      <BackButton to="/" className="mb-4" />
       <div className="flex items-start gap-3 p-4 bg-orange-bg border-2 border-orange rounded-control mb-6">
         <i className="sap-icon sap-icon-alert text-[24px] text-orange shrink-0 mt-0.5" />
         <p className="text-orange text-sm font-bold leading-snug">

@@ -128,7 +128,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
       )}
 
       <div className="min-w-0">
-        <span className="text-xs text-muted">Betreff <span className="text-muted">*</span></span>
+        <span className="text-xs text-muted">Betreff <span className="text-danger">*</span></span>
         <input
           required
           placeholder="Worum geht's?"
@@ -146,7 +146,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
       </div>
 
       <div className="min-w-0">
-        <span className="text-xs text-muted">Name <span className="text-muted">*</span></span>
+        <span className="text-xs text-muted">Name <span className="text-danger">*</span></span>
         <input
           required
           placeholder="Dein Name"
@@ -164,7 +164,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
       </div>
 
       <div className="col-span-2 min-w-0">
-        <span className="text-xs text-muted">E-Mail <span className="text-muted">*</span></span>
+        <span className="text-xs text-muted">E-Mail <span className="text-danger">*</span></span>
         <input
           type="email"
           required
@@ -183,7 +183,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
       </div>
 
       <div className="col-span-2 min-w-0">
-        <span className="text-xs text-muted">Nachricht <span className="text-muted">*</span></span>
+        <span className="text-xs text-muted">Nachricht <span className="text-danger">*</span></span>
         <textarea
           required
           rows={5}

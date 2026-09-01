@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { authApi } from '../api/auth'
+import { useAuth } from '../context/AuthContext'
 
 export function useAvatar(userId: number | null | undefined) {
   const query = useQuery({
@@ -34,6 +35,7 @@ export function useAvatar(userId: number | null | undefined) {
 
 export function useUploadAvatar() {
   const queryClient = useQueryClient()
+  const { updateAvatarUrl } = useAuth()
 
   return useMutation({
     mutationFn: ({ file, userId }: { file: File; userId: number }) =>
@@ -41,12 +43,14 @@ export function useUploadAvatar() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['avatar', variables.userId] })
       queryClient.invalidateQueries({ queryKey: ['manager'] })
+      updateAvatarUrl('/api/users/' + variables.userId + '/avatar')
     },
   })
 }
 
 export function useDeleteAvatar() {
   const queryClient = useQueryClient()
+  const { updateAvatarUrl } = useAuth()
 
   return useMutation({
     mutationFn: ({ userId }: { userId: number }) =>
@@ -54,6 +58,7 @@ export function useDeleteAvatar() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['avatar', variables.userId] })
       queryClient.invalidateQueries({ queryKey: ['manager'] })
+      updateAvatarUrl(null)
     },
   })
 }

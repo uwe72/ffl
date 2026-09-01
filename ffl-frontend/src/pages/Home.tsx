@@ -1,20 +1,23 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom'
 import { useCurrentManager, useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useDashboardAufstellung } from '../hooks/useDashboard'
 import { useFavorites, useAddFavorite, useRemoveFavorite, useSetStandard } from '../hooks/useFavorites'
+import { useMyGroupsWithStats, useGroupLogo } from '../hooks/useManagerGroups'
 import { useAuth } from '../context/AuthContext'
 import useIsMobile from '../hooks/useIsMobile'
 import useHorizontalSwipe from '../hooks/useHorizontalSwipe'
 import ManagerSelect from '../components/ManagerSelect'
 import Button from '../components/Button'
+import Tabs from '../components/Tabs'
+import { TableHead, Th, TableBody } from '../components/Table'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
 import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
 import CoachTafel from '../components/statistik/CoachTafel'
 import type { Aufstellung } from '../types/dashboard'
-import type { Manager } from '../types'
+import type { Manager, ManagerGroupRoundStats } from '../types'
 
 const EMPTY_AUFSTELLUNG: Aufstellung = {
   phase: 'SAISON',
@@ -41,6 +44,105 @@ function managerLabel(m?: Manager): string {
   return m.shortName ?? ''
 }
 
+function GroupHomeCard({ group, canNavigateToManager }: { group: ManagerGroupRoundStats, canNavigateToManager: boolean }) {
+  const { user } = useAuth()
+  const { data: logoUrl } = useGroupLogo(group.hasLogo ? group.groupId : null)
+  const isCreator = !!user?.login && user.login === group.createdByLogin
+  const creatorName =
+    group.createdByFirstName && group.createdByLastName
+      ? `${group.createdByFirstName} ${group.createdByLastName} (${group.createdByLogin})`
+      : group.createdByLogin || '-'
+
+  return (
+    <div className="p-6 bg-surface border border-border rounded-card w-fit max-w-full">
+      <div className="flex items-start gap-4 mb-4">
+        {logoUrl ? (
+          <img src={logoUrl} alt={group.groupName} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-elevated flex items-center justify-center flex-shrink-0">
+            <i className="sap-icon sap-icon-group-2 text-xl text-accent" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
+            {isCreator ? (
+              <RouterLink to={`/manager-groups/${group.groupId}`} className="link truncate">
+                {group.groupName}
+              </RouterLink>
+            ) : (
+              <span className="truncate">{group.groupName}</span>
+            )}
+          </h3>
+          {group.description && (
+            <p className="text-muted text-sm mt-1">{group.description}</p>
+          )}
+        </div>
+        <span className="ml-auto text-sm text-muted whitespace-nowrap">
+          <span className="font-semibold text-foreground">Erstellt von:</span> {creatorName}
+        </span>
+      </div>
+      <div className="overflow-x-auto rounded-card border border-border w-fit">
+        <table className="w-full max-w-[900px]">
+          <TableHead>
+            <tr>
+              <Th align="center">Position</Th>
+              <Th>Manager</Th>
+              <Th>Vorname</Th>
+              <Th>Nachname</Th>
+              <Th align="center">Punkte</Th>
+              <Th align="center">1. Spieltag</Th>
+            </tr>
+          </TableHead>
+          <TableBody>
+            {[...group.managers]
+              .sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999))
+              .map((m, index) => (
+                <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                  <td className="px-3 py-2 text-center font-medium text-foreground">
+                    {m.positionTotal ? `${m.positionTotal}.` : '-'}
+                  </td>
+                  <td className="px-3 py-2">
+                    {canNavigateToManager ? (
+                      <RouterLink
+                        to={`/managers/${m.managerId}`}
+                        className="link font-medium"
+                      >
+                        {m.shortName || m.managerName}
+                      </RouterLink>
+                    ) : (
+                      <span className="font-medium text-foreground">
+                        {m.shortName || m.managerName}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-muted">
+                    {m.firstName || '-'}
+                  </td>
+                  <td className="px-3 py-2 text-muted">
+                    {m.lastName || '-'}
+                  </td>
+                  <td className="px-3 py-2 text-center font-bold text-foreground">
+                    {m.pointsTotal ?? '-'}
+                  </td>
+                  <td className="px-3 py-2 text-center text-muted">
+                    {m.pointsLastRound ?? '-'}
+                  </td>
+                </tr>
+              ))}
+            {group.managers.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-center text-subtle py-8">
+                  Keine Manager in dieser Gruppe
+                </td>
+              </tr>
+            )}
+          </TableBody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
@@ -55,6 +157,14 @@ export default function Home() {
 
   const [activeManagerId, setActiveManagerId] = useState<number | null>(null)
   const [carouselError, setCarouselError] = useState('')
+
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab: 'spieler' | 'gruppen' = searchParams.get('tab') === 'gruppen' ? 'gruppen' : 'spieler'
+  const { data: myGroups, isLoading: groupsLoading } = useMyGroupsWithStats(activeTab === 'gruppen')
+
+  const handleTabChange = (key: string) => {
+    setSearchParams(key === 'gruppen' ? { tab: 'gruppen' } : {}, { replace: false })
+  }
 
   useEffect(() => {
     if (!isAuthenticated) navigate('/login')
@@ -150,9 +260,16 @@ export default function Home() {
   const showBearbeiten = isOwnTeam && !isAdmin
   const showCarouselNav = carouselEnabled && favoriteManagerIds.length > 1
 
+  const canNavigateToManager = isAdmin || !isBeforeSeason
+
+  const sortedGroups = useMemo(() => {
+    if (!myGroups) return []
+    return [...myGroups].sort((a, b) => (a.groupName || '').localeCompare(b.groupName || ''))
+  }, [myGroups])
+
   const card = (children: ReactNode, fill = false) => (
     <div
-      className={`p-6 bg-surface border border-border rounded-card${fill ? ' h-full flex flex-col min-h-0 max-w-[1300px]' : ''}`}
+      className={`p-6 bg-surface border border-border rounded-card${isMobile ? ' px-3 py-4' : ''}${fill ? ' h-full flex flex-col min-h-0 max-w-[1300px]' : ''}`}
     >
       <div className="relative z-20 flex items-center gap-2 flex-wrap mb-4 shrink-0">
         {showCarouselNav && (
@@ -236,8 +353,16 @@ export default function Home() {
   )
 
   if (isMobile) {
+    const searchControl = carouselEnabled ? (
+      <ManagerSelect
+        managers={managers ?? []}
+        value={activeManagerId ?? null}
+        onChange={id => setActiveManagerId(id)}
+      />
+    ) : undefined
+
     return (
-      <div className="pb-6">
+      <div className="pb-6 flex flex-col gap-4">
         {card(
           <div
             {...swipe}
@@ -247,22 +372,15 @@ export default function Home() {
               <p className="text-sm text-muted py-10 text-center">Kein Team ausgewählt.</p>
             ) : aufstellungQuery.isLoading || !aufstellungQuery.data ? (
               <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
-            ) : (
-              <AufstellungVertikal
-                aufstellung={aufstellungQuery.data}
-                modus={feldModus}
-                searchControl={
-                  carouselEnabled ? (
-                    <ManagerSelect
-                      managers={managers ?? []}
-                      value={activeManagerId ?? null}
-                      onChange={id => setActiveManagerId(id)}
-                    />
-                  ) : undefined
-                }
-              />
-            )}
+            ) : null}
           </div>
+        )}
+        {activeManagerId && aufstellungQuery.data && (
+          <AufstellungVertikal
+            aufstellung={aufstellungQuery.data}
+            modus={feldModus}
+            searchControl={searchControl}
+          />
         )}
       </div>
     )
@@ -270,26 +388,56 @@ export default function Home() {
 
   return (
     <div className="pb-6 h-[103%] flex flex-col min-h-0">
-      {card(
-        <div className="relative z-0 isolate h-full flex flex-col min-h-0">
-          {!activeManagerId ? (
-            <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend hideSum />
-          ) : aufstellungQuery.isError ? (
-            <p className="text-sm text-danger py-10 text-center">Daten konnten nicht geladen werden.</p>
-          ) : !displayAufstellung ? (
-            <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
-          ) : (
-            <AufstellungsFeld
-              aufstellung={displayAufstellung}
-              modus={feldModus}
-              overlayLegend
-              hideSum
-              overlay={activeManager ? <CoachTafel manager={activeManager} editable={isOwnTeam} /> : undefined}
-            />
-          )}
-        </div>,
-        true
-      )}
+      <Tabs
+        items={[
+          { key: 'spieler', label: 'Spieler' },
+          { key: 'gruppen', label: 'Gruppen' },
+        ]}
+        active={activeTab}
+        onChange={handleTabChange}
+      />
+      <div className="flex-1 min-h-0 flex flex-col">
+        {activeTab === 'spieler' ? (
+          card(
+            <div className="relative z-0 isolate h-full flex flex-col min-h-0">
+              {!activeManagerId ? (
+                <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend hideSum />
+              ) : aufstellungQuery.isError ? (
+                <p className="text-sm text-danger py-10 text-center">Daten konnten nicht geladen werden.</p>
+              ) : !displayAufstellung ? (
+                <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+              ) : (
+                <AufstellungsFeld
+                  aufstellung={displayAufstellung}
+                  modus={feldModus}
+                  overlayLegend
+                  hideSum
+                  overlay={activeManager ? <CoachTafel manager={activeManager} editable={isOwnTeam} /> : undefined}
+                />
+              )}
+            </div>,
+            true
+          )
+        ) : (
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+            <div className="max-w-[1300px] flex flex-col gap-6">
+              {groupsLoading ? (
+                <div className="p-6 bg-surface border border-border rounded-card text-center text-muted text-sm">
+                  Lade Gruppen…
+                </div>
+              ) : !sortedGroups.length ? (
+                <div className="p-6 bg-surface border border-border rounded-card text-center text-muted">
+                  Du bist in keiner Gruppe.
+                </div>
+              ) : (
+                sortedGroups.map(group => (
+                  <GroupHomeCard key={group.groupId} group={group} canNavigateToManager={canNavigateToManager} />
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

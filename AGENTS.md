@@ -296,20 +296,21 @@ export interface Player {
 - Column headers must have `cursor-pointer hover:text-accent` classes
 
 #### Detail Page Back Navigation
-- **ALL detail pages (routes with `:id`) must have a unified "Zurück zur Übersicht" link at the top**
-- The link must be placed as the first element inside the main `<div>`, before any `<PageHeader>` or content
-- Use exactly this pattern:
+- **ALL detail pages (routes with `:id`) must have a unified "Zurück" button at the top**
+- The button must be placed as the first element inside the main `<div>`, before any `<PageHeader>` or content
+- Use the reusable `<BackButton>` component (`ffl-frontend/src/components/BackButton.tsx`):
+  - It calls `navigate(-1)` (history back) when there is history, and falls back to the fixed overview route (`to`) otherwise
+  - The text is always "Zurück"
 
 ```tsx
-<RouterLink to="/parent-route" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-  <i className="sap-icon sap-icon-nav-back text-base" />
-  Zurück zur Übersicht
-</RouterLink>
+import BackButton from '../components/BackButton'
+
+<BackButton to="/parent-route" className="mb-4" />
 ```
 
 - Replace `/parent-route` with the corresponding list route (e.g., `/players`, `/teams`, `/games`, `/managers`)
-- Do NOT use different text (like "← Spiele") or different styling
-- The link uses the accent color tokens (`text-accent` / `text-accent-hover`), the SAP nav-back icon, and the text "Zurück zur Übersicht". The former gold `#c9a66b` was removed because it only reached 2.29:1 contrast on the light background.
+- Do NOT use different text (like "← Spiele", "Zurück zur Übersicht" or "Zurück zur Startseite") or different styling
+- The button uses the accent color tokens (`text-accent` / `text-accent-hover`), the SAP nav-back icon, and the text "Zurück". The former gold `#c9a66b` was removed because it only reached 2.29:1 contrast on the light background.
 
 #### Button Sizing Next To Inputs
 - **A `<Button>` placed in the same row as an `input-field control` text field must use `size="input"`** so it has the exact same height as the input (both resolve to `px-3 py-2 text-sm` ≈ 38px). Never pair a `size="compact"` button with a full-height search/text input — the heights would not match.

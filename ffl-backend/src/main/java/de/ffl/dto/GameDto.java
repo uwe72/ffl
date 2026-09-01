@@ -22,10 +22,12 @@ public class GameDto {
     private Long hostId;
     private String hostName;
     private String hostShortName;
+    private String hostSlogan;
     private String hostLogoUrl;
     private Long visitorId;
     private String visitorName;
     private String visitorShortName;
+    private String visitorSlogan;
     private String visitorLogoUrl;
     private Integer goalHost;
     private Integer goalVisitor;
@@ -60,6 +62,7 @@ public class GameDto {
             dto.setHostId(game.getHost().getId());
             dto.setHostName(game.getHost().getName());
             dto.setHostShortName(game.getHost().getShortName());
+            dto.setHostSlogan(game.getHost().getSlogan());
             dto.setHostLogoUrl(game.getHost().getLogoXxlUrl());
         }
 
@@ -67,6 +70,7 @@ public class GameDto {
             dto.setVisitorId(game.getVisitor().getId());
             dto.setVisitorName(game.getVisitor().getName());
             dto.setVisitorShortName(game.getVisitor().getShortName());
+            dto.setVisitorSlogan(game.getVisitor().getSlogan());
             dto.setVisitorLogoUrl(game.getVisitor().getLogoXxlUrl());
         }
 

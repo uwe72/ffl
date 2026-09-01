@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSystemConfig, useUpdateSystemConfig, useSendTestMail } from '../hooks/useSystemConfig'
+import BackButton from '../components/BackButton'
 import Tabs from '../components/Tabs'
 import FormCard from '../components/FormCard'
 import Button from '../components/Button'
@@ -85,6 +86,7 @@ export default function System() {
 
   return (
     <div>
+      <BackButton to="/" className="mb-4" />
       <Tabs
         items={[
           { key: 'general', label: 'Allgemein' },

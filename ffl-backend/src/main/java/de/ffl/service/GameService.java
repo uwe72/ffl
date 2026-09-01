@@ -168,6 +168,8 @@ public class GameService {
                 PlayerPointsDto dto = PlayerPointsDto.builder()
                     .playerId(player.getId())
                     .playerName(player.getNameKicker())
+                    .firstName(player.getFirstName())
+                    .lastName(player.getLastName())
                     .nameKickerAlt1(player.getNameKickerAlt1())
                     .nameKickerAlt2(player.getNameKickerAlt2())
                     .nameKickerAlt3(player.getNameKickerAlt3())

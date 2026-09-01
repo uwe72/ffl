@@ -6,6 +6,7 @@ import { documentApi } from '../api/documents'
 import { usePublicCurrentSeason } from '../hooks/useSeasons'
 import type { Document } from '../types'
 import Button from '../components/Button'
+import BackButton from '../components/BackButton'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
@@ -220,6 +221,7 @@ export default function Documents() {
 
   return (
     <div>
+      <BackButton to="/" className="mb-4" />
       {!isAuthenticated && (
         <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-border">
           <div className="flex items-center gap-3 min-w-0">
@@ -235,7 +237,7 @@ export default function Documents() {
           </RouterLink>
         </div>
       )}
-      <div className="p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
         <div className="flex items-center justify-between gap-4 mb-4">
           {!isMobile && (
             <h2 className="text-xl font-semibold text-foreground">Dokumente ({filteredDocs.length})</h2>
@@ -407,6 +409,8 @@ export default function Documents() {
           onChange={handleFileSelect}
         />
       )}
+
+      <div className="h-10" />
     </div>
   )
 }

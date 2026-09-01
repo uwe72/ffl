@@ -1,4 +1,4 @@
-import { Link as RouterLink } from 'react-router-dom'
+import BackButton from '../components/BackButton'
 import { useCurrentSeason, useSendSeasonReport } from '../hooks/useSeasons'
 import Button from '../components/Button'
 import FormCard from '../components/FormCard'
@@ -17,10 +17,7 @@ export default function MailingAdminReport() {
 
   return (
     <div>
-      <RouterLink to="/mailing" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-        <i className="sap-icon sap-icon-nav-back text-base" />
-        Zurück zur Übersicht
-      </RouterLink>
+        <BackButton to="/mailing" className="mb-4" />
 
       <div className="grid gap-6">
         <FormCard>

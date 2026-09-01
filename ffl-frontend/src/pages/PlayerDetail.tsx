@@ -5,8 +5,9 @@ import { usePlayer, useUpdatePlayer, usePlayerRanks } from '../hooks/usePlayers'
 import { useAuth } from '../context/AuthContext'
 import { positionLabels } from './Players'
 import Button from '../components/Button'
+import BackButton from '../components/BackButton'
 import SortIcon from '../components/SortIcon'
-import StatTile from '../components/StatTile'
+import Badge from '../components/Badge'
 import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 import { getChartColors } from '../utils/chartColors'
@@ -14,7 +15,7 @@ import type { Position } from '../types'
 
 const chartColors = getChartColors()
 
-type SortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'teamValue' | 'hinrunde' | 'rueckrunde'
+type SortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'hinrunde' | 'rueckrunde'
 type SortOrder = 'asc' | 'desc'
 
 function formatPrice(price: number | undefined): string {
@@ -197,9 +198,6 @@ export default function PlayerDetail() {
         case 'lastName':
           comparison = (a.lastName || '').localeCompare(b.lastName || '')
           break
-        case 'teamValue':
-          comparison = (a.teamValue || 0) - (b.teamValue || 0)
-          break
         case 'positionTotal':
           comparison = (a.positionTotal || 999) - (b.positionTotal || 999)
           break
@@ -226,10 +224,7 @@ export default function PlayerDetail() {
   if (isLoading) {
     return (
       <div className="max-w-6xl" aria-busy="true">
-        <RouterLink to="/players" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück zur Übersicht
-        </RouterLink>
+        <BackButton to="/players" className="mb-4" />
         <div className="p-4 bg-elevated border border-border rounded-card mb-6">
           <div className="flex gap-6">
             <div className="w-16 h-16 rounded-full bg-card-muted animate-pulse motion-reduce:animate-none shrink-0" />
@@ -246,7 +241,7 @@ export default function PlayerDetail() {
             </div>
           </div>
         </div>
-        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <div className="h-5 w-32 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none mb-4" />
           <div className="space-y-2">
             {[0, 1, 2, 3].map(i => (
@@ -260,10 +255,7 @@ export default function PlayerDetail() {
   if (error) {
     return (
       <div className="max-w-6xl">
-        <RouterLink to="/players" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück zur Übersicht
-        </RouterLink>
+        <BackButton to="/players" className="mb-4" />
         <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card">
           <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
           <p className="text-danger text-sm">Fehler beim Laden des Spielers.</p>
@@ -274,10 +266,7 @@ export default function PlayerDetail() {
   if (!player) {
     return (
       <div className="max-w-6xl">
-        <RouterLink to="/players" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück zur Übersicht
-        </RouterLink>
+        <BackButton to="/players" className="mb-4" />
         <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card">
           <i className="sap-icon sap-icon-information text-[18px] text-muted shrink-0" />
           <p className="text-sm text-muted">Spieler nicht gefunden.</p>
@@ -288,13 +277,10 @@ export default function PlayerDetail() {
 
   return (
     <div className="max-w-6xl">
-      <RouterLink to="/players" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
-        <i className="sap-icon sap-icon-nav-back text-base" />
-        Zurück zur Übersicht
-      </RouterLink>
+      <BackButton to="/players" className="mb-4" />
 
       <div className="p-4 bg-elevated border border-border rounded-card mb-6">
-        <div className="flex items-start gap-4">
+        <div className="flex items-center gap-4">
           {player.pictureUrl ? (
             <img src={player.pictureUrl} alt={player.nameKicker} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
           ) : (
@@ -305,19 +291,21 @@ export default function PlayerDetail() {
 
           <div className="flex-1 min-w-0">
             {!stammdatenOpen && (
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
                 <div className="min-w-0">
                   <h2 className="text-3xl font-bold text-foreground truncate">
                     {player.firstName || player.lastName
                       ? `${player.firstName} ${player.lastName}`.trim()
                       : player.nameKicker}
                   </h2>
-                  <p className="text-xs uppercase tracking-wide text-subtle mt-2">
-                    {positionLabels[player.position]}
-                    {player.prize ? ` · ${formatPrice(player.prize)}` : ''}
-                    {player.teams.length > 0 && ` · ${player.teams.map(t => t.name).join(', ')}`}
-                    {player.aktiv === false && ' · Inaktiv'}
-                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <p className="text-xs uppercase tracking-wide text-subtle">
+                      {positionLabels[player.position]}
+                      {player.prize ? ` · ${formatPrice(player.prize)}` : ''}
+                      {player.teams.length > 0 && ` · ${player.teams.map(t => t.name).join(', ')}`}
+                      {player.aktiv === false && ' · Inaktiv'}
+                    </p>
+                  </div>
                 </div>
                 {player.teams.length > 0 && (
                   <div className="flex items-center gap-2 shrink-0">
@@ -333,6 +321,40 @@ export default function PlayerDetail() {
                     ))}
                   </div>
                 )}
+                <div className="flex flex-wrap gap-4">
+                  <div className="bg-card rounded-card border border-border px-4 py-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Pos. (Saison)</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-2xl font-semibold tabular-nums text-foreground">
+                        {player.positionTotal ? `${player.positionTotal}.` : '—'}
+                      </span>
+                      {player.positionChange != null && player.positionChange !== 0 && (
+                        <Badge variant={player.positionChange > 0 ? 'success' : 'danger'}>
+                          {player.positionChange > 0 ? `+${player.positionChange}` : `-${Math.abs(player.positionChange)}`}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="bg-card rounded-card border border-border px-4 py-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Pkt. (Saison)</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-2xl font-semibold tabular-nums text-foreground">
+                        {player.points != null ? String(player.points) : '—'}
+                      </span>
+                      {player.pointsLastRound != null && player.pointsLastRound > 0 && (
+                        <Badge variant="success">+{player.pointsLastRound}</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="bg-card rounded-card border border-border px-4 py-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Pkt. (Spieltag)</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-2xl font-semibold tabular-nums text-foreground">
+                        {player.pointsLastRound != null ? String(player.pointsLastRound) : '—'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -497,32 +519,10 @@ export default function PlayerDetail() {
             </Button>
           )}
         </div>
-
-        <div className="mt-4 pt-4 border-t border-border">
-          <h3 className="text-xl font-semibold text-foreground mb-4">Spielerstatistik</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-            <StatTile
-              label="Pos. (Saison)"
-              value={player.positionTotal ? `${player.positionTotal}.` : '—'}
-            />
-            <StatTile
-              label="Pos. (Spieltag)"
-              value={player.positionLastRound ? `${player.positionLastRound}.` : '—'}
-            />
-            <StatTile
-              label="Pkt. (Saison)"
-              value={player.points != null ? String(player.points) : '—'}
-            />
-            <StatTile
-              label="Pkt. (Spieltag)"
-              value={player.pointsLastRound != null ? String(player.pointsLastRound) : '—'}
-            />
-          </div>
-        </div>
       </div>
 
       {chartData.length > 0 && (
-        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <h3 className="text-xl font-semibold text-foreground mb-3">Punkte pro Spieltag</h3>
           <div className="bg-card p-4 rounded-card border border-border">
             <ResponsiveContainer width="100%" height={300}>
@@ -539,7 +539,7 @@ export default function PlayerDetail() {
       )}
 
       {player.managers && player.managers.length > 0 && (
-        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-foreground">Manager mit diesem Spieler ({player.managers.length})</h3>
             <input
@@ -566,20 +566,17 @@ export default function PlayerDetail() {
                       <ThSortable align="left" onClick={() => handleSort('shortName')}>
                         Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
                       </ThSortable>
-                      <ThSortable align="center" onClick={() => handleSort('pointsTotal')}>
-                        Pkt<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
-                      </ThSortable>
-                      <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
-                        Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
-                      </ThSortable>
                       <ThSortable align="left" onClick={() => handleSort('firstName')}>
                         Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
                       </ThSortable>
                       <ThSortable align="left" onClick={() => handleSort('lastName')}>
                         Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
                       </ThSortable>
-                      <ThSortable align="right" onClick={() => handleSort('teamValue')}>
-                        Teamwert<SortIcon column="teamValue" activeKey={sortKey} order={sortOrder} />
+                      <ThSortable align="center" onClick={() => handleSort('pointsTotal')}>
+                        Punkte<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
+                      </ThSortable>
+                      <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
+                        {player?.season?.currentMatchday ? `${player.season.currentMatchday}. Spieltag` : 'Spieltag'}<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                       </ThSortable>
                       <ThSortable align="center" onClick={() => handleSort('hinrunde')}>
                         Hinrunde<SortIcon column="hinrunde" activeKey={sortKey} order={sortOrder} />
@@ -610,20 +607,17 @@ export default function PlayerDetail() {
                               {manager.shortName || manager.name || '-'}
                             </RouterLink>
                           </td>
-                          <td className="px-3 py-2 text-center text-foreground">
-                            {manager.pointsTotal ?? '-'}
-                          </td>
-                          <td className="px-3 py-2 text-center text-muted">
-                            {manager.pointsLastRound ?? '-'}
-                          </td>
                           <td className="px-3 py-2 text-muted">
                             {manager.firstName || '-'}
                           </td>
                           <td className="px-3 py-2 text-muted">
                             {manager.lastName || '-'}
                           </td>
-                          <td className="px-3 py-2 text-right text-foreground">
-                            {manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.
+                          <td className="px-3 py-2 text-center text-foreground">
+                            {manager.pointsTotal ?? '-'}
+                          </td>
+                          <td className="px-3 py-2 text-center text-muted">
+                            {manager.pointsLastRound ?? '-'}
                           </td>
                           <td className="px-3 py-2 text-center">
                             {manager.hinrunde ? (
@@ -643,7 +637,7 @@ export default function PlayerDetail() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={10} className="text-center text-subtle py-8">
+                        <td colSpan={9} className="text-center text-subtle py-8">
                           Keine Manager gefunden
                         </td>
                       </tr>
@@ -670,11 +664,11 @@ export default function PlayerDetail() {
                         <span className="font-medium text-foreground">{manager.positionTotal ? `${manager.positionTotal}.` : '-'}</span>
                       </div>
                       <div>
-                        <span className="text-subtle">Pkt: </span>
+                        <span className="text-subtle">Punkte: </span>
                         <span className="font-medium text-foreground">{manager.pointsTotal ?? '-'}</span>
                       </div>
                       <div>
-                        <span className="text-subtle">Spieltag: </span>
+                        <span className="text-subtle">{player?.season?.currentMatchday ? `${player.season.currentMatchday}. Spieltag: ` : 'Spieltag: '}</span>
                         <span className="font-medium text-foreground">{manager.pointsLastRound ?? '-'}</span>
                       </div>
                       <div>
@@ -705,6 +699,8 @@ export default function PlayerDetail() {
           )}
         </div>
       )}
+
+      <div className="h-10" />
     </div>
   )
 }

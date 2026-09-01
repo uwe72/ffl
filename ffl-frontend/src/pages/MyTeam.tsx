@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
+import BackButton from '../components/BackButton'
 import { useAuth } from '../context/AuthContext'
 import { managerApi } from '../api/managers'
 import { authApi } from '../api/auth'
@@ -310,6 +310,15 @@ export default function MyTeam() {
 
   const transferRemaining = budget - transferTotalCost
   const isTransferBudgetExceeded = transferRemaining < 0
+  const isTransferBudgetLow = !isTransferBudgetExceeded && budget > 0 && transferRemaining <= budget * 0.1
+  const isTransferBudgetExhausted = transferRemaining === 0
+  const transferRemainingTone: 'default' | 'warning' | 'danger' | 'success' = isTransferBudgetExceeded
+    ? 'danger'
+    : isTransferBudgetExhausted
+      ? 'success'
+      : isTransferBudgetLow
+        ? 'warning'
+        : 'default'
 
   const transferPositionCounts = useMemo(() => {
     const counts: Record<Position, number> = { GOALKEEPER: 0, DEFENDER: 0, MIDFIELD: 0, STRIKER: 0 }
@@ -675,11 +684,8 @@ export default function MyTeam() {
   if (notFound) {
     return (
       <div>
-        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück zur Startseite
-        </RouterLink>
-        <div className="p-6 bg-surface border border-border rounded-card text-center">
+        <BackButton to="/" className="mb-4" />
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card text-center">
           <i className="sap-icon sap-icon-person-placeholder text-[40px] text-subtle mb-3" />
           <p className="text-foreground font-medium mb-2">Du hast noch kein Team registriert.</p>
           <p className="text-sm text-muted">Melde dich über die Registrierung an, um dein Team zusammenzustellen.</p>
@@ -691,10 +697,7 @@ export default function MyTeam() {
   if (!manager) {
     return (
       <div>
-        <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück zur Startseite
-        </RouterLink>
+        <BackButton to="/" className="mb-4" />
         <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card">
           <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
           <p className="text-danger text-sm">{error || 'Daten konnten nicht geladen werden.'}</p>
@@ -727,7 +730,7 @@ export default function MyTeam() {
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           {team?.logoSUrl && (
-            <img src={team.logoSUrl} alt={team.name} className="w-7 h-7 object-contain rounded-card" />
+            <img src={team.logoSUrl} alt={team.name} className="w-5 h-5 object-contain rounded-card" />
           )}
           {badge && (
             <span className="text-[10px] font-semibold text-accent border border-accent rounded-badge px-1 py-0.5 leading-none">{badge}</span>
@@ -739,10 +742,7 @@ export default function MyTeam() {
 
   return (
     <div className="max-w-6xl">
-      <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-        <i className="sap-icon sap-icon-nav-back text-base" />
-        Zurück zur Übersicht
-      </RouterLink>
+      <BackButton to="/" className="mb-4" />
 
       {isHinrunde && (
         <div className="flex items-center gap-3 p-3 bg-accent-muted border border-accent/30 rounded-card mb-6">
@@ -869,11 +869,12 @@ export default function MyTeam() {
           <div id="profile-form" className="mt-4 pt-4 border-t border-border">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="min-w-0">
-                <span className="text-xs text-muted">E-Mail <span className="text-danger">*</span></span>
+                <span className="text-xs text-muted">Loginname</span>
                 <input
-                  type="email"
-                  value={profileEmail}
-                  onChange={(e) => setProfileEmail(e.target.value)}
+                  type="text"
+                  value={manager?.login ?? user?.login ?? ''}
+                  readOnly
+                  disabled
                   className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
                 />
               </div>
@@ -900,17 +901,28 @@ export default function MyTeam() {
                 />
               </div>
             </div>
-            <div className="mt-4 min-w-0">
-              <span className="text-xs text-muted">Slogan (optional)</span>
-              <input
-                type="text"
-                value={profileSlogan}
-                onChange={(e) => setProfileSlogan(e.target.value)}
-                maxLength={60}
-                placeholder="30 Millionen, null Plan, volles Risiko."
-                className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
-              />
-              <p className="mt-1 text-xs text-subtle text-right">{profileSlogan.length}/60</p>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="min-w-0">
+                <span className="text-xs text-muted">E-Mail <span className="text-danger">*</span></span>
+                <input
+                  type="email"
+                  value={profileEmail}
+                  onChange={(e) => setProfileEmail(e.target.value)}
+                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                />
+              </div>
+              <div className="min-w-0 sm:col-span-2">
+                <span className="text-xs text-muted">Slogan (optional)</span>
+                <input
+                  type="text"
+                  value={profileSlogan}
+                  onChange={(e) => setProfileSlogan(e.target.value)}
+                  maxLength={60}
+                  placeholder="30 Millionen, null Plan, volles Risiko."
+                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
+                />
+                <p className="mt-1 text-xs text-subtle text-right">{profileSlogan.length}/60</p>
+              </div>
             </div>
             {hasProfileChanges && (
               <div className="mt-3 flex gap-2">
@@ -938,7 +950,7 @@ export default function MyTeam() {
         )}
       </div>
 
-      <div className="p-6 bg-surface border border-border rounded-card mb-6">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
         <h3 className="text-xl font-semibold text-foreground mb-4">Aufstellung (Hinrunde)</h3>
         <div
           className="grid grid-cols-1 sm:grid-cols-3 gap-6"
@@ -1031,13 +1043,12 @@ export default function MyTeam() {
       </div>
 
       {isHinrunde && (
-        <div className="mt-6">
-          <div className="flex flex-col items-start mb-4 gap-y-2">
-            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-              <i className="sap-icon sap-icon-switch-classes text-accent" />
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
               Winterwechsel
-              <span className="text-[11px] text-muted font-normal">({transfers.length}/3)</span>
-            </h2>
+              <span className="text-sm font-normal text-muted">({transfers.length}/3)</span>
+            </h3>
             <div className="flex items-center gap-3 flex-wrap">
               {transferDiff !== 0 && (
                 <span className={`text-xs font-semibold ${transferDiff > 0 ? 'text-up' : 'text-down'}`}>
@@ -1097,6 +1108,8 @@ export default function MyTeam() {
                           badge="Raus"
                           modal
                           fixedPosition={null}
+                          hideFilters
+                          modalTitle="Bitte einen Spieler auswählen"
                         />
                       </div>
                       <i className="sap-icon sap-icon-arrow-right text-accent text-lg shrink-0" />
@@ -1111,6 +1124,7 @@ export default function MyTeam() {
                             badge="Rein"
                             modal
                             fixedPosition={null}
+                            defaultAktivFilter="alle"
                           />
                         ) : (
                           <div className="input-field w-full px-3 py-2 rounded-control text-xs text-placeholder">
@@ -1178,12 +1192,11 @@ export default function MyTeam() {
       )}
 
       {isRueckrunde && hasExistingTransfers && (
-        <div className="mt-6">
-          <div className="flex flex-col items-start mb-4 gap-y-2">
-            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-              <i className="sap-icon sap-icon-switch-classes text-accent" />
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
               Winterwechsel
-            </h2>
+            </h3>
             {existingTransferDiff !== 0 && (
                 <span className={`text-xs font-semibold ${existingTransferDiff > 0 ? 'text-up' : 'text-down'}`}>
                 {existingTransferDiff > 0 ? '+' : ''}{existingTransferDiff.toLocaleString('de-DE')} €
@@ -1214,48 +1227,54 @@ export default function MyTeam() {
       )}
 
       {hasActiveTransfers && (
-        <div className="mt-6">
-          <div className="flex flex-col items-start mb-4 gap-y-2">
-            <h2 className="text-base font-semibold text-foreground">Aufstellung (Rückrunde)</h2>
-            <div className="grid grid-cols-3 gap-2 w-full max-w-md text-xs">
-              <div className="bg-card border border-border-neutral rounded-card px-3 py-2">
-                <p className="text-muted">Budget</p>
-                <p className="text-foreground font-semibold tabular-nums">{formatPrice(budget)}</p>
-              </div>
-              <div className="bg-card border border-border-neutral rounded-card px-3 py-2">
-                <p className="text-muted">Ausgegeben</p>
-                <p className="text-foreground font-semibold tabular-nums">{formatPrice(transferTotalCost)}</p>
-              </div>
-              <div className={`rounded-card px-3 py-2 border ${isTransferBudgetExceeded ? 'bg-danger-bg border-danger' : 'bg-accent-muted border-accent'}`}>
-                <p className={isTransferBudgetExceeded ? 'text-danger' : 'text-accent'}>Verbleibend</p>
-                <p className={`font-bold tabular-nums ${isTransferBudgetExceeded ? 'text-danger' : 'text-accent'}`}>{formatPrice(transferRemaining)}</p>
-              </div>
-            </div>
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+          <h3 className="text-xl font-semibold text-foreground mb-4">Aufstellung (Rückrunde)</h3>
+          <div
+            className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+            role={isTransferBudgetExceeded ? 'status' : undefined}
+            aria-label="Budget"
+          >
+            <StatTile
+              label="Budget"
+              value={formatPrice(budget)}
+            />
+            <StatTile
+              label="Ausgegeben"
+              value={formatPrice(transferTotalCost)}
+            />
+            <StatTile
+              label="Verbleibend"
+              value={formatPrice(transferRemaining)}
+              tone={transferRemainingTone}
+              icon={(isTransferBudgetExceeded || (isTransferBudgetLow && !isTransferBudgetExhausted)) ? <i className="sap-icon sap-icon-alert text-base" /> : null}
+            />
           </div>
 
-          <div className="space-y-8">
-            {(['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as Position[]).map(pos => {
-              const players = rueckrundePlayersByPosition[pos]
-              if (players.length === 0) return null
-              const groupLabel = pos === 'GOALKEEPER' ? 'Torwart' : pos === 'DEFENDER' ? 'Abwehr' : pos === 'MIDFIELD' ? 'Mittelfeld' : 'Sturm'
-              return (
-                <div key={pos}>
-                  <div className="mb-2 flex items-center gap-3">
-                    <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[pos]}`}>
-                      {groupLabel}
-                    </h3>
-                    <span className="text-xs text-subtle tabular-nums">{players.length}</span>
+          <div className="mt-6 pt-6 border-t border-border">
+            <div className="space-y-8">
+              {(['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as Position[]).map(pos => {
+                const players = rueckrundePlayersByPosition[pos]
+                if (players.length === 0) return null
+                const groupLabel = pos === 'GOALKEEPER' ? 'Torwart' : pos === 'DEFENDER' ? 'Abwehr' : pos === 'MIDFIELD' ? 'Mittelfeld' : 'Sturm'
+                return (
+                  <div key={pos}>
+                    <div className="mb-2 flex items-center gap-3">
+                      <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[pos]}`}>
+                        {groupLabel}
+                      </h3>
+                      <span className="text-xs text-subtle tabular-nums">{players.length}</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {players.map(player => (
+                        <div key={player.id}>
+                          {renderPlayerCard(player, activeNewIds.has(player.id) ? 'new' : undefined)}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {players.map(player => (
-                      <div key={player.id}>
-                        {renderPlayerCard(player, activeNewIds.has(player.id) ? 'new' : undefined)}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         </div>
       )}
@@ -1308,6 +1327,8 @@ export default function MyTeam() {
           </div>
         </div>
       )}
+
+      <div className="h-10" />
 
     </div>
   )

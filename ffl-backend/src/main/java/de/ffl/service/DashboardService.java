@@ -52,12 +52,13 @@ public class DashboardService {
         int transferRound = season.getStartRoundRueckrunde() != null ? season.getStartRoundRueckrunde() : 16;
 
         List<Player> lineup = activeLineup(manager, currentMatchday, transferRound);
+        List<RosterPlayer> roster = fullRoster(manager);
 
         Map<Long, PlayerRank> rankByPlayer = new HashMap<>();
         if (currentMatchday > 0) {
             Round round = roundRepository.findBySeasonIdAndNumber(season.getId(), currentMatchday).orElse(null);
             if (round != null) {
-                List<Long> playerIds = lineup.stream().map(Player::getId).toList();
+                List<Long> playerIds = roster.stream().map(r -> r.player.getId()).toList();
                 for (PlayerRank pr : playerRankRepository.findByPlayerIdInAndRoundId(playerIds, round.getId())) {
                     rankByPlayer.put(pr.getPlayer().getId(), pr);
                 }
@@ -74,12 +75,21 @@ public class DashboardService {
 
         int teilnehmer = managerRepository.findBySeasonId(season.getId()).size();
 
+        boolean isRueckrunde = currentMatchday >= transferRound;
+
         int kaderwert = 0;
-        List<SpielerAufstellungDto> spieler = new ArrayList<>();
         for (Player p : lineup) {
+            if (p != null) kaderwert += p.getPrize();
+        }
+
+        List<SpielerAufstellungDto> spieler = new ArrayList<>();
+        for (RosterPlayer rp : roster) {
+            Player p = rp.player;
             if (p == null) continue;
-            kaderwert += p.getPrize();
             PlayerRank pr = rankByPlayer.get(p.getId());
+            boolean activeNow = isRueckrunde ? rp.activeRueckrunde : rp.activeHinrunde;
+            boolean gespielt = activeNow && pr != null && Boolean.TRUE.equals(pr.getPlayed());
+            int einsaetze = pr != null && pr.getNumberMatches() != null ? pr.getNumberMatches() : 0;
             spieler.add(SpielerAufstellungDto.builder()
                 .id(p.getId())
                 .name(playerName(p))
@@ -97,6 +107,8 @@ public class DashboardService {
                 .marktwert(p.getPrize())
                 .tore(tore(p))
                 .zuNull(zuNull(p))
+                .gespielt(gespielt)
+                .einsaetze(einsaetze)
                 .regeln(regelPunkte(p))
                 .build());
         }
@@ -330,6 +342,48 @@ public class DashboardService {
             if (p != null) sum += p.getPrize();
         }
         return sum;
+    }
+
+    private static final class RosterPlayer {
+        final Player player;
+        final boolean activeHinrunde;
+        final boolean activeRueckrunde;
+        RosterPlayer(Player player, boolean activeHinrunde, boolean activeRueckrunde) {
+            this.player = player;
+            this.activeHinrunde = activeHinrunde;
+            this.activeRueckrunde = activeRueckrunde;
+        }
+    }
+
+    private List<RosterPlayer> fullRoster(Manager m) {
+        List<RosterPlayer> roster = new ArrayList<>();
+        Player[] base = new Player[] {
+            m.getPlayerGoalkeeper(),
+            m.getPlayerDefender1(), m.getPlayerDefender2(), m.getPlayerDefender3(),
+            m.getPlayerMidfield1(), m.getPlayerMidfield2(), m.getPlayerMidfield3(),
+            m.getPlayerStriker1(), m.getPlayerStriker2(), m.getPlayerStriker3(),
+            m.getPlayerFreeChoice()
+        };
+        for (Player p : base) {
+            if (p == null) continue;
+            boolean exchangedOut = isExchangedOld(m, p);
+            roster.add(new RosterPlayer(p, true, !exchangedOut));
+        }
+        Player[] news = new Player[] {
+            m.getPlayerExchangedNew1(), m.getPlayerExchangedNew2(), m.getPlayerExchangedNew3()
+        };
+        for (Player p : news) {
+            if (p == null) continue;
+            roster.add(new RosterPlayer(p, false, true));
+        }
+        return roster;
+    }
+
+    private boolean isExchangedOld(Manager m, Player p) {
+        if (p == null) return false;
+        return p.equals(m.getPlayerExchangedOld1())
+            || p.equals(m.getPlayerExchangedOld2())
+            || p.equals(m.getPlayerExchangedOld3());
     }
 
     private void addIfNotNull(List<Player> list, Player p) {

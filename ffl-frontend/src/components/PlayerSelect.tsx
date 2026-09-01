@@ -30,6 +30,9 @@ export default function PlayerSelect({
   badge,
   modal,
   fixedPosition,
+  defaultAktivFilter = 'alle',
+  hideFilters = false,
+  modalTitle,
 }: {
   slot: PlayerSlot
   players: Player[]
@@ -41,6 +44,9 @@ export default function PlayerSelect({
   badge?: string
   modal?: boolean
   fixedPosition?: Position | null
+  defaultAktivFilter?: 'aktiv' | 'inaktiv' | 'alle'
+  hideFilters?: boolean
+  modalTitle?: string
 }) {
   const tableFixedPosition = fixedPosition === undefined ? slot.position : fixedPosition
   const [search, setSearch] = useState('')
@@ -212,11 +218,11 @@ export default function PlayerSelect({
           onClick={closeModal}
         >
           <div
-            className="bg-surface border border-border rounded-card shadow-2xl w-full max-w-[760px] max-h-[85vh] flex flex-col"
+            className="bg-surface border border-border rounded-card shadow-2xl w-fit max-w-[min(1400px,calc(100vw-2rem))] max-h-[85vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <h3 className="text-sm font-semibold text-foreground">{slot.label}</h3>
+              <h3 className="text-sm font-semibold text-foreground">{modalTitle ?? slot.label}</h3>
               <button
                 type="button"
                 onClick={closeModal}
@@ -234,7 +240,8 @@ export default function PlayerSelect({
                 onSelect={handleSelect}
                 defaultSortKey="prize"
                 defaultSortOrder="asc"
-                defaultAktivFilter="aktiv"
+                defaultAktivFilter={defaultAktivFilter}
+                hideFilters={hideFilters}
                 autoFocus
               />
             </div>

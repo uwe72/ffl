@@ -1,4 +1,5 @@
 import { Link as RouterLink } from 'react-router-dom'
+import BackButton from '../components/BackButton'
 import { useTeams } from '../hooks/useTeams'
 
 export default function Teams() {
@@ -9,8 +10,9 @@ export default function Teams() {
 
   return (
     <div>
+      <BackButton to="/" className="mb-4" />
       {teams && teams.length > 0 ? (
-        <div className="p-6 bg-surface border border-border rounded-card">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
         <h2 className="text-xl font-semibold text-foreground mb-4">Vereine ({teams.length})</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {teams.map(team => (
@@ -40,6 +42,8 @@ export default function Teams() {
           Keine Teams gefunden
         </div>
       )}
+
+      <div className="h-10" />
     </div>
   )
 }

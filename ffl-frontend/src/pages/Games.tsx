@@ -5,6 +5,7 @@ import { useCurrentSeason } from '../hooks/useSeasons'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import FormationImportDialog from '../components/FormationImportDialog'
+import BackButton from '../components/BackButton'
 import Button from '../components/Button'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, TableBody } from '../components/Table'
@@ -19,9 +20,11 @@ interface Game {
   roundNumber?: number
   hostName?: string
   hostShortName?: string
+  hostSlogan?: string
   hostLogoUrl?: string
   visitorName?: string
   visitorShortName?: string
+  visitorSlogan?: string
   visitorLogoUrl?: string
   goalHost?: number
   goalVisitor?: number
@@ -53,8 +56,8 @@ function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: numb
             )}
             <div className="min-w-0">
               <div className="font-medium truncate">{game.hostName || '-'}</div>
-              {game.hostShortName && (
-                <div className="text-sm text-subtle">{game.hostShortName}</div>
+              {game.hostSlogan && (
+                <div className="text-sm text-subtle">{game.hostSlogan}</div>
               )}
             </div>
           </div>
@@ -68,8 +71,8 @@ function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: numb
           <div className="flex items-center gap-3 flex-1 justify-end">
             <div className="min-w-0 text-right">
               <div className="font-medium truncate">{game.visitorName || '-'}</div>
-              {game.visitorShortName && (
-                <div className="text-sm text-subtle">{game.visitorShortName}</div>
+              {game.visitorSlogan && (
+                <div className="text-sm text-subtle">{game.visitorSlogan}</div>
               )}
             </div>
             {game.visitorLogoUrl && (
@@ -112,7 +115,7 @@ function FilterBar({
   onReset: () => void
 }) {
   return (
-    <div className="flex items-center gap-3 flex-wrap mb-4">
+    <div className="flex items-center gap-3 flex-wrap">
       <div className="flex items-center gap-2">
         <span className="text-muted text-xs">Spieltag:</span>
         <button
@@ -172,7 +175,6 @@ export default function Games() {
   const [sortKey, setSortKey] = useState<SortKey>('roundNumber')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [selectedRound, setSelectedRound] = useState<number | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
   const [importGameId, setImportGameId] = useState<number | null>(null)
   const queryClient = useQueryClient()
 
@@ -211,25 +213,15 @@ export default function Games() {
   }
 
   const resetFilter = () => {
-    setSearchTerm('')
     setSelectedRound(null)
   }
 
-  const hasActiveFilter = searchTerm !== '' || (selectedRound !== null && selectedRound !== defaultRound)
+  const hasActiveFilter = selectedRound !== null && selectedRound !== defaultRound
 
   const filteredGames = useMemo(() => {
     if (!games) return []
-    const term = searchTerm.toLowerCase()
-    return games.filter(g => {
-      const matchesRound = selectedRound === null || g.roundNumber === selectedRound
-      const matchesSearch =
-        term === '' ||
-        (g.name?.toLowerCase().includes(term) ?? false) ||
-        (g.hostName?.toLowerCase().includes(term) ?? false) ||
-        (g.visitorName?.toLowerCase().includes(term) ?? false)
-      return matchesRound && matchesSearch
-    })
-  }, [games, selectedRound, searchTerm])
+    return games.filter(g => selectedRound === null || g.roundNumber === selectedRound)
+  }, [games, selectedRound])
 
   const sortedGames = useMemo(() => {
     return [...filteredGames].sort((a, b) => {
@@ -263,28 +255,18 @@ export default function Games() {
 
   return (
     <div>
-      <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
-        <div className="flex items-center justify-between gap-4 mb-4">
+      <BackButton to="/" className="mb-4" />
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
+        <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
           <h2 className="text-xl font-semibold text-foreground">Spiele ({filteredGames.length})</h2>
-          <div className="relative w-64">
-            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Spiele suchen..."
-              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
-            />
-          </div>
+          <FilterBar
+            selectedRound={selectedRound}
+            setSelectedRound={setSelectedRound}
+            rounds={rounds}
+            hasFilter={hasActiveFilter}
+            onReset={resetFilter}
+          />
         </div>
-
-        <FilterBar
-          selectedRound={selectedRound}
-          setSelectedRound={setSelectedRound}
-          rounds={rounds}
-          hasFilter={hasActiveFilter}
-          onReset={resetFilter}
-        />
 
         {!isMobile && (
           <>
@@ -329,8 +311,8 @@ export default function Games() {
                             )}
                             <div>
                               <div className="font-medium">{game.hostName || '-'}</div>
-                              {game.hostShortName && (
-                                <div className="text-sm text-subtle">{game.hostShortName}</div>
+                              {game.hostSlogan && (
+                                <div className="text-sm text-subtle">{game.hostSlogan}</div>
                               )}
                             </div>
                           </div>
@@ -364,8 +346,8 @@ export default function Games() {
                             )}
                             <div>
                               <div className="font-medium">{game.visitorName || '-'}</div>
-                              {game.visitorShortName && (
-                                <div className="text-sm text-subtle">{game.visitorShortName}</div>
+                              {game.visitorSlogan && (
+                                <div className="text-sm text-subtle">{game.visitorSlogan}</div>
                               )}
                             </div>
                           </div>
@@ -425,6 +407,8 @@ export default function Games() {
           game={importGame}
         />
       )}
+
+      <div className="h-10" />
     </div>
   )
 }

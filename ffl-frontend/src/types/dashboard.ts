@@ -19,6 +19,8 @@ export interface SpielerAufstellung {
   marktwert: number
   tore: number
   zuNull: number
+  gespielt: boolean
+  einsaetze: number
   regeln?: RulePoint[]
 }
 

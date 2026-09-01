@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams, Link as RouterLink } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { usePublicSurvey, usePublicSurveyResult, useSubmitSurvey } from '../hooks/useSurveys'
 import type { SurveyQuestion, SurveyAnswerInput } from '../types'
 import Button from '../components/Button'
-import SurveyHero from '../components/SurveyHero'
+import BackButton from '../components/BackButton'
 
 type AnswerState = Record<number, SurveyAnswerInput>
 
@@ -151,7 +151,7 @@ export default function SurveyPublic() {
 
   if (submitted) {
     return (
-      <div className="p-6 bg-surface border border-border rounded-card max-w-2xl mx-auto mt-8">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card max-w-2xl mx-auto mt-8">
         <div className="flex flex-col items-center text-center gap-3 py-6">
           <i className="sap-icon sap-icon-approvals text-[44px] text-accent" />
           <h2 className="text-xl font-bold text-foreground">Vielen Dank!</h2>
@@ -174,7 +174,7 @@ export default function SurveyPublic() {
 
   if (survey.status !== 'GESTARTET') {
     return (
-      <div className="p-6 bg-surface border border-border rounded-card max-w-2xl mx-auto mt-8 text-center">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card max-w-2xl mx-auto mt-8 text-center">
         <p className="text-muted text-sm">Diese Umfrage ist derzeit nicht aktiv.</p>
       </div>
     )
@@ -203,11 +203,19 @@ export default function SurveyPublic() {
   }
 
   return (
-    <div>
-      <SurveyHero title={survey.title} subtitle={survey.description} />
+    <div className="pb-6">
+      <BackButton to="/" className="mb-4" />
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">{survey.title}</h2>
+            {survey.description && (
+              <p className="text-sm text-muted mt-1 whitespace-pre-wrap">{survey.description}</p>
+            )}
+          </div>
+        </div>
 
-      <div className="p-6 bg-surface border border-border rounded-card">
-        <div className="mb-6">
+        <div className="mt-5">
           <div className="flex items-center justify-between text-xs text-muted mb-1">
             <span>Fortschritt</span>
             <span>{progress}%</span>
@@ -216,80 +224,77 @@ export default function SurveyPublic() {
             <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${progress}%` }} />
           </div>
         </div>
+      </div>
 
-        <div className="flex flex-col gap-6">
-          {survey.questions.map((question, index) => {
-            const input = answers[question.id]
-            return (
-              <div key={question.id} className="border-t border-border pt-5">
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <p className="font-medium text-foreground">
-                    <span className="text-subtle">Frage {index + 1}:</span> {question.text}
-                    {question.required && <span className="text-danger ml-1">*</span>}
-                  </p>
-                  {question.type !== 'TEXTFIELD' && question.type !== 'TEXTAREA' && (
-                    <span className="text-xs text-subtle shrink-0 mt-0.5">
-                      {question.type === 'RATING' ? 'Bewertung' : question.type === 'SINGLE' ? 'Einzelauswahl' : 'Mehrfachauswahl'}
-                    </span>
-                  )}
-                </div>
-                {question.type === 'RATING' && (
-                  <RatingInput
-                    value={input?.value}
-                    onChange={v => setAnswers(prev => ({ ...prev, [question.id]: { questionId: question.id, value: v } }))}
-                  />
-                )}
-                {question.type === 'TEXTFIELD' && (
-                  <input
-                    type="text"
-                    value={input?.value ?? ''}
-                    onChange={e => setAnswers(prev => ({ ...prev, [question.id]: { questionId: question.id, value: e.target.value } }))}
-                    maxLength={question.maxLength ?? undefined}
-                    className="input-field control w-full"
-                    placeholder="Deine Antwort..."
-                  />
-                )}
-                {question.type === 'TEXTAREA' && (
-                  <textarea
-                    value={input?.value ?? ''}
-                    onChange={e => setAnswers(prev => ({ ...prev, [question.id]: { questionId: question.id, value: e.target.value } }))}
-                    rows={3}
-                    maxLength={question.maxLength ?? undefined}
-                    className="input-field control w-full resize-y"
-                    placeholder="Deine Antwort..."
-                  />
-                )}
-                {(question.type === 'SINGLE' || question.type === 'MULTI') && (
-                  <ChoiceInput
-                    question={question}
-                    input={input}
-                    onChange={next => setAnswers(prev => ({ ...prev, [question.id]: next }))}
-                  />
+      <div className="flex flex-col gap-4 mb-4">
+        {survey.questions.map((question, index) => {
+          const input = answers[question.id]
+          return (
+            <div key={question.id} className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <p className="font-medium text-foreground">
+                  <span className="text-subtle">Frage {index + 1}:</span> {question.text}
+                  {question.required && <span className="text-danger ml-1">*</span>}
+                </p>
+                {question.type !== 'TEXTFIELD' && question.type !== 'TEXTAREA' && (
+                  <span className="text-xs text-subtle shrink-0 mt-0.5">
+                    {question.type === 'RATING' ? 'Bewertung' : question.type === 'SINGLE' ? 'Einzelauswahl' : 'Mehrfachauswahl'}
+                  </span>
                 )}
               </div>
-            )
-          })}
-        </div>
+              {question.type === 'RATING' && (
+                <RatingInput
+                  value={input?.value}
+                  onChange={v => setAnswers(prev => ({ ...prev, [question.id]: { questionId: question.id, value: v } }))}
+                />
+              )}
+              {question.type === 'TEXTFIELD' && (
+                <input
+                  type="text"
+                  value={input?.value ?? ''}
+                  onChange={e => setAnswers(prev => ({ ...prev, [question.id]: { questionId: question.id, value: e.target.value } }))}
+                  maxLength={question.maxLength ?? undefined}
+                  className="input-field control w-full"
+                  placeholder="Deine Antwort..."
+                />
+              )}
+              {question.type === 'TEXTAREA' && (
+                <textarea
+                  value={input?.value ?? ''}
+                  onChange={e => setAnswers(prev => ({ ...prev, [question.id]: { questionId: question.id, value: e.target.value } }))}
+                  rows={3}
+                  maxLength={question.maxLength ?? undefined}
+                  className="input-field control w-full resize-y"
+                  placeholder="Deine Antwort..."
+                />
+              )}
+              {(question.type === 'SINGLE' || question.type === 'MULTI') && (
+                <ChoiceInput
+                  question={question}
+                  input={input}
+                  onChange={next => setAnswers(prev => ({ ...prev, [question.id]: next }))}
+                />
+              )}
+            </div>
+          )
+        })}
+      </div>
 
-        {validationError && (
-          <div className="mt-5 p-3 rounded-control border border-danger/40 bg-danger-bg text-danger text-sm">
-            {validationError}
-          </div>
-        )}
-
-        <div className="mt-6 flex flex-col gap-3">
-          <Button
-            onClick={handleSubmit}
-            disabled={submit.isPending}
-            size="input"
-            className="w-full min-h-[44px]"
-          >
-            {submit.isPending ? 'Wird gesendet...' : 'Absenden'}
-          </Button>
-          <p className="text-xs text-subtle text-center">
-            Deine Antworten sind anonym.
-          </p>
+      {validationError && (
+        <div className="mb-4 p-3 rounded-control border border-danger/40 bg-danger-bg text-danger text-sm">
+          {validationError}
         </div>
+      )}
+
+      <div className="flex items-center justify-end gap-4 mb-8">
+        <p className="text-xs text-subtle">Deine Antworten sind anonym.</p>
+        <Button
+          onClick={handleSubmit}
+          disabled={submit.isPending}
+          size="default"
+        >
+          {submit.isPending ? 'Wird gesendet...' : 'Absenden'}
+        </Button>
       </div>
     </div>
   )
@@ -304,77 +309,81 @@ function PublicResults({ title, description, responseCount, questions }: {
   const maxCount = Math.max(1, ...questions.flatMap(q => q.counts?.map(c => c.count) ?? [q.answerCount ?? 0]))
   return (
     <div>
-      <SurveyHero title={title} subtitle={description} />
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+            {description && (
+              <p className="text-sm text-muted mt-1 whitespace-pre-wrap">{description}</p>
+            )}
+          </div>
+        </div>
 
-      <div className="p-6 bg-surface border border-border rounded-card">
-        <p className="text-sm text-subtle mb-5">{responseCount} Antworten</p>
+        <p className="text-sm text-subtle mt-5">{responseCount} Antworten</p>
+      </div>
 
-        <div className="flex flex-col gap-6">
-          {questions.map(q => {
-            if (q.type === 'RATING') {
-              const total = q.ratingDistribution?.reduce((a, b) => a + b, 0) ?? 0
-              return (
-                <div key={q.questionId} className="border-t border-border pt-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="font-medium text-foreground">{q.text}</p>
-                    {q.mean != null && (
-                      <span className="text-sm text-foreground font-semibold tabular-nums">{q.mean.toFixed(2)} / 5</span>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {[5, 4, 3, 2, 1].map(star => {
-                      const count = q.ratingDistribution?.[star - 1] ?? 0
-                      const pct = total > 0 ? Math.round((count / total) * 100) : 0
-                      return (
-                        <div key={star} className="flex items-center gap-3">
-                          <span className="text-sm text-muted w-8 shrink-0 text-right">{star}★</span>
-                          <div className="flex-1 h-5 bg-elevated rounded-full overflow-hidden">
-                            <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
-                          </div>
-                          <span className="text-sm text-subtle w-8 shrink-0 tabular-nums">{count}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            }
-            if (q.type === 'SINGLE' || q.type === 'MULTI') {
-              return (
-                <div key={q.questionId} className="border-t border-border pt-5">
-                  <p className="font-medium text-foreground mb-3">{q.text}</p>
-                  <div className="flex flex-col gap-2">
-                    {(q.counts ?? []).map(c => {
-                      const pct = Math.round((c.count / maxCount) * 100)
-                      return (
-                        <div key={c.optionText} className="flex items-center gap-3">
-                          <span className="text-sm text-muted flex-1 min-w-0 truncate">{c.optionText}</span>
-                          <div className="flex-1 h-5 bg-elevated rounded-full overflow-hidden">
-                            <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
-                          </div>
-                          <span className="text-sm text-subtle w-8 shrink-0 tabular-nums">{c.count}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            }
+      <div className="flex flex-col gap-4 mb-4">
+        {questions.map(q => {
+          if (q.type === 'RATING') {
+            const total = q.ratingDistribution?.reduce((a, b) => a + b, 0) ?? 0
             return (
-              <div key={q.questionId} className="border-t border-border pt-5">
-                <p className="font-medium text-foreground mb-1">{q.text}</p>
-                <p className="text-sm text-subtle">{q.answerCount ?? 0} Antworten</p>
+              <div key={q.questionId} className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="font-medium text-foreground">{q.text}</p>
+                  {q.mean != null && (
+                    <span className="text-sm text-foreground font-semibold tabular-nums">{q.mean.toFixed(2)} / 5</span>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  {[5, 4, 3, 2, 1].map(star => {
+                    const count = q.ratingDistribution?.[star - 1] ?? 0
+                    const pct = total > 0 ? Math.round((count / total) * 100) : 0
+                    return (
+                      <div key={star} className="flex items-center gap-3">
+                        <span className="text-sm text-muted w-8 shrink-0 text-right">{star}★</span>
+                        <div className="flex-1 h-5 bg-elevated rounded-full overflow-hidden">
+                          <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-sm text-subtle w-8 shrink-0 tabular-nums">{count}</span>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             )
-          })}
-        </div>
+          }
+          if (q.type === 'SINGLE' || q.type === 'MULTI') {
+            return (
+              <div key={q.questionId} className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
+                <p className="font-medium text-foreground mb-3">{q.text}</p>
+                <div className="flex flex-col gap-2">
+                  {(q.counts ?? []).map(c => {
+                    const pct = Math.round((c.count / maxCount) * 100)
+                    return (
+                      <div key={c.optionText} className="flex items-center gap-3">
+                        <span className="text-sm text-muted flex-1 min-w-0 truncate">{c.optionText}</span>
+                        <div className="flex-1 h-5 bg-elevated rounded-full overflow-hidden">
+                          <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-sm text-subtle w-8 shrink-0 tabular-nums">{c.count}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          }
+          return (
+            <div key={q.questionId} className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
+              <p className="font-medium text-foreground mb-1">{q.text}</p>
+              <p className="text-sm text-subtle">{q.answerCount ?? 0} Antworten</p>
+            </div>
+          )
+        })}
+      </div>
 
-        <div className="mt-6 pt-4 border-t border-border">
-          <RouterLink to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold">
-            <i className="sap-icon sap-icon-nav-back text-base" />
-            Zurück zur Übersicht
-          </RouterLink>
-        </div>
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
+        <BackButton to="/" />
       </div>
     </div>
   )

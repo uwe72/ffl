@@ -7,6 +7,7 @@ import { useManagersBySeason } from '../hooks/useManagers'
 import { useAuth } from '../context/AuthContext'
 import CalculationDialog from '../components/CalculationDialog'
 import SetupProgressDialog from '../components/SetupProgressDialog'
+import BackButton from '../components/BackButton'
 import Button from '../components/Button'
 import Tabs from '../components/Tabs'
 import FormCard from '../components/FormCard'
@@ -380,6 +381,7 @@ export default function Season() {
 
   return (
     <div>
+      <BackButton to="/" className="mb-4" />
       <div className="flex items-center gap-3 mb-6">
         {season.currentMatchday && (
           <span className="text-sm text-muted">
@@ -829,7 +831,7 @@ export default function Season() {
         <>
         <div className="w-fit max-w-full">
           {depositStats && (
-            <div className="p-6 bg-surface border border-border rounded-card mb-6">
+            <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
               <button
                 type="button"
                 onClick={() => setDepositStatsOpen(o => !o)}
@@ -855,7 +857,7 @@ export default function Season() {
             </div>
           )}
 
-          <div className="p-6 bg-surface border border-border rounded-card mb-6">
+          <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
             <h2 className="text-xl font-semibold text-foreground mb-1">Prüfstände für Zahlungserinnerungen</h2>
             <p className="text-sm text-muted mb-4">
               Diese Stichtage werden in den Erinnerungs-Mails ausgegeben („PayPal berücksichtigt bis …, Überweisungen bis …“). Nicht gesetzte Daten werden im Hinweistext weggelassen.
@@ -917,7 +919,7 @@ export default function Season() {
             </div>
           </div>
 
-          <div className="p-6 bg-surface border border-border rounded-card mb-6">
+          <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <h2 className="text-xl font-semibold text-foreground mb-4">
             Einzahlungen ({filteredDeposits.length})
             {depositManagerMismatch && (
@@ -1696,6 +1698,8 @@ Speichern
           onClose={() => setShowUpdateDialog(false)}
         />
       )}
+
+      <div className="h-10" />
     </div>
   )
 }

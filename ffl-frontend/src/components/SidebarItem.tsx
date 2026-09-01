@@ -5,7 +5,7 @@ interface SidebarItemProps {
   label: string
   icon: string
   collapsed: boolean
-  subItems?: { to: string; label: string; external?: boolean }[]
+  subItems?: { to: string; label: string; icon?: string; external?: boolean; onBlockedClick?: () => void }[]
   expanded?: boolean
   onToggle?: () => void
   onBlockedClick?: () => void
@@ -60,16 +60,29 @@ export default function SidebarItem({ to, label, icon, collapsed, subItems, expa
                   </a>
                 )
               }
+              if (sub.onBlockedClick) {
+                return (
+                  <button
+                    key={sub.to}
+                    onClick={sub.onBlockedClick}
+                    className="flex w-full items-center gap-2 px-3 py-2 rounded-control text-sm transition-colors text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover"
+                  >
+                    {sub.icon && <i className={`sap-icon ${sub.icon} text-[14px] shrink-0`} />}
+                    {sub.label}
+                  </button>
+                )
+              }
               return (
                 <Link
                   key={sub.to}
                   to={sub.to}
                   aria-current={subActive ? 'page' : undefined}
-                  className={`block px-3 py-2 rounded-control text-sm transition-colors
+                  className={`flex items-center gap-2 px-3 py-2 rounded-control text-sm transition-colors
                     ${subActive
                       ? 'bg-sidebar-active-bg text-sidebar-active-text font-semibold'
                       : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-hover'}`}
                 >
+                  {sub.icon && <i className={`sap-icon ${sub.icon} text-[14px] shrink-0 ${subActive ? 'text-accent' : ''}`} />}
                   {sub.label}
                 </Link>
               )

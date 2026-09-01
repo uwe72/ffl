@@ -503,6 +503,13 @@ export interface ManagerRoundStats {
 export interface ManagerGroupRoundStats {
   groupId: number
   groupName: string
+  description?: string
+  createdById?: number
+  createdByLogin?: string
+  createdByFirstName?: string
+  createdByLastName?: string
+  hasLogo?: boolean
+  editable?: boolean
   managers: {
     managerId: number
     managerName: string
@@ -511,6 +518,9 @@ export interface ManagerGroupRoundStats {
     lastName?: string
     login?: string
     isCurrentUser: boolean
+    positionTotal?: number
+    pointsTotal?: number
+    pointsLastRound?: number
     roundData: RoundPointData[]
   }[]
 }
@@ -542,10 +552,12 @@ export interface Game {
   hostId: number
   hostName: string
   hostShortName?: string
+  hostSlogan?: string
   hostLogoUrl?: string
   visitorId: number
   visitorName: string
   visitorShortName?: string
+  visitorSlogan?: string
   visitorLogoUrl?: string
   goalHost?: number
   goalVisitor?: number
@@ -560,6 +572,8 @@ export interface Game {
 export interface PlayerPoints {
   playerId: number
   playerName: string
+  firstName?: string
+  lastName?: string
   nameKickerAlt1?: string
   nameKickerAlt2?: string
   nameKickerAlt3?: string

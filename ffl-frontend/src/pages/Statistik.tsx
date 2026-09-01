@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useLoginStats } from '../hooks/useLoginStats'
 import type { LoginStatMonth, LoginStatUser } from '../types'
+import BackButton from '../components/BackButton'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, TableBody, Td } from '../components/Table'
@@ -105,6 +106,7 @@ export default function Statistik() {
 
   return (
     <div>
+      <BackButton to="/" className="mb-4" />
       <CardContainer
         title="Login-Statistik"
         subtitle="Anzahl erfolgreicher Logins pro Monat (nur NORMAL-Benutzer)"
@@ -195,6 +197,8 @@ export default function Statistik() {
           </table>
         </TableContent>
       </CardContainer>
+
+      <div className="h-10" />
     </div>
   )
 }

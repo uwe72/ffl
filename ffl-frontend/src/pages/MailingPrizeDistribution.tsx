@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
+import BackButton from '../components/BackButton'
 import ReactQuill, { Quill } from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
 import { useCurrentSeason, useUpdateSeason, usePrizeDistributionMailPreview } from '../hooks/useSeasons'
@@ -62,10 +62,7 @@ export default function MailingPrizeDistribution() {
 
   return (
     <div>
-      <RouterLink to="/mailing" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-        <i className="sap-icon sap-icon-nav-back text-base" />
-        Zurück zur Übersicht
-      </RouterLink>
+      <BackButton to="/mailing" className="mb-4" />
 
       <div className="grid gap-6">
         <FormCard className="overflow-visible">

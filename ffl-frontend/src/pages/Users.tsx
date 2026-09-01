@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useUsers } from '../hooks/useUsers'
+import BackButton from '../components/BackButton'
 import CardContainer from '../components/CardContainer'
 import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
@@ -75,8 +76,9 @@ export default function Users() {
 
   return (
     <div>
+      <BackButton to="/" className="mb-4" />
       <CardContainer>
-        <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border">
+      <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border">
           <div className="relative flex-1 min-w-[180px] max-w-[280px]">
             <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
             <input
@@ -149,6 +151,8 @@ export default function Users() {
           </table>
         </TableContent>
       </CardContainer>
+
+      <div className="h-10" />
     </div>
   )
 }

@@ -29,6 +29,8 @@ public class SpielerAufstellungDto {
     private Integer marktwert;
     private Integer tore;
     private Integer zuNull;
+    private Boolean gespielt;
+    private Integer einsaetze;
     @Builder.Default
     private List<RulePointDto> regeln = new ArrayList<>();
 

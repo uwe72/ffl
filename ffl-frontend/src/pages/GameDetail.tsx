@@ -1,4 +1,4 @@
-import { useParams, Link as RouterLink, Link } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useGame } from '../hooks/useGames'
 import { gameApi } from '../api/games'
 import { useQueryClient } from '@tanstack/react-query'
@@ -10,6 +10,7 @@ import Badge from '../components/Badge'
 import Button from '../components/Button'
 import FormationImportDialog from '../components/FormationImportDialog'
 import { TableHead, Th, TableBody } from '../components/Table'
+import BackButton from '../components/BackButton'
 
 const POSITION_ORDER: Record<string, number> = {
   'GOALKEEPER': 1,
@@ -45,7 +46,7 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
             </TableHead>
             <TableBody>
               {sortedPlayers.map((player, index) => {
-                const altNames = [player.nameKickerAlt1, player.nameKickerAlt2, player.nameKickerAlt3].filter(Boolean)
+                const fullName = [player.firstName, player.lastName].filter(Boolean).join(' ') || player.playerName
                 return (
                   <tr key={player.playerId} className={`border-b border-border hover:bg-card-hover transition-colors ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                     <td className="px-3 py-2 text-foreground">
@@ -57,7 +58,7 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
                           <Link to={`/players/${player.playerId}`} className="font-medium link">
                             {player.playerName}
                           </Link>
-                          <div className="text-xs text-subtle">{altNames.length > 0 ? altNames.join(' | ') : '[Kein alternativer Name]'}</div>
+                          <div className="text-xs text-subtle">{fullName}</div>
                         </div>
                       </div>
                     </td>
@@ -135,10 +136,7 @@ export default function GameDetail() {
 
   return (
     <div>
-      <RouterLink to="/games" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-        <i className="sap-icon sap-icon-nav-back text-base" />
-        Zurück zur Übersicht
-      </RouterLink>
+      <BackButton to="/games" className="mb-4" />
 
       {isAdmin && (
         <FormationImportDialog
@@ -154,11 +152,7 @@ export default function GameDetail() {
         />
       )}
 
-      <div className="bg-surface rounded-card border border-border p-6 mb-6">
-        <div className="text-center mb-4">
-          <Badge>{game.roundNumber ? `${game.roundNumber}. Spieltag` : 'Spieltag'}</Badge>
-        </div>
-
+      <div className="bg-elevated rounded-card border border-border p-4 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex-1 flex flex-col items-center">
             {game.hostLogoUrl && (
@@ -169,15 +163,18 @@ export default function GameDetail() {
               />
             )}
             <div className="text-lg font-medium text-foreground text-center">{game.hostName || '-'}</div>
-            {game.hostShortName && (
-              <div className="text-sm text-subtle">{game.hostShortName}</div>
+            {game.hostSlogan && (
+              <div className="text-sm text-subtle">{game.hostSlogan}</div>
             )}
           </div>
           
-          <div className="flex items-center gap-4 px-8">
-            <span className="text-4xl font-bold text-foreground">{game.goalHost ?? '-'}</span>
-            <span className="text-3xl text-subtle">:</span>
-            <span className="text-4xl font-bold text-foreground">{game.goalVisitor ?? '-'}</span>
+          <div className="flex flex-col items-center gap-2 px-8">
+            <div className="flex items-center gap-4">
+              <span className="text-4xl font-bold text-foreground">{game.goalHost ?? '-'}</span>
+              <span className="text-3xl text-subtle">:</span>
+              <span className="text-4xl font-bold text-foreground">{game.goalVisitor ?? '-'}</span>
+            </div>
+            <Badge>{game.roundNumber ? `${game.roundNumber}. Spieltag` : 'Spieltag'}</Badge>
           </div>
           
           <div className="flex-1 flex flex-col items-center">
@@ -189,8 +186,8 @@ export default function GameDetail() {
               />
             )}
             <div className="text-lg font-medium text-foreground text-center">{game.visitorName || '-'}</div>
-            {game.visitorShortName && (
-              <div className="text-sm text-subtle">{game.visitorShortName}</div>
+            {game.visitorSlogan && (
+              <div className="text-sm text-subtle">{game.visitorSlogan}</div>
             )}
           </div>
         </div>
@@ -240,6 +237,8 @@ export default function GameDetail() {
         <PlayerPointsTable players={game.playersHost} teamName={game.hostName || 'Heim'} />
         <PlayerPointsTable players={game.playersVisitor} teamName={game.visitorName || 'Gast'} />
       </div>
+
+      <div className="h-10" />
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { useCurrentSeason } from '../hooks/useSeasons'
 import { useUsers } from '../hooks/useUsers'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/Button'
+import BackButton from '../components/BackButton'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
@@ -62,12 +63,17 @@ export default function ManagerGroupDetail() {
   const isAdmin = user?.role === 'ADMIN'
   const canNavigateToManager = isAdmin || currentSeason?.seasonState !== 'BEFORE_SEASON'
 
+  const creatorManager = useMemo(() => {
+    if (!isNewMode || !allManagers || !user?.id) return null
+    return allManagers.find(m => m.userId === user.id) ?? null
+  }, [isNewMode, allManagers, user])
+
   useEffect(() => {
     if (isNewMode) {
       setEditName('')
       setEditDescription('')
       setEditEmailTo('ALL_MANAGERS')
-      setSelectedManagerIds([])
+      setSelectedManagerIds(creatorManager ? [creatorManager.id] : [])
       setHasChanges(false)
     } else if (group) {
       setEditName(group.name)
@@ -75,7 +81,7 @@ export default function ManagerGroupDetail() {
       setEditEmailTo(group.emailTo || 'ALL_MANAGERS')
       setHasChanges(false)
     }
-  }, [group, isNewMode])
+  }, [group, isNewMode, creatorManager])
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -305,10 +311,7 @@ export default function ManagerGroupDetail() {
   if (!isNewMode && isLoading) {
     return (
       <div className="max-w-6xl" aria-busy="true">
-        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück zur Übersicht
-        </RouterLink>
+        <BackButton to="/manager-groups" className="mb-4" />
         <div className="p-4 bg-elevated border border-border rounded-card mb-6">
           <div className="flex gap-6">
             <div className="w-16 h-16 rounded-full bg-card-muted animate-pulse motion-reduce:animate-none shrink-0" />
@@ -325,7 +328,7 @@ export default function ManagerGroupDetail() {
             </div>
           </div>
         </div>
-        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <div className="h-5 w-32 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none mb-4" />
           <div className="space-y-2">
             {[0, 1, 2, 3].map(i => (
@@ -339,10 +342,7 @@ export default function ManagerGroupDetail() {
   if (!isNewMode && error) {
     return (
       <div className="max-w-6xl">
-        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück zur Übersicht
-        </RouterLink>
+        <BackButton to="/manager-groups" className="mb-4" />
         <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card">
           <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
           <p className="text-danger text-sm">Fehler beim Laden der Gruppe.</p>
@@ -353,10 +353,7 @@ export default function ManagerGroupDetail() {
   if (!isNewMode && !group) {
     return (
       <div className="max-w-6xl">
-        <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück zur Übersicht
-        </RouterLink>
+        <BackButton to="/manager-groups" className="mb-4" />
         <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card">
           <i className="sap-icon sap-icon-information text-[18px] text-muted shrink-0" />
           <p className="text-sm text-muted">Gruppe nicht gefunden.</p>
@@ -370,10 +367,18 @@ export default function ManagerGroupDetail() {
 
   return (
     <div className="max-w-6xl">
-      <RouterLink to="/manager-groups" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-        <i className="sap-icon sap-icon-nav-back text-base" />
-        Zurück zur Übersicht
-      </RouterLink>
+      <BackButton to="/manager-groups" className="mb-4" />
+
+      {!isNewMode && (
+        <div className="flex items-start gap-3 p-3 bg-accent-muted border border-accent/40 rounded-card mb-6">
+          <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0 mt-0.5" />
+          <p className="text-sm text-foreground">
+            Dies ist die Verwaltungs-UI für Managergruppen. Hier kannst Du Gruppen erstellen,
+            bearbeiten und Manager verwalten. Die alltägliche reine Ansicht findest Du im{' '}
+            <RouterLink to="/?tab=gruppen" className="link">Dashboard</RouterLink>.
+          </p>
+        </div>
+      )}
 
       {!isNewMode && !canEdit && (
         <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card mb-6">
@@ -624,7 +629,7 @@ export default function ManagerGroupDetail() {
         )}
       </div>
 
-      <div className="p-6 bg-surface border border-border rounded-card mb-6">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h2 className="text-xl font-semibold text-foreground">Manager ({filteredAndSortedManagers.length})</h2>
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
@@ -920,6 +925,8 @@ export default function ManagerGroupDetail() {
           </div>
         </div>
       )}
+
+      <div className="h-10" />
     </div>
   )
 }

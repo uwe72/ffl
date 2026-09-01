@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useManagerGroups, useGroupLogo } from '../hooks/useManagerGroups'
+import BackButton from '../components/BackButton'
 import Button from '../components/Button'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
@@ -40,7 +41,7 @@ function ManagerGroupCard({ group }: { group: any }) {
           <span className="text-subtle">Erstellt von: </span>
           <span className="font-medium text-foreground">
             {group.createdByFirstName && group.createdByLastName
-              ? `${group.createdByFirstName} ${group.createdByLastName}`
+              ? `${group.createdByFirstName} ${group.createdByLastName} (${group.createdByLogin})`
               : group.createdByLogin || '-'}
           </span>
         </div>
@@ -61,7 +62,6 @@ function ManagerGroupCard({ group }: { group: any }) {
 export default function ManagerGroups() {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
-  const [searchTerm, setSearchTerm] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
 
@@ -76,16 +76,10 @@ export default function ManagerGroups() {
     }
   }
 
-  const filteredGroups = useMemo(() => {
+  const sortedGroups = useMemo(() => {
     if (!groups) return []
 
-    const filtered = groups.filter(group => {
-      return group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        group.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        group.createdByLogin?.toLowerCase().includes(searchTerm.toLowerCase())
-    })
-
-    return filtered.sort((a, b) => {
+    return [...groups].sort((a, b) => {
       let comparison = 0
       switch (sortKey) {
         case 'name':
@@ -100,47 +94,33 @@ export default function ManagerGroups() {
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-  }, [groups, searchTerm, sortKey, sortOrder])
+  }, [groups, sortKey, sortOrder])
 
   if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
     <div>
-      <div className="p-6 bg-surface border border-border rounded-card mb-6 w-fit max-w-full">
+      <BackButton to="/" className="mb-4" />
+      <div className="flex items-start gap-3 p-3 bg-accent-muted border border-accent/30 rounded-card mb-6">
+        <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0 mt-0.5" />
+        <p className="text-sm text-foreground">
+          Hier kannst du eigene Gruppen erstellen und verwalten. In der Tabelle werden nur Gruppen
+          angezeigt, deren Ersteller du bist. Die vollständige Übersicht aller deiner Gruppen findest
+          du im <RouterLink to="/?tab=gruppen" className="link">Dashboard</RouterLink>.
+        </p>
+      </div>
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
         <div className="flex items-center justify-between gap-4 mb-4">
-          <h2 className="hidden sm:block text-xl font-semibold text-foreground">Manager-Gruppen ({filteredGroups.length})</h2>
-          <div className="relative w-full sm:w-64">
-            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Gruppe suchen..."
-              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
-            />
-          </div>
+          <h2 className="hidden sm:block text-xl font-semibold text-foreground">Manager-Gruppen ({sortedGroups.length})</h2>
+          <Button
+            onClick={() => navigate('/manager-groups/create')}
+            size="compact"
+            className="w-full sm:w-auto sm:inline-flex"
+          >
+            + Neue Gruppe
+          </Button>
         </div>
-
-        <Button
-          onClick={() => navigate('/manager-groups/create')}
-          size="compact"
-          className="w-full sm:w-auto sm:inline-flex mb-4"
-        >
-          + Neue Gruppe
-        </Button>
-
-        {searchTerm !== '' && (
-          <div className="flex items-center gap-3 flex-wrap mb-4">
-            <button
-              onClick={() => setSearchTerm('')}
-              className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
-              title="Filter zurücksetzen"
-            >
-              <i className="sap-icon sap-icon-decline text-[14px]" />
-            </button>
-          </div>
-        )}
 
         {!isMobile && (
           <>
@@ -170,8 +150,8 @@ export default function ManagerGroups() {
                   </tr>
                 </TableHead>
                 <TableBody>
-                  {filteredGroups.length > 0 ? (
-                    filteredGroups.map((group, index) => (
+                  {sortedGroups.length > 0 ? (
+                    sortedGroups.map((group, index) => (
                       <tr key={group.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                         <td className="px-3 py-2">
                           <RouterLink
@@ -205,7 +185,7 @@ export default function ManagerGroups() {
               </table>
             </div>
             <div className="mt-4 text-sm text-subtle">
-              {filteredGroups.length} von {groups?.length || 0} Gruppen
+              {sortedGroups.length} von {groups?.length || 0} Gruppen
             </div>
           </>
         )}
@@ -213,8 +193,8 @@ export default function ManagerGroups() {
         {isMobile && (
           <div>
             <div className="grid gap-4">
-              {filteredGroups.length > 0 ? (
-                filteredGroups.map((group) => (
+              {sortedGroups.length > 0 ? (
+                sortedGroups.map((group) => (
                   <ManagerGroupCard key={group.id} group={group} />
                 ))
               ) : (
@@ -224,11 +204,13 @@ export default function ManagerGroups() {
               )}
             </div>
             <div className="mt-4 text-sm text-subtle">
-              {filteredGroups.length} von {groups?.length || 0} Gruppen
+              {sortedGroups.length} von {groups?.length || 0} Gruppen
             </div>
           </div>
         )}
       </div>
+
+      <div className="h-10" />
     </div>
   )
 }

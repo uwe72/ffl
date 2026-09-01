@@ -20,7 +20,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: SidebarProps) {
-  const [verwaltungExpanded, setVerwaltungExpanded] = useState(false)
+  const [sonstigesExpanded, setSonstigesExpanded] = useState(false)
   const [showGalleryHint, setShowGalleryHint] = useState(false)
   const { user, isAuthenticated, logout } = useAuth()
   const location = useLocation()
@@ -40,8 +40,22 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
     location.pathname.startsWith('/mailing') ||
     location.pathname.startsWith('/emails') ||
     location.pathname.startsWith('/system') ||
-    location.pathname.startsWith('/statistik')
-  const effectiveVerwaltungExpanded = verwaltungExpanded || isOnVerwaltung
+    location.pathname.startsWith('/statistik') ||
+    location.pathname.startsWith('/manager-groups') ||
+    location.pathname.startsWith('/feedback') ||
+    location.pathname.startsWith('/manager-galerie') ||
+    location.pathname.startsWith('/history') ||
+    location.pathname.startsWith('/games') ||
+    location.pathname.startsWith('/umfrage') ||
+    location.pathname.startsWith('/documents') ||
+    location.pathname.startsWith('/teams')
+  const effectiveVerwaltungExpanded = sonstigesExpanded || isOnVerwaltung
+
+  useEffect(() => {
+    if (!isOnVerwaltung) {
+      setSonstigesExpanded(false)
+    }
+  }, [location.pathname, isOnVerwaltung])
 
   const handleLogout = () => {
     logout()
@@ -70,47 +84,46 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         {isAuthenticated && (
           <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
         )}
-        <SidebarItem to="/documents" label="Dokumente" icon="sap-icon-documents" collapsed={collapsed} />
-        <SidebarItem to="/feedback" label="Feedback" icon="sap-icon-discussion" collapsed={collapsed} />
-        {canAccessGallery ? (
-          <SidebarItem to="/manager-galerie" label="Galerie" icon="sap-icon-picture" collapsed={collapsed} />
-        ) : (
-          <SidebarItem
-            to="/manager-galerie"
-            label="Galerie"
-            icon="sap-icon-picture"
-            collapsed={collapsed}
-            onBlockedClick={() => setShowGalleryHint(true)}
-          />
-        )}
-        <SidebarItem to="/manager-groups" label="Gruppen" icon="sap-icon-group-2" collapsed={collapsed} />
-        <SidebarItem to="/history" label="Historie" icon="sap-icon-history" collapsed={collapsed} />
         <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
-        {!mobile && !isRestricted && (
-          <SidebarItem to="/games" label="Spiele" icon="sap-icon-calendar" collapsed={collapsed} />
+        {isAuthenticated && (
+          <SidebarItem to="/my-team" label="My Team" icon="sap-icon-employee" collapsed={collapsed} />
         )}
         <SidebarItem to="/players" label="Spieler" icon="sap-icon-group" collapsed={collapsed} />
-        <SidebarItem to="/umfrage" label="Umfrage" icon="sap-icon-survey" collapsed={collapsed} />
-        {!mobile && !isRestricted && (
-          <SidebarItem to="/teams" label="Vereine" icon="sap-icon-shield" collapsed={collapsed} />
-        )}
-        {isAuthenticated && user?.role === 'ADMIN' && (
+        {isAuthenticated && (
           <SidebarItem
             to="/season"
-            label="Verwaltung"
-            icon="sap-icon-settings"
+            label="Sonstiges"
+            icon="sap-icon-grid"
             collapsed={collapsed}
             subItems={[
-              { to: '/users', label: 'Benutzer' },
-              { to: '/emails', label: 'E-Mailadressen' },
-              { to: '/mailing', label: 'Mailing' },
-              { to: '/season', label: 'Saison' },
-              { to: '/statistik', label: 'Statistik' },
-              { to: '/system', label: 'System' },
-              { to: '/umfragen', label: 'Umfragen' },
+              ...(user?.role === 'ADMIN' ? [
+                { to: '/users', label: 'Benutzer', icon: 'sap-icon-customer' },
+              ] : []),
+              { to: '/documents', label: 'Dokumente', icon: 'sap-icon-documents' },
+              ...(user?.role === 'ADMIN' ? [
+                { to: '/emails', label: 'E-Mailadressen', icon: 'sap-icon-email' },
+              ] : []),
+              { to: '/feedback', label: 'Feedback', icon: 'sap-icon-discussion' },
+              { to: '/manager-galerie', label: 'Galerie', icon: 'sap-icon-picture', onBlockedClick: canAccessGallery ? undefined : () => setShowGalleryHint(true) },
+              { to: '/manager-groups', label: 'Gruppen', icon: 'sap-icon-group' },
+              { to: '/history', label: 'Historie', icon: 'sap-icon-history' },
+              ...(user?.role === 'ADMIN' ? [
+                { to: '/mailing', label: 'Mailing', icon: 'sap-icon-marketing-campaign' },
+                { to: '/season', label: 'Saison', icon: 'sap-icon-date-time' },
+              ] : []),
+              ...(!mobile && !isRestricted ? [{ to: '/games', label: 'Spiele', icon: 'sap-icon-calendar' }] : []),
+              ...(user?.role === 'ADMIN' ? [
+                { to: '/statistik', label: 'Statistik', icon: 'sap-icon-bar-chart' },
+                { to: '/system', label: 'System', icon: 'sap-icon-settings' },
+              ] : []),
+              { to: '/umfrage', label: 'Umfrage', icon: 'sap-icon-survey' },
+              ...(user?.role === 'ADMIN' ? [
+                { to: '/umfragen', label: 'Umfragen', icon: 'sap-icon-survey' },
+              ] : []),
+              ...(!mobile && !isRestricted ? [{ to: '/teams', label: 'Vereine', icon: 'sap-icon-shield' }] : []),
             ]}
             expanded={effectiveVerwaltungExpanded}
-            onToggle={() => setVerwaltungExpanded(!effectiveVerwaltungExpanded)}
+            onToggle={() => setSonstigesExpanded(!effectiveVerwaltungExpanded)}
           />
         )}
 

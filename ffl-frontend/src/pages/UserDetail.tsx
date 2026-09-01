@@ -3,6 +3,7 @@ import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useUser, useUpdateUser, useDeleteUser } from '../hooks/useUsers'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/Button'
+import BackButton from '../components/BackButton'
 import FormCard from '../components/FormCard'
 import type { User } from '../types'
 
@@ -88,10 +89,7 @@ export default function UserDetail() {
 
   return (
     <div>
-      <RouterLink to="/users" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-        <i className="sap-icon sap-icon-nav-back text-base" />
-        Zurück zur Übersicht
-      </RouterLink>
+      <BackButton to="/users" className="mb-4" />
 
       <div className="grid gap-6 md:grid-cols-2">
         <FormCard>

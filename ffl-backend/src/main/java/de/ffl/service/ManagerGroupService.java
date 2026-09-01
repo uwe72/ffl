@@ -62,7 +62,7 @@ public class ManagerGroupService {
         if (currentUser.getRole().name().equals("ADMIN")) {
             groups = managerGroupRepository.findBySeasonIdFiltered(seasonId);
         } else {
-            groups = managerGroupRepository.findVisibleGroupsForUser(seasonId, currentUser.getId());
+            groups = managerGroupRepository.findCreatedGroupsForUser(seasonId, currentUser.getId());
         }
 
         return groups.stream()
@@ -108,6 +108,9 @@ public class ManagerGroupService {
         group.setSeason(season);
         group.setCreatedBy(currentUser);
         group.setManagers(new HashSet<>());
+        
+        managerRepository.findByUserIdAndSeasonId(currentUser.getId(), season.getId())
+            .ifPresent(creatorManager -> group.getManagers().add(creatorManager));
         
         if (dto.getEmailTo() != null) {
             group.setEmailTo(ManagerGroup.EmailToOption.valueOf(dto.getEmailTo()));
@@ -390,17 +393,7 @@ public class ManagerGroupService {
         if (user.getRole().name().equals("ADMIN")) {
             return true;
         }
-        if (group.getCreatedBy() != null && group.getCreatedBy().getId().equals(user.getId())) {
-            return true;
-        }
-        if (group.getManagers() != null) {
-            for (Manager manager : group.getManagers()) {
-                if (manager.getUser() != null && manager.getUser().getId().equals(user.getId())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return group.getCreatedBy() != null && group.getCreatedBy().getId().equals(user.getId());
     }
 
     private boolean canEditGroup(ManagerGroup group, User user) {
@@ -556,11 +549,23 @@ public class ManagerGroupService {
         ManagerGroupRoundStatsDto dto = new ManagerGroupRoundStatsDto();
         dto.setGroupId(group.getId());
         dto.setGroupName(group.getName());
-        
+        dto.setDescription(group.getDescription());
+        dto.setHasLogo(group.getLogo() != null && group.getLogo().length > 0);
+
+        Hibernate.initialize(group.getCreatedBy());
+        if (group.getCreatedBy() != null) {
+            dto.setCreatedById(group.getCreatedBy().getId());
+            dto.setCreatedByLogin(group.getCreatedBy().getLogin());
+            dto.setCreatedByFirstName(group.getCreatedBy().getFirstName());
+            dto.setCreatedByLastName(group.getCreatedBy().getLastName());
+        }
+        dto.setEditable(canEditGroup(group, getCurrentUser()));
+
         Hibernate.initialize(group.getManagers());
         
         List<ManagerGroupRoundStatsDto.ManagerRoundDataDto> managerDtos = new ArrayList<>();
         if (group.getManagers() != null) {
+            Map<Long, ManagerRank> latestRanks = getLatestRanksForManagers(group.getManagers());
             for (Manager manager : group.getManagers()) {
                 ManagerGroupRoundStatsDto.ManagerRoundDataDto mDto = new ManagerGroupRoundStatsDto.ManagerRoundDataDto();
                 mDto.setManagerId(manager.getId());
@@ -575,6 +580,13 @@ public class ManagerGroupService {
                 }
                 
                 mDto.setIsCurrentUser(manager.getId().equals(currentManagerId));
+
+                ManagerRank latestRank = latestRanks.get(manager.getId());
+                if (latestRank != null) {
+                    mDto.setPositionTotal(latestRank.getPositionTotal());
+                    mDto.setPointsTotal(latestRank.getPointsTotal());
+                    mDto.setPointsLastRound(latestRank.getPointsRound());
+                }
                 
                 List<ManagerRank> ranks = managerRankRepository.findByManagerIdOrderByRoundIdAsc(manager.getId());
                 List<ManagerGroupRoundStatsDto.RoundPointDto> roundData = new ArrayList<>();

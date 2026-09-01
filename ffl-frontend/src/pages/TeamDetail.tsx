@@ -3,6 +3,7 @@ import { useParams, Link as RouterLink } from 'react-router-dom'
 import { useTeam, useTeamPlayers, useUpdateTeam } from '../hooks/useTeams'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/Button'
+import BackButton from '../components/BackButton'
 import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
@@ -163,7 +164,7 @@ function PlayerCard({ player }: { player: Player }) {
         <div>
           <span className="text-subtle">Preis: </span>
           <span className="font-medium text-foreground">{formatPrice(player.prize)}</span>
-        </div>
+      </div>
       </div>
     </div>
   )
@@ -272,10 +273,7 @@ export default function TeamDetail() {
 
   return (
     <div>
-      <RouterLink to="/teams" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold mb-4">
-        <i className="sap-icon sap-icon-nav-back text-base" />
-        Zurück zur Übersicht
-      </RouterLink>
+      <BackButton to="/teams" className="mb-4" />
 
       <div className="w-fit max-w-full">
       {team && (
@@ -383,7 +381,7 @@ export default function TeamDetail() {
         </div>
       )}
 
-      <div className="p-6 bg-surface border border-border rounded-card mb-6">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
           <div className="relative w-64">
@@ -420,10 +418,10 @@ export default function TeamDetail() {
                       Name<SortIcon column="nameKicker" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
                     <ThSortable align="center" onClick={() => handleSort('points')}>
-                      Pkt<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
+                      Punkte<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
                     <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
-                      Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                      1. Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
                     <ThSortable align="center" onClick={() => handleSort('managerCount')}>
                       Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
@@ -460,7 +458,7 @@ export default function TeamDetail() {
                             <div className="font-medium text-link">{fullName(player)}</div>
                           </RouterLink>
                         </td>
-                        <td className="px-3 py-2 text-center text-foreground">
+                        <td className="px-3 py-2 text-center font-bold text-foreground">
                           {player.points ?? '-'}
                         </td>
                         <td className="px-3 py-2 text-center text-muted">
@@ -523,6 +521,8 @@ export default function TeamDetail() {
         )}
       </div>
       </div>
+
+      <div className="h-10" />
     </div>
   )
 }

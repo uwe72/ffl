@@ -108,7 +108,7 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
-    void creatorSeesOwnAndReferencedGroups() {
+    void creatorSeesOnlyOwnCreatedGroups() {
         setupFixture();
 
         authenticateAs("creator");
@@ -121,16 +121,12 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
-    void referencedManagerSeesGroupsTheyAreIn() {
+    void referencedManagerSeesNoGroupsAsNonCreator() {
         setupFixture();
 
         authenticateAs("referenced");
         List<de.ffl.dto.ManagerGroupListDto> groups = managerGroupService.getVisibleGroups();
-        List<String> names = groups.stream().map(de.ffl.dto.ManagerGroupListDto::getName).toList();
-        assertTrue(names.contains("ReferenzierteGruppe"));
-        assertFalse(names.contains("EigeneGruppe"));
-        assertFalse(names.contains("FremdeGruppe"));
-        assertFalse(names.contains("Alle"));
+        assertTrue(groups.isEmpty());
     }
 
     @Test
@@ -159,14 +155,12 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
-    void referencedManagerCanViewDetailButNotEdit() {
+    void referencedManagerCannotViewDetailAsNonCreator() {
         setupFixture();
         Long groupId = groupIdByName("ReferenzierteGruppe");
 
         authenticateAs("referenced");
-        ManagerGroupDto detail = managerGroupService.getGroupById(groupId);
-        assertNotNull(detail);
-        assertFalse(detail.isEditable());
+        assertNull(managerGroupService.getGroupById(groupId));
 
         ManagerGroup updated = new ManagerGroup();
         updated.setName("Geaendert");
@@ -186,6 +180,35 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    void creatorIsAutomaticallyIncludedAsManager() {
+        creatorUser = createUser("creator");
+        Manager creatorManager = createManager(creatorUser, season);
+
+        authenticateAs("creator");
+        Long groupId = createGroup("MitErsteller", season.getId(), List.of());
+
+        authenticateAs("creator");
+        ManagerGroupDto detail = managerGroupService.getGroupById(groupId);
+        assertNotNull(detail);
+        assertTrue(detail.getManagers().stream()
+            .anyMatch(m -> m.getId().equals(creatorManager.getId())));
+    }
+
+    @Test
+    void creatorCanBeRemovedFromOwnGroup() {
+        creatorUser = createUser("creator");
+        Manager creatorManager = createManager(creatorUser, season);
+
+        authenticateAs("creator");
+        Long groupId = createGroup("EntfernbarerErsteller", season.getId(), List.of());
+
+        ManagerGroupDto afterRemove = managerGroupService.removeManagerFromGroup(groupId, creatorManager.getId());
+        assertNotNull(afterRemove);
+        assertTrue(afterRemove.getManagers().stream()
+            .noneMatch(m -> m.getId().equals(creatorManager.getId())));
+    }
+
+    @Test
     void creatorCanEditOwnGroup() {
         setupFixture();
         Long groupId = groupIdByName("EigeneGruppe");
@@ -197,5 +220,49 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
         ManagerGroupDto result = managerGroupService.updateGroup(groupId, updated);
         assertNotNull(result);
         assertTrue(result.isEditable());
+    }
+
+    @Test
+    void myGroupsWithStatsContainDescriptionCreatorAndEditableFlag() {
+        creatorUser = createUser("creator");
+        createManager(creatorUser, season);
+
+        authenticateAs("creator");
+        Long groupId = createGroup("MitStats", season.getId(), List.of());
+
+        authenticateAs("creator");
+        List<de.ffl.dto.ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
+        de.ffl.dto.ManagerGroupRoundStatsDto own = groups.stream()
+            .filter(g -> g.getGroupId().equals(groupId))
+            .findFirst()
+            .orElseThrow();
+
+        assertEquals("Testbeschreibung", own.getDescription());
+        assertEquals(creatorUser.getId(), own.getCreatedById());
+        assertEquals("creator", own.getCreatedByLogin());
+        assertEquals("creator", own.getCreatedByFirstName());
+        assertEquals("Test", own.getCreatedByLastName());
+        assertFalse(own.isHasLogo());
+        assertTrue(own.isEditable());
+    }
+
+    @Test
+    void myGroupsWithStatsNotEditableForNonCreatorManager() {
+        creatorUser = createUser("creator");
+        referencedUser = createUser("referenced");
+        Manager referencedManager = createManager(referencedUser, season);
+
+        authenticateAs("creator");
+        Long groupId = createGroup("MitFremdemManager", season.getId(), List.of(referencedManager.getId()));
+
+        authenticateAs("referenced");
+        List<de.ffl.dto.ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
+        de.ffl.dto.ManagerGroupRoundStatsDto own = groups.stream()
+            .filter(g -> g.getGroupId().equals(groupId))
+            .findFirst()
+            .orElseThrow();
+
+        assertFalse(own.isEditable());
+        assertEquals(creatorUser.getId(), own.getCreatedById());
     }
 }

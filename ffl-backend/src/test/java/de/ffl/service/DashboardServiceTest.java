@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,14 +21,21 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
     private ManagerRankRepository managerRankRepository;
 
     @Test
-    void aufstellung_liefertSaisonUndElfSpieler() {
+    void aufstellung_liefertSaisonUndKomplettenKader() {
         AufstellungDto dto = dashboardService.getAufstellung(managerUwe72.getId());
 
         assertThat(dto.getPhase()).isEqualTo("SAISON");
         assertThat(dto.getSpieltag()).isEqualTo(season.getCurrentMatchday());
         assertThat(dto.getTeamname()).isEqualTo(managerUwe72.getShortName());
         assertThat(dto.getBudget()).isEqualTo(season.getBudget());
-        assertThat(dto.getSpieler()).hasSize(11);
+        assertThat(dto.getSpieler()).hasSize(14);
+
+        assertThat(dto.getSpieler())
+            .extracting(SpielerAufstellungDto::getId)
+            .contains(
+                managerUwe72.getPlayerExchangedNew1().getId(),
+                managerUwe72.getPlayerExchangedNew2().getId(),
+                managerUwe72.getPlayerExchangedNew3().getId());
 
         assertThat(dto.getSpieler()).allMatch(s -> s.getPunkteGesamt() >= 0);
         assertThat(dto.getSpieler()).allMatch(s -> s.getPunkteSpieltag() >= 0);
@@ -36,6 +44,8 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
         assertThat(dto.getSpieler()).allMatch(s -> s.getLastName() != null && !s.getLastName().isBlank());
         assertThat(dto.getSpieler()).allMatch(s -> s.getName().equals(s.getLastName()));
         assertThat(dto.getSpieler()).allMatch(s -> s.getRegeln() != null);
+        assertThat(dto.getSpieler()).allMatch(s -> s.getGespielt() != null);
+        assertThat(dto.getSpieler()).allMatch(s -> s.getEinsaetze() != null && s.getEinsaetze() >= 0);
         assertThat(dto.getSpieler())
             .flatExtracting(SpielerAufstellungDto::getRegeln)
             .allSatisfy(r -> {
@@ -47,10 +57,30 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
-    void aufstellung_kaderwertIstSummeDerPreise() {
+    void aufstellung_kaderwertIstSummeDerAktivenElf() {
         AufstellungDto dto = dashboardService.getAufstellung(managerUwe72.getId());
-        int expected = dto.getSpieler().stream().mapToInt(SpielerAufstellungDto::getMarktwert).sum();
+        Set<Long> exchangedOldIds = Set.of(
+            managerUwe72.getPlayerExchangedOld1().getId(),
+            managerUwe72.getPlayerExchangedOld2().getId(),
+            managerUwe72.getPlayerExchangedOld3().getId());
+        int expected = dto.getSpieler().stream()
+            .filter(s -> !exchangedOldIds.contains(s.getId()))
+            .mapToInt(SpielerAufstellungDto::getMarktwert)
+            .sum();
         assertThat(dto.getKaderwert()).isEqualTo(expected);
+    }
+
+    @Test
+    void aufstellung_gewechselteSpielerNichtAktivGespielt() {
+        AufstellungDto dto = dashboardService.getAufstellung(managerUwe72.getId());
+        Set<Long> exchangedOldIds = Set.of(
+            managerUwe72.getPlayerExchangedOld1().getId(),
+            managerUwe72.getPlayerExchangedOld2().getId(),
+            managerUwe72.getPlayerExchangedOld3().getId());
+        assertThat(dto.getSpieler())
+            .filteredOn(s -> exchangedOldIds.contains(s.getId()))
+            .hasSize(3)
+            .allMatch(s -> !s.getGespielt());
     }
 
     @Test

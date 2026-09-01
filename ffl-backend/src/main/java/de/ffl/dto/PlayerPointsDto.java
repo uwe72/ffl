@@ -15,6 +15,8 @@ import java.util.List;
 public class PlayerPointsDto {
     private Long playerId;
     private String playerName;
+    private String firstName;
+    private String lastName;
     private String nameKickerAlt1;
     private String nameKickerAlt2;
     private String nameKickerAlt3;

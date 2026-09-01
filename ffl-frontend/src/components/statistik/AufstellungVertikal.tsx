@@ -1,32 +1,41 @@
 import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
-import { positionLabels, positionTextColor } from '../../utils/positions'
-import { formatPoints } from '../../utils/format'
-import { StatPlayerCard } from './AufstellungsFeld'
+import { useNavigate } from 'react-router-dom'
+import type { Aufstellung } from '../../types/dashboard'
+import { positionBadgeVariant } from '../../utils/positions'
+import { formatPoints, formatMillionen } from '../../utils/format'
 
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
 
-const COLUMNS = ['GOALKEEPER', 'DEFENDER', 'MIDFIELD', 'STRIKER'] as const
+const POS_BADGE: Record<string, string> = {
+  GOALKEEPER: 'TW',
+  DEFENDER: 'VT',
+  MIDFIELD: 'MF',
+  STRIKER: 'ST',
+}
 
 export default function AufstellungVertikal({
   aufstellung,
-  modus,
   searchControl,
 }: {
   aufstellung: Aufstellung
   modus: FeldModus
   searchControl?: ReactNode
 }) {
-  const grouped = useMemo(() => {
-    const map: Record<string, SpielerAufstellung[]> = { GOALKEEPER: [], DEFENDER: [], MIDFIELD: [], STRIKER: [] }
-    for (const s of aufstellung.spieler) {
-      if (map[s.position]) map[s.position].push(s)
-    }
-    return map
+  const navigate = useNavigate()
+  const isVorsaison = aufstellung.phase === 'VORSAISON'
+
+  const sorted = useMemo(() => {
+    return [...aufstellung.spieler].sort((a, b) => {
+      if (a.positionTotal !== b.positionTotal) return a.positionTotal - b.positionTotal
+      return b.einsaetze - a.einsaetze
+    })
   }, [aufstellung.spieler])
 
-  const isVorsaison = aufstellung.phase === 'VORSAISON'
+  const title = isVorsaison ? 'Kader' : `${aufstellung.spieltag}. Spieltag`
+
+  const th = 'px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted border-b border-border-strong whitespace-nowrap'
+  const td = 'px-3 py-2 border-b border-border whitespace-nowrap tabular-nums'
 
   return (
     <div className="w-full flex flex-col gap-6">
@@ -56,30 +65,66 @@ export default function AufstellungVertikal({
           </div>
         </div>
       )}
-      {COLUMNS.map(pos => {
-        const players = grouped[pos]
-        if (!players || players.length === 0) return null
-        return (
-            <div key={pos} className="flex flex-col gap-3">
-              {searchControl && pos === 'GOALKEEPER' && (
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-                    Manager suchen
+      {searchControl && (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted">Manager suchen</span>
+          {searchControl}
+        </div>
+      )}
+      <div className="overflow-x-auto rounded-card border border-border">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr>
+              <th colSpan={4} align="left" className={th}>{title}</th>
+              <th colSpan={2} align="center" className={th}>Punkte</th>
+              <th colSpan={2} align="center" className={th}>Einsatz</th>
+            </tr>
+            <tr>
+              <th className={th}>Pos.</th>
+              <th align="left" className={th}>Spieler</th>
+              <th className={th}>Pos</th>
+              <th className={th}>Preis</th>
+              <th className={th}>Sp.</th>
+              <th className={th}>Ges.</th>
+              <th className={th}>Sp.</th>
+              <th className={th}>Ges.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map(p => (
+              <tr
+                key={p.id}
+                onClick={() => navigate(`/players/${p.id}`)}
+                className="cursor-pointer hover:bg-accent-muted transition-colors"
+              >
+                <td className={`${td} text-center text-subtle`}>{p.positionTotal > 0 ? `${p.positionTotal}.` : ''}</td>
+                <td className={`${td} max-w-[11rem]`}>
+                  <div className="truncate font-semibold text-foreground">{p.name}</div>
+                  {p.vereinKuerzel && (
+                    <div className="truncate text-xs text-muted">{p.vereinKuerzel}</div>
+                  )}
+                </td>
+                <td className={`${td} text-center`}>
+                  <span
+                    className={`pos-${positionBadgeVariant[p.position]} inline-flex items-center px-2 py-0.5 text-[10px] font-bold`}
+                  >
+                    {POS_BADGE[p.position] ?? p.position}
                   </span>
-                  {searchControl}
-                </div>
-              )}
-              <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[pos]}`}>
-                {positionLabels[pos]}
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {players.map(p => (
-                  <StatPlayerCard key={p.id} player={p} modus={modus} width="100%" height={148} compact={false} pictureScale={1.5} mobile />
-                ))}
-              </div>
-            </div>
-        )
-      })}
+                </td>
+                <td className={`${td} text-right text-foreground`}>{formatMillionen(p.marktwert)}</td>
+                <td className={`${td} text-center`}>
+                  {p.punkteSpieltag > 0 ? (
+                    <span className="font-bold text-accent">{p.punkteSpieltag}</span>
+                  ) : ''}
+                </td>
+                <td className={`${td} text-center text-foreground`}>{p.punkteGesamt > 0 ? p.punkteGesamt : ''}</td>
+                <td className={`${td} text-center text-foreground`}>{p.gespielt ? '√' : ''}</td>
+                <td className={`${td} text-center text-foreground`}>{p.einsaetze > 0 ? p.einsaetze : ''}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

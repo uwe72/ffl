@@ -7,8 +7,9 @@ import { useAuth } from '../context/AuthContext'
 import { useAvatar, useUploadAvatar, useDeleteAvatar } from '../hooks/useAvatar'
 import { positionLabels, positionColors } from './Players'
 import Button from '../components/Button'
+import BackButton from '../components/BackButton'
 import SortIcon from '../components/SortIcon'
-import StatTile from '../components/StatTile'
+import Badge from '../components/Badge'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import { getChartColors, CHART_SERIES_PALETTE } from '../utils/chartColors'
 import type { Player, ManagerGroup, RulePoint } from '../types'
@@ -53,7 +54,7 @@ function PlayerRow({ player }: { player: Player }) {
             <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
           )}
           <div>
-            <div className="font-medium text-link">{player.nameKicker}</div>
+            <div className={player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-link'}>{player.nameKicker}</div>
             {player.firstName && player.lastName && (
               <div className="text-sm text-subtle">
                 {player.firstName} {player.lastName}
@@ -62,7 +63,7 @@ function PlayerRow({ player }: { player: Player }) {
           </div>
         </RouterLink>
       </td>
-      <td className="px-3 py-2 text-center font-medium text-foreground">
+      <td className="px-3 py-2 text-center font-bold text-foreground">
         {player.points ?? '-'}
       </td>
       <td className="px-3 py-2 text-center text-muted">
@@ -155,7 +156,7 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
   }, [players, sortKey, sortOrder])
 
   return (
-    <div className="mt-6">
+    <div>
       <h2 className="text-lg font-semibold text-foreground mb-3">{title}</h2>
       <div className="overflow-x-auto rounded-card border border-border">
         <table className="w-full">
@@ -171,10 +172,10 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
                 Name<SortIcon column="nameKicker" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
               <ThSortable align="center" onClick={() => handleSort('points')}>
-                Pkt<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
+                Punkte<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
               <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
-                Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                1. Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
               <ThSortable align="center" onClick={() => handleSort('managerCount')}>
                 Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
@@ -186,7 +187,7 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
                 Position<SortIcon column="position" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
               <ThSortable onClick={() => handleSort('team')}>
-                Team<SortIcon column="team" activeKey={sortKey} order={sortOrder} />
+                Verein<SortIcon column="team" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
             </tr>
           </TableHead>
@@ -470,13 +471,10 @@ export default function ManagerDetail() {
   if (isLoading) {
     return (
       <div className="max-w-6xl" aria-busy="true">
-        <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück zur Übersicht
-        </RouterLink>
+        <BackButton to="/managers" className="mb-4" />
         <div className="p-4 bg-elevated border border-border rounded-card mb-6">
-          <div className="flex gap-6">
-            <div className="w-24 h-24 rounded-full bg-card-muted animate-pulse motion-reduce:animate-none shrink-0" />
+          <div className="flex items-stretch gap-6">
+            <div className="aspect-square rounded-full bg-card-muted animate-pulse motion-reduce:animate-none shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="h-3 w-24 rounded-control bg-card-muted animate-pulse motion-reduce:animate-none mb-3" />
               <div className="grid grid-cols-3 gap-4">
@@ -496,10 +494,7 @@ export default function ManagerDetail() {
   if (error) {
     return (
       <div className="max-w-6xl">
-        <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück zur Übersicht
-        </RouterLink>
+        <BackButton to="/managers" className="mb-4" />
         <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card">
           <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
           <p className="text-danger text-sm">Fehler beim Laden des Managers.</p>
@@ -510,10 +505,7 @@ export default function ManagerDetail() {
   if (!manager) {
     return (
       <div className="max-w-6xl">
-        <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
-          <i className="sap-icon sap-icon-nav-back text-base" />
-          Zurück zur Übersicht
-        </RouterLink>
+        <BackButton to="/managers" className="mb-4" />
         <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card">
           <i className="sap-icon sap-icon-information text-[18px] text-muted shrink-0" />
           <p className="text-sm text-muted">Manager nicht gefunden.</p>
@@ -558,7 +550,6 @@ export default function ManagerDetail() {
   })) || []
 
   const lastRound = roundDetails && roundDetails.length > 0 ? roundDetails[roundDetails.length - 1] : null
-  const currentRoundNumber = manager.currentMatchday || lastRound?.roundNumber || 0
   const lastRoundPlayerPoints = lastRound?.playerPoints || []
 
   const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ payload: { punkte: number; playerPoints: Array<{ playerName: string; points: number }> } }>; label?: string }) => {
@@ -585,17 +576,14 @@ export default function ManagerDetail() {
 
   return (
     <div className="max-w-6xl">
-      <RouterLink to="/managers" className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline mb-4">
-        <i className="sap-icon sap-icon-nav-back text-base" />
-        Zurück zur Übersicht
-      </RouterLink>
+      <BackButton to="/managers" className="mb-4" />
 
       <div className="p-4 bg-elevated border border-border rounded-card mb-6">
-        <div className="flex items-start gap-4">
-          <div className="relative group w-24 h-24 shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="relative group w-20 h-20 shrink-0">
             <button
               onClick={handleAvatarClick}
-              className={`w-24 h-24 p-0 rounded-full overflow-hidden ${isOwnManager ? 'cursor-pointer' : 'cursor-default'}`}
+              className={`w-20 h-20 p-0 rounded-full overflow-hidden ${isOwnManager ? 'cursor-pointer' : 'cursor-default'}`}
               disabled={!isOwnManager || uploadAvatar.isPending || deleteAvatar.isPending}
               title={isOwnManager ? 'Profilbild ändern' : undefined}
             >
@@ -603,10 +591,10 @@ export default function ManagerDetail() {
                 <img
                   src={managerAvatarUrl}
                   alt={manager.name}
-                  className="w-24 h-24 rounded-full object-cover"
+                  className="w-20 h-20 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-elevated border border-border flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-elevated border border-border flex items-center justify-center">
                   {managerInitials ? (
                     <span className="text-2xl font-bold text-primary">{managerInitials}</span>
                   ) : (
@@ -647,16 +635,45 @@ export default function ManagerDetail() {
 
           <div className="flex-1 min-w-0">
             {!stammdatenOpen && (
-              <div>
-                <h2 className="text-3xl font-bold text-foreground truncate">
-                  {manager.firstName || manager.lastName
-                    ? `${manager.firstName} ${manager.lastName}`.trim()
-                    : manager.name}
-                  {manager.login && ` (${manager.login})`}
-                </h2>
-                <p className="text-xs uppercase tracking-wide text-subtle mt-2">
-                  Manager
-                </p>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+                <div className="min-w-0">
+                  <h2 className="text-3xl font-bold text-foreground truncate">
+                    {manager.firstName || manager.lastName
+                      ? `${manager.firstName} ${manager.lastName}`.trim()
+                      : manager.name}
+                  </h2>
+                  {manager.login && (
+                    <p className="text-xs uppercase tracking-wide text-subtle mt-2">
+                      {manager.login}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-4">
+                  <div className="bg-card rounded-card border border-border px-4 py-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Punkte gesamt</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-2xl font-semibold tabular-nums text-foreground">
+                        {manager.pointsTotal != null ? manager.pointsTotal : '—'}
+                      </span>
+                      {manager.pointsLastRound != null && manager.pointsLastRound > 0 && (
+                        <Badge variant="success">+{manager.pointsLastRound}</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="bg-card rounded-card border border-border px-4 py-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Position gesamt</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-2xl font-semibold tabular-nums text-foreground">
+                        {manager.positionTotal ? `${manager.positionTotal}.` : '—'}
+                      </span>
+                      {manager.positionChange != null && manager.positionChange !== 0 && (
+                        <Badge variant={manager.positionChange > 0 ? 'success' : 'danger'}>
+                          {manager.positionChange > 0 ? `+${manager.positionChange}` : `-${Math.abs(manager.positionChange)}`}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -750,39 +767,17 @@ export default function ManagerDetail() {
             </Button>
           )}
         </div>
-
-        <div className="mt-4 pt-4 border-t border-border">
-          <h3 className="text-xl font-semibold text-foreground mb-4">Managerstatistik</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-            <StatTile
-              label="Pos. (Saison)"
-              value={manager.positionTotal ? `${manager.positionTotal}.` : '—'}
-            />
-            <StatTile
-              label="Pkt. (Saison)"
-              value={manager.pointsTotal != null ? String(manager.pointsTotal) : '—'}
-            />
-            <StatTile
-              label="Letzte Runde"
-              value={manager.pointsLastRound != null ? `${manager.pointsLastRound} Pkt` : '—'}
-            />
-            <StatTile
-              label="Spieltag"
-              value={currentRoundNumber ? String(currentRoundNumber) : '—'}
-            />
-          </div>
-        </div>
       </div>
 
       {lastRoundPlayerPoints.length > 0 && (
-        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <h3 className="text-xl font-semibold text-foreground mb-4">Punkte letzte Runde</h3>
           <LastRoundPlayerTable players={lastRoundPlayerPoints} allPlayers={rueckrundePlayers.length > 0 ? rueckrundePlayers : hinrundePlayers} />
         </div>
       )}
 
       {isOwnManager && managerGroups && managerGroups.length > 0 && (
-        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <h3 className="text-xl font-semibold text-foreground mb-4">Gruppen</h3>
           {managerGroups.map(group => (
             <ManagerGroupTable key={group.id} group={group} currentManagerId={manager.id} />
@@ -791,9 +786,9 @@ export default function ManagerDetail() {
       )}
 
       {(hinrundePlayers.length > 0 || hasExchanges) && (
-        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           {hinrundePlayers.length > 0 && (
-            <PlayerTable players={hinrundePlayers} title={`Hinrunde-Aufstellung (${hinrundePlayers.length} Spieler)`} />
+            <PlayerTable players={hinrundePlayers} title="Hinrunde-Aufstellung" />
           )}
 
           {hasExchanges && (
@@ -803,19 +798,23 @@ export default function ManagerDetail() {
                 <PlayerTable players={oldPlayers} title="Raus:" />
               )}
               {newPlayers.length > 0 && (
-                <PlayerTable players={newPlayers} title="Rein:" />
+                <div className="mt-6">
+                  <PlayerTable players={newPlayers} title="Rein:" />
+                </div>
               )}
             </div>
           )}
 
           {hasExchanges && rueckrundePlayers.length > 0 && (
-            <PlayerTable players={rueckrundePlayers} title={`Rückrunde-Aufstellung (${rueckrundePlayers.length} Spieler)`} />
+            <div className="mt-6">
+              <PlayerTable players={rueckrundePlayers} title={`Rückrunde-Aufstellung (${rueckrundePlayers.length} Spieler)`} />
+            </div>
           )}
         </div>
       )}
 
       {chartData.length > 0 && (
-        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <h3 className="text-xl font-semibold text-foreground mb-3">Punkte pro Spieltag</h3>
           <div className="bg-card p-4 rounded-card border border-border">
             <ResponsiveContainer width="100%" height={300}>
@@ -832,7 +831,7 @@ export default function ManagerDetail() {
       )}
 
       {positionChartData.length > 0 && (
-        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <h3 className="text-xl font-semibold text-foreground mb-3">Gesamtposition pro Spieltag</h3>
           <div className="bg-card p-4 rounded-card border border-border">
             <ResponsiveContainer width="100%" height={300}>
@@ -863,7 +862,7 @@ export default function ManagerDetail() {
       )}
 
       {managerGroupsWithStats && managerGroupsWithStats.length > 0 && (
-        <div className="p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-foreground">Punkte-Entwicklung in Gruppe</h3>
             <select
@@ -1049,6 +1048,8 @@ function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: nu
           </TableBody>
         </table>
       </div>
+
+      <div className="h-10" />
     </div>
   )
 }
