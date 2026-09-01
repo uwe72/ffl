@@ -60,7 +60,7 @@ export default function AufstellungVertikal({
                 className={`cursor-pointer hover:bg-card-hover border-b border-border transition-colors ${index % 2 === 1 ? 'bg-zebra' : ''}`}
               >
                 <td className={`${td} max-w-[11rem]`}>
-                  <div className="truncate font-semibold text-foreground">{p.name.length > 9 ? `${p.name.slice(0, 9)}...` : p.name}</div>
+                  <div className="truncate font-semibold text-foreground">{p.name.length > 12 ? `${p.name.slice(0, 12)}...` : p.name}</div>
                   {p.vereinKuerzel && (
                     <div className="truncate text-xs text-muted">{p.vereinKuerzel}</div>
                   )}
