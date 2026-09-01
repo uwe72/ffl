@@ -18,7 +18,7 @@ export default function BackButton({ to, className = '' }: BackButtonProps) {
     <button
       type="button"
       onClick={handleClick}
-      className={`inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold ${className}`}
+      className={`inline-flex items-center gap-1 text-sm text-accent hover:text-accent-hover hover:underline font-semibold px-4 md:px-0 pt-4 md:pt-0 ${className}`}
     >
       <i className="sap-icon sap-icon-nav-back text-base" />
       Zurück

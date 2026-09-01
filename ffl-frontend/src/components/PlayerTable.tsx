@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import * as XLSX from 'xlsx'
 import { useAuth } from '../context/AuthContext'
 import { useCurrentSeason, usePublicCurrentSeason } from '../hooks/useSeasons'
@@ -151,7 +151,79 @@ function PlayerCard({ player, hideManager, hideStats, onSelect }: { player: Play
   )
 }
 
-function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter, fixedPosition, aktivFilter, setAktivFilter, searchTerm, setSearchTerm, searchInputRef }: {
+function PlayerMobileTable({ players, isBeforeSeason, title }: {
+  players: Player[]
+  isBeforeSeason: boolean
+  title: string
+}) {
+  const navigate = useNavigate()
+  const th = 'px-3 py-1 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
+  const td = 'px-2 py-2 border-b border-border whitespace-nowrap tabular-nums'
+
+  const sorted = useMemo(
+    () => [...players].sort((a, b) => (b.points ?? 0) - (a.points ?? 0)),
+    [players]
+  )
+
+  return (
+    <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
+      <table className="w-full border-collapse text-sm">
+        <thead className="bg-elevated sticky top-0">
+          <tr>
+            <th colSpan={2} align="left" className={th}>{title}</th>
+            {!isBeforeSeason && <th colSpan={2} align="center" className={th}>Punkte</th>}
+          </tr>
+          <tr>
+            <th align="left" className={th}>Spieler</th>
+            <th className={th}>Pos</th>
+            {!isBeforeSeason && <th className={th}>Ges.</th>}
+            {!isBeforeSeason && <th className={th}>Sp.</th>}
+          </tr>
+        </thead>
+        <tbody className="bg-surface">
+          {sorted.map((p, index) => (
+            <tr
+              key={p.id}
+              onClick={() => navigate(`/players/${p.id}`)}
+              className={`cursor-pointer hover:bg-card-hover border-b border-border transition-colors ${index % 2 === 1 ? 'bg-zebra' : ''}`}
+            >
+              <td className={`${td} max-w-[11rem]`}>
+                <div className={`truncate font-semibold ${p.aktiv === false ? 'text-danger line-through' : 'text-foreground'}`}>
+                  {fullName(p)}
+                </div>
+                {p.teams.length > 0 && (
+                  <div className="truncate text-xs text-muted">{p.teams[0].name}</div>
+                )}
+              </td>
+              <td className={`${td} text-center`}>
+                <span className={`${positionColors[p.position]} inline-flex items-center px-2 py-0.5 text-[10px] font-bold`}>
+                  {positionShortLabels[p.position] ?? p.position}
+                </span>
+              </td>
+              {!isBeforeSeason && (
+                <td className={`${td} text-center font-bold text-foreground`}>{p.points && p.points > 0 ? p.points : ''}</td>
+              )}
+              {!isBeforeSeason && (
+                <td className={`${td} text-center text-foreground`}>{p.pointsLastRound && p.pointsLastRound > 0 ? p.pointsLastRound : ''}</td>
+              )}
+            </tr>
+          ))}
+          {sorted.length === 0 && (
+            <tr>
+              <td colSpan={isBeforeSeason ? 2 : 4} className="text-center text-subtle py-8">
+                Keine Spieler gefunden
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter, fixedPosition, aktivFilter, setAktivFilter, searchTerm, setSearchTerm, searchInputRef }: {
+  variant?: 'bar' | 'card'
+  count?: number
   selectedPositions: Set<string>
   setSelectedPositions: (s: Set<string>) => void
   selectedTeamId: number | 'ALL'
@@ -197,6 +269,97 @@ function PlayerFilterBar({ selectedPositions, setSelectedPositions, selectedTeam
     ? 'bg-danger-bg text-danger border-danger'
     : chipInactive
   const cycleAktiv = () => setAktivFilter(aktivFilter === 'aktiv' ? 'inaktiv' : aktivFilter === 'inaktiv' ? 'alle' : 'aktiv')
+
+  if (variant === 'card') {
+    return (
+      <div className="p-6 bg-surface border border-border rounded-card px-3 py-3 mb-4">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-base font-semibold text-foreground">Spieler ({count ?? 0})</h3>
+          </div>
+          <div className="relative">
+            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Spieler suchen..."
+              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
+            />
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {visiblePositions.map(pos => {
+              const active = selectedPositions.has(pos)
+              return (
+                <button
+                  key={pos}
+                  onClick={() => togglePosition(pos)}
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${active ? positionChipActiveColors[pos] : chipInactive} ${fixedPosition ? 'cursor-default' : 'cursor-pointer'}`}
+                >
+                  <i className={`sap-icon ${positionSapIcon[pos]} text-[12px]`} />
+                  {positionLabels[pos]}
+                </button>
+              )
+            })}
+            <button
+              onClick={cycleAktiv}
+              title="Aktiv: aktueller Bundesliga-Spieler · Inaktiv: Spieler hat die Bundesliga verlassen (z.B. Transfer ins Ausland, Karriereende) · Alle: beide Gruppen anzeigen"
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${aktivClass} cursor-pointer`}
+            >
+              <i className="sap-icon sap-icon-check-availability text-[12px]" />
+              {aktivLabel}
+            </button>
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <select
+              value={selectedTeamId}
+              onChange={e => setSelectedTeamId(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
+              className="input-field control px-2 py-1.5 rounded-control text-xs cursor-pointer w-full sm:w-auto sm:min-w-40"
+            >
+              <option value="ALL">Alle Vereine</option>
+              {teams.map(team => (
+                <option key={team.id} value={team.id}>{team.name}</option>
+              ))}
+            </select>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={minFocused ? priceMin : (priceMin ? `${Number(priceMin).toLocaleString('de-DE')} €` : '')}
+                onFocus={() => setMinFocused(true)}
+                onBlur={() => setMinFocused(false)}
+                onChange={e => setPriceMin(e.target.value.replace(/[^\d]/g, ''))}
+                placeholder="Min €"
+                className="input-field control flex-1 min-w-0 px-2 py-1.5 text-xs"
+              />
+              <span className="text-subtle text-xs">–</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={maxFocused ? priceMax : (priceMax ? `${Number(priceMax).toLocaleString('de-DE')} €` : '')}
+                onFocus={() => setMaxFocused(true)}
+                onBlur={() => setMaxFocused(false)}
+                onChange={e => setPriceMax(e.target.value.replace(/[^\d]/g, ''))}
+                placeholder="Max €"
+                className="input-field control flex-1 min-w-0 px-2 py-1.5 text-xs"
+              />
+            </div>
+          </div>
+          {hasFilter && (
+            <button
+              onClick={clearFilter}
+              className="self-start flex items-center gap-1.5 p-1 rounded-control text-subtle hover:text-danger transition-colors"
+              title="Filter zurücksetzen"
+            >
+              <i className="sap-icon sap-icon-decline text-[14px]" />
+              <span className="text-sm">Filter zurücksetzen</span>
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex items-center gap-3 flex-wrap mb-4">
@@ -296,6 +459,7 @@ export default function PlayerTable({
   autoFocus = false,
   enableExport = false,
   hideFilters = false,
+  mobileDashboardLayout = false,
 }: {
   players: Player[]
   fixedPosition?: Position
@@ -308,6 +472,7 @@ export default function PlayerTable({
   autoFocus?: boolean
   enableExport?: boolean
   hideFilters?: boolean
+  mobileDashboardLayout?: boolean
 }) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
@@ -347,6 +512,10 @@ export default function PlayerTable({
       setSortOrder('asc')
     }
   }
+
+  const tableTitle = isBeforeSeason
+    ? 'Kader'
+    : `${currentSeason?.currentMatchday ?? 1}. Spieltag`
 
   const hasActiveFilter = selectedPositions.size > 0 || selectedTeamId !== 'ALL' || searchTerm !== '' || priceMin !== '' || priceMax !== '' || aktivFilter !== 'alle'
 
@@ -454,6 +623,8 @@ export default function PlayerTable({
 
       {!hideFilters && (
       <PlayerFilterBar
+        variant={isMobile && mobileDashboardLayout ? 'card' : 'bar'}
+        count={filteredPlayers.length}
         selectedPositions={selectedPositions}
         setSelectedPositions={setSelectedPositions}
         selectedTeamId={selectedTeamId}
@@ -647,7 +818,16 @@ export default function PlayerTable({
         </>
       )}
 
-      {isMobile && (
+      {isMobile && mobileDashboardLayout && (
+        <div>
+          <PlayerMobileTable players={filteredPlayers} isBeforeSeason={isBeforeSeason} title={tableTitle} />
+          <div className="mt-4 text-sm text-subtle">
+            {filteredPlayers.length} von {players?.length || 0} Spielern
+          </div>
+        </div>
+      )}
+
+      {isMobile && !mobileDashboardLayout && (
         <div>
           <div className="grid gap-4">
             {filteredPlayers.length > 0 ? (

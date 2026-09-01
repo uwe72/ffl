@@ -31,11 +31,11 @@ export default function AufstellungVertikal({
   const title = isVorsaison ? 'Kader' : `${aufstellung.spieltag}. Spieltag`
 
   const th = 'px-3 py-1 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
-  const td = 'px-3 py-1 border-b border-border whitespace-nowrap tabular-nums'
+  const td = 'px-2 py-2 border-b border-border whitespace-nowrap tabular-nums'
 
   return (
     <div className="w-full flex flex-col gap-6">
-      <div className="overflow-x-auto rounded-card border border-border" style={{ touchAction: 'pan-y' }}>
+      <div className="overflow-x-auto rounded-card" style={{ touchAction: 'pan-y' }}>
         <table className="w-full border-collapse text-sm">
           <thead className="bg-elevated sticky top-0">
             <tr>

@@ -165,7 +165,7 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
   const th = 'px-3 py-1 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
   const td = 'px-2 py-2 border-b border-border whitespace-nowrap tabular-nums'
   return (
-    <div className="overflow-x-auto rounded-card w-full">
+    <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
       <table className="w-full border-collapse text-sm">
         <thead className="bg-elevated sticky top-0">
           <tr>
@@ -248,7 +248,7 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
     [managers]
   )
   return (
-    <div className="overflow-x-auto rounded-card w-full">
+    <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
       <table className="w-full border-collapse text-sm">
         <thead className="bg-elevated sticky top-0">
           <tr>
@@ -375,7 +375,7 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
               <Button
                 onClick={handleSelectMe}
                 size="input"
-                variant={selected ? 'emphasized' : 'secondary'}
+                variant="secondary"
               >
                 <i className="sap-icon sap-icon-account text-[14px]" />
                 Selektiere mich
@@ -826,7 +826,7 @@ export default function Home() {
                       {isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit'}
                     </Button>
                   )}
-                  {carouselEnabled && (
+                  {carouselEnabled && !isMobile && (
                     <div className="flex flex-col gap-1.5">
                       <span className="text-xs font-semibold uppercase tracking-wider text-muted">Manager suchen</span>
                       <ManagerSelect

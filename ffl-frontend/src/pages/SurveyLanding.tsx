@@ -23,7 +23,7 @@ export default function SurveyLanding() {
               : 'Aktuell ist keine Umfrage gestartet. Schau später wieder vorbei!'}
           </p>
         </div>
-        <BackButton to="/" className="mt-2" />
+        <BackButton to="/" className="mt-2 px-0 pt-0" />
       </div>
     </div>
   )

@@ -589,7 +589,7 @@ export default function ManagerDetail() {
 
       <div className={`${isMobile ? 'px-3 py-0.5 bg-surface mb-0' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
         <div className="flex items-center gap-4">
-          {isMobile && <BackButton to="/managers" className="shrink-0" />}
+          {isMobile && <BackButton to="/managers" className="shrink-0 px-0 pt-0" />}
           {!isMobile && (
             <>
               <div className="relative group w-20 h-20 shrink-0">

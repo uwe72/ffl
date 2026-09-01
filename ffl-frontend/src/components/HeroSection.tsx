@@ -42,13 +42,13 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
         <div className="flex flex-1 min-w-0 items-center px-[30px]">
           <button
             onClick={onMenuClick}
-            className="md:hidden mr-3 p-1.5 rounded-control text-muted hover:text-primary hover:bg-card-hover transition-colors"
+            className="md:hidden mr-3 -ml-[18px] p-1.5 rounded-control text-muted hover:text-primary hover:bg-card-hover transition-colors"
           >
             <i className="sap-icon sap-icon-menu text-[20px]" />
           </button>
 
           <div className="flex flex-col justify-center min-w-0 hero-text-shadow">
-            <p className="text-xl md:text-2xl font-bold text-foreground leading-tight">
+            <p className="text-xl md:text-2xl font-bold text-foreground leading-tight pl-2.5">
               {getGreeting()}, {user?.firstName || user?.login || 'Gast'}!
             </p>
             {season && (

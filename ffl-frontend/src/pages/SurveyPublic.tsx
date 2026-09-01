@@ -383,7 +383,7 @@ function PublicResults({ title, description, responseCount, questions }: {
       </div>
 
       <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
-        <BackButton to="/" />
+        <BackButton to="/" className="px-0 pt-0" />
       </div>
     </div>
   )
