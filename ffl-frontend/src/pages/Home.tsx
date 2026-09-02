@@ -898,16 +898,6 @@ export default function Home() {
                 {carouselPosition}
               </span>
             )}
-            {carouselEnabled && isFavorite && favoriteManagerIds.length > 1 && !isStandard && (
-              <Button
-                variant="transparent"
-                size="input"
-                onClick={handleSetStandard}
-                title="Als Standard-Team festlegen"
-              >
-                Als Standard
-              </Button>
-            )}
             <h2 className="text-xl font-semibold text-foreground min-w-0">{title}</h2>
             {showBearbeiten && (
               <Button
@@ -920,25 +910,43 @@ export default function Home() {
                 <i className="sap-icon sap-icon-edit text-sm" />
               </Button>
             )}
-            {carouselEnabled && activeManagerId != null && !isOwnTeam && (
-              <button
-                type="button"
-                onClick={handleToggleFavorite}
-                aria-label={isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
-                title={isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
-                className={`w-9 h-9 rounded-control border border-border-strong flex items-center justify-center transition-colors ${isFavorite ? 'text-accent bg-accent-soft' : 'text-subtle hover:bg-accent-muted'}`}
-              >
-                <i className={`sap-icon ${isFavorite ? 'sap-icon-favorite' : 'sap-icon-unfavorite'} text-sm`} />
-              </button>
-            )}
             <div className="ml-auto flex items-center gap-2">
-              {carouselEnabled && (
-                <ManagerSelect
-                  managers={managers ?? []}
-                  value={activeManagerId ?? null}
-                  onChange={id => setActiveManagerId(id)}
-                />
-              )}
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(o => !o)}
+                  aria-label="Mehr Optionen"
+                  title="Mehr Optionen"
+                  className={`w-8 h-8 rounded-control border border-border-strong flex items-center justify-center transition-colors ${menuOpen ? 'text-accent bg-accent-soft' : 'text-subtle hover:bg-accent-muted'}`}
+                >
+                  <i className="sap-icon sap-icon-overflow text-sm" />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 top-full mt-2 z-50 w-72 bg-surface border border-border rounded-card shadow-xl p-3 flex flex-col gap-3">
+                    {carouselEnabled && activeManagerId != null && !isOwnTeam && (
+                      <Button variant="ghost" size="input" onClick={handleToggleFavorite}>
+                        {isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit'}
+                      </Button>
+                    )}
+                    {carouselEnabled && (
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-muted">Manager suchen</span>
+                        <ManagerSelect
+                          managers={managers ?? []}
+                          value={activeManagerId ?? null}
+                          onChange={id => { setActiveManagerId(id); setMenuOpen(false) }}
+                          alignRight
+                        />
+                      </div>
+                    )}
+                    {carouselEnabled && isFavorite && favoriteManagerIds.length > 1 && !isStandard && (
+                      <Button variant="transparent" size="input" onClick={handleSetStandard}>
+                        Als Standard
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
