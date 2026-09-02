@@ -59,6 +59,17 @@ export default function Install() {
         </div>
 
         <div className="space-y-5">
+          <section className="px-4 py-3 bg-warning-bg border border-warning/30 rounded-card">
+            <p className="text-sm font-bold text-foreground">
+              Voraussetzung: Chromium-Browser (Chrome, Edge, Brave, Samsung Internet)
+            </p>
+            <p className="text-sm text-muted mt-1">
+              Der direkte „Installieren“-Dialog wird nur von Chromium-Browsern unterstützt – Apple Safari
+              und Firefox bieten ihn nicht an. Auf dem iPhone/iPad ist die Installation trotzdem über
+              Safari „Teilen“ → „Zum Home-Bildschirm“ möglich; am Computer bitte Chrome oder Edge verwenden.
+            </p>
+          </section>
+
           <section>
             <h3 className="text-base font-semibold text-foreground">Was ist der PWA-Modus?</h3>
             <p className="text-sm text-muted mt-1">
