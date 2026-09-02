@@ -66,13 +66,16 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
           </div>
         </div>
 
-        <div className="flex items-center shrink-0 pr-[30px]">
-          {isInstallable && !isInstalled && (
-            <Button variant="secondary" size="compact" onClick={install}>
-              <i className="sap-icon sap-icon-download text-xs" />
-              Installieren
-            </Button>
-          )}
+        <div className="flex flex-col justify-center shrink-0 pr-[30px]">
+          {isInstallable && !isInstalled ? (
+            <>
+              <Button variant="emphasized" size="compact" onClick={install}>
+                <i className="sap-icon sap-icon-download text-xs" />
+                Installieren
+              </Button>
+              {season && <div className="mt-0.5 h-6" />}
+            </>
+          ) : null}
         </div>
       </div>
     </div>
