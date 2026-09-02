@@ -5,10 +5,12 @@ export default function ManagerSelect({
   managers,
   value,
   onChange,
+  alignRight = false,
 }: {
   managers: Manager[]
   value: number | null
   onChange: (id: number) => void
+  alignRight?: boolean
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -73,7 +75,7 @@ export default function ManagerSelect({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-[300px] bg-surface border border-border rounded-card shadow-xl max-h-[320px] flex flex-col">
+        <div className={`absolute z-50 mt-1 w-[300px] bg-surface border border-border rounded-card shadow-xl max-h-[320px] flex flex-col ${alignRight ? 'right-0' : 'left-0'}`}>
           <div className="p-2 border-b border-border">
             <div className="relative">
               <i className="sap-icon sap-icon-search absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-subtle" />

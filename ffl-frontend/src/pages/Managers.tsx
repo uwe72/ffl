@@ -302,35 +302,35 @@ export default function Managers() {
                 <TableHead>
                   {!beforeSeason && (
                   <tr>
-                    <th colSpan={3} align="left" className="px-1.5 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none">
+                    <th colSpan={3} align="left" className="px-2 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none">
                       {currentSeason?.currentMatchday ? `${currentSeason.currentMatchday}. Spieltag` : ''}
                     </th>
-                    <th colSpan={2} align="center" className="px-1.5 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none">
+                    <th colSpan={2} align="center" className="px-2 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none">
                       Punkte
                     </th>
                   </tr>
                   )}
                   <tr>
                     {!beforeSeason && (
-                    <th align="center" onClick={() => handleSort('positionTotal')} className="px-1.5 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
+                    <th align="center" onClick={() => handleSort('positionTotal')} className="px-2 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
                       Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
                     </th>
                     )}
                     {!beforeSeason && (
-                    <th align="center" onClick={() => handleSort('positionChange')} className="px-1.5 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
+                    <th align="center" onClick={() => handleSort('positionChange')} className="px-2 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
                       +/-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
                     </th>
                     )}
-                    <th align="left" onClick={() => handleSort('shortName')} className="px-1.5 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
+                    <th align="left" onClick={() => handleSort('shortName')} className="px-2 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
                       Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
                     </th>
                     {!beforeSeason && (
-                    <th align="center" onClick={() => handleSort('pointsLastRound')} className="px-1.5 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
+                    <th align="center" onClick={() => handleSort('pointsLastRound')} className="px-2 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
                       Sp.<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                     </th>
                     )}
                     {!beforeSeason && (
-                    <th align="center" onClick={() => handleSort('pointsTotal')} className="px-1.5 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
+                    <th align="center" onClick={() => handleSort('pointsTotal')} className="px-2 py-2 h-[30px] text-[11px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none cursor-pointer hover:text-accent">
                       Ges.<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
                     </th>
                     )}
@@ -347,12 +347,12 @@ export default function Managers() {
                         className={`border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-accent-muted font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
                       >
                         {!beforeSeason && (
-                        <td className="px-1.5 py-2 text-center text-foreground overflow-hidden">
+                        <td className="px-2 py-2 text-center text-foreground overflow-hidden">
                           {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
                         </td>
                         )}
                         {!beforeSeason && (
-                        <td className="px-1.5 py-2 text-center overflow-hidden">
+                        <td className="px-2 py-2 text-center overflow-hidden">
                           {manager.positionChange != null && manager.positionChange !== 0 ? (
                             <span className={`${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
                               {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
@@ -362,7 +362,7 @@ export default function Managers() {
                           )}
                         </td>
                         )}
-                        <td className="px-1.5 py-2 min-w-0 overflow-hidden">
+                        <td className="px-2 py-2 min-w-0 overflow-hidden">
                           {beforeSeasonNonAdmin ? (
                             <span className="font-medium text-foreground">{manager.shortName || '-'}</span>
                           ) : (
@@ -375,12 +375,12 @@ export default function Managers() {
                           )}
                         </td>
                         {!beforeSeason && (
-                        <td className="px-1.5 py-2 text-center text-muted overflow-hidden">
+                        <td className="px-2 py-2 text-center text-muted overflow-hidden">
                           {manager.pointsLastRound ?? '-'}
                         </td>
                         )}
                         {!beforeSeason && (
-                        <td className="px-1.5 py-2 text-center text-foreground font-medium overflow-hidden">
+                        <td className="px-2 py-2 text-center text-foreground font-medium overflow-hidden">
                           {manager.pointsTotal ?? '-'}
                         </td>
                         )}

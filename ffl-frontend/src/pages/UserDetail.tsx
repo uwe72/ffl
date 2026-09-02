@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useUser, useUpdateUser, useDeleteUser } from '../hooks/useUsers'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/Button'
 import BackButton from '../components/BackButton'
 import FormCard from '../components/FormCard'
+import SortIcon from '../components/SortIcon'
+import { TableHead, ThSortable, TableBody } from '../components/Table'
 import type { User } from '../types'
 
 const roleLabels: Record<string, string> = {
   ADMIN: 'Admin',
-  NORMAL: 'Normal',
-  GUEST: 'Gast'
+  NORMAL: 'Normal'
 }
 
 const roleChipClass: Record<string, string> = {
   ADMIN: 'chip-success',
-  NORMAL: 'chip-warning',
-  GUEST: 'chip-accent'
+  NORMAL: 'chip-warning'
 }
 
 export default function UserDetail() {
@@ -31,6 +31,36 @@ export default function UserDetail() {
   const [formData, setFormData] = useState<Partial<User>>({})
   const [hasChanges, setHasChanges] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [sortKey, setSortKey] = useState<'name' | 'shortName' | 'seasonName'>('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+
+  const handleSort = (key: 'name' | 'shortName' | 'seasonName') => {
+    if (sortKey === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortKey(key)
+      setSortOrder('asc')
+    }
+  }
+
+  const sortedManagers = useMemo(() => {
+    if (!user?.managers) return []
+    return [...user.managers].sort((a, b) => {
+      let comparison = 0
+      switch (sortKey) {
+        case 'name':
+          comparison = (a.name || '').localeCompare(b.name || '')
+          break
+        case 'shortName':
+          comparison = (a.shortName || '').localeCompare(b.shortName || '')
+          break
+        case 'seasonName':
+          comparison = (a.seasonName || '').localeCompare(b.seasonName || '')
+          break
+      }
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+  }, [user?.managers, sortKey, sortOrder])
 
   useEffect(() => {
     if (user) {
@@ -38,10 +68,7 @@ export default function UserDetail() {
         login: user.login,
         email: user.email,
         firstName: user.firstName,
-        lastName: user.lastName,
-        street: user.street,
-        city: user.city,
-        birthday: user.birthday
+        lastName: user.lastName
       })
       setHasChanges(false)
     }
@@ -64,10 +91,7 @@ export default function UserDetail() {
         login: user.login,
         email: user.email,
         firstName: user.firstName,
-        lastName: user.lastName,
-        street: user.street,
-        city: user.city,
-        birthday: user.birthday
+        lastName: user.lastName
       })
       setHasChanges(false)
     }
@@ -137,34 +161,6 @@ export default function UserDetail() {
             className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
           />
         </FormCard>
-
-        <FormCard>
-          <label className="block text-sm text-muted mb-1">Geburtsdatum</label>
-          <input
-            type="date"
-            value={formData.birthday || ''}
-            onChange={(e) => handleChange('birthday', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
-          />
-        </FormCard>
-
-        <FormCard>
-          <label className="block text-sm text-muted mb-1">Straße</label>
-          <input
-            value={formData.street || ''}
-            onChange={(e) => handleChange('street', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
-          />
-        </FormCard>
-
-        <FormCard>
-          <label className="block text-sm text-muted mb-1">Stadt</label>
-          <input
-            value={formData.city || ''}
-            onChange={(e) => handleChange('city', e.target.value)}
-            className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
-          />
-        </FormCard>
       </div>
 
       <div className="mt-6 flex gap-4">
@@ -200,29 +196,35 @@ export default function UserDetail() {
           <h2 className="text-xl font-semibold text-foreground mb-4">Zugehörige Manager</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="px-4 py-2 text-left text-muted">Name</th>
-                  <th className="px-4 py-2 text-left text-muted">Kürzel</th>
-                  <th className="px-4 py-2 text-left text-muted">Saison</th>
+              <TableHead>
+                <tr>
+                  <ThSortable align="left" onClick={() => handleSort('name')}>
+                    Name<SortIcon column="name" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  <ThSortable align="left" onClick={() => handleSort('shortName')}>
+                    Kürzel<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  <ThSortable align="left" onClick={() => handleSort('seasonName')}>
+                    Saison<SortIcon column="seasonName" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
                 </tr>
-              </thead>
-              <tbody>
-                {user.managers.map((manager, index) => (
+              </TableHead>
+              <TableBody>
+                {sortedManagers.map((manager, index) => (
                   <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                    <td className="px-4 py-2">
+                    <td className="px-2 py-2 md:px-3">
                       <RouterLink
                         to={`/managers/${manager.id}`}
-                        className="link"
+                        className="link font-medium"
                       >
                         {manager.name}
                       </RouterLink>
                     </td>
-                    <td className="px-4 py-2 text-muted">{manager.shortName || '-'}</td>
-                    <td className="px-4 py-2 text-muted">{manager.seasonName}</td>
+                    <td className="px-2 py-2 md:px-3 text-muted">{manager.shortName || '-'}</td>
+                    <td className="px-2 py-2 md:px-3 text-muted">{manager.seasonName}</td>
                   </tr>
                 ))}
-              </tbody>
+              </TableBody>
             </table>
           </div>
         </FormCard>

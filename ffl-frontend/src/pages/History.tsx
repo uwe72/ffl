@@ -222,28 +222,28 @@ export default function History() {
                   <tr key={entry.id} className={`border-b border-border hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                     {editingId === entry.id ? (
                       <>
-                        <td className="px-3 py-2">
+                        <td className="px-2 py-2 md:px-3">
                           <input
                             value={editDraft.saison}
                             onChange={e => setEditDraft(d => ({ ...d, saison: e.target.value }))}
                             className="input-field control w-full px-2 py-1 rounded-control text-sm"
                           />
                         </td>
-                        <td className="px-3 py-2">
+                        <td className="px-2 py-2 md:px-3">
                           <input
                             value={editDraft.budget}
                             onChange={e => setEditDraft(d => ({ ...d, budget: e.target.value }))}
                             className="input-field control w-full px-2 py-1 rounded-control text-sm text-right"
                           />
                         </td>
-                        <td className="px-3 py-2">
+                        <td className="px-2 py-2 md:px-3">
                           <input
                             value={editDraft.anzahlManager}
                             onChange={e => setEditDraft(d => ({ ...d, anzahlManager: e.target.value }))}
                             className="input-field control w-full px-2 py-1 rounded-control text-sm text-right"
                           />
                         </td>
-                        <td className="px-3 py-2">
+                        <td className="px-2 py-2 md:px-3">
                           <div className="flex gap-2 justify-end">
                             <Button variant="emphasized" size="sm" onClick={() => saveEdit(entry.id)} disabled={update.isPending}>
                               Speichern
@@ -254,11 +254,11 @@ export default function History() {
                       </>
                     ) : (
                       <>
-                        <td className="px-3 py-2 font-medium text-foreground">{isMobile ? shortSaison(entry.saison) : entry.saison}</td>
-                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{isMobile ? formatBudgetShort(entry.budget) : `${formatEuro(entry.budget)} €`}</td>
-                        <td className="px-3 py-2 text-right text-foreground tabular-nums">{entry.anzahlManager}</td>
+                        <td className="px-2 py-2 md:px-3 font-medium text-foreground">{isMobile ? shortSaison(entry.saison) : entry.saison}</td>
+                        <td className="px-2 py-2 md:px-3 text-right text-foreground tabular-nums">{isMobile ? formatBudgetShort(entry.budget) : `${formatEuro(entry.budget)} €`}</td>
+                        <td className="px-2 py-2 md:px-3 text-right text-foreground tabular-nums">{entry.anzahlManager}</td>
                         {isAdmin && (
-                          <td className="px-3 py-2">
+                          <td className="px-2 py-2 md:px-3">
                             <div className="flex gap-2 justify-end">
                               <Button variant="secondary" size="sm" onClick={() => startEdit(entry)}>Bearbeiten</Button>
                               <Button variant="negative" size="sm" onClick={() => handleDelete(entry.id, entry.saison)}>Löschen</Button>

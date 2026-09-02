@@ -157,7 +157,7 @@ function PlayerMobileTable({ players, isBeforeSeason, title }: {
   title: string
 }) {
   const navigate = useNavigate()
-  const th = 'px-3 py-1 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
+  const th = 'px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
   const td = 'px-2 py-2 border-b border-border whitespace-nowrap tabular-nums'
 
   const sorted = useMemo(
@@ -188,9 +188,11 @@ function PlayerMobileTable({ players, isBeforeSeason, title }: {
               className={`cursor-pointer hover:bg-card-hover border-b border-border transition-colors ${index % 2 === 1 ? 'bg-zebra' : ''}`}
             >
               <td className={`${td} max-w-[11rem]`}>
-                <div className={`truncate font-semibold ${p.aktiv === false ? 'text-danger line-through' : 'text-foreground'}`}>
-                  {fullName(p)}
-                </div>
+                <RouterLink to={`/players/${p.id}`} className="link" onClick={(e) => e.stopPropagation()}>
+                  <div className={`truncate font-semibold ${p.aktiv === false ? 'text-danger line-through' : 'text-link'}`}>
+                    {fullName(p)}
+                  </div>
+                </RouterLink>
                 {p.teams.length > 0 && (
                   <div className="truncate text-xs text-muted">{p.teams[0].name}</div>
                 )}

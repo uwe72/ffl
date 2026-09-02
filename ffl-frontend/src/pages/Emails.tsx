@@ -244,9 +244,9 @@ export default function Emails() {
                   const isParticipant = teamCount > 0
                   return (
                     <tr key={email.id} className="border-b border-border hover:bg-card-hover">
-                      <td className="px-3 py-2 text-subtle">{email.id}</td>
-                      <td className="px-3 py-2 text-foreground">{email.email}</td>
-                      <td className="px-3 py-2">
+                      <td className="px-2 py-2 md:px-3 text-subtle">{email.id}</td>
+                      <td className="px-2 py-2 md:px-3 text-foreground">{email.email}</td>
+                      <td className="px-2 py-2 md:px-3">
                         {isParticipant ? (
                           <span className="text-success font-medium">Ja</span>
                         ) : (
@@ -256,7 +256,7 @@ export default function Emails() {
                       <td className={`px-3 py-2 ${teamCount > 0 ? 'text-foreground' : 'text-subtle'}`}>
                         {teamCount}
                       </td>
-                      <td className="px-3 py-2 text-right">
+                      <td className="px-2 py-2 md:px-3 text-right">
                         <Button
                           variant="negative"
                           size="compact"

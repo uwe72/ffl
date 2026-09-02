@@ -93,9 +93,6 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         {isAuthenticated && (
           <SidebarItem to="/" label="Dashboard" icon="sap-icon-bbyd-dashboard" collapsed={collapsed} />
         )}
-        {!mobile && (
-          <SidebarItem to="/managers" label="Manager" icon="sap-icon-employee" collapsed={collapsed} />
-        )}
         {isAuthenticated && (
           <SidebarItem to="/my-team" label="My Team" icon="sap-icon-employee" collapsed={collapsed} />
         )}

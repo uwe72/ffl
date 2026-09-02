@@ -73,7 +73,7 @@
             <td style="background:#ffffff;border:1px solid #d6d3d1;border-radius:6px;padding:20px 22px;">
               <p style="margin:0 0 8px 0;color:#78716c;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Was Du tun kannst</p>
               <p th:if="${beforeSeason}" style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">Da die Saison noch nicht gestartet ist, kannst Du Deine Aufstellung jederzeit anpassen und den betroffenen Spieler ersetzen.</p>
-              <p th:unless="${beforeSeason}" style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">Im Winter-Wechselfenster kannst Du den betroffenen Spieler austauschen. Achte darauf, Deine Aufstellung rechtzeitig anzupassen.</p>
+              <p th:unless="${beforeSeason}" style="margin:0;color:#57534e;font-size:14px;line-height:1.6;">Du kannst den betroffenen Spieler jederzeit austauschen &ndash; sp&auml;testens bis zum Beginn des <strong th:text="${transferRound} + '. Spieltags'">16. Spieltags</strong>. Der Wechsel greift dann ab dem <strong th:text="${transferRound} + '. Spieltag'">16. Spieltag</strong>.</p>
             </td>
           </tr>
 

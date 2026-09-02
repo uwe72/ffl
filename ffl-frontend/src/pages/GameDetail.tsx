@@ -49,7 +49,7 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
                 const fullName = [player.firstName, player.lastName].filter(Boolean).join(' ') || player.playerName
                 return (
                   <tr key={player.playerId} className={`border-b border-border hover:bg-card-hover transition-colors ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                    <td className="px-3 py-2 text-foreground">
+                    <td className="px-2 py-2 md:px-3 text-foreground">
                       <div className="flex items-center">
                         {player.pictureUrl && (
                           <img src={player.pictureUrl} alt={player.playerName} className="w-10 h-10 rounded-full object-cover mr-3" />
@@ -62,17 +62,17 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
                         </div>
                       </div>
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-2 py-2 md:px-3">
                       {player.position ? (
                         <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
                           {positionLabels[player.position]}
                         </span>
                       ) : '-'}
                     </td>
-                    <td className="px-3 py-2 text-center">
+                    <td className="px-2 py-2 md:px-3 text-center">
                       <span className="font-semibold text-primary">{player.totalPoints || '-'}</span>
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-2 py-2 md:px-3">
                       {player.rules && player.rules.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {player.rules.map((rule, idx) => (

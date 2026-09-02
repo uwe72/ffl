@@ -3,7 +3,8 @@ import { useParams, Link as RouterLink } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { usePlayer, useUpdatePlayer, usePlayerRanks } from '../hooks/usePlayers'
 import { useAuth } from '../context/AuthContext'
-import { positionLabels } from './Players'
+import { positionLabels, positionColors } from './Players'
+import ScoreLine from '../components/statistik/ScoreLine'
 import Button from '../components/Button'
 import BackButton from '../components/BackButton'
 import SortIcon from '../components/SortIcon'
@@ -32,6 +33,23 @@ const POSITION_LABELS: Record<Position, string> = {
   DEFENDER: 'ABW',
   MIDFIELD: 'MF',
   STRIKER: 'ST',
+}
+
+const POSITION_SHORT_LABELS: Record<Position, string> = {
+  GOALKEEPER: 'TW',
+  DEFENDER: 'VT',
+  MIDFIELD: 'MF',
+  STRIKER: 'ST',
+}
+
+function managerLogin(m: { shortName?: string; name?: string }): string {
+  const v = m.shortName ?? m.name ?? '-'
+  return v.length > 10 ? `${v.slice(0, 10)}…` : v
+}
+
+function managerFullName(m: { firstName?: string; lastName?: string; name?: string }): string {
+  const v = [m.firstName, m.lastName].filter(Boolean).join(' ') || m.name || '-'
+  return v.length > 17 ? `${v.slice(0, 17)}…` : v
 }
 
 export default function PlayerDetail() {
@@ -172,6 +190,11 @@ export default function PlayerDetail() {
     }
   }
 
+  const mobileManagers = useMemo(() => {
+    if (!player?.managers) return []
+    return [...player.managers].sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999))
+  }, [player?.managers])
+
   const filteredAndSortedManagers = useMemo(() => {
     if (!player?.managers) return []
     
@@ -279,18 +302,44 @@ export default function PlayerDetail() {
     <div className="max-w-6xl">
       <BackButton to="/players" className="mb-4" />
 
-      <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+      <div className={`${isMobile ? 'px-3 py-0.5 bg-surface mb-0' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
         <div className="flex items-center gap-4">
-          {player.pictureUrl ? (
-            <img src={player.pictureUrl} alt={player.nameKicker} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center shrink-0">
-              <span className="text-sm font-semibold">{POSITION_LABELS[player.position]}</span>
-            </div>
+          {!isMobile && (
+            player.pictureUrl ? (
+              <img src={player.pictureUrl} alt={player.nameKicker} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center shrink-0">
+                <span className="text-sm font-semibold">{POSITION_LABELS[player.position]}</span>
+              </div>
+            )
           )}
 
           <div className="flex-1 min-w-0">
-            {!stammdatenOpen && (
+            {!stammdatenOpen && isMobile && (
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-base font-semibold text-foreground truncate">{player.nameKicker}</span>
+                  <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge shrink-0`}>{POSITION_SHORT_LABELS[player.position]}</span>
+                  <span className="text-xs text-muted shrink-0">{player.prize ? formatPrice(player.prize) : '—'}</span>
+                </div>
+                {player.teams.length > 0 && (
+                  <div className="mt-0.5 text-xs text-muted">
+                    {player.teams.map(t => t.name).join(', ')}
+                    {player.aktiv === false && ' · Inaktiv'}
+                  </div>
+                )}
+                <div className="mt-0.5 text-xs text-muted leading-relaxed">
+                  <ScoreLine
+                    position={player.positionLastRound ?? null}
+                    positionVorher={null}
+                    punkte={player.pointsLastRound ?? null}
+                    punkteVorher={null}
+                  />
+                </div>
+              </div>
+            )}
+
+            {!stammdatenOpen && !isMobile && (
               <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
                 <div className="min-w-0">
                   <h2 className="text-3xl font-bold text-foreground truncate">
@@ -521,8 +570,9 @@ export default function PlayerDetail() {
         </div>
       </div>
 
+      <div className="flex flex-col">
       {chartData.length > 0 && (
-        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+        <div className={`order-2 md:order-1 px-3 py-4 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
           <h3 className="text-xl font-semibold text-foreground mb-3">Punkte pro Spieltag</h3>
           <div className="bg-card p-4 rounded-card border border-border">
             <ResponsiveContainer width="100%" height={300}>
@@ -539,17 +589,19 @@ export default function PlayerDetail() {
       )}
 
       {player.managers && player.managers.length > 0 && (
-        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-foreground">Manager mit diesem Spieler ({player.managers.length})</h3>
-            <input
-              type="text"
-              placeholder="Manager suchen..."
-              value={managerFilter}
-              onChange={(e) => setManagerFilter(e.target.value)}
-              className="input-field control w-64 px-3 py-2 rounded-control text-sm focus:outline-none"
-            />
-          </div>
+        <div className={`order-1 md:order-2 px-3 py-4 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
+          {!isMobile && (
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-foreground">Manager mit diesem Spieler ({player.managers.length})</h3>
+              <input
+                type="text"
+                placeholder="Manager suchen..."
+                value={managerFilter}
+                onChange={(e) => setManagerFilter(e.target.value)}
+                className="input-field control w-64 px-3 py-2 rounded-control text-sm focus:outline-none"
+              />
+            </div>
+          )}
 
           {!isMobile && (
             <div className="overflow-x-auto rounded-card border border-border">
@@ -649,56 +701,61 @@ export default function PlayerDetail() {
           )}
 
           {isMobile && (
-            <div className="grid gap-4">
-              {filteredAndSortedManagers.length > 0 ? (
-                filteredAndSortedManagers.map((manager) => (
-                  <div key={manager.id} className="card p-4 bg-card border border-border rounded-card">
-                    <div className="flex items-center gap-3 mb-3">
-                      <RouterLink to={`/managers/${manager.id}`} className="link font-semibold">
-                        {manager.shortName || manager.name || '-'}
-                      </RouterLink>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <div>
-                        <span className="text-subtle">Pos: </span>
-                        <span className="font-medium text-foreground">{manager.positionTotal ? `${manager.positionTotal}.` : '-'}</span>
-                      </div>
-                      <div>
-                        <span className="text-subtle">Punkte: </span>
-                        <span className="font-medium text-foreground">{manager.pointsTotal ?? '-'}</span>
-                      </div>
-                      <div>
-                        <span className="text-subtle">{player?.season?.currentMatchday ? `${player.season.currentMatchday}. Spieltag: ` : 'Spieltag: '}</span>
-                        <span className="font-medium text-foreground">{manager.pointsLastRound ?? '-'}</span>
-                      </div>
-                      <div>
-                        <span className="text-subtle">Teamwert: </span>
-                        <span className="font-medium text-foreground">{manager.teamValue ? (manager.teamValue / 1000000).toFixed(2) : '0.00'} Mio.</span>
-                      </div>
-                      <div>
-                        {manager.hinrunde ? (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-accent">Hin</span>
-                        ) : (
-                          <span className="text-subtle text-xs">Hin: -</span>
-                        )}
-                      </div>
-                      <div>
-                        {manager.rueckrunde ? (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-success">Rück</span>
-                        ) : (
-                          <span className="text-subtle text-xs">Rück: -</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center text-subtle py-8">Keine Manager gefunden</div>
-              )}
+            <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
+              <table className="w-full border-collapse text-sm">
+                <thead className="bg-elevated sticky top-0">
+                  <tr>
+                    <th colSpan={3} align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">
+                      {player?.season?.currentMatchday ? `${player.season.currentMatchday}. Spieltag` : 'Spieltag'}
+                    </th>
+                    <th colSpan={2} align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">
+                      Punkte
+                    </th>
+                  </tr>
+                  <tr>
+                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">POS</th>
+                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Manager</th>
+                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Name</th>
+                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">GES.</th>
+                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Sp.</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-surface">
+                  {mobileManagers.map((m, index) => (
+                    <tr key={m.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                      <td className="px-2 py-2 border-b border-border whitespace-nowrap tabular-nums text-center font-medium text-foreground">
+                        {m.positionTotal ? `${m.positionTotal}.` : '-'}
+                      </td>
+                      <td className="px-2 py-2 border-b border-border whitespace-nowrap tabular-nums min-w-0">
+                        <RouterLink to={`/managers/${m.id}`} className="link font-medium truncate block min-w-0" title={m.shortName ?? m.name}>
+                          {managerLogin(m)}
+                        </RouterLink>
+                      </td>
+                      <td className="px-2 py-2 border-b border-border whitespace-nowrap tabular-nums min-w-0">
+                        <span className="text-foreground truncate block min-w-0" title={managerFullName(m)}>
+                          {managerFullName(m)}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 border-b border-border whitespace-nowrap tabular-nums text-center font-bold text-foreground">
+                        {m.pointsTotal ?? '-'}
+                      </td>
+                      <td className="px-2 py-2 border-b border-border whitespace-nowrap tabular-nums text-center text-muted">
+                        {m.pointsLastRound ?? '-'}
+                      </td>
+                    </tr>
+                  ))}
+                  {mobileManagers.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="text-center text-subtle py-8">Keine Manager gefunden</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
       )}
+      </div>
 
       <div className="h-10" />
     </div>

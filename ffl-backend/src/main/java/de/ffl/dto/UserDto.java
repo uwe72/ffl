@@ -11,9 +11,6 @@ public class UserDto {
     private String email;
     private String firstName;
     private String lastName;
-    private String street;
-    private String city;
-    private String birthday;
     private String role;
     private List<ManagerInfo> managers;
     private String avatarUrl;
@@ -25,9 +22,6 @@ public class UserDto {
         dto.setEmail(user.getEmail());
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
-        dto.setStreet(user.getStreet());
-        dto.setCity(user.getCity());
-        dto.setBirthday(user.getBirthday() != null ? user.getBirthday().toString() : null);
         dto.setRole(user.getRole() != null ? user.getRole().name() : null);
         if (user.getAvatar() != null && user.getAvatar().length > 0) {
             dto.setAvatarUrl("/api/users/" + user.getId() + "/avatar");
@@ -65,12 +59,6 @@ public class UserDto {
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
-    public String getStreet() { return street; }
-    public void setStreet(String street) { this.street = street; }
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
-    public String getBirthday() { return birthday; }
-    public void setBirthday(String birthday) { this.birthday = birthday; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
     public List<ManagerInfo> getManagers() { return managers; }

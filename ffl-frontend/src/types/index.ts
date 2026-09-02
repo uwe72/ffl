@@ -340,9 +340,6 @@ export interface User {
   email: string
   firstName?: string
   lastName?: string
-  street?: string
-  city?: string
-  birthday?: string
   role: UserRole
   managers?: ManagerInfo[]
   mailTheme?: MailTheme
@@ -352,7 +349,7 @@ export interface User {
 
 export type MailTheme = 'DARKMODE' | 'LIGHTMODE'
 
-export type UserRole = 'ADMIN' | 'NORMAL' | 'GUEST'
+export type UserRole = 'ADMIN' | 'NORMAL'
 
 export interface LoginRequest {
   login: string

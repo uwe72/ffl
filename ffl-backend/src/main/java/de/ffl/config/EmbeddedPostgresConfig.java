@@ -45,6 +45,8 @@ public class EmbeddedPostgresConfig {
             log.info("  Logo-Spalte (oid) entfernt, wird als bytea neu angelegt");
             stmt.execute("ALTER TABLE ffl_deposit ALTER COLUMN payment_method DROP NOT NULL");
             log.info("  NOT-NULL-Constraint von ffl_deposit.payment_method entfernt");
+            stmt.execute("ALTER TABLE IF EXISTS ffl_user DROP COLUMN IF EXISTS street, DROP COLUMN IF EXISTS city, DROP COLUMN IF EXISTS birthday");
+            log.info("  Veraltete User-Spalten (street, city, birthday) entfernt");
         } catch (Exception e) {
             log.warn("  Spalten-Migration: {}", e.getMessage());
         }

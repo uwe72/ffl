@@ -35,7 +35,7 @@ public class PlayerDeactivationMailService {
 
     @Async
     public void sendDeactivationNotifications(List<ManagerNotificationDto> notifications,
-                                              String seasonName, SeasonState state) {
+                                              String seasonName, SeasonState state, int transferRound) {
         if (state != SeasonState.BEFORE_SEASON && state != SeasonState.RUNNING_HINRUNDE) {
             log.info("Spieler-Deaktivierungs-Mails nur im Status 'Vor Saison' oder 'Hinrunde', aktuell {}, übersprungen", state);
             return;
@@ -73,7 +73,7 @@ public class PlayerDeactivationMailService {
                     helper.setTo(notification.email());
                     helper.setBcc(config.getGmailSenderEmail());
                     helper.setSubject("FFL | Spieler nicht mehr verfügbar | " + seasonName);
-                    helper.setText(buildHtml(notification, seasonName, beforeSeason, webUrl), true);
+                    helper.setText(buildHtml(notification, seasonName, beforeSeason, transferRound, webUrl), true);
 
                     boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
                         notification.email(), notification.email(), null);
@@ -91,13 +91,15 @@ public class PlayerDeactivationMailService {
         log.info("Spieler-Deaktivierungs-Mails an {} Manager gesendet", sent);
     }
 
-    String buildHtml(ManagerNotificationDto notification, String seasonName, boolean beforeSeason, String webUrl) {
+    String buildHtml(ManagerNotificationDto notification, String seasonName, boolean beforeSeason,
+                     int transferRound, String webUrl) {
         Context context = new Context(Locale.GERMAN);
         context.setVariable("greeting", notification.greeting());
         context.setVariable("userName", notification.userName());
         context.setVariable("seasonName", seasonName);
         context.setVariable("players", notification.players());
         context.setVariable("beforeSeason", beforeSeason);
+        context.setVariable("transferRound", transferRound);
         context.setVariable("webUrl", webUrl);
         return templateEngine.process("mail/player-deactivation", context);
     }

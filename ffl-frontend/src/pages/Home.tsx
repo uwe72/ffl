@@ -20,6 +20,7 @@ import CoachTafel from '../components/statistik/CoachTafel'
 import ScoreLine from '../components/statistik/ScoreLine'
 import type { Aufstellung } from '../types/dashboard'
 import type { ManagerGroupRoundStats, Manager } from '../types'
+import Managers from './Managers'
 
 const EMPTY_AUFSTELLUNG: Aufstellung = {
   phase: 'SAISON',
@@ -102,9 +103,6 @@ function GroupHomeCard({ group, canNavigateToManager }: { group: ManagerGroupRou
             <p className="text-muted text-sm mt-1">{group.description}</p>
           )}
         </div>
-        <span className="ml-auto text-sm text-muted whitespace-nowrap">
-          <span className="font-semibold text-foreground">Erstellt von:</span> {creatorName}
-        </span>
       </div>
       <div className="overflow-x-auto rounded-card border border-border w-fit">
         <table className="w-full max-w-[900px]">
@@ -119,8 +117,10 @@ function GroupHomeCard({ group, canNavigateToManager }: { group: ManagerGroupRou
           <TableBody>
             {[...group.managers]
               .sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999))
-              .map((m, index) => (
-                <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+              .map((m, index) => {
+                const isMe = m.isCurrentUser
+                return (
+                <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-accent-muted font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                   <td className="px-3 py-2 text-center font-medium text-foreground">
                     {m.positionTotal ? `${m.positionTotal}.` : '-'}
                   </td>
@@ -146,7 +146,8 @@ function GroupHomeCard({ group, canNavigateToManager }: { group: ManagerGroupRou
                     {m.pointsLastRound ?? '-'}
                   </td>
                 </tr>
-              ))}
+                )
+              })}
             {group.managers.length === 0 && (
               <tr>
                 <td colSpan={4} className="text-center text-subtle py-8">
@@ -157,12 +158,15 @@ function GroupHomeCard({ group, canNavigateToManager }: { group: ManagerGroupRou
           </TableBody>
         </table>
       </div>
+      <p className="text-subtle text-sm mt-3">
+        <span className="text-foreground">Ersteller:</span> {creatorName}
+      </p>
     </div>
   )
 }
 
 function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group: ManagerGroupRoundStats, canNavigateToManager: boolean, headerTitle: string }) {
-  const th = 'px-3 py-1 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
+  const th = 'px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
   const td = 'px-2 py-2 border-b border-border whitespace-nowrap tabular-nums'
   return (
     <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
@@ -187,8 +191,10 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
         <tbody className="bg-surface">
           {[...group.managers]
             .sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999))
-            .map((m, index) => (
-              <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+            .map((m, index) => {
+              const isMe = m.isCurrentUser
+              return (
+              <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-accent-muted font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                 <td className={`${td} text-center font-medium text-foreground`}>
                   {m.positionTotal ? `${m.positionTotal}.` : '-'}
                 </td>
@@ -219,7 +225,8 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
                   {m.pointsLastRound ?? '-'}
                 </td>
               </tr>
-            ))}
+              )
+            })}
           {group.managers.length === 0 && (
             <tr>
               <td colSpan={5} className="text-center text-subtle py-8">
@@ -241,7 +248,7 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
   myManagerId: number | undefined
   rowRef: React.RefObject<HTMLTableRowElement | null>
 }) {
-  const th = 'px-3 py-1 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
+  const th = 'px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
   const td = 'px-2 py-2 border-b border-border whitespace-nowrap tabular-nums'
   const sorted = useMemo(
     () => [...(managers ?? [])].sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999)),
@@ -673,7 +680,7 @@ export default function Home() {
                 </div>
                 {activeGroup && (
                   <div className="mt-0.5 text-xs text-muted leading-relaxed">
-                    <span className="font-semibold text-foreground">Ersteller:</span> {groupCreatorName(activeGroup)}
+                    <span className="text-foreground">Ersteller:</span> {groupCreatorName(activeGroup)}
                   </div>
                 )}
               </div>
@@ -826,13 +833,14 @@ export default function Home() {
                       {isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit'}
                     </Button>
                   )}
-                  {carouselEnabled && !isMobile && (
+                  {carouselEnabled && (
                     <div className="flex flex-col gap-1.5">
                       <span className="text-xs font-semibold uppercase tracking-wider text-muted">Manager suchen</span>
                       <ManagerSelect
                         managers={managers ?? []}
                         value={activeManagerId ?? null}
                         onChange={id => { setActiveManagerId(id); setMenuOpen(false) }}
+                        alignRight
                       />
                     </div>
                   )}
@@ -983,6 +991,7 @@ export default function Home() {
         items={[
           { key: 'spieler', label: 'Spieler' },
           { key: 'gruppen', label: 'Gruppen' },
+          { key: 'manager', label: 'Manager' },
         ]}
         active={activeTab}
         onChange={handleTabChange}
@@ -1009,6 +1018,10 @@ export default function Home() {
             </div>,
             true
           )
+        ) : activeTab === 'manager' ? (
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+            <Managers />
+          </div>
         ) : (
           <div className="flex-1 min-h-0 overflow-y-auto pr-1">
             <div className="max-w-[1300px] flex flex-col gap-6">

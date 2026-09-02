@@ -538,7 +538,8 @@ public class NewSeasonSetupService {
                 }
             }
         }
-        dispatchDeactivationNotifications(notificationsByManager, season.getName(), season.getSeasonState());
+        int transferRound = season.getStartRoundRueckrunde() != null ? season.getStartRoundRueckrunde() : 16;
+        dispatchDeactivationNotifications(notificationsByManager, season.getName(), season.getSeasonState(), transferRound);
 
         log.accept("");
         log.accept("=== Spieler-Update abgeschlossen ===");
@@ -720,7 +721,7 @@ public class NewSeasonSetupService {
     }
 
     private void dispatchDeactivationNotifications(Map<Long, ManagerNotificationAccumulator> notificationsByManager,
-                                                   String seasonName, SeasonState seasonState) {
+                                                   String seasonName, SeasonState seasonState, int transferRound) {
         if (notificationsByManager.isEmpty()) {
             return;
         }
@@ -732,11 +733,11 @@ public class NewSeasonSetupService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    playerDeactivationMailService.sendDeactivationNotifications(notifications, seasonName, seasonState);
+                    playerDeactivationMailService.sendDeactivationNotifications(notifications, seasonName, seasonState, transferRound);
                 }
             });
         } else {
-            playerDeactivationMailService.sendDeactivationNotifications(notifications, seasonName, seasonState);
+            playerDeactivationMailService.sendDeactivationNotifications(notifications, seasonName, seasonState, transferRound);
         }
     }
 

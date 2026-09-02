@@ -1,6 +1,8 @@
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
+import { usePWAInstall } from '../hooks/usePWAInstall'
 import Badge from './Badge'
+import Button from './Button'
 import { seasonStateLabel } from '../utils/season'
 
 interface HeroSectionProps {
@@ -18,11 +20,12 @@ function getGreeting(): string {
 export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps) {
   const { data: season } = useCurrentSeason()
   const { user } = useAuth()
+  const { isInstallable, isInstalled, install } = usePWAInstall()
 
   const phaseLabel = seasonStateLabel(season?.seasonState)
 
   return (
-    <div className="hero relative h-[76px] md:h-[102px] shrink-0 overflow-hidden bg-header">
+    <div className="hero relative h-[80px] md:h-[102px] shrink-0 overflow-hidden bg-header">
       <div
         className="absolute inset-0 bg-cover bg-no-repeat"
         style={{
@@ -61,6 +64,15 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
               </div>
             )}
           </div>
+        </div>
+
+        <div className="flex items-center shrink-0 pr-[30px]">
+          {isInstallable && !isInstalled && (
+            <Button variant="secondary" size="compact" onClick={install}>
+              <i className="sap-icon sap-icon-download text-xs" />
+              Installieren
+            </Button>
+          )}
         </div>
       </div>
     </div>

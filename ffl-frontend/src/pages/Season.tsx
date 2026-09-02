@@ -771,18 +771,18 @@ export default function Season() {
                         className="border-b border-border last:border-b-0 hover:bg-card-hover"
                         style={{ borderLeftWidth: '4px', borderLeftColor: payout.payoutStatus === 'PAID' ? 'var(--color-success)' : 'var(--color-border-neutral)' }}
                       >
-                        <td className="px-3 py-2 text-foreground font-medium">{payout.position}</td>
-                        <td className="px-3 py-2 text-foreground">{payout.managerName}</td>
-                        <td className="px-3 py-2 text-muted">{payout.managerFirstName || '-'}</td>
-                        <td className="px-3 py-2 text-muted">{payout.managerLastName || '-'}</td>
-                        <td className="px-3 py-2 text-muted">{payout.managerEmail || '-'}</td>
-                        <td className="px-3 py-2 text-right text-foreground">{payout.pointsTotal}</td>
-                        <td className="px-3 py-2 text-right text-primary font-medium">
+                        <td className="px-2 py-2 md:px-3 text-foreground font-medium">{payout.position}</td>
+                        <td className="px-2 py-2 md:px-3 text-foreground">{payout.managerName}</td>
+                        <td className="px-2 py-2 md:px-3 text-muted">{payout.managerFirstName || '-'}</td>
+                        <td className="px-2 py-2 md:px-3 text-muted">{payout.managerLastName || '-'}</td>
+                        <td className="px-2 py-2 md:px-3 text-muted">{payout.managerEmail || '-'}</td>
+                        <td className="px-2 py-2 md:px-3 text-right text-foreground">{payout.pointsTotal}</td>
+                        <td className="px-2 py-2 md:px-3 text-right text-primary font-medium">
                           {payout.prizeAmount % 1 === 0
                             ? Math.round(payout.prizeAmount)
                             : payout.prizeAmount.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
-                        <td className="px-3 py-2 text-center">
+                        <td className="px-2 py-2 md:px-3 text-center">
                           <select
                             value={payout.payoutStatus || 'UNPAID'}
                             onChange={(e) => {
@@ -801,7 +801,7 @@ export default function Season() {
                             <option value="PAID">Ausbezahlt</option>
                           </select>
                         </td>
-                        <td className="px-3 py-2 text-center">
+                        <td className="px-2 py-2 md:px-3 text-center">
                           <button
                             onClick={() => {
                               setCommentDialogManager(payout)
@@ -1066,11 +1066,11 @@ export default function Season() {
                           className={`border-b border-border last:border-b-0 hover:bg-card-hover ${index % 2 === 1 ? 'bg-zebra' : ''}`}
                           style={{ borderLeftWidth: '4px', borderLeftColor: deposit.depositStatus === 'RECEIVED' ? 'var(--color-success)' : 'var(--color-border-neutral)' }}
                         >
-                          <td className="px-3 py-2 text-foreground">{deposit.managerLogin || '-'}</td>
-                          <td className="px-3 py-2 text-muted">{deposit.managerFirstName || '-'}</td>
-                          <td className="px-3 py-2 text-muted">{deposit.managerLastName || '-'}</td>
-                          <td className="px-3 py-2 text-muted">{deposit.managerEmail || '-'}</td>
-                          <td className="px-3 py-2 text-center">
+                          <td className="px-2 py-2 md:px-3 text-foreground">{deposit.managerLogin || '-'}</td>
+                          <td className="px-2 py-2 md:px-3 text-muted">{deposit.managerFirstName || '-'}</td>
+                          <td className="px-2 py-2 md:px-3 text-muted">{deposit.managerLastName || '-'}</td>
+                          <td className="px-2 py-2 md:px-3 text-muted">{deposit.managerEmail || '-'}</td>
+                          <td className="px-2 py-2 md:px-3 text-center">
                             <input
                               type="checkbox"
                               checked={!!deposit.spielleiter}
@@ -1079,7 +1079,7 @@ export default function Season() {
                               title={deposit.spielleiter ? 'Spielleiter (spielt kostenlos)' : 'Kein Spielleiter'}
                             />
                           </td>
-                          <td className="px-3 py-2 text-center">
+                          <td className="px-2 py-2 md:px-3 text-center">
                             <select
                               value={deposit.paymentMethod || ''}
                               disabled={!!deposit.spielleiter}
@@ -1101,7 +1101,7 @@ export default function Season() {
                               <option value="OTHER">Sonstiges</option>
                             </select>
                           </td>
-                          <td className="px-3 py-2 text-center">
+                          <td className="px-2 py-2 md:px-3 text-center">
                             <select
                               value={deposit.depositStatus || 'OPEN'}
                               disabled={!!deposit.spielleiter}
@@ -1125,7 +1125,7 @@ export default function Season() {
                               <option value="RECEIVED">Eingegangen</option>
                             </select>
                           </td>
-                          <td className="px-3 py-2 text-center">
+                          <td className="px-2 py-2 md:px-3 text-center">
                             <button
                               onClick={() => {
                                 setDepositCommentDialog(deposit)
@@ -1337,12 +1337,12 @@ export default function Season() {
                   <TableBody>
                     {setupPreview.teamBreakdown.map((t) => (
                       <tr key={t.name} className="border-b border-border last:border-b-0 hover:bg-card-hover">
-                        <td className="px-3 py-2 text-foreground">{t.name}</td>
-                        <td className="px-3 py-2 text-right text-foreground">{t.players}</td>
-                        <td className="px-3 py-2 text-center text-muted">{t.hasGoalkeeper ? '✓' : '-'}</td>
-                        <td className="px-3 py-2 text-center text-muted">{t.hasDefender ? '✓' : '-'}</td>
-                        <td className="px-3 py-2 text-center text-muted">{t.hasMidfield ? '✓' : '-'}</td>
-                        <td className="px-3 py-2 text-center text-muted">{t.hasStriker ? '✓' : '-'}</td>
+                        <td className="px-2 py-2 md:px-3 text-foreground">{t.name}</td>
+                        <td className="px-2 py-2 md:px-3 text-right text-foreground">{t.players}</td>
+                        <td className="px-2 py-2 md:px-3 text-center text-muted">{t.hasGoalkeeper ? '✓' : '-'}</td>
+                        <td className="px-2 py-2 md:px-3 text-center text-muted">{t.hasDefender ? '✓' : '-'}</td>
+                        <td className="px-2 py-2 md:px-3 text-center text-muted">{t.hasMidfield ? '✓' : '-'}</td>
+                        <td className="px-2 py-2 md:px-3 text-center text-muted">{t.hasStriker ? '✓' : '-'}</td>
                       </tr>
                     ))}
                   </TableBody>

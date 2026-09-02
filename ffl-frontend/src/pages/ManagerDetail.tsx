@@ -585,11 +585,10 @@ export default function ManagerDetail() {
 
   return (
     <div className="max-w-6xl">
-      {!isMobile && <BackButton to="/managers" className="mb-4" />}
+      <BackButton to="/managers" className="mb-4" />
 
       <div className={`${isMobile ? 'px-3 py-0.5 bg-surface mb-0' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
         <div className="flex items-center gap-4">
-          {isMobile && <BackButton to="/managers" className="shrink-0 px-0 pt-0" />}
           {!isMobile && (
             <>
               <div className="relative group w-20 h-20 shrink-0">
@@ -1045,7 +1044,7 @@ function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: nu
                 : '-'
               return (
                 <tr key={pp.playerId} className="hover:bg-card-hover border-b border-border">
-                  <td className="px-3 py-2">
+                  <td className="px-2 py-2 md:px-3">
                     <RouterLink
                       to={`/players/${pp.playerId}`}
                       className="flex items-center link"
@@ -1056,7 +1055,7 @@ function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: nu
                       <div className="font-medium text-link">{pp.playerName}</div>
                     </RouterLink>
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2 py-2 md:px-3">
                     {currentTeam?.logoSUrl && (
                       <img 
                         src={currentTeam.logoSUrl} 
@@ -1067,17 +1066,17 @@ function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: nu
                     )}
                     <span className="text-muted">{currentTeam?.name || '-'}</span>
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2 py-2 md:px-3">
                     {player && (
         <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${positionColors[player.position]}`}>
                         {positionLabels[player.position]}
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right font-medium text-primary">
+                  <td className="px-2 py-2 md:px-3 text-right font-medium text-primary">
                     {player ? `${(player.prize / 1000000).toFixed(1)} Mio.` : '-'}
                   </td>
-                  <td className="px-3 py-2 text-right">
+                  <td className="px-2 py-2 md:px-3 text-right">
                     <span 
                       className="font-medium text-primary cursor-help" 
                       title={rulesText}

@@ -60,7 +60,7 @@ class PlayerDeactivationMailServiceTest {
                 .thenReturn("<html>mail</html>");
 
         service().sendDeactivationNotifications(
-                List.of(notification()), "2026/27", SeasonState.BEFORE_SEASON);
+                List.of(notification()), "2026/27", SeasonState.BEFORE_SEASON, 16);
 
         verify(templateEngine).process(eq("mail/player-deactivation"), any(Context.class));
     }
@@ -68,7 +68,7 @@ class PlayerDeactivationMailServiceTest {
     @Test
     void doesNotSendInRueckrunde() {
         service().sendDeactivationNotifications(
-                List.of(notification()), "2026/27", SeasonState.RUNNING_RUECKRUNDE);
+                List.of(notification()), "2026/27", SeasonState.RUNNING_RUECKRUNDE, 16);
 
         verify(systemConfigRepository, never()).findFirstByOrderByIdAsc();
     }
@@ -76,7 +76,7 @@ class PlayerDeactivationMailServiceTest {
     @Test
     void doesNotSendWhenNoNotifications() {
         service().sendDeactivationNotifications(
-                List.of(), "2026/27", SeasonState.BEFORE_SEASON);
+                List.of(), "2026/27", SeasonState.BEFORE_SEASON, 16);
 
         verify(systemConfigRepository, never()).findFirstByOrderByIdAsc();
     }
@@ -86,7 +86,7 @@ class PlayerDeactivationMailServiceTest {
         when(systemConfigRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.empty());
 
         service().sendDeactivationNotifications(
-                List.of(notification()), "2026/27", SeasonState.RUNNING_HINRUNDE);
+                List.of(notification()), "2026/27", SeasonState.RUNNING_HINRUNDE, 16);
 
         verify(templateEngine, never()).process(eq("mail/player-deactivation"), any(Context.class));
     }
@@ -101,16 +101,18 @@ class PlayerDeactivationMailServiceTest {
                             + "|season=" + ctx.getVariable("seasonName")
                             + "|players=" + ((List<?>) ctx.getVariable("players")).size()
                             + "|beforeSeason=" + ctx.getVariable("beforeSeason")
+                            + "|transferRound=" + ctx.getVariable("transferRound")
                             + "|web=" + ctx.getVariable("webUrl");
                 });
 
-        String html = service().buildHtml(notification(), "2026/27", true, "https://ffl.app");
+        String html = service().buildHtml(notification(), "2026/27", true, 16, "https://ffl.app");
 
         assertThat(html).contains("greeting=Max Mustermann");
         assertThat(html).contains("userName=Max Mustermann (mmustermann)");
         assertThat(html).contains("season=2026/27");
         assertThat(html).contains("players=1");
         assertThat(html).contains("beforeSeason=true");
+        assertThat(html).contains("transferRound=16");
         assertThat(html).contains("web=https://ffl.app");
     }
 
@@ -119,11 +121,13 @@ class PlayerDeactivationMailServiceTest {
         when(templateEngine.process(eq("mail/player-deactivation"), any(Context.class)))
                 .thenAnswer(invocation -> {
                     Context ctx = invocation.getArgument(1);
-                    return "beforeSeason=" + ctx.getVariable("beforeSeason");
+                    return "beforeSeason=" + ctx.getVariable("beforeSeason")
+                            + "|transferRound=" + ctx.getVariable("transferRound");
                 });
 
-        String html = service().buildHtml(notification(), "2026/27", false, "https://ffl.app");
+        String html = service().buildHtml(notification(), "2026/27", false, 18, "https://ffl.app");
 
         assertThat(html).contains("beforeSeason=false");
+        assertThat(html).contains("transferRound=18");
     }
 }

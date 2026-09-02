@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import type { Aufstellung } from '../../types/dashboard'
 import { positionBadgeVariant } from '../../utils/positions'
 
@@ -30,7 +30,7 @@ export default function AufstellungVertikal({
 
   const title = isVorsaison ? 'Kader' : `${aufstellung.spieltag}. Spieltag`
 
-  const th = 'px-3 py-1 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
+  const th = 'px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
   const td = 'px-2 py-2 border-b border-border whitespace-nowrap tabular-nums'
 
   return (
@@ -60,7 +60,9 @@ export default function AufstellungVertikal({
                 className={`cursor-pointer hover:bg-card-hover border-b border-border transition-colors ${index % 2 === 1 ? 'bg-zebra' : ''}`}
               >
                 <td className={`${td} max-w-[11rem]`}>
-                  <div className="truncate font-semibold text-foreground">{p.name.length > 12 ? `${p.name.slice(0, 12)}...` : p.name}</div>
+                  <RouterLink to={`/players/${p.id}`} className="link" onClick={(e) => e.stopPropagation()}>
+                    <div className="truncate font-semibold text-link">{p.name.length > 12 ? `${p.name.slice(0, 12)}...` : p.name}</div>
+                  </RouterLink>
                   {p.vereinKuerzel && (
                     <div className="truncate text-xs text-muted">{p.vereinKuerzel}</div>
                   )}

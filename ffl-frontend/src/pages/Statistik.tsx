@@ -237,19 +237,19 @@ function MonthRows({ month, isExpanded, onToggle, subSort, onSubSort, sortedUser
       </tr>
       {isExpanded && (
         <tr className="bg-elevated/50">
-          <td colSpan={2} className="px-3 py-2 pl-10">
+          <td colSpan={2} className="px-2 py-2 pl-10 md:px-3">
             {sortedUsers.length > 0 ? (
               <table className="w-full max-w-md">
                 <thead>
                   <tr className="text-[12px] font-semibold uppercase tracking-wide text-muted">
                     <th
-                      className="px-3 py-2 h-[40px] text-left cursor-pointer hover:text-accent select-none"
+                      className="px-2 py-2 h-[40px] text-left cursor-pointer hover:text-accent select-none md:px-3"
                       onClick={() => onSubSort('login')}
                     >
                       Benutzer<SortIcon column="login" activeKey={activeSubSort.key} order={activeSubSort.order} />
                     </th>
                     <th
-                      className="px-3 py-2 h-[40px] text-right cursor-pointer hover:text-accent select-none tabular-nums"
+                      className="px-2 py-2 h-[40px] text-right cursor-pointer hover:text-accent select-none tabular-nums md:px-3"
                       onClick={() => onSubSort('logins')}
                     >
                       Logins<SortIcon column="logins" activeKey={activeSubSort.key} order={activeSubSort.order} />

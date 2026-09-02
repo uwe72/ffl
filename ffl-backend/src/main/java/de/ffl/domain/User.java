@@ -3,8 +3,6 @@ package de.ffl.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-
 @Entity
 @Table(name = "ffl_user")
 @Getter
@@ -33,9 +31,6 @@ public class User {
 
     @Column(length = 25)
     private String lastName;
-    private String street;
-    private String city;
-    private LocalDate birthday;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

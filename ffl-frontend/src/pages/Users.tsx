@@ -8,14 +8,12 @@ import { TableContent, TableHead, ThSortable, TableBody } from '../components/Ta
 
 const roleLabels: Record<string, string> = {
   ADMIN: 'Admin',
-  NORMAL: 'Normal',
-  GUEST: 'Gast'
+  NORMAL: 'Normal'
 }
 
 const roleChipClass: Record<string, string> = {
   ADMIN: 'chip-success',
-  NORMAL: 'chip-warning',
-  GUEST: 'chip-accent'
+  NORMAL: 'chip-warning'
 }
 
 type SortKey = 'login' | 'email' | 'firstName' | 'lastName' | 'role'
@@ -125,15 +123,15 @@ export default function Users() {
               {filteredUsers && filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="border-b border-border hover:bg-card-hover">
-                    <td className="px-3 py-2">
+                    <td className="px-2 py-2 md:px-3">
                       <RouterLink to={`/users/${user.id}`} className="link font-medium">
                         {user.login}
                       </RouterLink>
                     </td>
-                    <td className="px-3 py-2 text-muted">{user.email}</td>
-                    <td className="px-3 py-2 text-muted">{user.firstName || '-'}</td>
-                    <td className="px-3 py-2 text-muted">{user.lastName || '-'}</td>
-                    <td className="px-3 py-2">
+                    <td className="px-2 py-2 md:px-3 text-muted">{user.email}</td>
+                    <td className="px-2 py-2 md:px-3 text-muted">{user.firstName || '-'}</td>
+                    <td className="px-2 py-2 md:px-3 text-muted">{user.lastName || '-'}</td>
+                    <td className="px-2 py-2 md:px-3">
                       <span className={`${roleChipClass[user.role as keyof typeof roleChipClass] || 'chip-accent'} text-xs font-medium px-2 py-0.5 rounded-badge`}>
                         {roleLabels[user.role as keyof typeof roleLabels] || user.role}
                       </span>

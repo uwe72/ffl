@@ -92,18 +92,6 @@ public class UserService {
         if (updateData.getLastName() != null) {
             user.setLastName(updateData.getLastName());
         }
-        if (updateData.getStreet() != null) {
-            user.setStreet(updateData.getStreet());
-        }
-        if (updateData.getCity() != null) {
-            user.setCity(updateData.getCity());
-        }
-        if (updateData.getBirthday() != null && !updateData.getBirthday().isEmpty()) {
-            try {
-                user.setBirthday(java.time.LocalDate.parse(updateData.getBirthday()));
-            } catch (Exception ignored) {
-            }
-        }
 
         User saved = userRepository.save(user);
 

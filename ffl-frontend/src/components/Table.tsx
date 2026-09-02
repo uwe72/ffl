@@ -37,7 +37,7 @@ export function TableHead({ children }: TableHeadProps) {
 
 type Align = 'left' | 'center' | 'right'
 
-const headBase = 'px-3 py-2 h-[40px] text-[12px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none'
+const headBase = 'px-2 py-2 h-[40px] text-[12px] font-semibold uppercase tracking-wide text-muted border-b border-border select-none md:px-3'
 
 interface ThSortableProps extends Omit<ThHTMLAttributes<HTMLTableCellElement>, 'className'> {
   children: ReactNode
@@ -116,7 +116,7 @@ interface TdProps extends Omit<TdHTMLAttributes<HTMLTableCellElement>, 'classNam
 export function Td({ children, align, numeric = false, className = '', ...rest }: TdProps) {
   const effectiveAlign: Align = align ?? (numeric ? 'right' : 'left')
   return (
-    <td className={`px-3 py-2 h-[40px] text-${effectiveAlign} ${numeric ? 'tabular-nums' : ''} ${className}`} {...rest}>
+    <td className={`px-2 py-2 h-[40px] text-${effectiveAlign} md:px-3 ${numeric ? 'tabular-nums' : ''} ${className}`} {...rest}>
       {children}
     </td>
   )
