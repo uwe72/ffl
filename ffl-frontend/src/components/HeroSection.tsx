@@ -76,7 +76,7 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
 
         <div className="flex flex-col shrink-0 pr-[30px] pt-3">
           {isInstallable && !isInstalled && (
-            <Button variant="secondary" size="input" onClick={handleInstall} className="!bg-defender-bg !text-foreground !border-defender hover:!bg-defender-bg">
+              <Button variant="secondary" size="input" onClick={handleInstall} className="!bg-defender-bg !border-defender hover:!bg-defender-bg">
               <i className="sap-icon sap-icon-download text-xs" />
               Installieren
             </Button>
