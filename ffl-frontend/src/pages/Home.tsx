@@ -388,28 +388,30 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
     <div className="flex flex-col gap-0">
       <div className="p-6 bg-surface border border-border rounded-card px-3 py-3">
         <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-base font-semibold text-foreground">Manager ({filteredManagers.length})</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-semibold text-foreground shrink-0">Manager ({filteredManagers.length})</h3>
+            <div className="relative flex-1 min-w-0">
+              <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Manager suchen..."
+                className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
+              />
+            </div>
             {myManagerId != null && (
               <Button
                 onClick={handleSelectMe}
                 size="input"
                 variant="secondary"
+                className="shrink-0"
+                aria-label="Selektiere mich"
+                title="Selektiere mich"
               >
                 <i className="sap-icon sap-icon-account text-[14px]" />
-                Selektiere mich
               </Button>
             )}
-          </div>
-          <div className="relative">
-            <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Manager suchen..."
-              className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
-            />
           </div>
           {hasActiveFilter && (
             <button
