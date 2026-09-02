@@ -23,7 +23,7 @@ export default function Players() {
     return (
       <div>
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
-          <PlayerTable players={publicQuery.data ?? []} isPublic enableExport mobileDashboardLayout />
+          <PlayerTable players={publicQuery.data ?? []} isPublic enableExport mobileDashboardLayout defaultSortKey="positionTotal" defaultSortOrder="asc" />
         </div>
       </div>
     )
@@ -35,7 +35,7 @@ export default function Players() {
   return (
     <div>
       <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
-        <PlayerTable players={authedQuery.data ?? []} enableExport mobileDashboardLayout />
+        <PlayerTable players={authedQuery.data ?? []} enableExport mobileDashboardLayout defaultSortKey="positionTotal" defaultSortOrder="asc" />
       </div>
 
       <div className="h-10" />
