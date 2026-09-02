@@ -61,13 +61,11 @@ function isGroupCreator(login: string | undefined, group: { createdByLogin?: str
 }
 
 function managerLogin(m: { login?: string; managerName?: string; shortName?: string }): string {
-  const v = m.login ?? m.managerName ?? m.shortName ?? '-'
-  return v.length > 10 ? `${v.slice(0, 10)}…` : v
+  return m.login ?? m.managerName ?? m.shortName ?? '-'
 }
 
 function managerFullName(m: { firstName?: string; lastName?: string; managerName?: string }): string {
-  const v = [m.firstName, m.lastName].filter(Boolean).join(' ') || m.managerName || '-'
-  return v.length > 17 ? `${v.slice(0, 17)}…` : v
+  return [m.firstName, m.lastName].filter(Boolean).join(' ') || m.managerName || '-'
 }
 
 function GroupHomeCard({ group, canNavigateToManager }: { group: ManagerGroupRoundStats, canNavigateToManager: boolean }) {
@@ -167,10 +165,17 @@ function GroupHomeCard({ group, canNavigateToManager }: { group: ManagerGroupRou
 
 function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group: ManagerGroupRoundStats, canNavigateToManager: boolean, headerTitle: string }) {
   const th = 'px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
-  const td = 'px-2 py-2 border-b border-border whitespace-nowrap tabular-nums'
+  const td = 'px-2 py-2 border-b border-border overflow-hidden tabular-nums'
   return (
     <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
-      <table className="w-full border-collapse text-sm">
+      <table className="w-full border-collapse text-sm table-fixed">
+        <colgroup>
+          <col className="w-9" />
+          <col className="w-auto" />
+          <col className="w-auto" />
+          <col className="w-9" />
+          <col className="w-9" />
+        </colgroup>
         <thead className="bg-elevated sticky top-0">
           <tr>
             <th colSpan={3} align="left" className={th}>
@@ -249,14 +254,21 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
   rowRef: React.RefObject<HTMLTableRowElement | null>
 }) {
   const th = 'px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
-  const td = 'px-2 py-2 border-b border-border whitespace-nowrap tabular-nums'
+  const td = 'px-2 py-2 border-b border-border overflow-hidden tabular-nums'
   const sorted = useMemo(
     () => [...(managers ?? [])].sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999)),
     [managers]
   )
   return (
     <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
-      <table className="w-full border-collapse text-sm">
+      <table className="w-full border-collapse text-sm table-fixed">
+        <colgroup>
+          <col className="w-9" />
+          <col className="w-auto" />
+          <col className="w-auto" />
+          <col className="w-9" />
+          <col className="w-9" />
+        </colgroup>
         <thead className="bg-elevated sticky top-0">
           <tr>
             <th colSpan={3} align="left" className={th}>

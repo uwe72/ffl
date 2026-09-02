@@ -47,7 +47,7 @@ public class PlayerDto {
         dto.setAktiv(player.getAktiv());
         if (player.getTeams() != null) {
             dto.setTeams(player.getTeams().stream()
-                .map(t -> new TeamInfo(t.getId(), t.getName(), t.getLogoXxlUrl(), t.getLogoSUrl()))
+                .map(t -> new TeamInfo(t.getId(), t.getName(), t.getShortName(), t.getLogoXxlUrl(), t.getLogoSUrl()))
                 .collect(Collectors.toList()));
         }
         return dto;
@@ -150,12 +150,14 @@ public class PlayerDto {
     public static class TeamInfo {
         private Long id;
         private String name;
+        private String shortName;
         private String logoUrl;
         private String logoSUrl;
 
-        public TeamInfo(Long id, String name, String logoUrl, String logoSUrl) {
+        public TeamInfo(Long id, String name, String shortName, String logoUrl, String logoSUrl) {
             this.id = id;
             this.name = name;
+            this.shortName = shortName;
             this.logoUrl = logoUrl;
             this.logoSUrl = logoSUrl;
         }
@@ -164,6 +166,8 @@ public class PlayerDto {
         public void setId(Long id) { this.id = id; }
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
+        public String getShortName() { return shortName; }
+        public void setShortName(String shortName) { this.shortName = shortName; }
         public String getLogoUrl() { return logoUrl; }
         public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
         public String getLogoSUrl() { return logoSUrl; }

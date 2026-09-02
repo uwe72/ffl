@@ -3,6 +3,7 @@ import ReactQuill, { Quill } from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
 import { useSystemConfig, useUpdateSystemConfig } from '../hooks/useSystemConfig'
 import { useManagersBySeason } from '../hooks/useManagers'
+import useIsMobile from '../hooks/useIsMobile'
 import type { SystemConfig, Manager } from '../types'
 import Button from './Button'
 import MatchdayMailDialog from './MatchdayMailDialog'
@@ -11,17 +12,6 @@ import MatchdayMailDialog from './MatchdayMailDialog'
 const Size = Quill.import('formats/size') as any
 Size.whitelist = ['8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px']
 Quill.register(Size, true)
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-  return isMobile
-}
 
 function ManagerCard({
   manager,

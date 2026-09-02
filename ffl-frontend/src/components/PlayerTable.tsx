@@ -317,7 +317,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
             <select
               value={selectedTeamId}
               onChange={e => setSelectedTeamId(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
-              className="input-field control px-2 py-1.5 rounded-control text-xs cursor-pointer w-full sm:w-auto sm:min-w-40"
+              className="input-field control px-2 py-1.5 rounded-control text-xs cursor-pointer w-full md:w-auto md:min-w-40"
             >
               <option value="ALL">Alle Vereine</option>
               {teams.map(team => (
@@ -392,7 +392,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
       <select
         value={selectedTeamId}
         onChange={e => setSelectedTeamId(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
-        className="input-field control px-2 py-1.5 rounded-control text-xs cursor-pointer w-full sm:w-auto sm:min-w-40"
+        className="input-field control px-2 py-1.5 rounded-control text-xs cursor-pointer w-full md:w-auto md:min-w-40"
       >
         <option value="ALL">Alle Vereine</option>
         {teams.map(team => (
@@ -400,7 +400,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
         ))}
       </select>
 
-      <div className="flex items-center gap-1.5 w-full sm:w-auto">
+      <div className="flex items-center gap-1.5 w-full md:w-auto">
         <input
           type="text"
           inputMode="numeric"
@@ -409,7 +409,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
           onBlur={() => setMinFocused(false)}
           onChange={e => setPriceMin(e.target.value.replace(/[^\d]/g, ''))}
           placeholder="Min €"
-          className="input-field control flex-1 min-w-0 sm:w-40 px-2 py-1.5 text-xs"
+          className="input-field control flex-1 min-w-0 md:w-40 px-2 py-1.5 text-xs"
         />
         <span className="text-subtle text-xs">–</span>
         <input
@@ -420,11 +420,11 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
           onBlur={() => setMaxFocused(false)}
           onChange={e => setPriceMax(e.target.value.replace(/[^\d]/g, ''))}
           placeholder="Max €"
-          className="input-field control flex-1 min-w-0 sm:w-40 px-2 py-1.5 text-xs"
+          className="input-field control flex-1 min-w-0 md:w-40 px-2 py-1.5 text-xs"
         />
       </div>
 
-      <div className="relative flex-1 min-w-0 sm:w-56">
+      <div className="relative flex-1 min-w-0 md:w-56">
         <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
         <input
           ref={searchInputRef}
@@ -612,9 +612,9 @@ export default function PlayerTable({
     <div>
       <div className="flex items-center justify-between mb-4">
         {!hideFilters && (
-        <h2 className="hidden sm:block text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
+        <h2 className="hidden md:block text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
         )}
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-3 w-full md:w-auto">
           {enableExport && !isMobile && (
             <Button onClick={exportToExcel} size="input">
               Excel Export

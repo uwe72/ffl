@@ -112,11 +112,11 @@ export default function ManagerGroups() {
       </div>
       <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
         <div className="flex items-center justify-between gap-4 mb-4">
-          <h2 className="hidden sm:block text-xl font-semibold text-foreground">Manager-Gruppen ({sortedGroups.length})</h2>
+          <h2 className="hidden md:block text-xl font-semibold text-foreground">Manager-Gruppen ({sortedGroups.length})</h2>
           <Button
             onClick={() => navigate('/manager-groups/create')}
             size="compact"
-            className="w-full sm:w-auto sm:inline-flex"
+            className="w-full md:w-auto md:inline-flex"
           >
             + Neue Gruppe
           </Button>

@@ -900,7 +900,7 @@ export default function Register() {
                 </div>
               ) : (
                 <div className="space-y-8">
-                  <div className="sm:hidden flex items-start gap-2 p-2 bg-accent-muted border border-accent/30 rounded-card">
+                  <div className="md:hidden flex items-start gap-2 p-2 bg-accent-muted border border-accent/30 rounded-card">
                     <i className="sap-icon sap-icon-hint text-[16px] text-accent shrink-0 mt-0.5" />
                     <p className="text-xs text-foreground">
                       Tipp: Linken Farbrand antippen, um Spieler zu entfernen.
@@ -916,14 +916,14 @@ export default function Register() {
                           <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[group.position]}`}>
                             {group.label}
                           </h3>
-                          <span className={`text-xs text-subtle tabular-nums ${isFreeGroup ? 'hidden sm:inline' : ''}`}>{filled} / {slots.length}</span>
+                          <span className={`text-xs text-subtle tabular-nums ${isFreeGroup ? 'hidden md:inline' : ''}`}>{filled} / {slots.length}</span>
                           {isFreeGroup && (
-                            <span className="hidden sm:inline-block text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
+                            <span className="hidden md:inline-block text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
                               +1 Freie Wahl
                             </span>
                           )}
                           {isFreeGroup && (
-                            <span className="sm:hidden inline-flex items-center p-1.5 bg-accent-muted border border-accent/30 rounded-card text-[10px] font-semibold text-accent-hover">
+                            <span className="md:hidden inline-flex items-center p-1.5 bg-accent-muted border border-accent/30 rounded-card text-[10px] font-semibold text-accent-hover">
                               Freie Wahl
                             </span>
                           )}
@@ -976,23 +976,23 @@ export default function Register() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground truncate">
+                    <h2 className="text-2xl md:text-3xl font-bold text-foreground truncate">
                       {firstName && lastName ? (
                         <>
-                          <span className="sm:hidden">{firstName} {lastName}</span>
-                          <span className="hidden sm:inline">{firstName} {lastName} ({login})</span>
+                          <span className="md:hidden">{firstName} {lastName}</span>
+                          <span className="hidden md:inline">{firstName} {lastName} ({login})</span>
                         </>
                       ) : (
                         login || '-'
                       )}
                     </h2>
                     {firstName && lastName && (
-                      <p className="text-sm text-muted sm:hidden mt-1 truncate">{login || '-'}</p>
+                      <p className="text-sm text-muted md:hidden mt-1 truncate">{login || '-'}</p>
                     )}
                     {slogan.trim() && (
                       <p className="text-sm text-muted italic mt-1 truncate">„{slogan.trim()}"</p>
                     )}
-                    <p className="text-sm text-muted sm:text-xs sm:uppercase sm:tracking-wide sm:text-subtle mt-1 sm:mt-2 truncate">{email || '-'}</p>
+                    <p className="text-sm text-muted md:text-xs md:uppercase md:tracking-wide md:text-subtle mt-1 md:mt-2 truncate">{email || '-'}</p>
                   </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-border" />
@@ -1101,9 +1101,9 @@ export default function Register() {
                             <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[group.position]}`}>
                               {group.label}
                             </h3>
-                            <span className={`text-xs text-subtle tabular-nums ${isFreeGroup ? 'hidden sm:inline' : ''}`}>{filled} / {slots.length}</span>
+                            <span className={`text-xs text-subtle tabular-nums ${isFreeGroup ? 'hidden md:inline' : ''}`}>{filled} / {slots.length}</span>
                             {isFreeGroup && (
-                              <span className="sm:hidden inline-flex items-center p-1.5 bg-accent-muted border border-accent/30 rounded-card text-[10px] font-semibold text-accent-hover">
+                              <span className="md:hidden inline-flex items-center p-1.5 bg-accent-muted border border-accent/30 rounded-card text-[10px] font-semibold text-accent-hover">
                                 Freie Wahl
                               </span>
                             )}
@@ -1179,9 +1179,9 @@ export default function Register() {
                 onClick={handleAutoLineup}
                 disabled={isLoading || allPlayers.length === 0}
               >
-                <i className="sap-icon sap-icon-synchronize text-[14px] !hidden sm:!inline-block" />
-                <span className="sm:hidden">Auto</span>
-                <span className="hidden sm:inline">Auto-Aufstellung</span>
+                <i className="sap-icon sap-icon-synchronize text-[14px] !hidden md:!inline-block" />
+                <span className="md:hidden">Auto</span>
+                <span className="hidden md:inline">Auto-Aufstellung</span>
               </Button>
               <div className="flex gap-3">
                 <Button
@@ -1221,7 +1221,7 @@ export default function Register() {
                 onClick={handleSubmit}
                 disabled={isLoading}
               >
-                {isLoading ? 'Wird registriert …' : <><span className="sm:hidden">Verbindlich anmelden</span><span className="hidden sm:inline">Team verbindlich anmelden</span></>}
+                {isLoading ? 'Wird registriert …' : <><span className="md:hidden">Verbindlich anmelden</span><span className="hidden md:inline">Team verbindlich anmelden</span></>}
               </Button>
             </>
           )}

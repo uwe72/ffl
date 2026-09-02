@@ -406,8 +406,8 @@ export default function ManagerGroupDetail() {
       )}
 
       <div className="p-4 bg-elevated border border-border rounded-card mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-          <div className="flex items-center gap-4 sm:items-start">
+        <div className="flex flex-col md:flex-row md:items-start gap-4">
+          <div className="flex items-center gap-4 md:items-start">
             <div className="relative group w-12 h-12 shrink-0">
               <button
                 onClick={handleLogoClick}
@@ -460,7 +460,7 @@ export default function ManagerGroupDetail() {
             <div className="flex-1 min-w-0">
               {!stammdatenOpen && !isNewMode && (
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground truncate">{group?.name || '-'}</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground truncate">{group?.name || '-'}</h2>
                   <div className="mt-2 space-y-2">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-subtle">Erstellt von:</p>
@@ -491,7 +491,7 @@ export default function ManagerGroupDetail() {
                 aria-controls="stammdaten-form"
                 aria-label={stammdatenOpen ? 'Bearbeitung schließen' : 'Gruppe bearbeiten'}
                 title={stammdatenOpen ? 'Schließen' : 'Bearbeiten'}
-                className="sm:hidden shrink-0 ml-auto w-9 h-9 rounded-full bg-accent-muted text-accent hover:bg-accent hover:text-accent-foreground flex items-center justify-center transition-colors shadow-sm"
+                className="md:hidden shrink-0 ml-auto w-9 h-9 rounded-full bg-accent-muted text-accent hover:bg-accent hover:text-accent-foreground flex items-center justify-center transition-colors shadow-sm"
               >
                 <i className={`sap-icon ${stammdatenOpen ? 'sap-icon-decline' : 'sap-icon-edit'} text-sm`} />
               </button>
@@ -499,7 +499,7 @@ export default function ManagerGroupDetail() {
           </div>
 
           {canEdit && !isNewMode && (
-            <div className="hidden sm:flex gap-2 shrink-0 self-start sm:ml-auto">
+            <div className="hidden md:flex gap-2 shrink-0 self-start md:ml-auto">
               <Button
                 variant={stammdatenOpen ? 'ghost' : 'emphasized'}
                 size="sm"
@@ -612,7 +612,7 @@ export default function ManagerGroupDetail() {
               </div>
             )}
             {canEdit && !isNewMode && (
-              <div className="mt-3 sm:hidden">
+              <div className="mt-3 md:hidden">
                 <Button
                   variant="negative"
                   size="sm"
@@ -630,13 +630,13 @@ export default function ManagerGroupDetail() {
       </div>
 
       <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
           <h2 className="text-xl font-semibold text-foreground">Manager ({filteredAndSortedManagers.length})</h2>
-          <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+          <div className="flex flex-col md:flex-row gap-3 md:items-center">
             {canEdit && (
               <Button
                 variant="emphasized"
-                className="w-full sm:w-auto"
+                className="w-full md:w-auto"
                 onClick={() => setIsAddModalOpen(true)}
               >
                 Manager hinzufügen

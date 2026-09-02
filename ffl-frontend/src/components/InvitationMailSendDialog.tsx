@@ -1,19 +1,9 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useEmails } from '../hooks/useEmails'
+import useIsMobile from '../hooks/useIsMobile'
 import type { EmailAddress } from '../types'
 import Button from './Button'
 import InvitationMailProgressDialog from './InvitationMailProgressDialog'
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-  return isMobile
-}
 
 function EmailCard({
   email,

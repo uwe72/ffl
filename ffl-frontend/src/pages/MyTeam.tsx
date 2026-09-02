@@ -787,8 +787,8 @@ export default function MyTeam() {
       )}
 
       <div className="p-4 bg-elevated border border-border rounded-card mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-          <div className="flex items-center gap-4 sm:items-start">
+        <div className="flex flex-col md:flex-row md:items-start gap-4">
+          <div className="flex items-center gap-4 md:items-start">
             <div className="relative group w-12 h-12 shrink-0">
               <button
                 onClick={() => avatarInputRef.current?.click()}
@@ -826,7 +826,7 @@ export default function MyTeam() {
               />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground truncate">
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground truncate">
                 {manager?.firstName && manager?.lastName
                   ? `${manager.firstName} ${manager.lastName}`
                   : manager?.login || '-'}
@@ -845,19 +845,19 @@ export default function MyTeam() {
               aria-controls="profile-form"
               aria-label={profileOpen ? 'Profilbearbeitung schließen' : 'Profil bearbeiten'}
               title={profileOpen ? 'Schließen' : 'Bearbeiten'}
-              className="sm:hidden shrink-0 ml-auto w-9 h-9 rounded-full bg-accent-muted text-accent hover:bg-accent hover:text-accent-foreground flex items-center justify-center transition-colors shadow-sm"
+                className="md:hidden shrink-0 ml-auto w-9 h-9 rounded-full bg-accent-muted text-accent hover:bg-accent hover:text-accent-foreground flex items-center justify-center transition-colors shadow-sm"
             >
               <i className={`sap-icon ${profileOpen ? 'sap-icon-decline' : 'sap-icon-edit'} text-sm`} />
             </button>
           </div>
-          <div className="hidden sm:block w-auto sm:ml-auto">
+          <div className="hidden md:block w-auto md:ml-auto">
             <Button
               variant={profileOpen ? 'ghost' : 'emphasized'}
               size="sm"
               onClick={() => setProfileOpen(o => !o)}
               aria-expanded={profileOpen}
               aria-controls="profile-form"
-              className="w-full sm:w-auto"
+              className="w-full md:w-auto"
             >
               <i className={`sap-icon sap-icon-slim-arrow-${profileOpen ? 'up' : 'down'} text-xs mr-1`} />
               {profileOpen ? 'Schließen' : 'Bearbeiten'}
@@ -977,7 +977,7 @@ export default function MyTeam() {
 
           <div className="space-y-8">
             {isBeforeSeason && (
-              <div className="sm:hidden flex items-start gap-2 p-2 bg-accent-muted border border-accent/30 rounded-card">
+              <div className="md:hidden flex items-start gap-2 p-2 bg-accent-muted border border-accent/30 rounded-card">
                 <i className="sap-icon sap-icon-hint text-[16px] text-accent shrink-0 mt-0.5" />
                 <p className="text-xs text-foreground">
                   Tipp: Linken Farbrand antippen, um Spieler zu entfernen.
@@ -994,14 +994,14 @@ export default function MyTeam() {
                     <h3 className={`text-xs font-semibold uppercase tracking-wider ${positionTextColor[group.position]}`}>
                       {group.label}
                     </h3>
-                    <span className={`text-xs text-subtle tabular-nums ${isFreeGroup ? 'hidden sm:inline' : ''}`}>{filled} / {slots.length}</span>
+                    <span className={`text-xs text-subtle tabular-nums ${isFreeGroup ? 'hidden md:inline' : ''}`}>{filled} / {slots.length}</span>
                     {isFreeGroup && (
-                      <span className="hidden sm:inline-block text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
+                      <span className="hidden md:inline-block text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
                         +1 Freie Wahl
                       </span>
                     )}
                     {isFreeGroup && isBeforeSeason && (
-                      <span className="sm:hidden inline-flex items-center p-1.5 bg-accent-muted border border-accent/30 rounded-card text-[10px] font-semibold text-accent-hover">
+                      <span className="md:hidden inline-flex items-center p-1.5 bg-accent-muted border border-accent/30 rounded-card text-[10px] font-semibold text-accent-hover">
                         Freie Wahl
                       </span>
                     )}
@@ -1044,7 +1044,7 @@ export default function MyTeam() {
 
       {isHinrunde && (
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
             <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
               Winterwechsel
               <span className="text-sm font-normal text-muted">({transfers.length}/3)</span>
@@ -1193,7 +1193,7 @@ export default function MyTeam() {
 
       {isRueckrunde && hasExistingTransfers && (
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
             <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
               Winterwechsel
             </h3>

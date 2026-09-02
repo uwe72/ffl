@@ -319,15 +319,17 @@ export default function PlayerDetail() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-base font-semibold text-foreground truncate">{player.nameKicker}</span>
+                  <span className="text-xs text-muted shrink-0">·</span>
                   <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge shrink-0`}>{POSITION_SHORT_LABELS[player.position]}</span>
+                  <span className="text-xs text-muted shrink-0">·</span>
                   <span className="text-xs text-muted shrink-0">{player.prize ? formatPrice(player.prize) : '—'}</span>
+                  {player.teams.length > 0 && (
+                    <span className="text-xs text-muted shrink-0">
+                      {`· ${player.teams.map(t => t.shortName ?? t.name).join(', ')}`}
+                      {player.aktiv === false && ' · Inaktiv'}
+                    </span>
+                  )}
                 </div>
-                {player.teams.length > 0 && (
-                  <div className="mt-0.5 text-xs text-muted">
-                    {player.teams.map(t => t.name).join(', ')}
-                    {player.aktiv === false && ' · Inaktiv'}
-                  </div>
-                )}
                 <div className="mt-0.5 text-xs text-muted leading-relaxed">
                   <ScoreLine
                     position={player.positionLastRound ?? null}

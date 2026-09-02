@@ -1,19 +1,9 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useManagersBySeason } from '../hooks/useManagers'
+import useIsMobile from '../hooks/useIsMobile'
 import type { Manager } from '../types'
 import Button from './Button'
 import PrizeDistributionMailDialog from './PrizeDistributionMailDialog'
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-  return isMobile
-}
 
 function ManagerCard({
   manager,
