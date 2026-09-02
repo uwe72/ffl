@@ -19,6 +19,7 @@ import Games from './pages/Games'
 import GameDetail from './pages/GameDetail'
 import Feedback from './pages/Feedback'
 import History from './pages/History'
+import Install from './pages/Install'
 import Users from './pages/Users'
 import UserDetail from './pages/UserDetail'
 import Emails from './pages/Emails'
@@ -129,6 +130,11 @@ function App() {
             } />
             <Route path="documents" element={<Documents />} />
             <Route path="history" element={<History />} />
+            <Route path="installieren" element={
+              <ProtectedRoute>
+                <Install />
+              </ProtectedRoute>
+            } />
             <Route path="users" element={
               <ProtectedRoute requiredRole="ADMIN">
                 <Users />

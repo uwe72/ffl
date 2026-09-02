@@ -40,6 +40,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
     location.pathname.startsWith('/feedback') ||
     location.pathname.startsWith('/manager-galerie') ||
     location.pathname.startsWith('/history') ||
+    location.pathname.startsWith('/installieren') ||
     location.pathname.startsWith('/games') ||
     location.pathname.startsWith('/umfrage') ||
     location.pathname.startsWith('/documents') ||
@@ -109,6 +110,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
               { to: '/manager-galerie', label: 'Galerie', icon: 'sap-icon-picture', onBlockedClick: canAccessGallery ? undefined : () => setShowGalleryHint(true) },
               { to: '/manager-groups', label: 'Gruppen', icon: 'sap-icon-group' },
               { to: '/history', label: 'Historie', icon: 'sap-icon-history' },
+              { to: '/installieren', label: 'Installieren', icon: 'sap-icon-download' },
               ...(!mobile && !isRestricted ? [{ to: '/games', label: 'Spiele', icon: 'sap-icon-calendar' }] : []),
               { to: '/umfrage', label: 'Umfrage', icon: 'sap-icon-survey' },
               ...(!mobile && !isRestricted ? [{ to: '/teams', label: 'Vereine', icon: 'sap-icon-shield' }] : []),
