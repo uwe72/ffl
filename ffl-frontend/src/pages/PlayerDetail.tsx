@@ -43,13 +43,11 @@ const POSITION_SHORT_LABELS: Record<Position, string> = {
 }
 
 function managerLogin(m: { shortName?: string; name?: string }): string {
-  const v = m.shortName ?? m.name ?? '-'
-  return v.length > 10 ? `${v.slice(0, 10)}…` : v
+  return m.shortName ?? m.name ?? '-'
 }
 
 function managerFullName(m: { firstName?: string; lastName?: string; name?: string }): string {
-  const v = [m.firstName, m.lastName].filter(Boolean).join(' ') || m.name || '-'
-  return v.length > 17 ? `${v.slice(0, 17)}…` : v
+  return [m.firstName, m.lastName].filter(Boolean).join(' ') || m.name || '-'
 }
 
 export default function PlayerDetail() {
