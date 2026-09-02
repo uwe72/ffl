@@ -1,6 +1,8 @@
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
 import { usePWAInstall } from '../hooks/usePWAInstall'
+import { trackEvent } from '../hooks/useMatomo'
+import api from '../api/client'
 import Badge from './Badge'
 import Button from './Button'
 import { seasonStateLabel } from '../utils/season'
@@ -23,6 +25,12 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
   const { isInstallable, isInstalled, install } = usePWAInstall()
 
   const phaseLabel = seasonStateLabel(season?.seasonState)
+
+  const handleInstall = async () => {
+    await install()
+    api.post('/pwa/install-click').catch(() => {})
+    trackEvent('pwa', 'install-click', 'hero')
+  }
 
   return (
     <div className="hero relative h-[84px] md:h-[102px] shrink-0 overflow-hidden bg-header">
@@ -66,16 +74,13 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
           </div>
         </div>
 
-        <div className="flex flex-col justify-center shrink-0 pr-[30px]">
-          {isInstallable && !isInstalled ? (
-            <>
-              <Button variant="emphasized" size="compact" onClick={install}>
-                <i className="sap-icon sap-icon-download text-xs" />
-                Installieren
-              </Button>
-              {season && <div className="mt-0.5 h-6" />}
-            </>
-          ) : null}
+        <div className="flex flex-col shrink-0 pr-[30px] pt-3">
+          {isInstallable && !isInstalled && (
+            <Button variant="secondary" size="input" onClick={handleInstall} className="!bg-defender-bg !text-foreground !border-defender hover:!bg-defender-bg">
+              <i className="sap-icon sap-icon-download text-xs" />
+              Installieren
+            </Button>
+          )}
         </div>
       </div>
     </div>

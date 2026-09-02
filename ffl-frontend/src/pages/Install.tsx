@@ -1,5 +1,7 @@
 import BackButton from '../components/BackButton'
 import Button from '../components/Button'
+import api from '../api/client'
+import { trackEvent } from '../hooks/useMatomo'
 import { usePWAInstall } from '../hooks/usePWAInstall'
 
 type InstallPlatform = 'ios' | 'firefox' | 'safari' | 'chromium'
@@ -38,6 +40,8 @@ export default function Install() {
 
   const handleInstall = async () => {
     await install()
+    api.post('/pwa/install-click').catch(() => {})
+    trackEvent('pwa', 'install-click', 'page')
   }
 
   return (
