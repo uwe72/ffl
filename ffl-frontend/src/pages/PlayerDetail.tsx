@@ -702,7 +702,14 @@ export default function PlayerDetail() {
 
           {isMobile && (
             <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
-              <table className="w-full border-collapse text-sm">
+              <table className="w-full border-collapse text-sm table-fixed">
+                <colgroup>
+                  <col className="w-9" />
+                  <col className="w-auto" />
+                  <col className="w-auto" />
+                  <col className="w-9" />
+                  <col className="w-9" />
+                </colgroup>
                 <thead className="bg-elevated sticky top-0">
                   <tr>
                     <th colSpan={3} align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">
@@ -723,23 +730,23 @@ export default function PlayerDetail() {
                 <tbody className="bg-surface">
                   {mobileManagers.map((m, index) => (
                     <tr key={m.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                      <td className="px-2 py-2 border-b border-border whitespace-nowrap tabular-nums text-center font-medium text-foreground">
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center font-medium text-foreground">
                         {m.positionTotal ? `${m.positionTotal}.` : '-'}
                       </td>
-                      <td className="px-2 py-2 border-b border-border whitespace-nowrap tabular-nums min-w-0">
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums min-w-0">
                         <RouterLink to={`/managers/${m.id}`} className="link font-medium truncate block min-w-0" title={m.shortName ?? m.name}>
                           {managerLogin(m)}
                         </RouterLink>
                       </td>
-                      <td className="px-2 py-2 border-b border-border whitespace-nowrap tabular-nums min-w-0">
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums min-w-0">
                         <span className="text-foreground truncate block min-w-0" title={managerFullName(m)}>
                           {managerFullName(m)}
                         </span>
                       </td>
-                      <td className="px-2 py-2 border-b border-border whitespace-nowrap tabular-nums text-center font-bold text-foreground">
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center font-bold text-foreground">
                         {m.pointsTotal ?? '-'}
                       </td>
-                      <td className="px-2 py-2 border-b border-border whitespace-nowrap tabular-nums text-center text-muted">
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center text-muted">
                         {m.pointsLastRound ?? '-'}
                       </td>
                     </tr>
