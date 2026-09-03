@@ -20,8 +20,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: SidebarProps) {
-  const [sonstigesExpanded, setSonstigesExpanded] = useState(false)
-  const [verwaltungExpanded, setVerwaltungExpanded] = useState(false)
+  const [expandedMenu, setExpandedMenu] = useState<'sonstiges' | 'verwaltung' | null>(null)
   const [showGalleryHint, setShowGalleryHint] = useState(false)
   const { user, isAuthenticated, logout } = useAuth()
   const location = useLocation()
@@ -52,20 +51,14 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
     location.pathname.startsWith('/statistik') ||
     location.pathname.startsWith('/system') ||
     location.pathname.startsWith('/umfragen')
-  const effectiveSonstigesExpanded = sonstigesExpanded || isOnSonstiges
-  const effectiveVerwaltungExpanded = verwaltungExpanded || isOnVerwaltung
+  const effectiveSonstigesExpanded = expandedMenu === 'sonstiges'
+  const effectiveVerwaltungExpanded = expandedMenu === 'verwaltung'
 
   useEffect(() => {
-    if (!isOnSonstiges) {
-      setSonstigesExpanded(false)
-    }
-  }, [location.pathname, isOnSonstiges])
-
-  useEffect(() => {
-    if (!isOnVerwaltung) {
-      setVerwaltungExpanded(false)
-    }
-  }, [location.pathname, isOnVerwaltung])
+    if (isOnSonstiges) setExpandedMenu('sonstiges')
+    else if (isOnVerwaltung) setExpandedMenu('verwaltung')
+    else setExpandedMenu(null)
+  }, [location.pathname, isOnSonstiges, isOnVerwaltung])
 
   const handleLogout = () => {
     logout()
@@ -116,7 +109,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
               ...(!mobile && !isRestricted ? [{ to: '/teams', label: 'Vereine', icon: 'sap-icon-shield' }] : []),
             ]}
             expanded={effectiveSonstigesExpanded}
-            onToggle={() => setSonstigesExpanded(!effectiveSonstigesExpanded)}
+            onToggle={() => setExpandedMenu(expandedMenu === 'sonstiges' ? null : 'sonstiges')}
           />
         )}
 
@@ -136,7 +129,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
               { to: '/umfragen', label: 'Umfragen', icon: 'sap-icon-survey' },
             ]}
             expanded={effectiveVerwaltungExpanded}
-            onToggle={() => setVerwaltungExpanded(!effectiveVerwaltungExpanded)}
+            onToggle={() => setExpandedMenu(expandedMenu === 'verwaltung' ? null : 'verwaltung')}
           />
         )}
 

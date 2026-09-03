@@ -334,6 +334,7 @@ export default function PlayerDetail() {
                     positionVorher={null}
                     punkte={player.pointsLastRound ?? null}
                     punkteVorher={null}
+                    einsatzquote={player.einsatzquote ?? null}
                   />
                 </div>
               </div>
@@ -375,7 +376,18 @@ export default function PlayerDetail() {
                 )}
                 <div className="flex flex-wrap gap-4">
                   <div className="bg-card rounded-card border border-border px-4 py-3">
-                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Pos. (Saison)</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Punkte gesamt</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-2xl font-semibold tabular-nums text-foreground">
+                        {player.points != null ? player.points : '—'}
+                      </span>
+                      {player.pointsLastRound != null && player.pointsLastRound > 0 && (
+                        <Badge variant="success">+{player.pointsLastRound}</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="bg-card rounded-card border border-border px-4 py-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Position gesamt</p>
                     <div className="mt-1 flex items-center gap-2">
                       <span className="text-2xl font-semibold tabular-nums text-foreground">
                         {player.positionTotal ? `${player.positionTotal}.` : '—'}
@@ -388,21 +400,10 @@ export default function PlayerDetail() {
                     </div>
                   </div>
                   <div className="bg-card rounded-card border border-border px-4 py-3">
-                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Pkt. (Saison)</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Einsatzquote</p>
                     <div className="mt-1 flex items-center gap-2">
                       <span className="text-2xl font-semibold tabular-nums text-foreground">
-                        {player.points != null ? String(player.points) : '—'}
-                      </span>
-                      {player.pointsLastRound != null && player.pointsLastRound > 0 && (
-                        <Badge variant="success">+{player.pointsLastRound}</Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="bg-card rounded-card border border-border px-4 py-3">
-                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Pkt. (Spieltag)</p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <span className="text-2xl font-semibold tabular-nums text-foreground">
-                        {player.pointsLastRound != null ? String(player.pointsLastRound) : '—'}
+                        {player.einsatzquote != null ? `${player.einsatzquote} %` : '—'}
                       </span>
                     </div>
                   </div>

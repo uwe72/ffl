@@ -6,6 +6,7 @@ import de.ffl.dto.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +26,7 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         SurveyCreateRequest req = new SurveyCreateRequest();
         req.setTitle("Saisonumfrage");
         req.setDescription("Beschreibung");
+        req.setDeadline(LocalDateTime.now().plusDays(30));
 
         SurveyQuestionRequest rating = new SurveyQuestionRequest();
         rating.setType(QuestionType.RATING);
@@ -78,13 +80,28 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
-    void startSurvey_withoutQuestions_throws() {
+    void createSurvey_withoutRequiredQuestion_throws() {
         SurveyCreateRequest req = new SurveyCreateRequest();
         req.setTitle("Leer");
-        SurveyAdminDto dto = surveyService.createSurvey(req);
-        assertThatThrownBy(() -> surveyService.startSurvey(dto.getId()))
+        req.setDeadline(LocalDateTime.now().plusDays(30));
+        SurveyQuestionRequest optional = new SurveyQuestionRequest();
+        optional.setType(QuestionType.TEXTAREA);
+        optional.setText("Optional");
+        optional.setRequired(false);
+        req.setQuestions(List.of(optional));
+        assertThatThrownBy(() -> surveyService.createSurvey(req))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("mindestens eine Frage");
+            .hasMessageContaining("mindestens eine Pflichtfrage");
+    }
+
+    @Test
+    void createSurvey_withoutQuestions_throws() {
+        SurveyCreateRequest req = new SurveyCreateRequest();
+        req.setTitle("Leer");
+        req.setDeadline(LocalDateTime.now().plusDays(30));
+        assertThatThrownBy(() -> surveyService.createSurvey(req))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("mindestens eine Pflichtfrage");
     }
 
     @Test
@@ -225,9 +242,11 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
     void textQuestions_applyDefaultMaxLength() {
         SurveyCreateRequest req = new SurveyCreateRequest();
         req.setTitle("Text");
+        req.setDeadline(LocalDateTime.now().plusDays(30));
         SurveyQuestionRequest tf = new SurveyQuestionRequest();
         tf.setType(QuestionType.TEXTFIELD);
         tf.setText("Kurztext");
+        tf.setRequired(true);
         SurveyQuestionRequest ta = new SurveyQuestionRequest();
         ta.setType(QuestionType.TEXTAREA);
         ta.setText("Langtext");
@@ -243,6 +262,7 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
     void textField_enforcesMaxLength() {
         SurveyCreateRequest req = new SurveyCreateRequest();
         req.setTitle("Kurz");
+        req.setDeadline(LocalDateTime.now().plusDays(30));
         SurveyQuestionRequest tf = new SurveyQuestionRequest();
         tf.setType(QuestionType.TEXTFIELD);
         tf.setText("Kurztext");
@@ -263,50 +283,6 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
-    void reviseSurvey_updatesQuestionsAndResetsResponses() {
-        SurveyAdminDto dto = createStartedSurvey();
-        Long oldQid = dto.getQuestions().get(0).getId();
-        Long singleId = dto.getQuestions().get(1).getId();
-        Long singleYes = dto.getQuestions().get(1).getOptions().get(0).getId();
-        submit(dto.getId(), List.of(answer(oldQid, null, "4"), answer(singleId, List.of(singleYes), null)));
-        assertThat(surveyService.getResult(dto.getId()).getResponseCount()).isEqualTo(1);
-
-        SurveyCreateRequest revised = new SurveyCreateRequest();
-        revised.setTitle("Überarbeitet");
-        revised.setDescription("Neue Beschreibung");
-        SurveyQuestionRequest newQ = new SurveyQuestionRequest();
-        newQ.setType(QuestionType.TEXTAREA);
-        newQ.setText("Neue Frage");
-        revised.setQuestions(List.of(newQ));
-
-        SurveyAdminDto updated = surveyService.reviseSurvey(dto.getId(), revised);
-        assertThat(updated.getTitle()).isEqualTo("Überarbeitet");
-        assertThat(updated.getStatus()).isEqualTo(SurveyStatus.GESTARTET);
-        assertThat(updated.getQuestions()).hasSize(1);
-        assertThat(updated.getQuestions().get(0).getText()).isEqualTo("Neue Frage");
-        assertThat(surveyService.getResult(dto.getId()).getResponseCount()).isZero();
-    }
-
-    @Test
-    void reviseSurvey_requiresStartedStatus() {
-        SurveyAdminDto dto = surveyService.createSurvey(fullSurveyRequest());
-        assertThatThrownBy(() -> surveyService.reviseSurvey(dto.getId(), fullSurveyRequest()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Nur gestartete");
-    }
-
-    @Test
-    void reviseSurvey_requiresAtLeastOneQuestion() {
-        SurveyAdminDto dto = createStartedSurvey();
-        SurveyCreateRequest empty = new SurveyCreateRequest();
-        empty.setTitle("Leer");
-        empty.setQuestions(List.of());
-        assertThatThrownBy(() -> surveyService.reviseSurvey(dto.getId(), empty))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("mindestens eine Frage");
-    }
-
-    @Test
     void copySurvey_createsAngelegtCopyWithQuestions() {
         SurveyAdminDto dto = createStartedSurvey();
         SurveyAdminDto copy = surveyService.copySurvey(dto.getId());
@@ -318,5 +294,109 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         assertThat(copy.getQuestions().get(1).getOptions()).extracting(QuestionOptionDto::getText)
             .containsExactly("Ja", "Nein");
         assertThat(copy.getResponseCount()).isZero();
+    }
+
+    @Test
+    void deleteSurvey_deletesStartedSurveyWithResponses() {
+        SurveyAdminDto dto = createStartedSurvey();
+        Long ratingId = dto.getQuestions().get(0).getId();
+        Long singleId = dto.getQuestions().get(1).getId();
+        Long singleYes = dto.getQuestions().get(1).getOptions().get(0).getId();
+        submit(dto.getId(), List.of(answer(ratingId, null, "4"), answer(singleId, List.of(singleYes), null)));
+        assertThat(surveyService.getResult(dto.getId()).getResponseCount()).isEqualTo(1);
+
+        surveyService.deleteSurvey(dto.getId());
+
+        assertThat(surveyService.listSurveys()).extracting(SurveyAdminDto::getId).doesNotContain(dto.getId());
+        assertThatThrownBy(() -> surveyService.getAdminSurvey(dto.getId()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("nicht gefunden");
+    }
+
+    @Test
+    void deleteSurvey_deletesBeendetAndVeroeffentlicht() {
+        SurveyAdminDto dto = createStartedSurvey();
+        surveyService.endSurvey(dto.getId());
+        surveyService.deleteSurvey(dto.getId());
+        assertThat(surveyService.listSurveys()).extracting(SurveyAdminDto::getId).doesNotContain(dto.getId());
+
+        SurveyAdminDto second = createStartedSurvey();
+        surveyService.endSurvey(second.getId());
+        surveyService.publishSurvey(second.getId());
+        surveyService.deleteSurvey(second.getId());
+        assertThat(surveyService.listSurveys()).extracting(SurveyAdminDto::getId).doesNotContain(second.getId());
+    }
+
+    @Test
+    void deleteSurvey_clearsActiveSurveyAndFreesStartedSlot() {
+        SurveyAdminDto dto = createStartedSurvey();
+        assertThat(surveyService.getActiveSurvey().getId()).isEqualTo(dto.getId());
+
+        surveyService.deleteSurvey(dto.getId());
+
+        assertThat(surveyService.getActiveSurvey()).isNull();
+        SurveyAdminDto replacement = surveyService.createSurvey(fullSurveyRequest());
+        assertThat(surveyService.startSurvey(replacement.getId()).getStatus()).isEqualTo(SurveyStatus.GESTARTET);
+    }
+
+    @Test
+    void createSurvey_requiresDeadline() {
+        SurveyCreateRequest req = new SurveyCreateRequest();
+        req.setTitle("Ohne Frist");
+        assertThatThrownBy(() -> surveyService.createSurvey(req))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Zieldatum");
+    }
+
+    @Test
+    void createSurvey_storesDeadline() {
+        SurveyCreateRequest req = fullSurveyRequest();
+        req.setDeadline(LocalDateTime.now().plusDays(10));
+        SurveyAdminDto dto = surveyService.createSurvey(req);
+        assertThat(dto.getDeadline()).isEqualTo(req.getDeadline());
+        assertThat(surveyService.getPublicSurvey(dto.getId()).getDeadline()).isEqualTo(req.getDeadline());
+    }
+
+    @Test
+    void startSurvey_requiresFutureDeadline() {
+        SurveyCreateRequest req = fullSurveyRequest();
+        req.setDeadline(LocalDateTime.now().minusDays(1));
+        SurveyAdminDto dto = surveyService.createSurvey(req);
+        assertThatThrownBy(() -> surveyService.startSurvey(dto.getId()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Zukunft");
+    }
+
+    @Test
+    void endExpiredSurveys_autoEndsAndBlocksSubmission() {
+        SurveyAdminDto dto = createStartedSurvey();
+        entityManager.createNativeQuery("UPDATE ffl_survey SET deadline = :past WHERE id = :id")
+            .setParameter("past", LocalDateTime.now().minusMinutes(5))
+            .setParameter("id", dto.getId())
+            .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(surveyService.endExpiredSurveys()).isEqualTo(1);
+        assertThat(surveyService.getAdminSurvey(dto.getId()).getStatus()).isEqualTo(SurveyStatus.BEENDET);
+
+        assertThatThrownBy(() -> submit(dto.getId(), List.of()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("nicht aktiv");
+    }
+
+    @Test
+    void submitResponse_blockedAfterDeadline() {
+        SurveyAdminDto dto = createStartedSurvey();
+        entityManager.createNativeQuery("UPDATE ffl_survey SET deadline = :past WHERE id = :id")
+            .setParameter("past", LocalDateTime.now().minusMinutes(5))
+            .setParameter("id", dto.getId())
+            .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThatThrownBy(() -> submit(dto.getId(), List.of()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("abgelaufen");
     }
 }

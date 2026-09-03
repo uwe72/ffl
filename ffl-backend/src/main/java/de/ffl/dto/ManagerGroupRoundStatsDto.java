@@ -50,6 +50,7 @@ public class ManagerGroupRoundStatsDto {
         private Integer positionChange;
         private Integer pointsTotal;
         private Integer pointsLastRound;
+        private Integer einsatzquote;
         private List<RoundPointDto> roundData;
 
         public Long getManagerId() { return managerId; }
@@ -74,6 +75,8 @@ public class ManagerGroupRoundStatsDto {
         public void setPointsTotal(Integer pointsTotal) { this.pointsTotal = pointsTotal; }
         public Integer getPointsLastRound() { return pointsLastRound; }
         public void setPointsLastRound(Integer pointsLastRound) { this.pointsLastRound = pointsLastRound; }
+        public Integer getEinsatzquote() { return einsatzquote; }
+        public void setEinsatzquote(Integer einsatzquote) { this.einsatzquote = einsatzquote; }
         public List<RoundPointDto> getRoundData() { return roundData; }
         public void setRoundData(List<RoundPointDto> roundData) { this.roundData = roundData; }
     }

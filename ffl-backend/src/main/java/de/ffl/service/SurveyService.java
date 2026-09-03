@@ -36,10 +36,13 @@ public class SurveyService {
 
     @Transactional
     public SurveyAdminDto createSurvey(SurveyCreateRequest request) {
+        requireDeadline(request.getDeadline());
+        requireRequiredQuestion(request.getQuestions());
         Survey survey = Survey.builder()
             .title(request.getTitle())
             .description(request.getDescription())
             .status(SurveyStatus.ANGELEGT)
+            .deadline(request.getDeadline())
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
             .build();
@@ -54,27 +57,11 @@ public class SurveyService {
         if (survey.getStatus() != SurveyStatus.ANGELEGT) {
             throw new IllegalArgumentException("Umfrage ist bereits gestartet und kann nicht mehr geändert werden");
         }
+        requireDeadline(request.getDeadline());
+        requireRequiredQuestion(request.getQuestions());
         survey.setTitle(request.getTitle());
         survey.setDescription(request.getDescription());
-        survey.setUpdatedAt(LocalDateTime.now());
-        survey.getQuestions().clear();
-        applyQuestions(survey, request.getQuestions());
-        Survey saved = surveyRepository.save(survey);
-        return toAdminDto(saved, 0);
-    }
-
-    @Transactional
-    public SurveyAdminDto reviseSurvey(Long id, SurveyCreateRequest request) {
-        Survey survey = requireSurvey(id);
-        if (survey.getStatus() != SurveyStatus.GESTARTET) {
-            throw new IllegalArgumentException("Nur gestartete Umfragen können überarbeitet werden");
-        }
-        if (request.getQuestions() == null || request.getQuestions().isEmpty()) {
-            throw new IllegalArgumentException("Die Umfrage benötigt mindestens eine Frage");
-        }
-        surveyResponseRepository.deleteBySurveyId(id);
-        survey.setTitle(request.getTitle());
-        survey.setDescription(request.getDescription());
+        survey.setDeadline(request.getDeadline());
         survey.setUpdatedAt(LocalDateTime.now());
         survey.getQuestions().clear();
         applyQuestions(survey, request.getQuestions());
@@ -88,6 +75,7 @@ public class SurveyService {
         SurveyCreateRequest request = new SurveyCreateRequest();
         request.setTitle("Kopie von " + source.getTitle());
         request.setDescription(source.getDescription());
+        request.setDeadline(source.getDeadline());
         request.setQuestions(source.getQuestions().stream()
             .map(q -> {
                 SurveyQuestionRequest qr = new SurveyQuestionRequest();
@@ -108,9 +96,7 @@ public class SurveyService {
     @Transactional
     public void deleteSurvey(Long id) {
         Survey survey = requireSurvey(id);
-        if (survey.getStatus() != SurveyStatus.ANGELEGT) {
-            throw new IllegalArgumentException("Nur angelegte Umfragen können gelöscht werden");
-        }
+        surveyResponseRepository.deleteBySurveyId(id);
         surveyRepository.delete(survey);
     }
 
@@ -120,8 +106,12 @@ public class SurveyService {
         if (survey.getStatus() != SurveyStatus.ANGELEGT) {
             throw new IllegalArgumentException("Nur angelegte Umfragen können gestartet werden");
         }
-        if (survey.getQuestions().isEmpty()) {
-            throw new IllegalArgumentException("Die Umfrage benötigt mindestens eine Frage");
+        if (survey.getQuestions().isEmpty()
+            || survey.getQuestions().stream().noneMatch(Question::getRequired)) {
+            throw new IllegalArgumentException("Die Umfrage benötigt mindestens eine Pflichtfrage");
+        }
+        if (!survey.getDeadline().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Das Zieldatum muss in der Zukunft liegen");
         }
         if (surveyRepository.existsByStatus(SurveyStatus.GESTARTET)) {
             throw new IllegalArgumentException("Es ist bereits eine Umfrage gestartet. Beende sie zuerst.");
@@ -179,12 +169,38 @@ public class SurveyService {
             .orElse(null);
     }
 
+    @Transactional
+    public int endExpiredSurveys() {
+        List<Survey> expired = surveyRepository.findByStatus(SurveyStatus.GESTARTET).stream()
+            .filter(s -> !s.getDeadline().isAfter(LocalDateTime.now()))
+            .toList();
+        for (Survey survey : expired) {
+            survey.setStatus(SurveyStatus.BEENDET);
+            survey.setUpdatedAt(LocalDateTime.now());
+            surveyRepository.save(survey);
+        }
+        return expired.size();
+    }
+
+    private void requireDeadline(LocalDateTime deadline) {
+        if (deadline == null) {
+            throw new IllegalArgumentException("Bitte gib ein Zieldatum an.");
+        }
+    }
+
+    private void requireRequiredQuestion(List<SurveyQuestionRequest> questions) {
+        if (questions == null || questions.stream().noneMatch(q -> Boolean.TRUE.equals(q.getRequired()))) {
+            throw new IllegalArgumentException("Die Umfrage benötigt mindestens eine Pflichtfrage");
+        }
+    }
+
     private SurveyPublicDto toPublicDto(Survey survey) {
         return SurveyPublicDto.builder()
             .id(survey.getId())
             .title(survey.getTitle())
             .description(survey.getDescription())
             .status(survey.getStatus())
+            .deadline(survey.getDeadline())
             .questions(survey.getQuestions().stream()
                 .map(q -> SurveyQuestionPublicDto.builder()
                     .id(q.getId())
@@ -210,6 +226,12 @@ public class SurveyService {
         Survey survey = requireSurvey(surveyId);
         if (survey.getStatus() != SurveyStatus.GESTARTET) {
             throw new IllegalArgumentException("Die Umfrage ist nicht aktiv und kann nicht ausgefüllt werden");
+        }
+        if (!survey.getDeadline().isAfter(LocalDateTime.now())) {
+            survey.setStatus(SurveyStatus.BEENDET);
+            survey.setUpdatedAt(LocalDateTime.now());
+            surveyRepository.save(survey);
+            throw new IllegalArgumentException("Die Umfrage ist abgelaufen und kann nicht mehr ausgefüllt werden");
         }
 
         Map<Long, Question> questionsById = survey.getQuestions().stream()
@@ -523,6 +545,7 @@ public class SurveyService {
             .status(survey.getStatus())
             .createdAt(survey.getCreatedAt())
             .updatedAt(survey.getUpdatedAt())
+            .deadline(survey.getDeadline())
             .responseCount(responseCount)
             .questions(survey.getQuestions().stream()
                 .map(q -> SurveyQuestionAdminDto.builder()

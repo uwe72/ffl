@@ -17,6 +17,7 @@ public class SurveyAdminDto {
     private SurveyStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime deadline;
     private long responseCount;
     private List<SurveyQuestionAdminDto> questions;
 }

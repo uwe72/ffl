@@ -66,7 +66,7 @@ function managerFullName(m: { firstName?: string; lastName?: string; managerName
   return [m.firstName, m.lastName].filter(Boolean).join(' ') || m.managerName || '-'
 }
 
-type GroupManagerSortKey = 'shortName' | 'firstName' | 'lastName' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
+type GroupManagerSortKey = 'shortName' | 'firstName' | 'lastName' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound' | 'einsatzquote'
 
 function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLabel, showCarouselNav, carouselPosition, onPrev, onNext }: {
   group: ManagerGroupRoundStats
@@ -120,6 +120,9 @@ function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLa
           break
         case 'pointsLastRound':
           comparison = (b.pointsLastRound ?? 0) - (a.pointsLastRound ?? 0)
+          break
+        case 'einsatzquote':
+          comparison = (a.einsatzquote ?? 0) - (b.einsatzquote ?? 0)
           break
       }
       return sortOrder === 'asc' ? comparison : -comparison
@@ -208,6 +211,11 @@ function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLa
                   {matchdayLabel}<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
               )}
+              {!isBeforeSeason && (
+                <ThSortable align="center" onClick={() => handleSort('einsatzquote')}>
+                  Einsatzquote<SortIcon column="einsatzquote" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+              )}
             </tr>
           </TableHead>
           <TableBody>
@@ -262,12 +270,17 @@ function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLa
                     {m.pointsLastRound ?? '-'}
                   </td>
                 )}
+                {!isBeforeSeason && (
+                  <td className="px-3 py-2 text-center text-foreground tabular-nums">
+                    {m.einsatzquote != null ? `${m.einsatzquote} %` : '-'}
+                  </td>
+                )}
               </tr>
               )
             })}
             {sortedManagers.length === 0 && (
               <tr>
-                <td colSpan={isBeforeSeason ? 3 : 7} className="text-center text-subtle py-8">
+                <td colSpan={isBeforeSeason ? 3 : 8} className="text-center text-subtle py-8">
                   Keine Manager in dieser Gruppe
                 </td>
               </tr>
@@ -1185,7 +1198,7 @@ export default function Home() {
             )}
           </div>
         ) : activeTab === 'manager' ? (
-          <Managers fill />
+          <Managers fill showEinsatzquote />
         ) : (
           <div className="flex-1 min-h-0 flex flex-col pr-1">
             <div className="max-w-[1300px] flex flex-col gap-6 flex-1 min-h-0">

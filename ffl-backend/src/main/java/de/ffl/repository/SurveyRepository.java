@@ -16,6 +16,8 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
 
     Optional<Survey> findFirstByStatus(SurveyStatus status);
 
+    List<Survey> findByStatus(SurveyStatus status);
+
     boolean existsByStatus(SurveyStatus status);
 
     @Query("SELECT DISTINCT s FROM Survey s LEFT JOIN FETCH s.questions WHERE s.id = :id")

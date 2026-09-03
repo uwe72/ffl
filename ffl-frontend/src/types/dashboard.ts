@@ -21,6 +21,7 @@ export interface SpielerAufstellung {
   zuNull: number
   gespielt: boolean
   einsaetze: number
+  einsatzquote?: number
   regeln?: RulePoint[]
 }
 

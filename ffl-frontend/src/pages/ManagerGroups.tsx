@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useLayoutEffect } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useManagerGroups, useGroupLogo } from '../hooks/useManagerGroups'
 import BackButton from '../components/BackButton'
@@ -67,6 +67,19 @@ export default function ManagerGroups() {
 
   const { data: groups, isLoading, error } = useManagerGroups()
 
+  const tableWrapRef = useRef<HTMLDivElement>(null)
+  const [tableWidth, setTableWidth] = useState<number | null>(null)
+
+  useLayoutEffect(() => {
+    const el = tableWrapRef.current
+    if (!el) return
+    const update = () => setTableWidth(el.getBoundingClientRect().width)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [isMobile])
+
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
@@ -103,13 +116,26 @@ export default function ManagerGroups() {
     <div className="md:h-full md:flex md:flex-col md:min-h-0">
       <BackButton to="/" className="mb-4" />
       <div className="md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
-        <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6 md:shrink-0">
+        <div
+          className="flex items-start gap-3 p-3 w-full max-w-full bg-info-bg border border-info/30 rounded-card mb-6 md:shrink-0"
+          style={tableWidth ? { maxWidth: tableWidth } : undefined}
+        >
           <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
-          <p className="text-sm text-foreground">
-            Hier kannst du eigene Gruppen erstellen und verwalten. In der Tabelle werden nur Gruppen
-            angezeigt, deren Ersteller du bist. Die vollständige Übersicht aller deiner Gruppen findest
-            du im <RouterLink to="/?tab=gruppen" className="link">Dashboard</RouterLink>.
-          </p>
+          <div className="text-sm text-foreground min-w-0">
+            <p>
+              Hier kannst du eigene Gruppen erstellen und verwalten. In der Tabelle werden nur Gruppen
+              angezeigt, deren Ersteller du bist. Die vollständige Übersicht aller deiner Gruppen findest
+              du im <RouterLink to="/?tab=gruppen" className="link">Dashboard</RouterLink>.
+            </p>
+            <p className="mt-2">
+              Mit einer Manager-Gruppe vergleichst du dich mit einem eigenen, kleinen Kreis statt mit der
+              ganzen Liga, zum Beispiel mit Freunden oder Kollegen. Eure Rangliste taucht auch in der
+              Spieltagsmail auf.
+            </p>
+            {sortedGroups.length === 0 && (
+              <p className="mt-2">Hier kannst du deine erste Gruppe anlegen.</p>
+            )}
+          </div>
         </div>
       <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
         <div className="flex items-center justify-between gap-4 mb-4 md:shrink-0">
@@ -125,7 +151,7 @@ export default function ManagerGroups() {
 
         {!isMobile && (
           <>
-            <div className="flex-1 min-h-0 overflow-auto rounded-card border border-border w-fit max-w-full">
+            <div ref={tableWrapRef} className="flex-1 min-h-0 overflow-auto rounded-card border border-border w-fit max-w-full">
               <table>
                 <TableHead>
                   <tr>
@@ -177,18 +203,8 @@ export default function ManagerGroups() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="py-8">
-                        <div className="flex gap-3 items-start max-w-2xl mx-auto text-left p-4 bg-info-bg border border-info/30 rounded-card">
-                          <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
-                          <div className="text-sm text-muted">
-                            <p>
-                              Mit einer Manager‑Gruppe vergleichst du dich mit einem eigenen, kleinen
-                              Kreis statt mit der ganzen Liga, zum Beispiel mit Freunden oder Kollegen.
-                              Eure Rangliste taucht auch in der Spieltagsmail auf.
-                            </p>
-                            <p className="mt-2">Hier kannst du deine erste Gruppe anlegen.</p>
-                          </div>
-                        </div>
+                      <td colSpan={4} className="py-8 text-center text-muted">
+                        Keine Gruppen vorhanden
                       </td>
                     </tr>
                   )}
@@ -206,17 +222,7 @@ export default function ManagerGroups() {
                   <ManagerGroupCard key={group.id} group={group} />
                 ))
               ) : (
-                <div className="flex gap-3 items-start max-w-2xl mx-auto text-left p-4 bg-info-bg border border-info/30 rounded-card">
-                  <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
-                  <div className="text-sm text-muted">
-                    <p>
-                      Mit einer Manager‑Gruppe vergleichst du dich mit einem eigenen, kleinen Kreis
-                      statt mit der ganzen Liga, zum Beispiel mit Freunden oder Kollegen. Eure
-                      Rangliste taucht auch in der Spieltagsmail auf.
-                    </p>
-                    <p className="mt-2">Hier kannst du deine erste Gruppe anlegen.</p>
-                  </div>
-                </div>
+                <p className="text-center text-muted text-sm py-4">Keine Gruppen vorhanden</p>
               )}
             </div>
           </div>

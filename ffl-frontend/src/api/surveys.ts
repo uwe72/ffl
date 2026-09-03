@@ -13,7 +13,6 @@ export const surveyApi = {
   get: (id: number) => api.get<SurveyAdmin>(`/surveys/${id}`),
   create: (data: SurveyCreateRequest) => api.post<SurveyAdmin>('/surveys', data),
   update: (id: number, data: SurveyCreateRequest) => api.put<SurveyAdmin>(`/surveys/${id}`, data),
-  revise: (id: number, data: SurveyCreateRequest) => api.post<SurveyAdmin>(`/surveys/${id}/revise`, data),
   copy: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/copy`),
   remove: (id: number) => api.delete(`/surveys/${id}`),
   start: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/start`),

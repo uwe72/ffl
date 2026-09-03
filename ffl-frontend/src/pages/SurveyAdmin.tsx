@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSurveys, useCreateSurvey, useUpdateSurvey, useReviseSurvey, useCopySurvey, useDeleteSurvey, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
+import { useSurveys, useCreateSurvey, useUpdateSurvey, useCopySurvey, useDeleteSurvey, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
 import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import BackButton from '../components/BackButton'
 import Button from '../components/Button'
@@ -41,6 +41,24 @@ function formatDate(iso?: string | null) {
   }
 }
 
+function formatDateTime(iso?: string | null) {
+  if (!iso) return '–'
+  try {
+    const d = new Date(iso)
+    return `${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}, ${d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr`
+  } catch {
+    return iso
+  }
+}
+
+function toDatetimeLocal(iso?: string | null): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 interface DraftQuestion {
   type: QuestionType
   text: string
@@ -52,6 +70,7 @@ interface DraftQuestion {
 interface Draft {
   title: string
   description: string
+  deadline: string
   questions: DraftQuestion[]
 }
 
@@ -72,8 +91,11 @@ export default function SurveyAdmin() {
     })
   }
 
-  const remove = (id: number) => {
-    if (!window.confirm('Möchtest du diese Umfrage wirklich löschen?')) return
+  const remove = (id: number, responseCount: number) => {
+    const warning = responseCount > 0
+      ? `Möchtest du diese Umfrage wirklich löschen? Alle ${responseCount} Antworten werden ebenfalls gelöscht.`
+      : 'Möchtest du diese Umfrage wirklich löschen?'
+    if (!window.confirm(warning)) return
     deleteMutation.mutate(id, {
       onError: err => alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen'),
     })
@@ -145,6 +167,7 @@ export default function SurveyAdmin() {
                   <div className="flex items-center gap-4 mt-2 text-xs text-subtle">
                     <span>{s.questions.length} Fragen</span>
                     <span>{s.responseCount} Antworten</span>
+                    <span>Möglich bis: {formatDateTime(s.deadline)}</span>
                     <span>Erstellt: {formatDate(s.createdAt)}</span>
                   </div>
                 </div>
@@ -154,15 +177,15 @@ export default function SurveyAdmin() {
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startEdit(s)}>Bearbeiten</Button>
                       <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'start')}>Starten</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
-                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id)}>Löschen</Button>
+                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
                     </>
                   )}
                   {s.status === 'GESTARTET' && (
                     <>
-                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startEdit(s)}>Bearbeiten</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
                       <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'end')}>Beenden</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
+                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
                     </>
                   )}
                   {s.status === 'BEENDET' && (
@@ -170,12 +193,14 @@ export default function SurveyAdmin() {
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
                       <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'publish')}>Veröffentlichen</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
+                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
                     </>
                   )}
                   {s.status === 'VEROEFFENTLICHT' && (
                     <>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
+                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
                     </>
                   )}
                 </div>
@@ -196,12 +221,12 @@ function SurveyEditor({ existing, isNew, onCancel }: {
   const isMobile = useIsMobile()
   const create = useCreateSurvey()
   const update = useUpdateSurvey()
-  const revise = useReviseSurvey()
   const [draft, setDraft] = useState<Draft>(() =>
     existing
       ? {
           title: existing.title,
           description: existing.description ?? '',
+          deadline: toDatetimeLocal(existing.deadline),
           questions: existing.questions.map(q => ({
             type: q.type,
             text: q.text,
@@ -210,7 +235,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
             options: q.options.map(o => o.text),
           })),
         }
-      : { title: '', description: '', questions: [] },
+      : { title: '', description: '', deadline: '', questions: [] },
   )
   const [error, setError] = useState<string | null>(null)
   const optionRefs = useRef<Record<number, Record<number, HTMLInputElement | null>>>({})
@@ -271,6 +296,14 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       setError('Bitte gib einen Titel an.')
       return
     }
+    if (!draft.deadline) {
+      setError('Bitte gib ein Zieldatum an.')
+      return
+    }
+    if (!draft.questions.some(q => q.required)) {
+      setError('Die Umfrage benötigt mindestens eine Pflichtfrage.')
+      return
+    }
     const questions: SurveyQuestionRequest[] = draft.questions.map((q, i) => ({
       type: q.type,
       text: q.text,
@@ -290,20 +323,12 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       return
     }
     setError(null)
-    const isStarted = existing?.status === 'GESTARTET'
-    if (isStarted && !window.confirm('Durch das Speichern werden alle bisherigen Antworten gelöscht. Fortfahren?')) {
-      return
-    }
     try {
-      const payload = { title: draft.title, description: draft.description, questions }
+      const payload = { title: draft.title, description: draft.description, deadline: draft.deadline, questions }
       if (isNew) {
         await create.mutateAsync(payload)
       } else if (existing) {
-        if (isStarted) {
-          await revise.mutateAsync({ id: existing.id, data: payload })
-        } else {
-          await update.mutateAsync({ id: existing.id, data: payload })
-        }
+        await update.mutateAsync({ id: existing.id, data: payload })
       }
       onCancel()
     } catch (e) {
@@ -323,12 +348,6 @@ function SurveyEditor({ existing, isNew, onCancel }: {
         </div>
       </div>
 
-      {existing?.status === 'GESTARTET' && (
-        <div className="mb-4 p-3 rounded-control border border-warning/30 bg-warning-bg text-warning text-sm">
-          Diese Umfrage ist bereits gestartet. Beim Speichern werden alle bisherigen Antworten gelöscht.
-        </div>
-      )}
-
       <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
         <div className="flex flex-col gap-4">
           <div>
@@ -347,6 +366,15 @@ function SurveyEditor({ existing, isNew, onCancel }: {
               onChange={e => setDraft(prev => ({ ...prev, description: e.target.value }))}
               rows={2}
               className="input-field control w-full px-3 py-2 rounded-control text-sm resize-y"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-muted mb-1">Umfrage möglich bis *</label>
+            <input
+              type="datetime-local"
+              value={draft.deadline}
+              onChange={e => setDraft(prev => ({ ...prev, deadline: e.target.value }))}
+              className="input-field control w-full px-3 py-2 rounded-control text-sm"
             />
           </div>
         </div>

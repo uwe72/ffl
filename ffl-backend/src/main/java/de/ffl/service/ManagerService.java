@@ -324,6 +324,7 @@ public class ManagerService {
 
         dto.setDescription(manager.getDescription());
         dto.setMailTheme(manager.getMailTheme() != null ? manager.getMailTheme().name() : MailTheme.LIGHTMODE.name());
+        dto.setEinsatzquote(manager.getEinsatzquote());
         
         if (manager.getSeason() != null) {
             dto.setSeasonId(manager.getSeason().getId());

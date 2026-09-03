@@ -1,5 +1,8 @@
 package de.ffl.controller;
 
+import de.ffl.domain.User;
+import de.ffl.repository.UserRepository;
+import de.ffl.service.InstallStatisticsService;
 import de.ffl.service.PwaInstallTrackingService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.ClassPathResource;
@@ -19,15 +22,28 @@ import java.util.concurrent.TimeUnit;
 public class PwaController {
 
     private final PwaInstallTrackingService pwaInstallTrackingService;
+    private final InstallStatisticsService installStatisticsService;
+    private final UserRepository userRepository;
 
-    public PwaController(PwaInstallTrackingService pwaInstallTrackingService) {
+    public PwaController(PwaInstallTrackingService pwaInstallTrackingService,
+                         InstallStatisticsService installStatisticsService,
+                         UserRepository userRepository) {
         this.pwaInstallTrackingService = pwaInstallTrackingService;
+        this.installStatisticsService = installStatisticsService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/api/pwa/install-click")
     public ResponseEntity<Map<String, String>> trackInstallClick(HttpServletRequest request) {
+        String login = getCurrentLogin();
+        User user = (login == null || login.isBlank())
+                ? null
+                : userRepository.findByLoginIgnoreCase(login).orElse(null);
+        if (user != null) {
+            installStatisticsService.recordClick(user);
+        }
         pwaInstallTrackingService.track(
-                getCurrentLogin(),
+                login,
                 resolveClientIp(request),
                 request.getHeader("User-Agent"));
         return ResponseEntity.ok(Map.of("status", "ok"));

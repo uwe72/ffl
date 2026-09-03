@@ -49,6 +49,9 @@ public class Player {
     @Builder.Default
     private Boolean aktiv = true;
 
+    @Column(name = "einsatzquote")
+    private Integer einsatzquote;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "player_2_team",

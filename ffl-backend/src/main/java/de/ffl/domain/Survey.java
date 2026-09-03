@@ -40,6 +40,9 @@ public class Survey {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "deadline")
+    private LocalDateTime deadline;
+
     @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     @Builder.Default

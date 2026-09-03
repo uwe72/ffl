@@ -162,6 +162,7 @@ export interface Player {
   pointsLastRound?: number
   positionLastRound?: number
   positionChange?: number
+  einsatzquote?: number
 }
 
 export interface ManagerInfo {
@@ -311,6 +312,7 @@ export interface Manager {
   playerExchangedNew3?: Player
   currentMatchday?: number
   teamChangeCount?: number
+  einsatzquote?: number
 }
 
 export interface ManagerInfo {
@@ -520,6 +522,7 @@ export interface ManagerGroupRoundStats {
     positionChange?: number
     pointsTotal?: number
     pointsLastRound?: number
+    einsatzquote?: number
     roundData: RoundPointData[]
   }[]
 }
@@ -540,6 +543,24 @@ export interface LoginStatMonth {
 
 export interface LoginStatistics {
   months: LoginStatMonth[]
+}
+
+export interface InstallStatUser {
+  login: string
+  firstName?: string
+  lastName?: string
+  clicks: number
+}
+
+export interface InstallStatMonth {
+  year: number
+  month: number
+  totalClicks: number
+  users: InstallStatUser[]
+}
+
+export interface InstallStatistics {
+  months: InstallStatMonth[]
 }
 
 export interface Game {
@@ -696,6 +717,7 @@ export interface SurveyAdmin {
   status: SurveyStatus
   createdAt: string
   updatedAt?: string | null
+  deadline: string
   responseCount: number
   questions: SurveyQuestion[]
 }
@@ -705,6 +727,7 @@ export interface SurveyPublic {
   title: string
   description?: string | null
   status: SurveyStatus
+  deadline: string
   questions: SurveyQuestion[]
 }
 
@@ -720,6 +743,7 @@ export interface SurveyQuestionRequest {
 export interface SurveyCreateRequest {
   title: string
   description?: string
+  deadline: string
   questions: SurveyQuestionRequest[]
 }
 

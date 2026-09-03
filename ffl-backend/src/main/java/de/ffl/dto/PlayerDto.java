@@ -29,6 +29,7 @@ public class PlayerDto {
     private Integer pointsLastRound;
     private Integer positionLastRound;
     private Integer positionChange;
+    private Integer einsatzquote;
     private SeasonInfo season;
 
     public static PlayerDto fromEntity(Player player) {
@@ -45,6 +46,7 @@ public class PlayerDto {
         dto.setPrize(player.getPrize());
         dto.setPictureUrl(player.getPictureUrl());
         dto.setAktiv(player.getAktiv());
+        dto.setEinsatzquote(player.getEinsatzquote());
         if (player.getTeams() != null) {
             dto.setTeams(player.getTeams().stream()
                 .map(t -> new TeamInfo(t.getId(), t.getName(), t.getShortName(), t.getLogoXxlUrl(), t.getLogoSUrl()))
@@ -144,6 +146,8 @@ public class PlayerDto {
     public void setPositionLastRound(Integer positionLastRound) { this.positionLastRound = positionLastRound; }
     public Integer getPositionChange() { return positionChange; }
     public void setPositionChange(Integer positionChange) { this.positionChange = positionChange; }
+    public Integer getEinsatzquote() { return einsatzquote; }
+    public void setEinsatzquote(Integer einsatzquote) { this.einsatzquote = einsatzquote; }
     public SeasonInfo getSeason() { return season; }
     public void setSeason(SeasonInfo season) { this.season = season; }
 

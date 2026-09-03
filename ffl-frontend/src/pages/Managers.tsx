@@ -10,9 +10,9 @@ import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, TableBody, TableRow } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 
-type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
+type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound' | 'einsatzquote'
 
-export default function Managers({ fill = false }: { fill?: boolean } = {}) {
+export default function Managers({ fill = false, showEinsatzquote = false }: { fill?: boolean; showEinsatzquote?: boolean } = {}) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
   const { data: currentSeason } = useCurrentSeason()
@@ -77,6 +77,9 @@ export default function Managers({ fill = false }: { fill?: boolean } = {}) {
           break
         case 'pointsLastRound':
           comparison = (b.pointsLastRound || 0) - (a.pointsLastRound || 0)
+          break
+        case 'einsatzquote':
+          comparison = (a.einsatzquote ?? 0) - (b.einsatzquote ?? 0)
           break
       }
       return sortOrder === 'asc' ? comparison : -comparison
@@ -216,6 +219,11 @@ export default function Managers({ fill = false }: { fill?: boolean } = {}) {
                       {currentSeason?.currentMatchday ? `${currentSeason.currentMatchday}. Spieltag` : 'Spieltag'}<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
                     )}
+                    {!beforeSeason && showEinsatzquote && (
+                    <ThSortable align="center" onClick={() => handleSort('einsatzquote')}>
+                      Einsatzquote<SortIcon column="einsatzquote" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    )}
                   </tr>
                 </TableHead>
                 <TableBody>
@@ -270,12 +278,17 @@ export default function Managers({ fill = false }: { fill?: boolean } = {}) {
                           {manager.pointsLastRound ?? '-'}
                         </td>
                         )}
+                        {!beforeSeason && showEinsatzquote && (
+                        <td className="px-3 py-2 text-center text-foreground tabular-nums">
+                          {manager.einsatzquote != null ? `${manager.einsatzquote} %` : '-'}
+                        </td>
+                        )}
                       </TableRow>
                       )
                     })
                   ) : (
                     <tr>
-                      <td colSpan={beforeSeason ? 3 : 7} className="text-center text-subtle py-8">
+                      <td colSpan={beforeSeason ? 3 : (showEinsatzquote ? 8 : 7)} className="text-center text-subtle py-8">
                         Keine Manager gefunden
                       </td>
                     </tr>

@@ -55,7 +55,7 @@ const positionChipActiveColors: Record<string, string> = {
 
 const chipInactive = 'bg-elevated text-muted border-border'
 
-type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position'
+type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position' | 'einsatzquote'
 
 function formatPrice(price: number | undefined): string {
   if (!price) return '- €'
@@ -223,7 +223,7 @@ function PlayerMobileTable({ players, isBeforeSeason, title }: {
   )
 }
 
-function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter, fixedPosition, aktivFilter, setAktivFilter, searchTerm, setSearchTerm, searchInputRef }: {
+function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter, fixedPosition, aktivFilter, setAktivFilter, searchTerm, setSearchTerm, searchInputRef, compact, onCompactChange, hideSearch, hideTeamFilter, hidePriceFilter }: {
   variant?: 'bar' | 'card'
   count?: number
   selectedPositions: Set<string>
@@ -242,6 +242,11 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
   searchTerm: string
   setSearchTerm: (s: string) => void
   searchInputRef: React.RefObject<HTMLInputElement | null>
+  compact: boolean
+  onCompactChange: (v: boolean) => void
+  hideSearch?: boolean
+  hideTeamFilter?: boolean
+  hidePriceFilter?: boolean
 }) {
   const togglePosition = (pos: string) => {
     if (fixedPosition) return
@@ -314,6 +319,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
             </button>
           </div>
           <div className="flex items-center gap-1.5 flex-wrap">
+            {!hideTeamFilter && (
             <select
               value={selectedTeamId}
               onChange={e => setSelectedTeamId(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
@@ -324,6 +330,8 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
                 <option key={team.id} value={team.id}>{team.name}</option>
               ))}
             </select>
+            )}
+            {!hidePriceFilter && (
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <input
                 type="text"
@@ -347,6 +355,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
                 className="input-field control flex-1 min-w-0 px-2 py-1.5 text-xs"
               />
             </div>
+            )}
           </div>
           {hasFilter && (
             <button
@@ -366,6 +375,14 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
   return (
     <div className="flex items-center gap-3 flex-wrap mb-4">
       <div className="flex items-center gap-1.5 flex-wrap">
+        <button
+          onClick={() => onCompactChange(!compact)}
+          title="Kompakte Ansicht (weniger Spalten) oder Detail-Ansicht"
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${compact ? 'bg-info-bg text-info border-info' : chipInactive} cursor-pointer`}
+        >
+          <i className="sap-icon sap-icon-filter text-[12px]" />
+          {compact ? 'Kompakt' : 'Detail'}
+        </button>
         {visiblePositions.map(pos => {
           const active = selectedPositions.has(pos)
           return (
@@ -389,6 +406,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
         </button>
       </div>
 
+      {!hideTeamFilter && (
       <select
         value={selectedTeamId}
         onChange={e => setSelectedTeamId(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
@@ -399,7 +417,9 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
           <option key={team.id} value={team.id}>{team.name}</option>
         ))}
       </select>
+      )}
 
+      {!hidePriceFilter && (
       <div className="flex items-center gap-1.5 w-full md:w-auto">
         <input
           type="text"
@@ -423,7 +443,9 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
           className="input-field control flex-1 min-w-0 md:w-40 px-2 py-1.5 text-xs"
         />
       </div>
+      )}
 
+      {!hideSearch && (
       <div className="relative flex-1 min-w-0 md:w-56">
         <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
         <input
@@ -435,6 +457,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
           className="input-field control pl-8 pr-3 py-1.5 text-xs text-left w-full"
         />
       </div>
+      )}
 
       {hasFilter && (
         <button
@@ -463,6 +486,10 @@ export default function PlayerTable({
   hideFilters = false,
   mobileDashboardLayout = false,
   scroll = false,
+  enableCompact = false,
+  hideSearch = false,
+  hideTeamFilter = false,
+  hidePriceFilter = false,
 }: {
   players: Player[]
   fixedPosition?: Position
@@ -477,6 +504,10 @@ export default function PlayerTable({
   hideFilters?: boolean
   mobileDashboardLayout?: boolean
   scroll?: boolean
+  enableCompact?: boolean
+  hideSearch?: boolean
+  hideTeamFilter?: boolean
+  hidePriceFilter?: boolean
 }) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
@@ -495,6 +526,16 @@ export default function PlayerTable({
   const [sortKey, setSortKey] = useState<SortKey>(defaultSortKey)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(defaultSortOrder)
   const searchInputRef = useRef<HTMLInputElement>(null)
+
+  const [compact, setCompact] = useState(() => {
+    const stored = localStorage.getItem('ffl-player-compact')
+    return stored === null ? true : stored === 'true'
+  })
+  const compactActive = enableCompact && compact
+  const handleSetCompact = (next: boolean) => {
+    setCompact(next)
+    localStorage.setItem('ffl-player-compact', String(next))
+  }
 
   useEffect(() => {
     if (autoFocus) {
@@ -567,6 +608,9 @@ export default function PlayerTable({
         case 'prize':
           comparison = a.prize - b.prize
           break
+        case 'einsatzquote':
+          comparison = (a.einsatzquote ?? 0) - (b.einsatzquote ?? 0)
+          break
         case 'position':
           const posOrder: Record<string, number> = { GOALKEEPER: 0, DEFENDER: 1, MIDFIELD: 2, STRIKER: 3 }
           comparison = (posOrder[a.position] ?? 999) - (posOrder[b.position] ?? 999)
@@ -617,6 +661,19 @@ export default function PlayerTable({
         <h2 className="hidden md:block text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
         )}
         <div className="flex items-center gap-3 w-full md:w-auto">
+          {enableCompact && !isMobile && !hideSearch && (
+            <div className="relative flex-1 min-w-0 md:w-56">
+              <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Spieler suchen..."
+                className="input-field control pl-8 pr-3 py-2 text-sm text-left w-full"
+              />
+            </div>
+          )}
           {enableExport && !isMobile && (
             <Button onClick={exportToExcel} size="input">
               Excel Export
@@ -646,6 +703,11 @@ export default function PlayerTable({
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         searchInputRef={searchInputRef}
+        compact={compact}
+        onCompactChange={handleSetCompact}
+        hideSearch={enableCompact || hideSearch}
+        hideTeamFilter={hideTeamFilter}
+        hidePriceFilter={hidePriceFilter}
       />
       </div>
       )}
@@ -676,28 +738,37 @@ export default function PlayerTable({
                   )}
                   {!isBeforeSeason && (
                   <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
-                    1. Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                    Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
                   )}
-                  {!isBeforeSeasonNonAdmin && (
+                  {!compactActive && !isBeforeSeasonNonAdmin && (
                   <ThSortable align="center" onClick={() => handleSort('managerCount')}>
                     Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
                   )}
+                  {!compactActive && !isBeforeSeason && (
+                  <ThSortable align="center" onClick={() => handleSort('einsatzquote')}>
+                    Einsatzquote<SortIcon column="einsatzquote" activeKey={sortKey} order={sortOrder} />
+                  </ThSortable>
+                  )}
+                  {!compactActive && (
                   <ThSortable align="right" onClick={() => handleSort('prize')}>
                     Preis<SortIcon column="prize" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
+                  )}
                   {!fixedPosition && (
                   <ThSortable align="left" onClick={() => handleSort('position')}>
                     Position<SortIcon column="position" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
                   )}
                   <Th align="left">Verein</Th>
+                  {!compactActive && (
                   <Th align="center">
                     <span className="cursor-help" title="Aktiv: aktueller Bundesliga-Spieler · Inaktiv: Spieler hat die Bundesliga verlassen">
                       Aktiv
                     </span>
                   </Th>
+                  )}
                  </tr>
               </TableHead>
               <TableBody>
@@ -730,21 +801,21 @@ export default function PlayerTable({
                             {player.pictureUrl && (
                               <img src={player.pictureUrl} alt={fullName(player)} className="w-10 h-10 rounded-full object-cover mr-3" />
                             )}
-                            <div className={player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-foreground'}>{fullName(player)}</div>
+                            <div className={`whitespace-nowrap ${player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-foreground'}`}>{fullName(player)}</div>
                           </div>
                         ) : isBeforeSeasonNonAdmin ? (
                           <div className="flex items-center">
                             {player.pictureUrl && (
                               <img src={player.pictureUrl} alt={fullName(player)} className="w-10 h-10 rounded-full object-cover mr-3" />
                             )}
-                            <div className={player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-foreground'}>{fullName(player)}</div>
+                            <div className={`whitespace-nowrap ${player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-foreground'}`}>{fullName(player)}</div>
                           </div>
                         ) : (
                           <RouterLink to={`/players/${player.id}`} className="flex items-center link">
                             {player.pictureUrl && (
                               <img src={player.pictureUrl} alt={fullName(player)} className="w-10 h-10 rounded-full object-cover mr-3" />
                             )}
-                            <div className={player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-link'}>{fullName(player)}</div>
+                            <div className={`whitespace-nowrap ${player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-link'}`}>{fullName(player)}</div>
                           </RouterLink>
                         )}
                       </td>
@@ -758,7 +829,7 @@ export default function PlayerTable({
                         {player.pointsLastRound ?? '-'}
                       </td>
                       )}
-                      {!isBeforeSeasonNonAdmin && (
+                      {!compactActive && !isBeforeSeasonNonAdmin && (
                       <td className="px-3 py-2 text-center">
                         {onSelect ? (
                           <span className={`${player.managerCount && player.managerCount > 0 ? 'chip-accent' : ''} text-xs font-medium px-2 py-0.5 rounded-badge`}>
@@ -775,9 +846,16 @@ export default function PlayerTable({
                         )}
                       </td>
                       )}
-                      <td className="px-3 py-2 text-right text-foreground">
+                      {!compactActive && !isBeforeSeason && (
+                      <td className="px-3 py-2 text-center text-foreground tabular-nums">
+                        {player.einsatzquote != null ? `${player.einsatzquote} %` : '-'}
+                      </td>
+                      )}
+                      {!compactActive && (
+                      <td className="px-3 py-2 text-right text-foreground whitespace-nowrap tabular-nums">
                         {player.prize ? player.prize.toLocaleString() : '-'} €
                       </td>
+                      )}
                       {!fixedPosition && (
                       <td className="px-3 py-2">
                         <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
@@ -799,6 +877,7 @@ export default function PlayerTable({
                           </span>
                         ) : '-'}
                       </td>
+                      {!compactActive && (
                       <td className="px-3 py-2 text-center">
                         {player.aktiv === false ? (
                           <span className="text-xs font-medium text-danger">Nein</span>
@@ -806,11 +885,12 @@ export default function PlayerTable({
                           <span className="text-xs font-medium text-success">Ja</span>
                         )}
                       </td>
+                      )}
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={10 - (isBeforeSeason ? 4 : 0) - (isBeforeSeasonNonAdmin ? 1 : 0) - (fixedPosition ? 1 : 0)} className="text-center text-subtle py-8">
+                    <td colSpan={11 - (isBeforeSeason ? 5 : 0) - (isBeforeSeasonNonAdmin ? 1 : 0) - (fixedPosition ? 1 : 0) - (compactActive ? (!isBeforeSeasonNonAdmin ? 1 : 0) + (!isBeforeSeason ? 1 : 0) + 2 : 0)} className="text-center text-subtle py-8">
                       Keine Spieler gefunden
                     </td>
                   </tr>

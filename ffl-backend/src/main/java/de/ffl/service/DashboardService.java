@@ -109,6 +109,7 @@ public class DashboardService {
                 .zuNull(zuNull(p))
                 .gespielt(gespielt)
                 .einsaetze(einsaetze)
+                .einsatzquote(p.getEinsatzquote())
                 .regeln(regelPunkte(p))
                 .build());
         }

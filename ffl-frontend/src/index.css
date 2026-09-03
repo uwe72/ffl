@@ -653,7 +653,8 @@ body {
 
   --pw:72; --ph:84; --dg:52;    /* Plaettchen breit, hoch, Ziffernhoehe */
   --plate-a:#343840; --plate-b:#1d2025; --digit:#f0eae0;
-  --digit-2:#9d9891;    /* rechts, Platz */
+  --digit-2:var(--color-stat-accent);    /* rechts, Platz */
+  --digit-2-zero:#9d9891;    /* rechts, Platz, fuehrende Nullen */
   --frame-a:#2c2f35; --frame-b:#191b1f; --edge:#3d424b; --edge-top:#4e535d;
   --label:#c6c0b7; --unit:#a29c93;
   --label-size:17; --unit-size:15; --label-track:.14em; --unit-track:.10em;
@@ -701,6 +702,7 @@ body {
 
 .ffl-board__digits{display:flex; align-items:center; gap:calc(5 * var(--u))}
 .ffl-board__digits--secondary .ffl-board__plate{color:var(--digit-2)}
+.ffl-board__digits--secondary .ffl-board__plate--zero{color:var(--digit-2-zero)}
 
 .ffl-board__plate{
   position:relative; box-sizing:border-box;

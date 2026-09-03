@@ -47,6 +47,12 @@ public class SchemaMigrationRunner implements CommandLineRunner {
                 migrations.add("ALTER TABLE ffl_manager DROP COLUMN IF EXISTS payment_state");
             }
 
+            if (!columnExists(conn, "ffl_survey", "deadline")) {
+                migrations.add("ALTER TABLE ffl_survey ADD COLUMN deadline TIMESTAMP");
+            }
+            migrations.add("UPDATE ffl_survey SET deadline = created_at WHERE deadline IS NULL");
+            migrations.add("ALTER TABLE ffl_survey ALTER COLUMN deadline SET NOT NULL");
+
             try (Statement stmt = conn.createStatement()) {
                 for (String sql : migrations) {
                     stmt.execute(sql);

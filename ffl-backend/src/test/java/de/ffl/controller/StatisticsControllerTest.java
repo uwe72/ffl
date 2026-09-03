@@ -1,7 +1,10 @@
 package de.ffl.controller;
 
+import de.ffl.dto.InstallStatMonthDto;
+import de.ffl.dto.InstallStatisticDto;
 import de.ffl.dto.LoginStatMonthDto;
 import de.ffl.dto.LoginStatisticDto;
+import de.ffl.service.InstallStatisticsService;
 import de.ffl.service.LoginStatisticsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +27,9 @@ class StatisticsControllerTest {
 
     @Mock
     private LoginStatisticsService loginStatisticsService;
+
+    @Mock
+    private InstallStatisticsService installStatisticsService;
 
     @InjectMocks
     private StatisticsController statisticsController;
@@ -58,5 +64,37 @@ class StatisticsControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         verify(loginStatisticsService, never()).getStatistics(any(), any());
+    }
+
+    @Test
+    void getInstallClickStatistics_validRange_returnsStatistics() {
+        InstallStatisticDto dto = InstallStatisticDto.builder()
+            .months(java.util.List.of(InstallStatMonthDto.builder().year(2026).month(1).totalClicks(5L).build()))
+            .build();
+        when(installStatisticsService.getStatistics(any(), any())).thenReturn(dto);
+
+        ResponseEntity<InstallStatisticDto> response = statisticsController.getInstallClickStatistics(
+            LocalDate.of(2026, 1, 1), LocalDate.of(2026, 2, 1));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isSameAs(dto);
+    }
+
+    @Test
+    void getInstallClickStatistics_emptyRange_returnsBadRequest() {
+        ResponseEntity<InstallStatisticDto> response = statisticsController.getInstallClickStatistics(
+            LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(installStatisticsService, never()).getStatistics(any(), any());
+    }
+
+    @Test
+    void getInstallClickStatistics_invertedRange_returnsBadRequest() {
+        ResponseEntity<InstallStatisticDto> response = statisticsController.getInstallClickStatistics(
+            LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 1));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(installStatisticsService, never()).getStatistics(any(), any());
     }
 }

@@ -12,11 +12,13 @@ export default function ScoreLine({
   positionVorher,
   punkte,
   punkteVorher,
+  einsatzquote,
 }: {
   position: number | null
   positionVorher: number | null
   punkte: number | null
   punkteVorher: number | null
+  einsatzquote?: number | null
 }) {
   const posDelta = position != null && positionVorher != null ? positionVorher - position : null
   const ptsDelta = punkte != null && punkteVorher != null ? punkte - punkteVorher : null
@@ -25,6 +27,12 @@ export default function ScoreLine({
       <span className="text-foreground">Platz {position ?? '-'}<DeltaBadge value={posDelta} /></span>
       <span className="text-muted">·</span>
       <span className="text-foreground">Punkte: {punkte != null ? Math.round(punkte) : '-'}<DeltaBadge value={ptsDelta} /></span>
+      {einsatzquote != null && (
+        <>
+          <span className="text-muted">·</span>
+          <span className="text-foreground">Einsatzquote: {einsatzquote} %</span>
+        </>
+      )}
     </div>
   )
 }

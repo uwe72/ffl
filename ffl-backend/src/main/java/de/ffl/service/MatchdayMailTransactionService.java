@@ -15,6 +15,7 @@ import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
 import de.ffl.domain.SystemConfig;
 import de.ffl.domain.Team;
+import de.ffl.dto.SurveyPublicDto;
 import de.ffl.repository.GameRepository;
 import de.ffl.repository.ManagerGroupRepository;
 import de.ffl.repository.ManagerRankRepository;
@@ -35,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -52,6 +54,9 @@ public class MatchdayMailTransactionService {
 
     private static final long PAUSE_BETWEEN_MAILS_MS = 1200;
 
+    private static final DateTimeFormatter SURVEY_DEADLINE_FMT =
+        DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMANY);
+
     private final SeasonRepository seasonRepository;
     private final ManagerRepository managerRepository;
     private final ManagerRankRepository managerRankRepository;
@@ -64,6 +69,7 @@ public class MatchdayMailTransactionService {
     private final LlmService llmService;
     private final PaymentReminderService paymentReminderService;
     private final SmtpMailTransport smtpMailTransport;
+    private final SurveyService surveyService;
 
     public MatchdayMailTransactionService(SeasonRepository seasonRepository,
                                           ManagerRepository managerRepository,
@@ -76,7 +82,8 @@ public class MatchdayMailTransactionService {
                                           ManagerGroupRepository managerGroupRepository,
                                           LlmService llmService,
                                           PaymentReminderService paymentReminderService,
-                                          SmtpMailTransport smtpMailTransport) {
+                                          SmtpMailTransport smtpMailTransport,
+                                          SurveyService surveyService) {
         this.seasonRepository = seasonRepository;
         this.managerRepository = managerRepository;
         this.managerRankRepository = managerRankRepository;
@@ -89,6 +96,7 @@ public class MatchdayMailTransactionService {
         this.llmService = llmService;
         this.paymentReminderService = paymentReminderService;
         this.smtpMailTransport = smtpMailTransport;
+        this.surveyService = surveyService;
     }
 
     public void runMailJob(SseEmitter emitter, Long seasonId, Integer roundNumber,
@@ -322,6 +330,8 @@ public class MatchdayMailTransactionService {
 
             smtpMailTransport.send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
 
+            SurveyPublicDto activeSurvey = surveyService.getActiveSurvey();
+
             int sent = 0;
             int failed = 0;
             long lastKeepAlive = System.currentTimeMillis();
@@ -363,7 +373,7 @@ public class MatchdayMailTransactionService {
                         playerRankByPlayerId, teamsByPlayerId, playerById, pointsByPlayerId,
                         prevRankByManagerId, transferRound, config.getWebUrl(),
                         rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment,
-                        manager.getMailTheme(), paymentReminder);
+                        manager.getMailTheme(), paymentReminder, activeSurvey);
 
                     helper.setText(html, true);
 
@@ -459,7 +469,8 @@ public class MatchdayMailTransactionService {
                                         Map<Long, ManagerRank> dayRankByManagerId,
                                         String comment,
                                         MailTheme mailTheme,
-                                        de.ffl.dto.PaymentReminderDto paymentReminder) {
+                                        de.ffl.dto.PaymentReminderDto paymentReminder,
+                                        SurveyPublicDto activeSurvey) {
         boolean isDark = mailTheme == MailTheme.DARKMODE;
         
         String bodyBg = "#f5f5f7";
@@ -568,6 +579,11 @@ public class MatchdayMailTransactionService {
             int einsB = prb != null && prb.getNumberMatches() != null ? prb.getNumberMatches() : 0;
             return Integer.compare(einsB, einsA);
         });
+
+        if (activeSurvey != null) {
+            sb.append(renderSurveyHint(activeSurvey, webUrl, cardBg, textPrimary, linkColor, isDark));
+        }
+
         appendRosterTable(sb, roster, playerRankByPlayerId, teamsByPlayerId, roundNumber, transferRound, isDark, textPrimary, textSecondary, textTertiary);
 
         if (rankingExcerpt != null && !rankingExcerpt.isEmpty()) {
@@ -1438,6 +1454,37 @@ public class MatchdayMailTransactionService {
             return "<div style=\"" + commentCardStyle + "\">" + commentHtml + "</div>";
         }
         return "";
+    }
+
+    static String renderSurveyHint(SurveyPublicDto survey, String webUrl,
+                                   String cardBg, String textPrimary,
+                                   String linkColor, boolean isDark) {
+        if (survey == null) {
+            return "";
+        }
+        String border = isDark ? "1px solid #555555" : "1px solid #c0c0c0";
+        String accent = isDark ? "#FFD60A" : "#b7791f";
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div style=\"background:").append(cardBg).append(";border:").append(border)
+          .append(";border-radius:12px;padding:12px 14px;margin:0 0 14px 0;\">");
+        sb.append("<div style=\"color:").append(accent).append(";font-size:13px;font-weight:700;margin:0 0 2px 0;\">")
+          .append("\uD83D\uDCCA").append("Umfrage: ").append(escape(survey.getTitle())).append("</div>");
+        String deadline = survey.getDeadline() != null
+            ? survey.getDeadline().format(SURVEY_DEADLINE_FMT)
+            : "bald";
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;line-height:1.5;\"><tr>");
+        sb.append("<td style=\"color:").append(textPrimary).append(";padding:0;\">")
+          .append("Anonym, dauert eine Minute · noch bis ").append(deadline).append("</td>");
+        if (webUrl != null && !webUrl.isBlank() && survey.getId() != null) {
+            String base = webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
+            sb.append("<td align=\"right\" style=\"white-space:nowrap;vertical-align:top;padding:0;padding-left:10px;\">")
+              .append("<a href=\"").append(escape(base)).append("/umfrage/").append(survey.getId())
+              .append("\" style=\"color:").append(linkColor).append(";font-weight:700;text-decoration:none;\">")
+              .append("Abstimmen →</a></td>");
+        }
+        sb.append("</tr></table>");
+        sb.append("</div>");
+        return sb.toString();
     }
 
     private static boolean hasVisibleText(String html) {

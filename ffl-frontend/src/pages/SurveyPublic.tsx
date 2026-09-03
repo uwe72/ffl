@@ -13,6 +13,15 @@ function storageKey(surveyId: number) {
   return `${STORAGE_PREFIX}${surveyId}`
 }
 
+function formatDateTime(iso: string) {
+  try {
+    const d = new Date(iso)
+    return `${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}, ${d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr`
+  } catch {
+    return iso
+  }
+}
+
 function loadDraft(surveyId: number): AnswerState | null {
   try {
     const raw = localStorage.getItem(storageKey(surveyId))
@@ -212,6 +221,7 @@ export default function SurveyPublic() {
             {survey.description && (
               <p className="text-sm text-muted mt-1 whitespace-pre-wrap">{survey.description}</p>
             )}
+            <p className="text-sm text-subtle mt-2">Umfrage möglich bis {formatDateTime(survey.deadline)}</p>
           </div>
         </div>
 

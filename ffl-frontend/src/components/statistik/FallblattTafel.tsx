@@ -7,14 +7,18 @@ function pad(value: number | null | undefined, size: number): string[] {
   return String(Math.max(0, Math.round(value))).padStart(size, '0').split('')
 }
 
-function Platten({ digits }: { digits: string[] }) {
+function Platten({ digits, markZeros = false }: { digits: string[]; markZeros?: boolean }) {
+  const firstNonZero = digits.findIndex(d => d !== '0')
   return (
     <>
-      {digits.map((d, i) => (
-        <span key={i} className="ffl-board__plate">
-          {d}
-        </span>
-      ))}
+      {digits.map((d, i) => {
+        const isLeadingZero = markZeros && d === '0' && (firstNonZero === -1 || i < firstNonZero)
+        return (
+          <span key={i} className={`ffl-board__plate${isLeadingZero ? ' ffl-board__plate--zero' : ''}`}>
+            {d}
+          </span>
+        )
+      })}
     </>
   )
 }
@@ -55,7 +59,7 @@ function Block({ label, platz, punkte }: BlockProps) {
         </div>
         <div>
           <div className="ffl-board__digits ffl-board__digits--secondary">
-            <Platten digits={pad(platz, DIGITS)} />
+            <Platten digits={pad(platz, DIGITS)} markZeros />
           </div>
           <div className="ffl-board__unit">Platz</div>
         </div>

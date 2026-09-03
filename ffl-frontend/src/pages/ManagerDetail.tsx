@@ -1,8 +1,7 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
-import { useManager, useManagerRoundDetails, useManagerGroups, useUpdateManagerDetails } from '../hooks/useManagers'
-import { useManagerGroupsWithStats } from '../hooks/useManagerGroups'
+import { useManager, useManagerRoundDetails, useUpdateManagerDetails } from '../hooks/useManagers'
 import { useDashboardAufstellung } from '../hooks/useDashboard'
 import { useAuth } from '../context/AuthContext'
 import { useAvatar, useUploadAvatar, useDeleteAvatar } from '../hooks/useAvatar'
@@ -15,11 +14,10 @@ import Badge from '../components/Badge'
 import ScoreLine from '../components/statistik/ScoreLine'
 import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
-import { getChartColors, CHART_SERIES_PALETTE } from '../utils/chartColors'
-import type { Player, ManagerGroup, RulePoint } from '../types'
+import { getChartColors } from '../utils/chartColors'
+import type { Player, RulePoint } from '../types'
 
 const chartColors = getChartColors()
-const LINE_COLORS = CHART_SERIES_PALETTE
 
 const mailThemeLabels = {
   LIGHTMODE: 'Lightmode',
@@ -33,10 +31,10 @@ const positionOrder: Record<string, number> = {
   STRIKER: 3
 }
 
-type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'prize' | 'position' | 'team'
+type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'einsatzquote' | 'prize' | 'position' | 'team'
 type SortOrder = 'asc' | 'desc'
 
-function PlayerRow({ player }: { player: Player }) {
+function PlayerRow({ player, compact }: { player: Player; compact: boolean }) {
   const currentTeam = player.teams[player.teams.length - 1]
   const isMobile = useIsMobile()
   return (
@@ -59,9 +57,9 @@ function PlayerRow({ player }: { player: Player }) {
             <img src={player.pictureUrl} alt={player.nameKicker} className="w-10 h-10 rounded-full object-cover mr-3" />
           )}
           <div>
-            <div className={player.aktiv === false ? 'font-medium text-danger line-through' : 'font-medium text-link'}>{player.nameKicker}</div>
+            <div className={player.aktiv === false ? 'font-medium text-danger line-through whitespace-nowrap' : 'font-medium text-link whitespace-nowrap'}>{player.nameKicker}</div>
             {!isMobile && player.firstName && player.lastName && (
-              <div className="text-sm text-subtle">
+              <div className="text-sm text-subtle whitespace-nowrap">
                 {player.firstName} {player.lastName}
               </div>
             )}
@@ -74,6 +72,7 @@ function PlayerRow({ player }: { player: Player }) {
       <td className="px-3 py-2 text-center text-muted">
         {player.pointsLastRound ?? '-'}
       </td>
+      {!compact && (
       <td className="px-3 py-2 text-center">
         <RouterLink to={`/players/${player.id}`}>
           <span 
@@ -83,9 +82,17 @@ function PlayerRow({ player }: { player: Player }) {
           </span>
         </RouterLink>
       </td>
-      <td className="px-3 py-2 text-right font-medium text-foreground">
+      )}
+      {!compact && (
+      <td className="px-3 py-2 text-center text-foreground tabular-nums">
+        {player.einsatzquote != null ? `${player.einsatzquote} %` : '-'}
+      </td>
+      )}
+      {!compact && (
+      <td className="px-3 py-2 text-right font-medium text-foreground whitespace-nowrap tabular-nums">
         {player.prize.toLocaleString()} €
       </td>
+      )}
       <td className="px-3 py-2">
         <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${positionColors[player.position]}`}>
           {positionLabels[player.position]}
@@ -101,10 +108,19 @@ function PlayerRow({ player }: { player: Player }) {
                 className="w-5 h-5 object-contain flex-shrink-0"
               />
             )}
-            <span className="font-semibold text-foreground">{currentTeam.name}</span>
+            <span className="font-semibold text-foreground whitespace-nowrap">{currentTeam.name}</span>
           </span>
         ) : '-'}
       </td>
+      {!compact && (
+      <td className="px-3 py-2 text-center">
+        {player.aktiv === false ? (
+          <span className="text-xs font-medium text-danger">Nein</span>
+        ) : (
+          <span className="text-xs font-medium text-success">Ja</span>
+        )}
+      </td>
+      )}
     </tr>
   )
 }
@@ -112,6 +128,10 @@ function PlayerRow({ player }: { player: Player }) {
 function PlayerTable({ players, title }: { players: Player[]; title: string }) {
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+  const [compact, setCompact] = useState(() => {
+    const stored = localStorage.getItem('ffl-player-compact')
+    return stored === null ? true : stored === 'true'
+  })
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -120,6 +140,11 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
       setSortKey(key)
       setSortOrder('asc')
     }
+  }
+
+  const handleSetCompact = (next: boolean) => {
+    setCompact(next)
+    localStorage.setItem('ffl-player-compact', String(next))
   }
 
   const sortedPlayers = useMemo(() => {
@@ -144,6 +169,9 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
         case 'managerCount':
           comparison = (a.managerCount ?? 0) - (b.managerCount ?? 0)
           break
+        case 'einsatzquote':
+          comparison = (a.einsatzquote ?? 0) - (b.einsatzquote ?? 0)
+          break
         case 'prize':
           comparison = a.prize - b.prize
           break
@@ -162,9 +190,19 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold text-foreground mb-3">{title}</h2>
-      <div className="overflow-x-auto rounded-card border border-border">
-        <table className="w-full">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+        <button
+          onClick={() => handleSetCompact(!compact)}
+          title="Kompakte Ansicht (weniger Spalten) oder Detail-Ansicht"
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${compact ? 'bg-info-bg text-info border-info' : 'bg-elevated text-muted border-border'} cursor-pointer`}
+        >
+          <i className="sap-icon sap-icon-filter text-[12px]" />
+          {compact ? 'Kompakt' : 'Detail'}
+        </button>
+      </div>
+      <div className="w-fit max-w-full overflow-x-auto rounded-card border border-border">
+        <table>
           <TableHead>
             <tr>
               <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
@@ -180,117 +218,41 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
                 Punkte<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
               <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
-                1. Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                Spieltag<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
+              {!compact && (
               <ThSortable align="center" onClick={() => handleSort('managerCount')}>
                 Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
+              )}
+              {!compact && (
+              <ThSortable align="center" onClick={() => handleSort('einsatzquote')}>
+                Einsatzquote<SortIcon column="einsatzquote" activeKey={sortKey} order={sortOrder} />
+              </ThSortable>
+              )}
+              {!compact && (
               <ThSortable align="right" onClick={() => handleSort('prize')}>
                 Preis<SortIcon column="prize" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
+              )}
               <ThSortable onClick={() => handleSort('position')}>
                 Position<SortIcon column="position" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
               <ThSortable onClick={() => handleSort('team')}>
                 Verein<SortIcon column="team" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
+              {!compact && (
+              <Th align="center">
+                <span className="cursor-help" title="Aktiv: aktueller Bundesliga-Spieler · Inaktiv: Spieler hat die Bundesliga verlassen">
+                  Aktiv
+                </span>
+              </Th>
+              )}
             </tr>
           </TableHead>
           <TableBody>
             {sortedPlayers.map((player) => (
-              <PlayerRow key={player.id} player={player} />
-            ))}
-          </TableBody>
-        </table>
-      </div>
-    </div>
-  )
-}
-
-type ManagerGroupSortKey = 'position' | 'playerName' | 'firstName' | 'lastName' | 'points'
-
-function ManagerGroupTable({ group, currentManagerId }: { group: ManagerGroup; currentManagerId: number }) {
-  const [sortKey, setSortKey] = useState<ManagerGroupSortKey>('position')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
-
-  const handleSort = (key: ManagerGroupSortKey) => {
-    if (sortKey === key) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortKey(key)
-      setSortOrder('asc')
-    }
-  }
-
-  const sortedManagers = useMemo(() => {
-    return [...group.managers].sort((a, b) => {
-      let comparison = 0
-      switch (sortKey) {
-        case 'playerName':
-          comparison = (a.shortName || a.name).localeCompare(b.shortName || b.name)
-          break
-        case 'firstName':
-          comparison = (a.firstName || '').localeCompare(b.firstName || '')
-          break
-        case 'lastName':
-          comparison = (a.lastName || '').localeCompare(b.lastName || '')
-          break
-        case 'position':
-          comparison = (a.positionTotal ?? 999) - (b.positionTotal ?? 999)
-          break
-        case 'points':
-          comparison = (a.pointsTotal ?? 0) - (b.pointsTotal ?? 0)
-          break
-      }
-      return sortOrder === 'asc' ? comparison : -comparison
-    })
-  }, [group.managers, sortKey, sortOrder])
-
-  return (
-    <div className="mt-6">
-      <h2 className="text-lg font-semibold text-foreground mb-3">{group.name}</h2>
-      <div className="overflow-x-auto rounded-card border border-border">
-        <table className="w-full">
-          <TableHead>
-            <tr>
-              <ThSortable onClick={() => handleSort('position')}>
-                Pos<SortIcon column="position" activeKey={sortKey} order={sortOrder} />
-              </ThSortable>
-              <ThSortable onClick={() => handleSort('playerName')}>
-                Kürzel<SortIcon column="playerName" activeKey={sortKey} order={sortOrder} />
-              </ThSortable>
-              <ThSortable onClick={() => handleSort('firstName')}>
-                Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
-              </ThSortable>
-              <ThSortable onClick={() => handleSort('lastName')}>
-                Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
-              </ThSortable>
-              <ThSortable align="right" onClick={() => handleSort('points')}>
-                Pkt<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
-              </ThSortable>
-              <Th align="right">Letzter Spieltag</Th>
-            </tr>
-          </TableHead>
-          <TableBody>
-            {sortedManagers.map((m) => (
-              <tr 
-                key={m.id} 
-                className={`hover:bg-card-hover border-b border-border ${m.id === currentManagerId ? 'bg-default' : ''}`}
-              >
-                <td className="px-3 py-2 text-foreground font-medium">{m.positionTotal ? `${m.positionTotal}.` : '-'}</td>
-                <td className="px-3 py-2">
-                  <RouterLink
-                    to={`/managers/${m.id}`}
-                    className={`hover:text-primary link ${m.id === currentManagerId ? 'text-primary font-semibold' : 'text-foreground'}`}
-                  >
-                    {m.shortName || m.name}
-                  </RouterLink>
-                </td>
-                <td className="px-3 py-2 text-muted">{m.firstName || '-'}</td>
-                <td className="px-3 py-2 text-muted">{m.lastName || '-'}</td>
-                <td className="px-3 py-2 text-right font-medium text-primary">{m.pointsTotal ?? '-'}</td>
-                <td className="px-3 py-2 text-right text-muted">{m.pointsLastRound ?? '-'}</td>
-              </tr>
+              <PlayerRow key={player.id} player={player} compact={compact} />
             ))}
           </TableBody>
         </table>
@@ -303,8 +265,6 @@ export default function ManagerDetail() {
   const { id } = useParams<{ id: string }>()
   const { data: manager, isLoading, error } = useManager(Number(id))
   const { data: roundDetails } = useManagerRoundDetails(Number(id))
-  const { data: managerGroups } = useManagerGroups(Number(id))
-  const { data: managerGroupsWithStats } = useManagerGroupsWithStats(Number(id), true)
   const { data: aufstellung } = useDashboardAufstellung(Number(id))
   const isVorsaison = aufstellung?.phase === 'VORSAISON'
   const feldModus = isVorsaison ? 'wert' : 'gesamt'
@@ -375,14 +335,6 @@ export default function ManagerDetail() {
     return (first + last).toUpperCase()
   }, [manager])
 
-  const [selectedGroupId, setSelectedGroupId] = useState<string>('')
-
-  useEffect(() => {
-    if (managerGroupsWithStats && managerGroupsWithStats.length > 0 && !selectedGroupId) {
-      setSelectedGroupId(managerGroupsWithStats[0].groupId.toString())
-    }
-  }, [managerGroupsWithStats, selectedGroupId])
-
   const handleAvatarClick = () => {
     if (isOwnManager) {
       fileInputRef.current?.click()
@@ -412,74 +364,9 @@ export default function ManagerDetail() {
     }
   }
 
-  const selectedGroup = useMemo(() => {
-    if (!managerGroupsWithStats || !selectedGroupId) return null
-    return managerGroupsWithStats.find(g => g.groupId.toString() === selectedGroupId)
-  }, [managerGroupsWithStats, selectedGroupId])
-
-  const sortedGroupManagers = useMemo(() => {
-    if (!selectedGroup || selectedGroup.managers.length === 0) return []
-    return [...selectedGroup.managers].sort((a, b) => {
-      const aLastRound = a.roundData[a.roundData.length - 1]?.pointsCumulative ?? 0
-      const bLastRound = b.roundData[b.roundData.length - 1]?.pointsCumulative ?? 0
-      return bLastRound - aLastRound
-    })
-  }, [selectedGroup])
-
-  const groupLineChartData = useMemo(() => {
-    if (!selectedGroup || selectedGroup.managers.length === 0) return []
-    
-    const maxRound = Math.max(...selectedGroup.managers.flatMap(m => m.roundData.map(rd => rd.round)))
-    
-    const data = []
-    for (let round = 1; round <= maxRound; round++) {
-      const roundPoint: Record<string, number | string> = { round }
-      selectedGroup.managers.forEach(m => {
-        const rd = m.roundData.find(r => r.round === round)
-        roundPoint[m.shortName || m.managerName] = rd?.pointsCumulative ?? 0
-      })
-      data.push(roundPoint)
-    }
-    return data
-  }, [selectedGroup])
-
-  const GroupLegend = ({ managers }: { managers: typeof sortedGroupManagers }) => {
-    return (
-      <div className="flex flex-wrap justify-center gap-4 mt-4">
-        {managers.map((m, index) => (
-          <div key={m.managerId} className="flex items-center gap-2">
-            <span
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: m.isCurrentUser ? chartColors.accent : LINE_COLORS[index % LINE_COLORS.length] }}
-            />
-            <span className="text-muted text-sm">
-              {index + 1}. {m.shortName || m.managerName}
-            </span>
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  const GroupCustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-surface border border-border rounded-card p-3 shadow-lg">
-          <p className="text-primary font-medium mb-2">Spieltag {label}</p>
-          {[...payload].sort((a, b) => b.value - a.value).map((entry, index) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {entry.value} Punkte
-            </p>
-          ))}
-        </div>
-      )
-    }
-    return null
-  }
-
   if (isLoading) {
     return (
-      <div className="max-w-6xl" aria-busy="true">
+      <div className="max-w-7xl" aria-busy="true">
         <BackButton to="/managers" className="mb-4" />
         <div className="p-4 bg-elevated border border-border rounded-card mb-6">
           <div className="flex items-stretch gap-6">
@@ -502,7 +389,7 @@ export default function ManagerDetail() {
   }
   if (error) {
     return (
-      <div className="max-w-6xl">
+      <div className="max-w-7xl">
         <BackButton to="/managers" className="mb-4" />
         <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card">
           <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
@@ -513,7 +400,7 @@ export default function ManagerDetail() {
   }
   if (!manager) {
     return (
-      <div className="max-w-6xl">
+      <div className="max-w-7xl">
         <BackButton to="/managers" className="mb-4" />
         <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card">
           <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0" />
@@ -584,7 +471,7 @@ export default function ManagerDetail() {
   }
 
   return (
-    <div className="max-w-6xl">
+    <div className="max-w-7xl">
       <BackButton to="/managers" className="mb-4" />
 
       <div className={`${isMobile ? 'px-3 py-0.5 bg-surface mb-0' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
@@ -663,6 +550,7 @@ export default function ManagerDetail() {
                     positionVorher={aufstellung?.positionSpieltagVorher ?? null}
                     punkte={aufstellung?.punkteSpieltag ?? null}
                     punkteVorher={aufstellung?.punkteSpieltagVorher ?? null}
+                    einsatzquote={manager.einsatzquote ?? null}
                   />
                 </div>
               </div>
@@ -705,6 +593,14 @@ export default function ManagerDetail() {
                           {manager.positionChange > 0 ? `+${manager.positionChange}` : `-${Math.abs(manager.positionChange)}`}
                         </Badge>
                       )}
+                    </div>
+                  </div>
+                  <div className="bg-card rounded-card border border-border px-4 py-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-subtle">Einsatzquote</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-2xl font-semibold tabular-nums text-foreground">
+                        {manager.einsatzquote != null ? `${manager.einsatzquote} %` : '—'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -818,40 +714,27 @@ export default function ManagerDetail() {
         </div>
       )}
 
-      {!isMobile && isOwnManager && managerGroups && managerGroups.length > 0 && (
+      {hinrundePlayers.length > 0 && !isMobile && (
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
-          <h3 className="text-xl font-semibold text-foreground mb-4">Gruppen</h3>
-          {managerGroups.map(group => (
-            <ManagerGroupTable key={group.id} group={group} currentManagerId={manager.id} />
-          ))}
+          <PlayerTable players={hinrundePlayers} title="Hinrunde-Aufstellung" />
         </div>
       )}
 
-      {(hinrundePlayers.length > 0 || hasExchanges) && !isMobile && (
+      {oldPlayers.length > 0 && !isMobile && (
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
-          {hinrundePlayers.length > 0 && (
-            <PlayerTable players={hinrundePlayers} title="Hinrunde-Aufstellung" />
-          )}
+          <PlayerTable players={oldPlayers} title="Winterwechsel – Raus" />
+        </div>
+      )}
 
-          {hasExchanges && (
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold text-foreground mb-3">Winterwechsel</h3>
-              {oldPlayers.length > 0 && (
-                <PlayerTable players={oldPlayers} title="Raus:" />
-              )}
-              {newPlayers.length > 0 && (
-                <div className="mt-6">
-                  <PlayerTable players={newPlayers} title="Rein:" />
-                </div>
-              )}
-            </div>
-          )}
+      {newPlayers.length > 0 && !isMobile && (
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+          <PlayerTable players={newPlayers} title="Winterwechsel – Rein" />
+        </div>
+      )}
 
-          {hasExchanges && rueckrundePlayers.length > 0 && (
-            <div className="mt-6">
-              <PlayerTable players={rueckrundePlayers} title={`Rückrunde-Aufstellung (${rueckrundePlayers.length} Spieler)`} />
-            </div>
-          )}
+      {hasExchanges && rueckrundePlayers.length > 0 && !isMobile && (
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+          <PlayerTable players={rueckrundePlayers} title={`Rückrunde-Aufstellung (${rueckrundePlayers.length} Spieler)`} />
         </div>
       )}
 
@@ -900,54 +783,6 @@ export default function ManagerDetail() {
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      )}
-
-      {!isMobile && managerGroupsWithStats && managerGroupsWithStats.length > 0 && (
-        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-foreground">Punkte-Entwicklung in Gruppe</h3>
-            <select
-              value={selectedGroupId}
-              onChange={(e) => setSelectedGroupId(e.target.value)}
-              className="input-field control rounded-control px-4 py-2 focus:outline-none focus:border-accent cursor-pointer"
-            >
-              <option value="">Gruppe wählen</option>
-              {managerGroupsWithStats.map((group) => (
-                <option key={group.groupId} value={group.groupId}>
-                  {group.groupName}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {selectedGroup && groupLineChartData.length > 0 ? (
-            <div className="bg-card p-4 rounded-card border border-border">
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={groupLineChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                  <XAxis dataKey="round" stroke={chartColors.axis} />
-                  <YAxis stroke={chartColors.axis} />
-                  <RechartsTooltip content={<GroupCustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
-                  {sortedGroupManagers.map((m, index) => (
-                    <Line
-                      key={m.managerId}
-                      type="monotone"
-                      dataKey={m.shortName || m.managerName}
-                      stroke={m.isCurrentUser ? chartColors.accent : LINE_COLORS[index % LINE_COLORS.length]}
-                      strokeWidth={m.isCurrentUser ? 3 : 2}
-                      dot={{ r: 3 }}
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-              <GroupLegend managers={sortedGroupManagers} />
-            </div>
-          ) : (
-            <p className="text-subtle text-center py-8">
-              Wähle eine Gruppe aus, um die Punkte-Entwicklung zu sehen.
-            </p>
-          )}
         </div>
       )}
     </div>

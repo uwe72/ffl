@@ -167,7 +167,10 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       </div>
       <div>
         <div className="px-2 pt-0.5 pb-2 text-center">
-          <div className="text-[11px] font-semibold text-foreground">{positionLabels[player.position]}</div>
+          <div className="text-[11px] font-semibold text-foreground">
+            {positionLabels[player.position]}
+            {player.einsatzquote != null ? ` · ${player.einsatzquote} %` : ''}
+          </div>
         </div>
       </div>
     </div>

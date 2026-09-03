@@ -666,6 +666,7 @@ public class ManagerGroupService {
                 }
                 
                 mDto.setIsCurrentUser(manager.getId().equals(currentManagerId));
+                mDto.setEinsatzquote(manager.getEinsatzquote());
 
                 ManagerRank latestRank = latestRanks.get(manager.getId());
                 if (latestRank != null) {
