@@ -56,6 +56,7 @@ interface Draft {
 }
 
 export default function SurveyAdmin() {
+  const isMobile = useIsMobile()
   const { data: surveys, isLoading } = useSurveys()
   const statusAction = useSurveyStatusAction()
   const deleteMutation = useDeleteSurvey()
@@ -150,31 +151,31 @@ export default function SurveyAdmin() {
                 <div className="flex flex-wrap items-center gap-2 shrink-0">
                   {s.status === 'ANGELEGT' && (
                     <>
-                      <Button variant="secondary" size="compact" onClick={() => startEdit(s)}>Bearbeiten</Button>
-                      <Button variant="emphasized" size="compact" onClick={() => changeStatus(s.id, 'start')}>Starten</Button>
-                      <Button variant="secondary" size="compact" onClick={() => copy(s.id)}>Kopieren</Button>
-                      <Button variant="negative" size="compact" onClick={() => remove(s.id)}>Löschen</Button>
+                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startEdit(s)}>Bearbeiten</Button>
+                      <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'start')}>Starten</Button>
+                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
+                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id)}>Löschen</Button>
                     </>
                   )}
                   {s.status === 'GESTARTET' && (
                     <>
-                      <Button variant="secondary" size="compact" onClick={() => startEdit(s)}>Bearbeiten</Button>
-                      <Button variant="secondary" size="compact" onClick={() => showResults(s.id)}>Ergebnisse</Button>
-                      <Button variant="emphasized" size="compact" onClick={() => changeStatus(s.id, 'end')}>Beenden</Button>
-                      <Button variant="secondary" size="compact" onClick={() => copy(s.id)}>Kopieren</Button>
+                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startEdit(s)}>Bearbeiten</Button>
+                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
+                      <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'end')}>Beenden</Button>
+                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
                     </>
                   )}
                   {s.status === 'BEENDET' && (
                     <>
-                      <Button variant="secondary" size="compact" onClick={() => showResults(s.id)}>Ergebnisse</Button>
-                      <Button variant="emphasized" size="compact" onClick={() => changeStatus(s.id, 'publish')}>Veröffentlichen</Button>
-                      <Button variant="secondary" size="compact" onClick={() => copy(s.id)}>Kopieren</Button>
+                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
+                      <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'publish')}>Veröffentlichen</Button>
+                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
                     </>
                   )}
                   {s.status === 'VEROEFFENTLICHT' && (
                     <>
-                      <Button variant="secondary" size="compact" onClick={() => showResults(s.id)}>Ergebnisse</Button>
-                      <Button variant="secondary" size="compact" onClick={() => copy(s.id)}>Kopieren</Button>
+                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
+                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
                     </>
                   )}
                 </div>
@@ -315,7 +316,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-semibold text-foreground">{isNew ? 'Neue Umfrage' : 'Umfrage bearbeiten'}</h2>
-          <Button variant="transparent" size="compact" onClick={onCancel}>
+          <Button variant="transparent" size={isMobile ? 'sm' : 'input'} onClick={onCancel}>
             <i className="sap-icon sap-icon-nav-back text-base" />
             Zurück
           </Button>
@@ -428,7 +429,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                       <Button variant="negative" size="sm" onClick={() => removeOption(qIndex, oIndex)}>×</Button>
                     </div>
                   ))}
-                  <Button variant="ghost" size="compact" className="self-start" onClick={() => addOption(qIndex)}>
+                  <Button variant="ghost" size={isMobile ? 'sm' : 'input'} className="self-start" onClick={() => addOption(qIndex)}>
                     + Option
                   </Button>
                 </div>
@@ -439,7 +440,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       </div>
 
       <div className="mt-4">
-        <Button variant="ghost" size="compact" onClick={addQuestion}>
+        <Button variant="ghost" size={isMobile ? 'sm' : 'input'} onClick={addQuestion}>
           + Frage hinzufügen
         </Button>
       </div>
@@ -461,6 +462,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
 }
 
 function SurveyResults({ id, onBack }: { id: number; onBack: () => void }) {
+  const isMobile = useIsMobile()
   const { data: result, isLoading } = useSurveyResult(id)
   if (isLoading || !result) return <div className="text-center py-8 text-muted">Laden...</div>
 
@@ -481,7 +483,7 @@ function SurveyResults({ id, onBack }: { id: number; onBack: () => void }) {
             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusClass(result.status)}`}>
               {STATUS_LABEL[result.status]}
             </span>
-            <Button variant="transparent" size="compact" onClick={onBack}>
+            <Button variant="transparent" size={isMobile ? 'sm' : 'input'} onClick={onBack}>
               <i className="sap-icon sap-icon-nav-back text-base" />
               Zurück
             </Button>

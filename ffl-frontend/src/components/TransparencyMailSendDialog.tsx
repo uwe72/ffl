@@ -110,7 +110,7 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
               {seasonName}
             </span>
           </div>
-          <Button variant="ghost" size="compact" onClick={onClose}>
+          <Button variant="ghost" size={isMobile ? 'sm' : 'input'} onClick={onClose}>
             Schließen
           </Button>
         </div>

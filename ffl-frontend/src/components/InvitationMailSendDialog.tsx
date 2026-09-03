@@ -122,7 +122,7 @@ export default function InvitationMailSendDialog({
               {seasonName}
             </span>
           </div>
-          <Button variant="ghost" size="compact" onClick={onClose}>
+          <Button variant="ghost" size={isMobile ? 'sm' : 'input'} onClick={onClose}>
             Schließen
           </Button>
         </div>

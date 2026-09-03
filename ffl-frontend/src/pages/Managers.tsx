@@ -342,7 +342,7 @@ export default function Managers({ fill = false }: { fill?: boolean } = {}) {
                       <tr
                         key={manager.id}
                         ref={isMe ? rowRef : undefined}
-                        className={`border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-info-bg font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
+                        className={`border-b border-border ${isMe ? 'border-l-2 border-l-on-dark row-selected font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
                       >
                         {!beforeSeason && (
                         <td className="px-2 py-2 text-center text-foreground overflow-hidden">

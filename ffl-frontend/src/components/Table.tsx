@@ -90,7 +90,7 @@ export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
     return (
       <tr
         ref={ref}
-        className={`border-b border-border hover:bg-card-hover ${active ? 'border-l-2 border-l-accent bg-info-bg font-semibold' : ''} ${className}`}
+        className={`border-b border-border hover:bg-card-hover ${active ? 'border-l-2 border-l-on-dark row-selected font-semibold' : ''} ${className}`}
         {...rest}
       >
         {children}

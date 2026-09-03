@@ -214,7 +214,7 @@ function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLa
             {sortedManagers.map((m, index) => {
               const isMe = m.isCurrentUser
               return (
-              <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-info-bg font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+              <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-on-dark row-selected font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                 {!isBeforeSeason && (
                   <td className="px-3 py-2 text-center font-medium text-foreground">
                     {m.positionTotal ? `${m.positionTotal}.` : '-'}
@@ -315,7 +315,7 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
             .map((m, index) => {
               const isMe = m.isCurrentUser
               return (
-              <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-info-bg font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+              <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-on-dark row-selected font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                 <td className={`${td} text-center font-medium text-foreground`}>
                   {m.positionTotal ? `${m.positionTotal}.` : '-'}
                 </td>
@@ -409,7 +409,7 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
             <tr
               key={m.id}
               ref={isMe ? rowRef : undefined}
-              className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-info-bg font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
+              className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-on-dark row-selected font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
             >
               <td className={`${td} text-center font-medium text-foreground`}>
                 {m.positionTotal ? `${m.positionTotal}.` : '-'}
@@ -607,9 +607,19 @@ export default function Home() {
   const carouselEnabled = isAdmin || !isBeforeSeason
 
   const favoriteList = favorites ?? []
-  const favoriteManagerIds = useMemo(() => favoriteList.map(f => f.friendManagerId), [favoriteList])
   const standardId = favoriteList.find(f => f.standard)?.friendManagerId ?? null
   const ownManagerId = currentManager?.id ?? null
+
+  const sortByPoints = (ids: number[]) => {
+    const points = new Map((managers ?? []).map(m => [m.id, m.pointsTotal ?? 0]))
+    return [...ids].sort((a, b) => (points.get(b) ?? 0) - (points.get(a) ?? 0))
+  }
+
+  const favoriteManagerIds = useMemo(() => {
+    const ids = favoriteList.map(f => f.friendManagerId)
+    if (standardId != null) return ids
+    return sortByPoints(ids)
+  }, [favoriteList, managers, standardId])
 
   useEffect(() => {
     if (!carouselEnabled) {
@@ -617,9 +627,7 @@ export default function Home() {
       return
     }
     if (activeManagerId != null) return
-    const def = standardId
-      ?? (ownManagerId != null && favoriteManagerIds.includes(ownManagerId) ? ownManagerId : null)
-      ?? (favoriteManagerIds.length > 0 ? favoriteManagerIds[0] : null)
+    const def = standardId ?? (favoriteManagerIds.length > 0 ? favoriteManagerIds[0] : null)
     setActiveManagerId(def)
   }, [carouselEnabled, favoriteManagerIds, ownManagerId, standardId, activeManagerId])
 
@@ -676,6 +684,19 @@ export default function Home() {
     if (!activeManagerId) return
     try {
       await setStandard.mutateAsync(activeManagerId)
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: string } }
+      setCarouselError(axiosErr.response?.data && typeof axiosErr.response.data === 'string'
+        ? axiosErr.response.data
+        : 'Standard-Team konnte nicht aktualisiert werden.')
+    }
+  }
+
+  const handleRemoveStandard = async () => {
+    setCarouselError('')
+    try {
+      await setStandard.mutateAsync(null)
+      setActiveManagerId(sortByPoints(favoriteList.map(f => f.friendManagerId))[0] ?? null)
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: string } }
       setCarouselError(axiosErr.response?.data && typeof axiosErr.response.data === 'string'
@@ -984,6 +1005,11 @@ export default function Home() {
                       Als Standard
                     </Button>
                   )}
+                  {carouselEnabled && isStandard && (
+                    <Button variant="transparent" size="input" onClick={handleRemoveStandard}>
+                      Standard entfernen
+                    </Button>
+                  )}
                 </div>
               )}
                 </div>
@@ -1052,6 +1078,11 @@ export default function Home() {
                     {carouselEnabled && isFavorite && favoriteManagerIds.length > 1 && !isStandard && (
                       <Button variant="transparent" size="input" onClick={handleSetStandard}>
                         Als Standard
+                      </Button>
+                    )}
+                    {carouselEnabled && isStandard && (
+                      <Button variant="transparent" size="input" onClick={handleRemoveStandard}>
+                        Standard entfernen
                       </Button>
                     )}
                   </div>

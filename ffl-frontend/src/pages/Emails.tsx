@@ -8,12 +8,14 @@ import SortIcon from '../components/SortIcon'
 import { TableContent, TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import FormCard from '../components/FormCard'
 import Button from '../components/Button'
+import useIsMobile from '../hooks/useIsMobile'
 import type { EmailAddress } from '../types'
 
 type SortKey = 'id' | 'email' | 'participant' | 'teamCount'
 type ParticipantFilter = 'all' | 'yes' | 'no'
 
 export default function Emails() {
+  const isMobile = useIsMobile()
   const [searchTerm, setSearchTerm] = useState('')
   const [participantFilter, setParticipantFilter] = useState<ParticipantFilter>('all')
   const [sortKey, setSortKey] = useState<SortKey>('email')
@@ -190,14 +192,14 @@ export default function Emails() {
 
           <Button
             variant="emphasized"
-            size="compact"
+            size={isMobile ? 'sm' : 'input'}
             onClick={() => { setShowCreateDialog(true); setNewEmail(''); setError('') }}
           >
             + Neue E-Mail
           </Button>
           <Button
             variant="ghost"
-            size="compact"
+            size={isMobile ? 'sm' : 'input'}
             onClick={() => { setShowImportDialog(true); setImportText(''); setError('') }}
           >
             + Importieren
@@ -259,7 +261,7 @@ export default function Emails() {
                       <td className="px-2 py-2 md:px-3 text-right">
                         <Button
                           variant="negative"
-                          size="compact"
+                          size={isMobile ? 'sm' : 'input'}
                           onClick={() => { setDeleteTarget(email); setShowDeleteDialog(true); setError('') }}
                         >
                           Löschen

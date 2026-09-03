@@ -272,12 +272,12 @@ export default function TeamDetail() {
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
-    <div>
-      <BackButton to="/teams" className="mb-4" />
+    <div className="md:h-full md:flex md:flex-col md:min-h-0">
+      <BackButton to="/teams" className="mb-4 md:shrink-0" />
 
-      <div className="w-fit max-w-full">
+      <div className="w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
       {team && (
-        <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+        <div className="p-4 bg-elevated border border-border rounded-card mb-6 md:shrink-0">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 shrink-0">
               {team.logoSUrl ? (
@@ -381,8 +381,8 @@ export default function TeamDetail() {
         </div>
       )}
 
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
+        <div className="flex items-center justify-between mb-4 md:shrink-0">
           <h2 className="text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
           <div className="relative w-64">
             <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
@@ -396,15 +396,17 @@ export default function TeamDetail() {
           </div>
         </div>
 
+        <div className="md:shrink-0">
         <FilterBar
           selectedPositions={selectedPositions}
           setSelectedPositions={setSelectedPositions}
           hasFilter={hasActiveFilter}
         />
+        </div>
 
         {!isMobile && (
           <>
-            <div className="overflow-x-auto rounded-card border border-border w-fit max-w-full">
+            <div className="flex-1 min-h-0 overflow-auto rounded-card border border-border w-fit max-w-full">
               <table>
                 <TableHead>
                   <tr>
@@ -514,7 +516,7 @@ export default function TeamDetail() {
       </div>
       </div>
 
-      <div className="h-10" />
+      <div className="h-10 md:hidden" />
     </div>
   )
 }

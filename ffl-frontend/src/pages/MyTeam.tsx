@@ -1129,7 +1129,7 @@ export default function MyTeam() {
                             defaultAktivFilter="alle"
                           />
                         ) : (
-                          <div className="input-field w-full px-3 py-2 rounded-control text-xs text-placeholder">
+                          <div className="input-field w-full min-h-[56px] px-3 py-2 rounded-control text-xs text-placeholder flex items-center">
                             Wähle zuerst einen Spieler zum Tauschen
                           </div>
                         )}

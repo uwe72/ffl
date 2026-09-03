@@ -347,12 +347,15 @@ export default function PlayerDetail() {
                       ? `${player.firstName} ${player.lastName}`.trim()
                       : player.nameKicker}
                   </h2>
-                  <div className="flex items-center gap-2 mt-2">
-                    <p className="text-xs uppercase tracking-wide text-subtle">
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <span className={`${positionColors[player.position]} text-xs font-medium px-2 py-0.5 rounded-badge`}>
                       {positionLabels[player.position]}
-                      {player.prize ? ` · ${formatPrice(player.prize)}` : ''}
-                      {player.teams.length > 0 && ` · ${player.teams.map(t => t.name).join(', ')}`}
-                      {player.aktiv === false && ' · Inaktiv'}
+                    </span>
+                    <p className="text-xs uppercase tracking-wide text-subtle">
+                      {[player.prize ? formatPrice(player.prize) : null,
+                        player.teams.length > 0 ? player.teams.map(t => t.name).join(', ') : null,
+                        player.aktiv === false ? 'Inaktiv' : null
+                      ].filter(Boolean).join(' · ')}
                     </p>
                   </div>
                 </div>

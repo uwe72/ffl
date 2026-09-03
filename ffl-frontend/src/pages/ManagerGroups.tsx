@@ -102,15 +102,16 @@ export default function ManagerGroups() {
   return (
     <div className="md:h-full md:flex md:flex-col md:min-h-0">
       <BackButton to="/" className="mb-4" />
-      <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6 md:shrink-0">
-        <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
-        <p className="text-sm text-foreground">
-          Hier kannst du eigene Gruppen erstellen und verwalten. In der Tabelle werden nur Gruppen
-          angezeigt, deren Ersteller du bist. Die vollständige Übersicht aller deiner Gruppen findest
-          du im <RouterLink to="/?tab=gruppen" className="link">Dashboard</RouterLink>.
-        </p>
-      </div>
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
+      <div className="md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
+        <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6 md:shrink-0">
+          <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
+          <p className="text-sm text-foreground md:max-w-[32rem]">
+            Hier kannst du eigene Gruppen erstellen und verwalten. In der Tabelle werden nur Gruppen
+            angezeigt, deren Ersteller du bist. Die vollständige Übersicht aller deiner Gruppen findest
+            du im <RouterLink to="/?tab=gruppen" className="link">Dashboard</RouterLink>.
+          </p>
+        </div>
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
         <div className="flex items-center justify-between gap-4 mb-4 md:shrink-0">
           <h2 className="hidden md:block text-xl font-semibold text-foreground">Manager-Gruppen ({sortedGroups.length})</h2>
           <Button
@@ -220,6 +221,7 @@ export default function ManagerGroups() {
             </div>
           </div>
         )}
+      </div>
       </div>
 
       <div className="h-10 md:hidden" />

@@ -103,6 +103,8 @@
   --color-placeholder: var(--ffl-text-faint);
   --color-on-dark: var(--ffl-text-on-dark);
   --color-on-dark-muted: var(--ffl-text-on-dark-muted);
+  --color-on-dark-success: #4ade80;
+  --color-on-dark-danger: #f87171;
 
   --color-border: var(--ffl-border);
   --color-border-subtle: var(--ffl-border-subtle);
@@ -241,6 +243,30 @@ body {
   --color-default: var(--color-sidebar-hover);
   background-color: var(--color-sidebar);
   color: var(--color-sidebar-foreground);
+}
+
+.row-selected {
+  --color-border: var(--color-sidebar-border);
+  --color-foreground: var(--color-on-dark);
+  --color-muted: var(--color-on-dark-muted);
+  --color-subtle: var(--color-on-dark-muted);
+  --color-success: var(--color-on-dark-success);
+  --color-danger: var(--color-on-dark-danger);
+  background-color: var(--color-sidebar);
+  color: var(--color-on-dark);
+}
+
+.row-selected:hover {
+  background-color: var(--color-sidebar-hover);
+}
+
+.row-selected .link {
+  color: var(--color-primary-foreground);
+  font-weight: 700;
+}
+
+.row-selected .link:hover {
+  color: var(--color-primary-foreground);
 }
 
 .hero {

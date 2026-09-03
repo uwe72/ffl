@@ -257,7 +257,7 @@ export default function Documents() {
             {isAdmin && (
               <Button
                 onClick={() => fileInputRef.current?.click()}
-                size="compact"
+                size={isMobile ? 'sm' : 'input'}
                 disabled={uploadMutation.isPending}
                 className="w-full md:w-auto"
               >

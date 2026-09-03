@@ -186,12 +186,12 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
-              size="compact"
+              size={isMobile ? 'sm' : 'input'}
               onClick={openPromptDialog}
             >
               Prompt anpassen
             </Button>
-            <Button variant="ghost" size="compact" onClick={onClose}>
+            <Button variant="ghost" size={isMobile ? 'sm' : 'input'} onClick={onClose}>
               Schließen
             </Button>
           </div>

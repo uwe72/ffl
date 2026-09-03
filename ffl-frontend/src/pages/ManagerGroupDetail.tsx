@@ -562,7 +562,7 @@ export default function ManagerGroupDetail() {
                   {isAdmin && !isNewMode && (
                     <Button
                       variant="transparent"
-                      size="compact"
+                      size={isMobile ? 'sm' : 'input'}
                       onClick={() => setIsCreatorModalOpen(true)}
                     >
                       Ändern
@@ -712,7 +712,7 @@ export default function ManagerGroupDetail() {
                       <td className="px-3 py-2 text-right">
                         <Button
                           variant="negative"
-                          size="compact"
+                          size={isMobile ? 'sm' : 'input'}
                           onClick={() => handleRemoveManager(manager.id)}
                         >
                           Entfernen

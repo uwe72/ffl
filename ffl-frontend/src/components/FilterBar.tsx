@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import Button from './Button'
+import useIsMobile from '../hooks/useIsMobile'
 
 export interface FilterConfig {
   key: string
@@ -93,6 +94,7 @@ export default function FilterBar({
   onGo,
   hasFilters = false,
 }: FilterBarProps) {
+  const isMobile = useIsMobile()
   return (
     <div className="border-b border-border">
       <div className="flex items-center gap-2 px-6 py-2.5 flex-wrap">
@@ -120,7 +122,7 @@ export default function FilterBar({
         {onGo && (
           <Button
             variant="emphasized"
-            size="compact"
+            size={isMobile ? 'sm' : 'input'}
             onClick={onGo}
           >
             Suchen
