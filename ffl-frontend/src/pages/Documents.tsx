@@ -11,7 +11,7 @@ import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 
-type SortKey = 'filename' | 'contentType' | 'fileSize' | 'uploadedAt' | 'uploadedBy'
+type SortKey = 'filename' | 'contentType' | 'fileSize' | 'uploadedAt'
 type SortOrder = 'asc' | 'desc'
 
 const ACCEPTED_TYPES = '.pdf,.txt,.png,.jpg,.jpeg,application/pdf,text/plain,image/png,image/jpeg'
@@ -147,7 +147,6 @@ export default function Documents() {
 
     const filtered = documents.filter(doc => {
       return doc.filename.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doc.uploadedBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         formatContentType(doc.contentType).toLowerCase().includes(searchTerm.toLowerCase())
     })
 
@@ -165,9 +164,6 @@ export default function Documents() {
           break
         case 'uploadedAt':
           comparison = a.uploadedAt.localeCompare(b.uploadedAt)
-          break
-        case 'uploadedBy':
-          comparison = (a.uploadedBy || '').localeCompare(b.uploadedBy || '')
           break
       }
       return sortOrder === 'asc' ? comparison : -comparison
@@ -297,9 +293,6 @@ export default function Documents() {
                     <ThSortable onClick={() => handleSort('uploadedAt')}>
                       Datum<SortIcon column="uploadedAt" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
-                    <ThSortable onClick={() => handleSort('uploadedBy')}>
-                      Hochgeladen von<SortIcon column="uploadedBy" activeKey={sortKey} order={sortOrder} />
-                    </ThSortable>
                     <Th align="right">
                       Aktionen
                     </Th>
@@ -326,9 +319,6 @@ export default function Documents() {
                         </td>
                         <td className="px-3 py-2 text-muted">
                           {formatDate(doc.uploadedAt)}
-                        </td>
-                        <td className="px-3 py-2 text-muted">
-                          {doc.uploadedBy}
                         </td>
                         <td className="px-3 py-2 text-right">
                           <div className="flex items-center justify-end gap-1">
@@ -362,7 +352,7 @@ export default function Documents() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="text-center text-subtle py-8">
+                      <td colSpan={5} className="text-center text-subtle py-8">
                         Keine Dokumente gefunden
                       </td>
                     </tr>
