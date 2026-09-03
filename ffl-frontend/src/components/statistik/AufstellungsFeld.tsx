@@ -339,15 +339,18 @@ export default function AufstellungsFeld({
   const slotRef = useRef<HTMLDivElement>(null)
   const slotSize = useElementSize(slotRef)
 
+  const aktiveSpieler = aufstellung.spieler.filter(s => s.aktiv !== false)
+  const inaktive = aufstellung.rueckrunde ? aufstellung.spieler.filter(s => s.aktiv === false) : []
+
   const grouped = useMemo(() => {
     const map: Record<string, SpielerAufstellung[]> = { GOALKEEPER: [], DEFENDER: [], MIDFIELD: [], STRIKER: [] }
-    for (const s of aufstellung.spieler) {
+    for (const s of aktiveSpieler) {
       if (map[s.position]) map[s.position].push(s)
     }
     return map
-  }, [aufstellung.spieler])
+  }, [aktiveSpieler])
 
-  const sum = aufstellung.spieler.reduce((a, s) => a + bigOf(s, modus), 0)
+  const sum = aktiveSpieler.reduce((a, s) => a + bigOf(s, modus), 0)
 
   const sumBig = modus === 'wert' ? formatMillionen(sum) : formatPoints(sum)
   const sumLabel = modus === 'wert' ? 'Kaderwert' : modus === 'spieltag' ? 'Punkte Spieltag' : 'Punkte gesamt'
@@ -477,6 +480,17 @@ export default function AufstellungsFeld({
         <>
           <div ref={slotRef} className="w-full flex-1 min-h-0 flex items-start justify-start">{field}</div>
         </>
+      )}
+
+      {!compact && inaktive.length > 0 && (
+        <div className="w-full shrink-0 flex flex-col items-end gap-1 pr-1 text-xs">
+          {inaktive.map(p => (
+            <span key={p.id} className="text-muted tabular-nums">
+              <span className="font-medium text-foreground">{p.name}</span>{' '}
+              <span className="font-bold">{formatPoints(p.punkteGesamt)}</span>
+            </span>
+          ))}
+        </div>
       )}
 
       {showLegend && !overlayLegend && (

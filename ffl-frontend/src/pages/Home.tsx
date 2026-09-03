@@ -1153,6 +1153,7 @@ export default function Home() {
               <AufstellungVertikal
                 aufstellung={aufstellungQuery.data}
                 modus={feldModus}
+                hinrundeFilter
               />
             )}
           </div>

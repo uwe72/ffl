@@ -32,6 +32,7 @@ public class SpielerAufstellungDto {
     private Boolean gespielt;
     private Integer einsaetze;
     private Integer einsatzquote;
+    private Boolean aktiv;
     @Builder.Default
     private List<RulePointDto> regeln = new ArrayList<>();
 

@@ -110,6 +110,7 @@ public class DashboardService {
                 .gespielt(gespielt)
                 .einsaetze(einsaetze)
                 .einsatzquote(p.getEinsatzquote())
+                .aktiv(activeNow)
                 .regeln(regelPunkte(p))
                 .build());
         }
@@ -129,6 +130,7 @@ public class DashboardService {
             .punkteSpieltagVorher(prevRank != null ? prevRank.getPointsRound() : null)
             .kaderwert(kaderwert)
             .budget(season.getBudget() != null ? season.getBudget() : 0)
+            .rueckrunde(isRueckrunde)
             .spieler(spieler)
             .build();
     }

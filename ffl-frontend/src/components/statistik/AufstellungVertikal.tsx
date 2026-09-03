@@ -14,19 +14,25 @@ const POS_BADGE: Record<string, string> = {
 
 export default function AufstellungVertikal({
   aufstellung,
+  hinrundeFilter = false,
 }: {
   aufstellung: Aufstellung
   modus: FeldModus
+  hinrundeFilter?: boolean
 }) {
   const navigate = useNavigate()
   const isVorsaison = aufstellung.phase === 'VORSAISON'
 
+  const visible = hinrundeFilter && !aufstellung.rueckrunde
+    ? aufstellung.spieler.filter(s => s.aktiv !== false)
+    : aufstellung.spieler
+
   const sorted = useMemo(() => {
-    return [...aufstellung.spieler].sort((a, b) => {
+    return [...visible].sort((a, b) => {
       if (a.positionTotal !== b.positionTotal) return a.positionTotal - b.positionTotal
       return b.einsaetze - a.einsaetze
     })
-  }, [aufstellung.spieler])
+  }, [visible])
 
   const title = isVorsaison ? 'Kader' : `${aufstellung.spieltag}. Spieltag`
 

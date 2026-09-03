@@ -84,6 +84,30 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    void aufstellung_liefertRueckrundeFlagUndAktivStatus() {
+        AufstellungDto dto = dashboardService.getAufstellung(managerUwe72.getId());
+
+        assertThat(dto.getRueckrunde()).isTrue();
+
+        Set<Long> exchangedOldIds = Set.of(
+            managerUwe72.getPlayerExchangedOld1().getId(),
+            managerUwe72.getPlayerExchangedOld2().getId(),
+            managerUwe72.getPlayerExchangedOld3().getId());
+        Set<Long> exchangedNewIds = Set.of(
+            managerUwe72.getPlayerExchangedNew1().getId(),
+            managerUwe72.getPlayerExchangedNew2().getId(),
+            managerUwe72.getPlayerExchangedNew3().getId());
+
+        assertThat(dto.getSpieler())
+            .filteredOn(s -> exchangedNewIds.contains(s.getId()))
+            .allMatch(SpielerAufstellungDto::getAktiv);
+        assertThat(dto.getSpieler())
+            .filteredOn(s -> exchangedOldIds.contains(s.getId()))
+            .allMatch(s -> !s.getAktiv());
+        assertThat(dto.getSpieler()).filteredOn(SpielerAufstellungDto::getAktiv).hasSize(11);
+    }
+
+    @Test
     void aufstellung_jokerNurFuerFreieWahl() {
         AufstellungDto dto = dashboardService.getAufstellung(managerUwe72.getId());
         assertThat(dto.getSpieler()).filteredOn(SpielerAufstellungDto::getJoker).hasSize(1);

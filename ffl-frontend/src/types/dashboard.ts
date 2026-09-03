@@ -22,6 +22,7 @@ export interface SpielerAufstellung {
   gespielt: boolean
   einsaetze: number
   einsatzquote?: number
+  aktiv?: boolean
   regeln?: RulePoint[]
 }
 
@@ -40,6 +41,7 @@ export interface Aufstellung {
   punkteSpieltagVorher: number | null
   kaderwert: number
   budget: number
+  rueckrunde?: boolean
   spieler: SpielerAufstellung[]
 }
 
