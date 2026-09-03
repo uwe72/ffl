@@ -105,7 +105,7 @@ export default function ManagerGroups() {
       <div className="md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
         <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6 md:shrink-0">
           <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
-          <p className="text-sm text-foreground md:max-w-[32rem]">
+          <p className="text-sm text-foreground">
             Hier kannst du eigene Gruppen erstellen und verwalten. In der Tabelle werden nur Gruppen
             angezeigt, deren Ersteller du bist. Die vollständige Übersicht aller deiner Gruppen findest
             du im <RouterLink to="/?tab=gruppen" className="link">Dashboard</RouterLink>.
