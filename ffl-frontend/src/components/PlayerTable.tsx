@@ -462,6 +462,7 @@ export default function PlayerTable({
   enableExport = false,
   hideFilters = false,
   mobileDashboardLayout = false,
+  scroll = false,
 }: {
   players: Player[]
   fixedPosition?: Position
@@ -475,6 +476,7 @@ export default function PlayerTable({
   enableExport?: boolean
   hideFilters?: boolean
   mobileDashboardLayout?: boolean
+  scroll?: boolean
 }) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
@@ -609,8 +611,8 @@ export default function PlayerTable({
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
+    <div className={scroll ? 'flex-1 min-h-0 flex flex-col' : ''}>
+      <div className={`flex items-center justify-between mb-4${scroll ? ' shrink-0' : ''}`}>
         {!hideFilters && (
         <h2 className="hidden md:block text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
         )}
@@ -624,6 +626,7 @@ export default function PlayerTable({
       </div>
 
       {!hideFilters && (
+      <div className={scroll ? 'shrink-0' : ''}>
       <PlayerFilterBar
         variant={isMobile && mobileDashboardLayout ? 'card' : 'bar'}
         count={filteredPlayers.length}
@@ -644,11 +647,12 @@ export default function PlayerTable({
         setSearchTerm={setSearchTerm}
         searchInputRef={searchInputRef}
       />
+      </div>
       )}
 
       {!isMobile && (
         <>
-          <div className="overflow-x-auto rounded-card border border-border w-fit max-w-full">
+          <div className={`${scroll ? 'flex-1 min-h-0 overflow-auto' : 'overflow-x-auto md:overflow-x-clip'} rounded-card border border-border w-fit max-w-full`}>
             <table>
               <TableHead>
                 <tr>
@@ -814,18 +818,12 @@ export default function PlayerTable({
               </TableBody>
             </table>
           </div>
-          <div className="mt-4 text-sm text-subtle">
-            {filteredPlayers.length} von {players?.length || 0} Spielern
-          </div>
         </>
       )}
 
       {isMobile && mobileDashboardLayout && (
         <div>
           <PlayerMobileTable players={filteredPlayers} isBeforeSeason={isBeforeSeason} title={tableTitle} />
-          <div className="mt-4 text-sm text-subtle">
-            {filteredPlayers.length} von {players?.length || 0} Spielern
-          </div>
         </div>
       )}
 
@@ -841,9 +839,6 @@ export default function PlayerTable({
                 Keine Spieler gefunden
               </div>
             )}
-          </div>
-          <div className="mt-4 text-sm text-subtle">
-            {filteredPlayers.length} von {players?.length || 0} Spielern
           </div>
         </div>
       )}

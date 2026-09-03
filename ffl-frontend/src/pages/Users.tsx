@@ -73,10 +73,10 @@ export default function Users() {
   const hasActiveFilter = searchTerm !== ''
 
   return (
-    <div>
-      <BackButton to="/" className="mb-4" />
-      <CardContainer>
-      <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border">
+    <div className="md:h-full md:flex md:flex-col md:min-h-0">
+      <BackButton to="/" className="mb-4 md:shrink-0" />
+      <CardContainer className="md:flex-1 md:min-h-0">
+      <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border md:shrink-0">
           <div className="relative flex-1 min-w-[180px] max-w-[280px]">
             <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
             <input
@@ -98,7 +98,7 @@ export default function Users() {
           )}
         </div>
 
-        <TableContent count={filteredUsers.length} total={users?.length || 0} countLabel="Benutzern">
+        <TableContent scroll>
           <table className="w-full">
             <TableHead>
               <tr>
@@ -150,7 +150,7 @@ export default function Users() {
         </TableContent>
       </CardContainer>
 
-      <div className="h-10" />
+      <div className="h-10 md:hidden" />
     </div>
   )
 }

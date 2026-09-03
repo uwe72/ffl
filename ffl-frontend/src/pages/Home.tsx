@@ -9,11 +9,13 @@ import { useMyGroupsWithStats, useGroupLogo, useSetStandardGroup } from '../hook
 import { useAuth } from '../context/AuthContext'
 import useIsMobile from '../hooks/useIsMobile'
 import useHorizontalSwipe from '../hooks/useHorizontalSwipe'
+import useElementSize from '../hooks/useElementSize'
 import ManagerSelect from '../components/ManagerSelect'
 import Button from '../components/Button'
 import Tabs from '../components/Tabs'
 import SegmentedTabs from '../components/SegmentedTabs'
-import { TableHead, Th, TableBody } from '../components/Table'
+import { TableHead, ThSortable, TableBody } from '../components/Table'
+import SortIcon from '../components/SortIcon'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
 import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
 import CoachTafel from '../components/statistik/CoachTafel'
@@ -56,10 +58,6 @@ function groupCreatorName(group: { createdByFirstName?: string; createdByLastNam
   return group.createdByLogin || '-'
 }
 
-function isGroupCreator(login: string | undefined, group: { createdByLogin?: string }): boolean {
-  return !!login && login === group.createdByLogin
-}
-
 function managerLogin(m: { login?: string; managerName?: string; shortName?: string }): string {
   return m.login ?? m.managerName ?? m.shortName ?? '-'
 }
@@ -68,87 +66,208 @@ function managerFullName(m: { firstName?: string; lastName?: string; managerName
   return [m.firstName, m.lastName].filter(Boolean).join(' ') || m.managerName || '-'
 }
 
-function GroupHomeCard({ group, canNavigateToManager }: { group: ManagerGroupRoundStats, canNavigateToManager: boolean }) {
-  const { user } = useAuth()
+type GroupManagerSortKey = 'shortName' | 'firstName' | 'lastName' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
+
+function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLabel, showCarouselNav, carouselPosition, onPrev, onNext }: {
+  group: ManagerGroupRoundStats
+  canNavigateToManager: boolean
+  isBeforeSeason: boolean
+  matchdayLabel: string
+  showCarouselNav: boolean
+  carouselPosition: string | null
+  onPrev: () => void
+  onNext: () => void
+}) {
   const { data: logoUrl } = useGroupLogo(group.hasLogo ? group.groupId : null)
-  const isCreator = !!user?.login && user.login === group.createdByLogin
   const creatorName =
     group.createdByFirstName && group.createdByLastName
       ? `${group.createdByFirstName} ${group.createdByLastName} (${group.createdByLogin})`
       : group.createdByLogin || '-'
+  const [sortKey, setSortKey] = useState<GroupManagerSortKey>('positionTotal')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+
+  const handleSort = (key: GroupManagerSortKey) => {
+    if (sortKey === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortKey(key)
+      setSortOrder('asc')
+    }
+  }
+
+  const sortedManagers = useMemo(() => {
+    if (!group.managers) return []
+    return [...group.managers].sort((a, b) => {
+      let comparison = 0
+      switch (sortKey) {
+        case 'shortName':
+          comparison = (a.shortName || '').localeCompare(b.shortName || '')
+          break
+        case 'firstName':
+          comparison = (a.firstName || '').localeCompare(b.firstName || '')
+          break
+        case 'lastName':
+          comparison = (a.lastName || '').localeCompare(b.lastName || '')
+          break
+        case 'positionTotal':
+          comparison = (a.positionTotal ?? 999) - (b.positionTotal ?? 999)
+          break
+        case 'positionChange':
+          comparison = (a.positionChange ?? 0) - (b.positionChange ?? 0)
+          break
+        case 'pointsTotal':
+          comparison = (b.pointsTotal ?? 0) - (a.pointsTotal ?? 0)
+          break
+        case 'pointsLastRound':
+          comparison = (b.pointsLastRound ?? 0) - (a.pointsLastRound ?? 0)
+          break
+      }
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+  }, [group.managers, sortKey, sortOrder])
 
   return (
-    <div className="p-6 bg-surface border border-border rounded-card w-fit max-w-full">
-      <div className="flex items-start gap-4 mb-4">
-        {logoUrl ? (
-          <img src={logoUrl} alt={group.groupName} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
-        ) : (
-          <div className="w-12 h-12 rounded-full bg-elevated flex items-center justify-center flex-shrink-0">
-            <i className="sap-icon sap-icon-group-2 text-xl text-accent" />
-          </div>
+    <div className="p-6 bg-surface border border-border rounded-card w-fit max-w-full flex-1 min-h-0 flex flex-col">
+      <div className="flex items-center gap-2 flex-wrap mb-4 shrink-0">
+        {showCarouselNav && (
+          <button
+            type="button"
+            onClick={onPrev}
+            aria-label="Vorherige Gruppe"
+            title="Vorherige Gruppe"
+            className="w-9 h-9 rounded-control border border-border-strong text-accent hover:bg-accent-muted flex items-center justify-center transition-colors"
+          >
+            <i className="sap-icon sap-icon-slim-arrow-left text-sm" />
+          </button>
         )}
-        <div className="min-w-0 flex-1">
-          <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-            {isCreator ? (
-              <RouterLink to={`/manager-groups/${group.groupId}`} className="link truncate">
-                {group.groupName}
-              </RouterLink>
-            ) : (
-              <span className="truncate">{group.groupName}</span>
-            )}
-          </h3>
-          {group.description && (
-            <p className="text-muted text-sm mt-1">{group.description}</p>
+        {showCarouselNav && (
+          <button
+            type="button"
+            onClick={onNext}
+            aria-label="Nächste Gruppe"
+            title="Nächste Gruppe"
+            className="w-9 h-9 rounded-control border border-border-strong text-accent hover:bg-accent-muted flex items-center justify-center transition-colors"
+          >
+            <i className="sap-icon sap-icon-slim-arrow-right text-sm" />
+          </button>
+        )}
+        {showCarouselNav && carouselPosition && (
+          <span className="text-sm text-muted whitespace-nowrap tabular-nums min-w-[2.5rem] text-center">
+            {carouselPosition}
+          </span>
+        )}
+        <h3 className="text-xl font-semibold text-foreground min-w-0 group relative">
+          <span className="truncate block">{group.groupName}</span>
+          {(logoUrl || group.description || creatorName !== '-') && (
+            <span className="absolute left-0 top-full mt-2 z-50 w-72 bg-surface border border-border rounded-card shadow-xl p-3 flex flex-col gap-3 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+              {logoUrl && (
+                <img src={logoUrl} alt={group.groupName} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+              )}
+              {group.description && (
+                <p className="text-sm text-muted">{group.description}</p>
+              )}
+              {creatorName !== '-' && (
+                <p className="text-xs text-muted">
+                  <span className="text-foreground font-medium">Ersteller:</span> {creatorName}
+                </p>
+              )}
+            </span>
           )}
-        </div>
+        </h3>
       </div>
-      <div className="overflow-x-auto rounded-card border border-border w-fit">
-        <table className="w-full max-w-[900px]">
+        <div className="flex-1 min-h-0 overflow-auto rounded-card border border-border w-fit max-w-full">
+        <table className="w-full max-w-[1100px]">
           <TableHead>
             <tr>
-              <Th align="center">POS</Th>
-              <Th>Manager</Th>
-              <Th align="center">Pkt.</Th>
-              <Th align="center">Sp.</Th>
+              {!isBeforeSeason && (
+                <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
+                  Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+              )}
+              {!isBeforeSeason && (
+                <ThSortable align="center" onClick={() => handleSort('positionChange')}>
+                  +-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+              )}
+              <ThSortable align="left" onClick={() => handleSort('shortName')}>
+                Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
+              </ThSortable>
+              <ThSortable align="left" onClick={() => handleSort('firstName')}>
+                Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
+              </ThSortable>
+              <ThSortable align="left" onClick={() => handleSort('lastName')}>
+                Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
+              </ThSortable>
+              {!isBeforeSeason && (
+                <ThSortable align="center" onClick={() => handleSort('pointsTotal')}>
+                  Punkte<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+              )}
+              {!isBeforeSeason && (
+                <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
+                  {matchdayLabel}<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+              )}
             </tr>
           </TableHead>
           <TableBody>
-            {[...group.managers]
-              .sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999))
-              .map((m, index) => {
-                const isMe = m.isCurrentUser
-                return (
-                <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-accent-muted font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+            {sortedManagers.map((m, index) => {
+              const isMe = m.isCurrentUser
+              return (
+              <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-info-bg font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                {!isBeforeSeason && (
                   <td className="px-3 py-2 text-center font-medium text-foreground">
                     {m.positionTotal ? `${m.positionTotal}.` : '-'}
                   </td>
-                  <td className="px-3 py-2 max-w-[260px]">
-                    {canNavigateToManager ? (
-                      <RouterLink
-                        to={`/managers/${m.managerId}`}
-                        className="link font-medium truncate block min-w-0"
-                        title={managerLabel(m)}
-                      >
-                        {managerLabel(m)}
-                      </RouterLink>
-                    ) : (
-                      <span className="font-medium text-foreground truncate block min-w-0" title={managerLabel(m)}>
-                        {managerLabel(m)}
+                )}
+                {!isBeforeSeason && (
+                  <td className="px-3 py-2 text-center">
+                    {m.positionChange != null && m.positionChange !== 0 ? (
+                      <span className={`${m.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                        {m.positionChange > 0 ? `↑${m.positionChange}` : `↓${Math.abs(m.positionChange)}`}
                       </span>
+                    ) : (
+                      <span className="text-subtle">-</span>
                     )}
                   </td>
+                )}
+                <td className="px-3 py-2 max-w-[220px]">
+                  {canNavigateToManager ? (
+                    <RouterLink
+                      to={`/managers/${m.managerId}`}
+                      className="link font-medium truncate block min-w-0"
+                      title={m.shortName || m.managerName}
+                    >
+                      {m.shortName || '-'}
+                    </RouterLink>
+                  ) : (
+                    <span className="font-medium text-foreground truncate block min-w-0" title={m.shortName || m.managerName}>
+                      {m.shortName || '-'}
+                    </span>
+                  )}
+                </td>
+                <td className="px-3 py-2 text-muted">
+                  {m.firstName || '-'}
+                </td>
+                <td className="px-3 py-2 text-muted">
+                  {m.lastName || '-'}
+                </td>
+                {!isBeforeSeason && (
                   <td className="px-3 py-2 text-center font-bold text-foreground">
                     {m.pointsTotal ?? '-'}
                   </td>
+                )}
+                {!isBeforeSeason && (
                   <td className="px-3 py-2 text-center text-muted">
                     {m.pointsLastRound ?? '-'}
                   </td>
-                </tr>
-                )
-              })}
-            {group.managers.length === 0 && (
+                )}
+              </tr>
+              )
+            })}
+            {sortedManagers.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-center text-subtle py-8">
+                <td colSpan={isBeforeSeason ? 3 : 7} className="text-center text-subtle py-8">
                   Keine Manager in dieser Gruppe
                 </td>
               </tr>
@@ -156,9 +275,6 @@ function GroupHomeCard({ group, canNavigateToManager }: { group: ManagerGroupRou
           </TableBody>
         </table>
       </div>
-      <p className="text-subtle text-sm mt-3">
-        <span className="text-foreground">Ersteller:</span> {creatorName}
-      </p>
     </div>
   )
 }
@@ -199,7 +315,7 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
             .map((m, index) => {
               const isMe = m.isCurrentUser
               return (
-              <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-accent-muted font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+              <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-info-bg font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                 <td className={`${td} text-center font-medium text-foreground`}>
                   {m.positionTotal ? `${m.positionTotal}.` : '-'}
                 </td>
@@ -293,7 +409,7 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
             <tr
               key={m.id}
               ref={isMe ? rowRef : undefined}
-              className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-accent-muted font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
+              className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-info-bg font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
             >
               <td className={`${td} text-center font-medium text-foreground`}>
                 {m.positionTotal ? `${m.positionTotal}.` : '-'}
@@ -457,6 +573,9 @@ export default function Home() {
   const [groupMenuOpen, setGroupMenuOpen] = useState(false)
   const [groupError, setGroupError] = useState('')
   const groupMenuRef = useRef<HTMLDivElement>(null)
+  const spielerWrapRef = useRef<HTMLDivElement>(null)
+  const spielerWrapSize = useElementSize(spielerWrapRef)
+  const spielerMaxWidth = spielerWrapSize ? Math.min(spielerWrapSize.width, 1300) - 48 : undefined
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -570,7 +689,6 @@ export default function Home() {
   const feldModus: 'gesamt' | 'wert' = isVorsaison ? 'wert' : 'gesamt'
 
   const title = managerLabel(activeManager) || 'Team auswählen'
-  const showBearbeiten = isOwnTeam && !isAdmin
   const showCarouselNav = carouselEnabled && favoriteManagerIds.length > 1
 
   const canNavigateToManager = isAdmin || !isBeforeSeason
@@ -635,9 +753,9 @@ export default function Home() {
         Lade Gruppen…
       </div>
     ) : !sortedGroups.length ? (
-      <div className="p-6 bg-surface border border-border rounded-card">
+      <div className="p-6 bg-info-bg border border-info/30 rounded-card">
         <div className="flex gap-3 items-start text-left">
-          <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0 mt-0.5" />
+          <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
           <div className="text-sm text-muted">
             <p>
               Mit einer Manager‑Gruppe vergleichst du dich mit einem eigenen, kleinen Kreis
@@ -651,9 +769,18 @@ export default function Home() {
         </div>
       </div>
     ) : (
-      sortedGroups.map(group => (
-        <GroupHomeCard key={group.groupId} group={group} canNavigateToManager={canNavigateToManager} />
-      ))
+      activeGroup && (
+        <GroupHomeCard
+          group={activeGroup}
+          canNavigateToManager={canNavigateToManager}
+          isBeforeSeason={isBeforeSeason}
+          matchdayLabel={groupHeaderTitle}
+          showCarouselNav={showGroupCarouselNav}
+          carouselPosition={groupCarouselPosition}
+          onPrev={groupPrev}
+          onNext={groupNext}
+        />
+      )
     )
 
   const renderMobileGroups = () =>
@@ -662,9 +789,9 @@ export default function Home() {
         Lade Gruppen…
       </div>
     ) : !sortedGroups.length ? (
-      <div className="p-6 bg-surface border border-border rounded-card">
+      <div className="p-6 bg-info-bg border border-info/30 rounded-card">
         <div className="flex gap-3 items-start text-left">
-          <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0 mt-0.5" />
+          <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
           <div className="text-sm text-muted">
             <p>
               Mit einer Manager‑Gruppe vergleichst du dich mit einem eigenen, kleinen Kreis
@@ -684,13 +811,7 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <div className="min-w-0 flex-1">
                 <div className="text-base font-semibold text-foreground truncate">
-                  {activeGroup && isGroupCreator(user?.login, activeGroup) ? (
-                    <RouterLink to={`/manager-groups/${activeGroup.groupId}`} className="link font-semibold">
-                      {activeGroup.groupName}
-                    </RouterLink>
-                  ) : (
-                    <span className="font-semibold text-foreground truncate">{activeGroup?.groupName ?? ''}</span>
-                  )}
+                  <span className="font-semibold text-foreground truncate">{activeGroup?.groupName ?? ''}</span>
                 </div>
                 {activeGroup && (
                   <div className="mt-0.5 text-xs text-muted leading-relaxed">
@@ -772,7 +893,7 @@ export default function Home() {
 
   const card = (children: ReactNode, fill = false) => (
     <div
-      className={`p-6 bg-surface border border-border rounded-card${isMobile ? ' px-3 py-0.5' : ''}${fill ? ' h-full flex flex-col min-h-0 max-w-[1300px]' : ''}`}
+      className={`p-6 bg-surface border border-border rounded-card${isMobile ? ' px-3 py-0.5' : ''}${fill ? ' h-full w-fit self-start flex flex-col min-h-0 max-w-[1300px] overflow-y-auto' : ''}`}
     >
       <div className={`relative z-20 shrink-0${isMobile ? ' mb-1' : ' mb-4'}`}>
         {isMobile ? (
@@ -899,17 +1020,6 @@ export default function Home() {
               </span>
             )}
             <h2 className="text-xl font-semibold text-foreground min-w-0">{title}</h2>
-            {showBearbeiten && (
-              <Button
-                variant="ghost"
-                size="input"
-                onClick={() => navigate('/my-team')}
-                aria-label="Team bearbeiten"
-                title="Team bearbeiten"
-              >
-                <i className="sap-icon sap-icon-edit text-sm" />
-              </Button>
-            )}
             <div className="ml-auto flex items-center gap-2">
               <div className="relative" ref={menuRef}>
                 <button
@@ -1018,35 +1128,36 @@ export default function Home() {
         active={activeTab}
         onChange={handleTabChange}
       />
-      <div className="flex-1 min-h-0 flex flex-col">
+      <div ref={spielerWrapRef} className="flex-1 min-h-0 flex flex-col">
         {activeTab === 'spieler' ? (
-          card(
-            <div className="relative z-0 isolate h-full flex flex-col min-h-0">
-              {!activeManagerId ? (
-                <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend hideSum />
-              ) : aufstellungQuery.isError ? (
-                <p className="text-sm text-danger py-10 text-center">Daten konnten nicht geladen werden.</p>
-              ) : !displayAufstellung ? (
-                <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
-              ) : (
-                <AufstellungsFeld
-                  aufstellung={displayAufstellung}
-                  modus={feldModus}
-                  overlayLegend
-                  hideSum
-                  overlay={activeManager ? <CoachTafel manager={activeManager} editable={isOwnTeam} /> : undefined}
-                />
-              )}
-            </div>,
-            true
-          )
-        ) : activeTab === 'manager' ? (
-          <div className="flex-1 min-h-0 overflow-y-auto pr-1">
-            <Managers />
+          <div className="flex-1 min-h-0 overflow-x-auto">
+            {card(
+              <div className="relative z-0 isolate h-full flex flex-col min-h-0">
+                {!activeManagerId ? (
+                  <AufstellungsFeld aufstellung={EMPTY_AUFSTELLUNG} modus={feldModus} overlayLegend hideSum maxWidth={spielerMaxWidth} />
+                ) : aufstellungQuery.isError ? (
+                  <p className="text-sm text-danger py-10 text-center">Daten konnten nicht geladen werden.</p>
+                ) : !displayAufstellung ? (
+                  <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+                ) : (
+                  <AufstellungsFeld
+                    aufstellung={displayAufstellung}
+                    modus={feldModus}
+                    overlayLegend
+                    hideSum
+                    overlay={activeManager ? <CoachTafel manager={activeManager} editable={isOwnTeam} /> : undefined}
+                    maxWidth={spielerMaxWidth}
+                  />
+                )}
+              </div>,
+              true
+            )}
           </div>
+        ) : activeTab === 'manager' ? (
+          <Managers fill />
         ) : (
-          <div className="flex-1 min-h-0 overflow-y-auto pr-1">
-            <div className="max-w-[1300px] flex flex-col gap-6">
+          <div className="flex-1 min-h-0 flex flex-col pr-1">
+            <div className="max-w-[1300px] flex flex-col gap-6 flex-1 min-h-0">
               {renderGroups()}
             </div>
           </div>

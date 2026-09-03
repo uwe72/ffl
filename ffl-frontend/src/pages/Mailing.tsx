@@ -81,9 +81,9 @@ export default function Mailing() {
   return (
     <div>
       <BackButton to="/" className="mb-4" />
-      <div className="flex items-start gap-3 p-4 bg-orange-bg border-2 border-orange rounded-control mb-6">
-        <i className="sap-icon sap-icon-alert text-[24px] text-orange shrink-0 mt-0.5" />
-        <p className="text-orange text-sm font-bold leading-snug">
+      <div className="flex items-start gap-3 p-4 bg-info-bg border-2 border-info/30 rounded-control mb-6">
+        <i className="sap-icon sap-icon-alert text-[24px] text-info shrink-0 mt-0.5" />
+        <p className="text-foreground text-sm font-bold leading-snug">
           Hinweis: Bei Gmail (Google Mail) können pro Tag nur 500 Mails (SMTP-Limit: 500
           Empfänger/Tag) versendet werden. Bitte verteile größere Mailserien auf mehrere Tage.
         </p>

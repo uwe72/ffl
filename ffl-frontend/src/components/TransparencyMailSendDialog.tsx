@@ -62,8 +62,6 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
     [availableEmails, invalidEmails],
   )
 
-  const validCount = uniqueEmails.length - invalidEmails.size
-
   const allSelected =
     availableValid.length > 0 && selectedEmails.length === availableValid.length
 
@@ -129,7 +127,7 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
             <div className="md:ml-auto">
               <Button
                 variant="ghost"
-                size="sm"
+                size={isMobile ? 'sm' : 'input'}
                 onClick={toggleAll}
                 disabled={availableValid.length === 0}
               >
@@ -157,7 +155,7 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
             />
             <Button
               variant="ghost"
-              size="sm"
+              size={isMobile ? 'sm' : 'input'}
               onClick={selectRange}
               disabled={!rangeFromId || !rangeToId}
             >
@@ -256,12 +254,6 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
             </div>
           )}
 
-          <div className="mt-4 text-sm text-subtle">
-            {uniqueEmails.length} eindeutige E-Mail-Adressen von {managers?.length || 0} Managern
-            {invalidEmails.size > 0 && (
-              <span className="text-danger"> · {validCount} gültig, {invalidEmails.size} ungültig</span>
-            )}
-          </div>
         </div>
 
         <div className="p-4 bg-surface border border-border mb-4">

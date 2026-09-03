@@ -515,9 +515,9 @@ export default function ManagerDetail() {
     return (
       <div className="max-w-6xl">
         <BackButton to="/managers" className="mb-4" />
-        <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card">
-          <i className="sap-icon sap-icon-information text-[18px] text-muted shrink-0" />
-          <p className="text-sm text-muted">Manager nicht gefunden.</p>
+        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card">
+          <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0" />
+          <p className="text-sm text-foreground">Manager nicht gefunden.</p>
         </div>
       </div>
     )
@@ -768,7 +768,7 @@ export default function ManagerDetail() {
                   <div className="mt-3 flex gap-2">
                     <Button
                       variant="emphasized"
-                      size="sm"
+                      size={isMobile ? 'sm' : 'input'}
                       onClick={handleDetailsSave}
                       disabled={isSaving}
                     >
@@ -776,7 +776,7 @@ export default function ManagerDetail() {
                     </Button>
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size={isMobile ? 'sm' : 'input'}
                       onClick={handleDetailsCancel}
                     >
                       Abbrechen
@@ -790,7 +790,7 @@ export default function ManagerDetail() {
           {isAdmin && (
             <Button
               variant={stammdatenOpen ? 'ghost' : 'emphasized'}
-              size="sm"
+              size={isMobile ? 'sm' : 'input'}
               onClick={() => setStammdatenOpen(o => !o)}
               aria-expanded={stammdatenOpen}
               aria-controls="manager-stammdaten-form"

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import axios from 'axios'
 import api from '../api/client'
 import { trackEvent } from '../hooks/useMatomo'
+import useIsMobile from '../hooks/useIsMobile'
 import Button from './Button'
 
 interface Props {
@@ -17,6 +18,7 @@ interface FieldErrors {
 }
 
 export default function FeedbackForm({ onSuccess, onCancel }: Props) {
+  const isMobile = useIsMobile()
   const [subject, setSubject] = useState('')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -109,7 +111,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
         </div>
         <Button
           variant="transparent"
-          size="sm"
+          size={isMobile ? 'sm' : 'input'}
           onClick={handleClose}
         >
           Schließen
@@ -204,7 +206,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
       <div className="col-span-2 mt-3 flex gap-2">
         <Button
           variant="emphasized"
-          size="sm"
+          size={isMobile ? 'sm' : 'input'}
           type="submit"
           disabled={isLoading}
         >
@@ -212,7 +214,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
         </Button>
         <Button
           variant="ghost"
-          size="sm"
+          size={isMobile ? 'sm' : 'input'}
           onClick={handleCancel}
           disabled={isLoading}
         >

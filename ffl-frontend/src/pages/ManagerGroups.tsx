@@ -100,22 +100,22 @@ export default function ManagerGroups() {
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
-    <div>
+    <div className="md:h-full md:flex md:flex-col md:min-h-0">
       <BackButton to="/" className="mb-4" />
-      <div className="flex items-start gap-3 p-3 bg-accent-muted border border-accent/30 rounded-card mb-6">
-        <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0 mt-0.5" />
+      <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6 md:shrink-0">
+        <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
         <p className="text-sm text-foreground">
           Hier kannst du eigene Gruppen erstellen und verwalten. In der Tabelle werden nur Gruppen
           angezeigt, deren Ersteller du bist. Die vollständige Übersicht aller deiner Gruppen findest
           du im <RouterLink to="/?tab=gruppen" className="link">Dashboard</RouterLink>.
         </p>
       </div>
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
-        <div className="flex items-center justify-between gap-4 mb-4">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
+        <div className="flex items-center justify-between gap-4 mb-4 md:shrink-0">
           <h2 className="hidden md:block text-xl font-semibold text-foreground">Manager-Gruppen ({sortedGroups.length})</h2>
           <Button
             onClick={() => navigate('/manager-groups/create')}
-            size="compact"
+            size={isMobile ? 'sm' : 'input'}
             className="w-full md:w-auto md:inline-flex"
           >
             + Neue Gruppe
@@ -124,7 +124,7 @@ export default function ManagerGroups() {
 
         {!isMobile && (
           <>
-            <div className="overflow-x-auto rounded-card border border-border w-fit max-w-full">
+            <div className="flex-1 min-h-0 overflow-auto rounded-card border border-border w-fit max-w-full">
               <table>
                 <TableHead>
                   <tr>
@@ -177,8 +177,8 @@ export default function ManagerGroups() {
                   ) : (
                     <tr>
                       <td colSpan={4} className="py-8">
-                        <div className="flex gap-3 items-start max-w-2xl mx-auto text-left px-4">
-                          <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0 mt-0.5" />
+                        <div className="flex gap-3 items-start max-w-2xl mx-auto text-left p-4 bg-info-bg border border-info/30 rounded-card">
+                          <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
                           <div className="text-sm text-muted">
                             <p>
                               Mit einer Manager‑Gruppe vergleichst du dich mit einem eigenen, kleinen
@@ -194,9 +194,6 @@ export default function ManagerGroups() {
                 </TableBody>
               </table>
             </div>
-            <div className="mt-4 text-sm text-subtle">
-              {sortedGroups.length} von {groups?.length || 0} Gruppen
-            </div>
           </>
         )}
 
@@ -208,8 +205,8 @@ export default function ManagerGroups() {
                   <ManagerGroupCard key={group.id} group={group} />
                 ))
               ) : (
-                <div className="flex gap-3 items-start max-w-2xl mx-auto text-left px-4 py-6">
-                  <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0 mt-0.5" />
+                <div className="flex gap-3 items-start max-w-2xl mx-auto text-left p-4 bg-info-bg border border-info/30 rounded-card">
+                  <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
                   <div className="text-sm text-muted">
                     <p>
                       Mit einer Manager‑Gruppe vergleichst du dich mit einem eigenen, kleinen Kreis
@@ -221,14 +218,11 @@ export default function ManagerGroups() {
                 </div>
               )}
             </div>
-            <div className="mt-4 text-sm text-subtle">
-              {sortedGroups.length} von {groups?.length || 0} Gruppen
-            </div>
           </div>
         )}
       </div>
 
-      <div className="h-10" />
+      <div className="h-10 md:hidden" />
     </div>
   )
 }

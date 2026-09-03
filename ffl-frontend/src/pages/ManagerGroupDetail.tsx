@@ -354,9 +354,9 @@ export default function ManagerGroupDetail() {
     return (
       <div className="max-w-6xl">
         <BackButton to="/manager-groups" className="mb-4" />
-        <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card">
-          <i className="sap-icon sap-icon-information text-[18px] text-muted shrink-0" />
-          <p className="text-sm text-muted">Gruppe nicht gefunden.</p>
+        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card">
+          <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0" />
+          <p className="text-sm text-foreground">Gruppe nicht gefunden.</p>
         </div>
       </div>
     )
@@ -370,8 +370,8 @@ export default function ManagerGroupDetail() {
       <BackButton to="/manager-groups" className="mb-4" />
 
       {!isNewMode && (
-        <div className="flex items-start gap-3 p-3 bg-accent-muted border border-accent/40 rounded-card mb-6">
-          <i className="sap-icon sap-icon-information text-[18px] text-accent shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6">
+          <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
           <p className="text-sm text-foreground">
             Dies ist die Verwaltungs-UI für Managergruppen. Hier kannst Du Gruppen erstellen,
             bearbeiten und Manager verwalten. Die alltägliche reine Ansicht findest Du im{' '}
@@ -381,9 +381,9 @@ export default function ManagerGroupDetail() {
       )}
 
       {!isNewMode && !canEdit && (
-        <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card mb-6">
-          <i className="sap-icon sap-icon-information text-[18px] text-muted shrink-0" />
-          <p className="text-sm text-muted">
+        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6">
+          <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0" />
+          <p className="text-sm text-foreground">
             Nur Lesezugriff – nur der Ersteller kann diese Gruppe bearbeiten.
           </p>
         </div>
@@ -502,7 +502,7 @@ export default function ManagerGroupDetail() {
             <div className="hidden md:flex gap-2 shrink-0 self-start md:ml-auto">
               <Button
                 variant={stammdatenOpen ? 'ghost' : 'emphasized'}
-                size="sm"
+                size={isMobile ? 'sm' : 'input'}
                 onClick={() => setStammdatenOpen(o => !o)}
                 aria-expanded={stammdatenOpen}
                 aria-controls="stammdaten-form"
@@ -512,7 +512,7 @@ export default function ManagerGroupDetail() {
               </Button>
               <Button
                 variant="negative"
-                size="sm"
+                size={isMobile ? 'sm' : 'input'}
                 onClick={handleDeleteGroup}
                 disabled={deleteMutation.isPending}
               >
@@ -586,7 +586,7 @@ export default function ManagerGroupDetail() {
                 {isNewMode ? (
                   <Button
                     variant="emphasized"
-                    size="sm"
+                    size={isMobile ? 'sm' : 'input'}
                     onClick={handleCreate}
                     disabled={!editName.trim() || !editDescription.trim() || !currentSeason || createMutation.isPending}
                   >
@@ -595,7 +595,7 @@ export default function ManagerGroupDetail() {
                 ) : (
                   <Button
                     variant="emphasized"
-                    size="sm"
+                    size={isMobile ? 'sm' : 'input'}
                     onClick={handleSaveChanges}
                     disabled={updateMutation.isPending || !editDescription.trim()}
                   >
@@ -604,7 +604,7 @@ export default function ManagerGroupDetail() {
                 )}
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size={isMobile ? 'sm' : 'input'}
                   onClick={isNewMode ? () => navigate('/manager-groups') : handleReset}
                 >
                   Abbrechen
@@ -615,7 +615,7 @@ export default function ManagerGroupDetail() {
               <div className="mt-3 md:hidden">
                 <Button
                   variant="negative"
-                  size="sm"
+                  size={isMobile ? 'sm' : 'input'}
                   className="w-full"
                   onClick={handleDeleteGroup}
                   disabled={deleteMutation.isPending}
@@ -736,8 +736,8 @@ export default function ManagerGroupDetail() {
         {isMobile && (
           <div>
             {canEdit && filteredAndSortedManagers.length > 0 && (
-              <div className="flex items-start gap-2 p-2 mb-4 bg-accent-muted border border-accent/30 rounded-card">
-                <i className="sap-icon sap-icon-hint text-[16px] text-accent shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 p-2 mb-4 bg-info-bg border border-info/30 rounded-card">
+                <i className="sap-icon sap-icon-hint text-[16px] text-info shrink-0 mt-0.5" />
                 <p className="text-xs text-foreground">
                   Tipp: Linken Farbrand antippen, um den Manager zu entfernen.
                 </p>

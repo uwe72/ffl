@@ -47,6 +47,7 @@ public class ManagerGroupRoundStatsDto {
         private String login;
         private boolean isCurrentUser;
         private Integer positionTotal;
+        private Integer positionChange;
         private Integer pointsTotal;
         private Integer pointsLastRound;
         private List<RoundPointDto> roundData;
@@ -67,6 +68,8 @@ public class ManagerGroupRoundStatsDto {
         public void setIsCurrentUser(boolean currentUser) { isCurrentUser = currentUser; }
         public Integer getPositionTotal() { return positionTotal; }
         public void setPositionTotal(Integer positionTotal) { this.positionTotal = positionTotal; }
+        public Integer getPositionChange() { return positionChange; }
+        public void setPositionChange(Integer positionChange) { this.positionChange = positionChange; }
         public Integer getPointsTotal() { return pointsTotal; }
         public void setPointsTotal(Integer pointsTotal) { this.pointsTotal = pointsTotal; }
         public Integer getPointsLastRound() { return pointsLastRound; }

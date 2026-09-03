@@ -2,6 +2,7 @@ package de.ffl.service;
 
 import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerGroup;
+import de.ffl.domain.ManagerRank;
 import de.ffl.domain.Season;
 import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
@@ -350,5 +351,49 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
 
         authenticateAs("outsider");
         assertThrows(IllegalArgumentException.class, () -> managerGroupService.setStandardGroup(groupId));
+    }
+
+    @Test
+    void myGroupsWithStats_containsPositionChange() {
+        season.setCurrentMatchday(2);
+        seasonRepository.save(season);
+
+        creatorUser = createUser("creator");
+        referencedUser = createUser("referenced");
+        Manager creatorManager = createManager(creatorUser, season);
+        Manager referencedManager2 = createManager(referencedUser, season);
+
+        managerRankRepository.save(ManagerRank.builder()
+            .manager(creatorManager).round(roundMap.get(1))
+            .positionTotal(1).positionRound(1).pointsTotal(50).pointsRound(10).build());
+        managerRankRepository.save(ManagerRank.builder()
+            .manager(creatorManager).round(roundMap.get(2))
+            .positionTotal(2).positionRound(2).pointsTotal(80).pointsRound(30).build());
+        managerRankRepository.save(ManagerRank.builder()
+            .manager(referencedManager2).round(roundMap.get(1))
+            .positionTotal(3).positionRound(3).pointsTotal(40).pointsRound(5).build());
+        managerRankRepository.save(ManagerRank.builder()
+            .manager(referencedManager2).round(roundMap.get(2))
+            .positionTotal(1).positionRound(1).pointsTotal(90).pointsRound(50).build());
+
+        authenticateAs("creator");
+        Long groupId = createGroup("MitRanks", season.getId(),
+            List.of(creatorManager.getId(), referencedManager2.getId()));
+
+        List<ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
+        ManagerGroupRoundStatsDto own = groups.stream()
+            .filter(g -> g.getGroupId().equals(groupId))
+            .findFirst()
+            .orElseThrow();
+
+        ManagerGroupRoundStatsDto.ManagerRoundDataDto creator = own.getManagers().stream()
+            .filter(m -> m.getManagerId().equals(creatorManager.getId()))
+            .findFirst().orElseThrow();
+        ManagerGroupRoundStatsDto.ManagerRoundDataDto referenced = own.getManagers().stream()
+            .filter(m -> m.getManagerId().equals(referencedManager2.getId()))
+            .findFirst().orElseThrow();
+
+        assertEquals(-1, creator.getPositionChange());
+        assertEquals(2, referenced.getPositionChange());
     }
 }

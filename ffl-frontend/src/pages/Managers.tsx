@@ -12,7 +12,7 @@ import useIsMobile from '../hooks/useIsMobile'
 
 type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound'
 
-export default function Managers() {
+export default function Managers({ fill = false }: { fill?: boolean } = {}) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
   const { data: currentSeason } = useCurrentSeason()
@@ -132,9 +132,9 @@ export default function Managers() {
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
-    <div>
-      <div className={`p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full ${isMobile ? 'px-3 py-4' : ''}`}>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+    <div className={fill ? 'flex-1 min-h-0 flex flex-col' : 'md:h-full md:flex md:flex-col md:min-h-0'}>
+      <div className={`p-6 bg-surface border border-border rounded-card w-full md:w-fit max-w-full ${isMobile ? 'px-3 py-4' : ''}${fill ? ' flex-1 min-h-0 flex flex-col' : ' mb-6 md:mb-0 md:flex-1 md:min-h-0 md:flex md:flex-col'}`}>
+        <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4${fill ? ' shrink-0' : ' md:shrink-0'}`}>
           <h2 className="text-xl font-semibold text-foreground">Manager ({filteredManagers.length})</h2>
           <div className="flex flex-col md:flex-row md:items-center gap-3 w-full md:w-auto">
             <div className="relative flex-1 md:w-64">
@@ -151,7 +151,7 @@ export default function Managers() {
             <Button
               onClick={handleSelectMe}
               size="input"
-              variant={selected ? 'emphasized' : 'secondary'}
+              variant={selected ? 'secondary' : 'emphasized'}
             >
               <i className="sap-icon sap-icon-account text-[14px]" />
               Selektiere mich
@@ -160,7 +160,8 @@ export default function Managers() {
             {!isMobile && (
             <Button
               onClick={exportToExcel}
-              size="compact"
+              size="input"
+              variant="secondary"
             >
               Excel Export
             </Button>
@@ -169,7 +170,7 @@ export default function Managers() {
         </div>
 
         {hasActiveFilter && (
-          <div className="flex items-center gap-3 flex-wrap mb-4">
+          <div className={`flex items-center gap-3 flex-wrap mb-4${fill ? ' shrink-0' : ' md:shrink-0'}`}>
             <button
               onClick={() => setSearchTerm('')}
               className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
@@ -182,7 +183,7 @@ export default function Managers() {
 
         {!isMobile && (
           <>
-            <div className="overflow-x-auto rounded-card border border-border w-fit max-w-full">
+            <div className={`overflow-x-auto rounded-card border border-border w-fit max-w-full${fill ? ' flex-1 min-h-0 overflow-y-auto' : ' md:flex-1 md:min-h-0 md:overflow-auto'}`}>
               <table>
                 <TableHead>
                   <tr>
@@ -282,9 +283,6 @@ export default function Managers() {
                 </TableBody>
               </table>
             </div>
-            <div className="mt-4 text-sm text-subtle">
-              {filteredManagers.length} von {managers?.length || 0} Managern
-            </div>
           </>
         )}
 
@@ -344,7 +342,7 @@ export default function Managers() {
                       <tr
                         key={manager.id}
                         ref={isMe ? rowRef : undefined}
-                        className={`border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-accent-muted font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
+                        className={`border-b border-border ${isMe ? 'border-l-2 border-l-accent bg-info-bg font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
                       >
                         {!beforeSeason && (
                         <td className="px-2 py-2 text-center text-foreground overflow-hidden">
@@ -397,14 +395,11 @@ export default function Managers() {
                 </TableBody>
               </table>
             </div>
-            <div className="mt-4 text-sm text-subtle">
-              {filteredManagers.length} von {managers?.length || 0} Managern
-            </div>
           </>
         )}
       </div>
 
-      <div className="h-10" />
+      {!fill && <div className="h-10 md:hidden" />}
     </div>
   )
 }

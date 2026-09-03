@@ -3,22 +3,15 @@ import type { ReactNode, ThHTMLAttributes, TdHTMLAttributes, HTMLAttributes } fr
 
 interface TableContentProps {
   children: ReactNode
-  count?: number
-  total?: number
-  countLabel?: string
+  scroll?: boolean
 }
 
-export function TableContent({ children, count, total, countLabel }: TableContentProps) {
+export function TableContent({ children, scroll = false }: TableContentProps) {
   return (
-    <div className="flex-1 px-0 md:px-6 pt-6 pb-6 overflow-x-auto">
-      <div className="rounded-card border border-border">
+    <div className={`flex-1 px-0 md:px-6 pt-6 pb-6 ${scroll ? 'flex flex-col min-h-0' : 'overflow-x-auto'}`}>
+      <div className={`rounded-card border border-border ${scroll ? 'flex-1 min-h-0 overflow-auto' : ''}`}>
         {children}
       </div>
-      {count != null && total != null && countLabel && (
-        <div className="mt-4 text-sm text-subtle">
-          {count} von {total} {countLabel}
-        </div>
-      )}
     </div>
   )
 }
@@ -29,7 +22,7 @@ interface TableHeadProps {
 
 export function TableHead({ children }: TableHeadProps) {
   return (
-    <thead className="bg-elevated sticky top-0">
+    <thead className="bg-elevated table-header">
       {children}
     </thead>
   )
@@ -97,7 +90,7 @@ export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
     return (
       <tr
         ref={ref}
-        className={`border-b border-border hover:bg-card-hover ${active ? 'border-l-2 border-l-accent bg-accent-muted font-semibold' : ''} ${className}`}
+        className={`border-b border-border hover:bg-card-hover ${active ? 'border-l-2 border-l-accent bg-info-bg font-semibold' : ''} ${className}`}
         {...rest}
       >
         {children}

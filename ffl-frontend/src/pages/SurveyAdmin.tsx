@@ -3,6 +3,7 @@ import { useSurveys, useCreateSurvey, useUpdateSurvey, useReviseSurvey, useCopyS
 import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import BackButton from '../components/BackButton'
 import Button from '../components/Button'
+import useIsMobile from '../hooks/useIsMobile'
 
 const STATUS_LABEL: Record<string, string> = {
   ANGELEGT: 'Angelegt',
@@ -191,6 +192,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
   isNew: boolean
   onCancel: () => void
 }) {
+  const isMobile = useIsMobile()
   const create = useCreateSurvey()
   const update = useUpdateSurvey()
   const revise = useReviseSurvey()
@@ -354,7 +356,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
           <div key={qIndex} className="p-5 bg-surface border border-border rounded-card">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-semibold text-foreground">Frage {qIndex + 1}</span>
-              <Button variant="negative" size="sm" onClick={() => removeQuestion(qIndex)}>Entfernen</Button>
+              <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => removeQuestion(qIndex)}>Entfernen</Button>
             </div>
             <div className="flex flex-col gap-3">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

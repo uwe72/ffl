@@ -13,6 +13,7 @@ import type { PlayerSlot } from '../components/PlayerSelect'
 import type { Player, Season, Position, Manager } from '../types'
 import type { AxiosError } from 'axios'
 import { positionTextColor, positionBarColor } from '../utils/positions'
+import useIsMobile from '../hooks/useIsMobile'
 import { DEFAULT_START_ROUND_RUECKRUNDE } from '../utils/season'
 
 const PLAYER_SLOTS: PlayerSlot[] = [
@@ -117,6 +118,7 @@ function buildExistingTransfers(manager: Manager): TransferRow[] {
 }
 
 export default function MyTeam() {
+  const isMobile = useIsMobile()
   const { user, updateProfileInfo } = useAuth()
   const [manager, setManager] = useState<Manager | null>(null)
   const [season, setSeason] = useState<Season | null>(null)
@@ -745,8 +747,8 @@ export default function MyTeam() {
       <BackButton to="/" className="mb-4" />
 
       {isHinrunde && (
-        <div className="flex items-center gap-3 p-3 bg-accent-muted border border-accent/30 rounded-card mb-6">
-          <i className="sap-icon sap-icon-switch-classes text-[18px] text-accent shrink-0" />
+        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6">
+          <i className="sap-icon sap-icon-switch-classes text-[18px] text-info shrink-0" />
           <p className="text-sm text-foreground">
             Die Hinrunde läuft. Du kannst bis zu <span className="font-semibold">3 Spieler</span> wechseln (Winterwechsel).
             Die neuen Spieler sind ab der Rückrunde (Spieltag {startRoundRueckrunde}) aktiv.
@@ -755,18 +757,18 @@ export default function MyTeam() {
       )}
 
       {isRueckrunde && !hasExistingTransfers && (
-        <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card mb-6">
-          <i className="sap-icon sap-icon-locked text-[18px] text-muted shrink-0" />
-          <p className="text-sm text-muted">
+        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6">
+          <i className="sap-icon sap-icon-locked text-[18px] text-info shrink-0" />
+          <p className="text-sm text-foreground">
             Die Rückrunde läuft. Deine Aufstellung kann nicht mehr geändert werden.
           </p>
         </div>
       )}
 
       {isRueckrunde && hasExistingTransfers && (
-        <div className="flex items-center gap-3 p-3 bg-elevated border border-border rounded-card mb-6">
-          <i className="sap-icon sap-icon-locked text-[18px] text-muted shrink-0" />
-          <p className="text-sm text-muted">
+        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6">
+          <i className="sap-icon sap-icon-locked text-[18px] text-info shrink-0" />
+          <p className="text-sm text-foreground">
             Die Rückrunde läuft. Deine Winterwechsel sind aktiv.
           </p>
         </div>
@@ -853,7 +855,7 @@ export default function MyTeam() {
           <div className="hidden md:block w-auto md:ml-auto">
             <Button
               variant={profileOpen ? 'ghost' : 'emphasized'}
-              size="sm"
+              size={isMobile ? 'sm' : 'input'}
               onClick={() => setProfileOpen(o => !o)}
               aria-expanded={profileOpen}
               aria-controls="profile-form"
@@ -928,7 +930,7 @@ export default function MyTeam() {
               <div className="mt-3 flex gap-2">
                 <Button
                   variant="emphasized"
-                  size="sm"
+                  size={isMobile ? 'sm' : 'input'}
                   onClick={handleSaveProfile}
                   disabled={savingProfile}
                 >
@@ -936,7 +938,7 @@ export default function MyTeam() {
                 </Button>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size={isMobile ? 'sm' : 'input'}
                   onClick={handleResetProfile}
                 >
                   Abbrechen
@@ -977,8 +979,8 @@ export default function MyTeam() {
 
           <div className="space-y-8">
             {isBeforeSeason && (
-              <div className="md:hidden flex items-start gap-2 p-2 bg-accent-muted border border-accent/30 rounded-card">
-                <i className="sap-icon sap-icon-hint text-[16px] text-accent shrink-0 mt-0.5" />
+              <div className="md:hidden flex items-start gap-2 p-2 bg-info-bg border border-info/30 rounded-card">
+                <i className="sap-icon sap-icon-hint text-[16px] text-info shrink-0 mt-0.5" />
                 <p className="text-xs text-foreground">
                   Tipp: Linken Farbrand antippen, um Spieler zu entfernen.
                 </p>
@@ -1058,7 +1060,7 @@ export default function MyTeam() {
               {transfers.length < 3 && (
                 <Button
                   variant="emphasized"
-                  size="sm"
+                  size={isMobile ? 'sm' : 'input'}
                   onClick={handleAddTransfer}
                 >
                   <i className="sap-icon sap-icon-add text-xs mr-1" />
@@ -1288,7 +1290,7 @@ export default function MyTeam() {
               <div className="flex gap-2">
                 <Button
                   variant="emphasized"
-                  size="sm"
+                  size={isMobile ? 'sm' : 'input'}
                   onClick={handleSave}
                   disabled={saving || isBudgetExceeded || !allSlotsFilled}
                 >
@@ -1296,7 +1298,7 @@ export default function MyTeam() {
                 </Button>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size={isMobile ? 'sm' : 'input'}
                   onClick={handleReset}
                   disabled={saving}
                 >
@@ -1308,7 +1310,7 @@ export default function MyTeam() {
               <div className="flex gap-2">
                 <Button
                   variant="emphasized"
-                  size="sm"
+                  size={isMobile ? 'sm' : 'input'}
                   onClick={handleSaveTransfers}
                   disabled={savingTransfers || !transfersComplete || isTransferBudgetExceeded || hasTransferPositionViolation}
                 >
@@ -1316,7 +1318,7 @@ export default function MyTeam() {
                 </Button>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size={isMobile ? 'sm' : 'input'}
                   onClick={handleResetTransfers}
                   disabled={savingTransfers}
                 >

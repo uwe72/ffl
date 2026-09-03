@@ -13,6 +13,8 @@ const PAD_V = 28
 const GAP_V = 24
 const BADGE_PROTRUDE = 12
 const FIELD_RATIO = 2752 / 1536
+const MAX_FIELD_W = 1252
+const MIN_FIELD_W = 900
 const DESIGN_COL_H = 2 * PAD_V + 4 * CARD_H + 3 * GAP_V
 const DESIGN_ROW_W = 2 * PAD_H + 4 * (CARD_W + 2 * BADGE_PROTRUDE)
 
@@ -316,6 +318,7 @@ interface AufstellungsFeldProps {
   overlayLegend?: boolean
   overlay?: ReactNode
   hideSum?: boolean
+  maxWidth?: number
 }
 
 export default function AufstellungsFeld({
@@ -326,6 +329,7 @@ export default function AufstellungsFeld({
   overlayLegend = false,
   overlay,
   hideSum = false,
+  maxWidth,
 }: AufstellungsFeldProps) {
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
   const canHover = useMedia('(hover: hover)')
@@ -348,14 +352,14 @@ export default function AufstellungsFeld({
   let cardIndex = 0
 
   const layout = useMemo(() => {
-    if (compact || !slotSize || slotSize.width <= 0 || slotSize.height <= 0) {
+    if (compact || !slotSize || slotSize.height <= 0) {
       return { scale: 1, fieldW: undefined as number | undefined, fieldH: undefined as number | undefined }
     }
-    const containW = Math.min(slotSize.width, slotSize.height * FIELD_RATIO)
+    const containW = Math.max(MIN_FIELD_W, Math.min(maxWidth ?? MAX_FIELD_W, slotSize.height * FIELD_RATIO))
     const containH = containW / FIELD_RATIO
     const scale = Math.min(containW / DESIGN_ROW_W, containH / DESIGN_COL_H, 1)
     return { scale, fieldW: containW, fieldH: containH }
-  }, [compact, slotSize])
+  }, [compact, slotSize, maxWidth])
 
   const scale = layout.scale
   const cardWidth = compact ? 64 : CARD_W * scale

@@ -32,6 +32,7 @@ interface Game {
 }
 
 function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: number) => void; isAdmin: boolean }) {
+  const isMobile = useIsMobile()
   return (
     <div className="card p-4 bg-surface border border-border">
       <div className="flex flex-col gap-4">
@@ -89,7 +90,7 @@ function GameCard({ game, onImport, isAdmin }: { game: Game; onImport: (id: numb
           <div className="flex justify-end">
             <Button
               variant="emphasized"
-              size="sm"
+              size={isMobile ? 'sm' : 'input'}
               onClick={() => onImport(game.id)}
             >
               Import
@@ -254,10 +255,10 @@ export default function Games() {
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
-    <div>
-      <BackButton to="/" className="mb-4" />
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
-        <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+    <div className="md:h-full md:flex md:flex-col md:min-h-0">
+      <BackButton to="/" className="mb-4 md:shrink-0" />
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
+        <div className="flex items-center justify-between gap-4 mb-4 flex-wrap md:shrink-0">
           <h2 className="text-xl font-semibold text-foreground">Spiele ({filteredGames.length})</h2>
           <FilterBar
             selectedRound={selectedRound}
@@ -270,7 +271,7 @@ export default function Games() {
 
         {!isMobile && (
           <>
-            <div className="overflow-x-auto rounded-card border border-border w-fit max-w-full">
+            <div className="flex-1 min-h-0 overflow-auto rounded-card border border-border w-fit max-w-full">
               <table>
                 <TableHead>
                   <tr>
@@ -327,7 +328,7 @@ export default function Games() {
                             {isAdmin && game.goalHost == null && game.goalVisitor == null && (
                               <Button
                                 variant="emphasized"
-                                size="sm"
+                                size={isMobile ? 'sm' : 'input'}
                                 onClick={() => setImportGameId(game.id)}
                               >
                                 Import
@@ -364,9 +365,6 @@ export default function Games() {
                 </TableBody>
               </table>
             </div>
-            <div className="mt-4 text-sm text-subtle">
-              {filteredGames.length} von {games?.length || 0} Spielen
-            </div>
           </>
         )}
 
@@ -383,11 +381,6 @@ export default function Games() {
                 </div>
               )}
             </div>
-            {sortedGames.length > 0 && (
-              <div className="mt-4 text-sm text-subtle">
-                {sortedGames.length} von {games?.length || 0} Spielen
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -408,7 +401,7 @@ export default function Games() {
         />
       )}
 
-      <div className="h-10" />
+      <div className="h-10 md:hidden" />
     </div>
   )
 }

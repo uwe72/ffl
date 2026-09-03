@@ -151,14 +151,14 @@ export default function PrizeDistributionMailSendDialog({ isOpen, onClose, seaso
             <div className="flex gap-2 md:ml-auto">
               <Button
                 variant={adminFilter ? 'emphasized' : 'ghost'}
-                size="sm"
+                size={isMobile ? 'sm' : 'input'}
                 onClick={() => setAdminFilter(!adminFilter)}
               >
                 Admins selektieren
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
+                size={isMobile ? 'sm' : 'input'}
                 onClick={toggleAll}
                 disabled={eligibleManagers.length === 0}
               >
@@ -186,7 +186,7 @@ export default function PrizeDistributionMailSendDialog({ isOpen, onClose, seaso
             />
             <Button
               variant="ghost"
-              size="sm"
+              size={isMobile ? 'sm' : 'input'}
               onClick={selectRange}
               disabled={!rangeFromId || !rangeToId}
             >
@@ -272,9 +272,6 @@ export default function PrizeDistributionMailSendDialog({ isOpen, onClose, seaso
             </div>
           )}
 
-          <div className="mt-4 text-sm text-subtle">
-            {availableManagers.length} von {managers?.length || 0} Managern
-          </div>
         </div>
 
         <div className="p-4 bg-surface border border-border mb-4">

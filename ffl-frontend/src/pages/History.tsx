@@ -200,7 +200,7 @@ export default function History() {
           </div>
         )}
 
-        <div className="overflow-x-auto md:w-fit max-w-full">
+        <div className="overflow-x-auto md:overflow-y-auto md:max-h-[calc(100vh-210px)] md:w-fit max-w-full">
           <table className="w-full md:w-auto">
             <TableHead>
               <tr>
@@ -245,10 +245,10 @@ export default function History() {
                         </td>
                         <td className="px-2 py-2 md:px-3">
                           <div className="flex gap-2 justify-end">
-                            <Button variant="emphasized" size="sm" onClick={() => saveEdit(entry.id)} disabled={update.isPending}>
+                            <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => saveEdit(entry.id)} disabled={update.isPending}>
                               Speichern
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={cancelEdit}>Abbrechen</Button>
+                            <Button variant="ghost" size={isMobile ? 'sm' : 'input'} onClick={cancelEdit}>Abbrechen</Button>
                           </div>
                         </td>
                       </>
@@ -260,8 +260,8 @@ export default function History() {
                         {isAdmin && (
                           <td className="px-2 py-2 md:px-3">
                             <div className="flex gap-2 justify-end">
-                              <Button variant="secondary" size="sm" onClick={() => startEdit(entry)}>Bearbeiten</Button>
-                              <Button variant="negative" size="sm" onClick={() => handleDelete(entry.id, entry.saison)}>Löschen</Button>
+                              <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startEdit(entry)}>Bearbeiten</Button>
+                              <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => handleDelete(entry.id, entry.saison)}>Löschen</Button>
                             </div>
                           </td>
                         )}

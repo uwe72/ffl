@@ -59,7 +59,7 @@ export default function Install() {
         </div>
 
         <div className="space-y-5">
-          <section className="px-4 py-3 bg-warning-bg border border-warning/30 rounded-card">
+          <section className="px-4 py-3 bg-info-bg border border-info/30 rounded-card">
             <p className="text-sm font-bold text-foreground">
               Voraussetzung: Chromium-Browser (Chrome, Edge, Brave, Samsung Internet)
             </p>
@@ -114,7 +114,7 @@ export default function Install() {
                 Installieren
               </Button>
             ) : (
-              <div className="px-4 py-3 bg-default border border-border rounded-card">
+              <div className="px-4 py-3 bg-info-bg border border-info/30 rounded-card">
                 <h4 className="text-sm font-semibold text-foreground">{instructions.title}</h4>
                 <p className="text-sm text-muted mt-1">{instructions.text}</p>
               </div>

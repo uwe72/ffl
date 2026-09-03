@@ -517,6 +517,7 @@ export interface ManagerGroupRoundStats {
     login?: string
     isCurrentUser: boolean
     positionTotal?: number
+    positionChange?: number
     pointsTotal?: number
     pointsLastRound?: number
     roundData: RoundPointData[]

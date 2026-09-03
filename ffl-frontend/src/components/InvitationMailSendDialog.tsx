@@ -148,7 +148,7 @@ export default function InvitationMailSendDialog({
               />
               <Button
                 variant="ghost"
-                size="sm"
+                size={isMobile ? 'sm' : 'input'}
                 onClick={selectRange}
                 disabled={!rangeFromId || !rangeToId}
               >
@@ -158,7 +158,7 @@ export default function InvitationMailSendDialog({
             <div className="md:ml-auto">
               <Button
                 variant="ghost"
-                size="sm"
+                size={isMobile ? 'sm' : 'input'}
                 onClick={toggleAll}
                 disabled={sortedEmails.length === 0}
               >
@@ -225,9 +225,6 @@ export default function InvitationMailSendDialog({
             </div>
           )}
 
-          <div className="mt-4 text-sm text-subtle">
-            {sortedEmails.length} von {addressBook?.length || 0} E-Mail-Adressen
-          </div>
         </div>
 
         <div className="p-4 bg-surface border border-border mb-4">

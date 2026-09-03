@@ -79,6 +79,7 @@ function downloadDocument(doc: Document) {
 function DocumentCard({ doc, isAdmin, onDelete }: {
   doc: Document; isAdmin: boolean; onDelete: (id: number) => void
 }) {
+  const isMobile = useIsMobile()
   return (
     <div className="card p-4 bg-surface border border-border">
       <div className="flex gap-4 items-start">
@@ -102,7 +103,7 @@ function DocumentCard({ doc, isAdmin, onDelete }: {
           {isAdmin && (
             <Button
               variant="negative"
-              size="sm"
+              size={isMobile ? 'sm' : 'input'}
               onClick={() => onDelete(doc.id)}
             >
               Löschen
@@ -220,10 +221,10 @@ export default function Documents() {
   if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
-    <div>
-      <BackButton to="/" className="mb-4" />
+    <div className="md:h-full md:flex md:flex-col md:min-h-0">
+      <BackButton to="/" className="mb-4 md:shrink-0" />
       {!isAuthenticated && (
-        <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-border">
+        <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-border md:shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <i className="sap-icon sap-icon-documents text-[28px] text-foreground shrink-0" />
             <div className="min-w-0">
@@ -237,8 +238,8 @@ export default function Documents() {
           </RouterLink>
         </div>
       )}
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
-        <div className="flex items-center justify-between gap-4 mb-4">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
+        <div className="flex items-center justify-between gap-4 mb-4 md:shrink-0">
           {!isMobile && (
             <h2 className="text-xl font-semibold text-foreground">Dokumente ({filteredDocs.length})</h2>
           )}
@@ -267,7 +268,7 @@ export default function Documents() {
         </div>
 
         {searchTerm !== '' && (
-          <div className="flex items-center gap-3 flex-wrap mb-4">
+          <div className="flex items-center gap-3 flex-wrap mb-4 md:shrink-0">
             <button
               onClick={() => setSearchTerm('')}
               className="p-1 rounded-control text-subtle hover:text-danger transition-colors"
@@ -280,7 +281,7 @@ export default function Documents() {
 
         {!isMobile && (
           <>
-            <div className="overflow-x-auto rounded-card border border-border w-fit max-w-full">
+            <div className="flex-1 min-h-0 overflow-auto rounded-card border border-border w-fit max-w-full">
               <table>
                 <TableHead>
                   <tr>
@@ -348,7 +349,7 @@ export default function Documents() {
                             {isAdmin && (
                               <Button
                                 variant="negative"
-                                size="sm"
+                                size={isMobile ? 'sm' : 'input'}
                                 onClick={() => handleDelete(doc.id)}
                                 disabled={deleteMutation.isPending}
                               >
@@ -368,9 +369,6 @@ export default function Documents() {
                   )}
                 </TableBody>
               </table>
-            </div>
-            <div className="mt-4 text-sm text-subtle">
-              {filteredDocs.length} von {documents?.length || 0} Dokumenten
             </div>
           </>
         )}
@@ -393,9 +391,6 @@ export default function Documents() {
                 </div>
               )}
             </div>
-            <div className="mt-4 text-sm text-subtle">
-              {filteredDocs.length} von {documents?.length || 0} Dokumenten
-            </div>
           </div>
         )}
       </div>
@@ -410,7 +405,7 @@ export default function Documents() {
         />
       )}
 
-      <div className="h-10" />
+      <div className="h-10 md:hidden" />
     </div>
   )
 }

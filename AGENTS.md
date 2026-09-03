@@ -316,6 +316,11 @@ import BackButton from '../components/BackButton'
 - **A `<Button>` placed in the same row as an `input-field control` text field must use `size="input"`** so it has the exact same height as the input (both resolve to `px-3 py-2 text-sm` ≈ 38px). Never pair a `size="compact"` button with a full-height search/text input — the heights would not match.
 - The `input` size lives in `ffl-frontend/src/components/Button.tsx` alongside the other sizes. Use `variant="secondary"` (neutral grey via `--color-secondary`) for such adjacent action buttons; keep `variant="emphasized"` for the active/selected state.
 
+#### Button Sizing Convention (Text Action Buttons)
+- **All buttons with a visible text label of more than 3 characters (e.g. `Senden`, `Abbrechen`, `Speichern`, `Löschen`, `Bearbeiten`, `Import`, `Selektieren`, `Alle selektieren`) must use `size="input"` on non-mobile views** so they match the Excel-Export button on `/players` (`px-3 py-2 text-sm`). Do **not** use `size="sm"` for these.
+- **Mobile view stays unchanged**: when a button renders on both mobile and desktop, keep `size="sm"` on mobile by resolving the size via the `useIsMobile` hook, e.g. `size={isMobile ? 'sm' : 'input'}` (as in `ffl-frontend/src/components/FeedbackForm.tsx`).
+- **Exempt from this rule**: icon-only buttons (no text) and tiny single-character buttons like `×`. These may stay `size="sm"` (e.g. `Register.tsx` close icon, `SurveyAdmin.tsx` remove-option `×`).
+
 ## Important Notes
 
 - **No comments in code** unless explicitly requested

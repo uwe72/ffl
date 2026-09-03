@@ -11,6 +11,7 @@ import Button from '../components/Button'
 import FormationImportDialog from '../components/FormationImportDialog'
 import { TableHead, Th, TableBody } from '../components/Table'
 import BackButton from '../components/BackButton'
+import useIsMobile from '../hooks/useIsMobile'
 
 const POSITION_ORDER: Record<string, number> = {
   'GOALKEEPER': 1,
@@ -101,6 +102,7 @@ function PlayerPointsTable({ players, teamName }: { players: PlayerPoints[] | un
 }
 
 export default function GameDetail() {
+  const isMobile = useIsMobile()
   const { id } = useParams<{ id: string }>()
   const queryClient = useQueryClient()
   const { user } = useAuth()
@@ -205,7 +207,7 @@ export default function GameDetail() {
             </span>
             <Button
               variant="emphasized"
-              size="sm"
+              size={isMobile ? 'sm' : 'input'}
               onClick={(e: React.MouseEvent) => { e.stopPropagation(); setShowImportDialog(true) }}
             >
               + Import

@@ -519,6 +519,31 @@ public class ManagerGroupService {
         return result;
     }
 
+    private Map<Long, ManagerRank> getPreviousRanksForManagers(Set<Manager> managers) {
+        Map<Long, ManagerRank> result = new HashMap<>();
+        
+        Integer currentMatchday = null;
+        for (Manager manager : managers) {
+            if (manager.getSeason() != null && manager.getSeason().getCurrentMatchday() != null) {
+                currentMatchday = manager.getSeason().getCurrentMatchday();
+                break;
+            }
+        }
+        
+        if (currentMatchday == null || currentMatchday <= 1) {
+            return result;
+        }
+        
+        List<Long> managerIds = managers.stream().map(Manager::getId).collect(Collectors.toList());
+        List<ManagerRank> ranks = managerRankRepository.findByManagerIdInAndRoundNumber(managerIds, currentMatchday - 1);
+        
+        for (ManagerRank rank : ranks) {
+            result.put(rank.getManager().getId(), rank);
+        }
+        
+        return result;
+    }
+
     @Transactional(readOnly = true)
     public List<ManagerGroupRoundStatsDto> getMyGroupsWithStats() {
         User currentUser = getCurrentUser();
@@ -626,6 +651,7 @@ public class ManagerGroupService {
         List<ManagerGroupRoundStatsDto.ManagerRoundDataDto> managerDtos = new ArrayList<>();
         if (group.getManagers() != null) {
             Map<Long, ManagerRank> latestRanks = getLatestRanksForManagers(group.getManagers());
+            Map<Long, ManagerRank> previousRanks = getPreviousRanksForManagers(group.getManagers());
             for (Manager manager : group.getManagers()) {
                 ManagerGroupRoundStatsDto.ManagerRoundDataDto mDto = new ManagerGroupRoundStatsDto.ManagerRoundDataDto();
                 mDto.setManagerId(manager.getId());
@@ -646,6 +672,13 @@ public class ManagerGroupService {
                     mDto.setPositionTotal(latestRank.getPositionTotal());
                     mDto.setPointsTotal(latestRank.getPointsTotal());
                     mDto.setPointsLastRound(latestRank.getPointsRound());
+                }
+
+                ManagerRank previousRank = previousRanks.get(manager.getId());
+                if (latestRank != null && previousRank != null
+                    && latestRank.getPositionTotal() != null
+                    && previousRank.getPositionTotal() != null) {
+                    mDto.setPositionChange(previousRank.getPositionTotal() - latestRank.getPositionTotal());
                 }
                 
                 List<ManagerRank> ranks = managerRankRepository.findByManagerIdOrderByRoundIdAsc(manager.getId());

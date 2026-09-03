@@ -1153,9 +1153,6 @@ export default function Season() {
                     </TableBody>
                   </table>
                 </div>
-                <div className="mt-4 text-sm text-subtle">
-                  {filteredDeposits.length} von {deposits.length} Einzahlungen
-                </div>
             </>
           )}
 

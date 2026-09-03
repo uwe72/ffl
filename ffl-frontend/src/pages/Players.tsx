@@ -21,9 +21,9 @@ export default function Players() {
     if (publicQuery.error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
     return (
-      <div>
-        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
-          <PlayerTable players={publicQuery.data ?? []} isPublic enableExport mobileDashboardLayout defaultSortKey="positionTotal" defaultSortOrder="asc" />
+      <div className="md:h-full md:flex md:flex-col md:min-h-0">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
+          <PlayerTable players={publicQuery.data ?? []} isPublic enableExport mobileDashboardLayout defaultSortKey="positionTotal" defaultSortOrder="asc" scroll />
         </div>
       </div>
     )
@@ -33,12 +33,12 @@ export default function Players() {
   if (authedQuery.error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
 
   return (
-    <div>
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
-        <PlayerTable players={authedQuery.data ?? []} enableExport mobileDashboardLayout defaultSortKey="positionTotal" defaultSortOrder="asc" />
+    <div className="md:h-full md:flex md:flex-col md:min-h-0">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
+        <PlayerTable players={authedQuery.data ?? []} enableExport mobileDashboardLayout defaultSortKey="positionTotal" defaultSortOrder="asc" scroll />
       </div>
 
-      <div className="h-10" />
+      <div className="h-10 md:hidden" />
     </div>
   )
 }

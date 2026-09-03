@@ -48,6 +48,8 @@
   --ffl-orange: #c2410c;
   --ffl-danger: #b91c1c;
   --ffl-danger-hover: #991b1b;
+  --ffl-info: #2563eb;
+  --ffl-info-bg: #e8effc;
 
   /* Overlays */
   --ffl-overlay: rgba(28, 25, 23, 0.55);
@@ -143,8 +145,8 @@
   --color-danger-bg: #fbe6e4;
   --color-orange: var(--ffl-orange);
   --color-orange-bg: #ffedd5;
-  --color-info: var(--ffl-accent);
-  --color-info-bg: var(--ffl-accent-soft);
+  --color-info: var(--ffl-info);
+  --color-info-bg: var(--ffl-info-bg);
 
   --color-log-bg: var(--ffl-sidebar);
   --color-log-text: var(--ffl-text-on-dark);
@@ -327,16 +329,27 @@ body {
   border-radius: var(--radius-badge);
 }
 
-.table-header th {
+.table-header {
   position: sticky;
   top: 0;
   z-index: 10;
-  background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
 
-.table-header {
+.table-header th {
+  background-color: var(--color-elevated);
   border-bottom: 1px solid var(--color-border);
+}
+
+@media (min-width: 768px) {
+  .table-header {
+    position: static;
+  }
+  .table-header th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
 }
 
 .table-row {
@@ -610,7 +623,7 @@ body {
 .ffl-board{
   position:absolute;
   z-index:20;
-  --u:max(0.40px, 0.04116cqw);
+  --u:0.04116cqw;
 
   --pw:72; --ph:84; --dg:52;    /* Plaettchen breit, hoch, Ziffernhoehe */
   --plate-a:#343840; --plate-b:#1d2025; --digit:#f0eae0;
@@ -641,7 +654,7 @@ body {
 .ffl-board--coach{bottom:1.3cqw; left:1.3cqw; top:auto;
                   width:calc(353 * var(--u));
                   height:calc(353 * var(--u));
-                  --u:max(0.29568px, 0.030425472cqw)}
+                  --u:0.030425472cqw}
 .ffl-board--coach .ffl-board__label{margin-bottom:calc(10 * var(--u));
                                     font-size:calc(20.292 * var(--u))}
 

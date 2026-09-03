@@ -900,8 +900,8 @@ export default function Register() {
                 </div>
               ) : (
                 <div className="space-y-8">
-                  <div className="md:hidden flex items-start gap-2 p-2 bg-accent-muted border border-accent/30 rounded-card">
-                    <i className="sap-icon sap-icon-hint text-[16px] text-accent shrink-0 mt-0.5" />
+                  <div className="md:hidden flex items-start gap-2 p-2 bg-info-bg border border-info/30 rounded-card">
+                    <i className="sap-icon sap-icon-hint text-[16px] text-info shrink-0 mt-0.5" />
                     <p className="text-xs text-foreground">
                       Tipp: Linken Farbrand antippen, um Spieler zu entfernen.
                     </p>
@@ -1277,8 +1277,8 @@ export default function Register() {
               )}
 
               {paymentInfo?.paypalLink && (
-                <div className="flex items-start gap-3 p-3 bg-warning-bg border border-warning/30 rounded-control mb-6">
-                  <i className="sap-icon sap-icon-information text-[18px] text-warning shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3 bg-info-bg border border-info/30 rounded-control mb-6">
+                  <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
                   <ul className="text-sm text-foreground space-y-1.5 list-disc list-inside">
                     <li>Bitte bei Verwendungszweck „{login}“ angeben.</li>
                     <li>Bitte Option „Freunde und Familie“ nutzen</li>

@@ -345,7 +345,7 @@ export default function TeamDetail() {
                     <div className="mt-3 flex gap-2">
                       <Button
                         variant="emphasized"
-                        size="sm"
+                        size={isMobile ? 'sm' : 'input'}
                         onClick={handleSave}
                         disabled={isSaving}
                       >
@@ -353,7 +353,7 @@ export default function TeamDetail() {
                       </Button>
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size={isMobile ? 'sm' : 'input'}
                         onClick={handleReset}
                       >
                         Abbrechen
@@ -367,7 +367,7 @@ export default function TeamDetail() {
             {isAdmin && (
               <Button
                 variant={stammdatenOpen ? 'ghost' : 'emphasized'}
-                size="sm"
+                size={isMobile ? 'sm' : 'input'}
                 onClick={() => setStammdatenOpen(o => !o)}
                 aria-expanded={stammdatenOpen}
                 aria-controls="stammdaten-form"
@@ -493,9 +493,6 @@ export default function TeamDetail() {
                 </TableBody>
               </table>
             </div>
-            <div className="mt-4 text-sm text-subtle">
-              {filteredPlayers.length} von {players?.length || 0} Spielern
-            </div>
           </>
         )}
 
@@ -512,11 +509,6 @@ export default function TeamDetail() {
                 </div>
               )}
             </div>
-            {filteredPlayers && (
-              <div className="mt-4 text-sm text-subtle">
-                {filteredPlayers.length} von {players?.length || 0} Spielern
-              </div>
-            )}
           </div>
         )}
       </div>

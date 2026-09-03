@@ -159,11 +159,11 @@ export default function Emails() {
   const hasActiveFilter = searchTerm !== '' || participantFilter !== 'all'
 
   return (
-    <div>
-      <BackButton to="/" className="mb-4" />
+    <div className="md:h-full md:flex md:flex-col md:min-h-0">
+      <BackButton to="/" className="mb-4 md:shrink-0" />
 
-      <CardContainer>
-        <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap">
+      <CardContainer className="md:flex-1 md:min-h-0">
+        <div className="flex items-center gap-3 px-5 py-2.5 bg-elevated/50 border-b border-border flex-wrap md:shrink-0">
           <div className="relative flex-1 min-w-[180px] max-w-[280px]">
             <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
             <input
@@ -218,7 +218,7 @@ export default function Emails() {
           )}
         </div>
 
-        <TableContent count={sortedEmails.length} total={emails?.length ?? 0} countLabel="E-Mail-Adressen">
+        <TableContent scroll>
           <table className="w-full">
             <TableHead>
               <tr>
@@ -371,7 +371,7 @@ export default function Emails() {
         </div>
       )}
 
-      <div className="h-10" />
+      <div className="h-10 md:hidden" />
     </div>
   )
 }
