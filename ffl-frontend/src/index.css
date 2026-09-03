@@ -37,7 +37,7 @@
   --ffl-link-hover: #1e40af;
 
   /* Positionen */
-  --ffl-pos-tw: #57534e;
+  --ffl-pos-tw: #854d0e;
   --ffl-pos-abw: #0f766e;
   --ffl-pos-mit: #4338ca;
   --ffl-pos-stu: #be123c;
@@ -166,7 +166,7 @@
   --color-sidebar-warning: #e0a53a;
 
   --color-goalkeeper: var(--ffl-pos-tw);
-  --color-goalkeeper-bg: var(--ffl-surface-sunken);
+  --color-goalkeeper-bg: #fef9c3;
   --color-defender: var(--ffl-pos-abw);
   --color-defender-bg: #ccfbf1;
   --color-midfield: var(--ffl-pos-mit);
@@ -174,7 +174,7 @@
   --color-striker: var(--ffl-pos-stu);
   --color-striker-bg: #ffe4e6;
 
-  --color-goalkeeper-text: #44403c;
+  --color-goalkeeper-text: var(--ffl-pos-tw);
   --color-defender-text: var(--ffl-pos-abw);
   --color-midfield-text: var(--ffl-pos-mit);
   --color-striker-text: var(--ffl-pos-stu);
