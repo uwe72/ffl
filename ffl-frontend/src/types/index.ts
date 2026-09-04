@@ -266,6 +266,13 @@ export interface PlayerPoint {
   pointsTotal?: number
   managerCount?: number
   pictureUrl?: string
+  gameName?: string
+  opponent?: string
+  homeAway?: string
+  goalHost?: number
+  goalVisitor?: number
+  goalsOwn?: number
+  goalsOpponent?: number
 }
 
 export interface ManagerRank {

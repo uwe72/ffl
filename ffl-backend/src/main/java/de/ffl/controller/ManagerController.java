@@ -3,6 +3,7 @@ package de.ffl.controller;
 import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerRank;
 import de.ffl.domain.Season;
+import de.ffl.domain.SeasonState;
 import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.ManagerDto;
@@ -63,12 +64,16 @@ public class ManagerController {
 
     @GetMapping
     public List<ManagerDto> getAllManagers() {
-        return managerService.findAll();
+        return managerService.findAll().stream()
+            .map(this::filterWinterTransfersForViewer)
+            .collect(Collectors.toList());
     }
 
     @GetMapping("/season/{seasonId}")
     public List<ManagerDto> getManagersBySeason(@PathVariable Long seasonId) {
-        return managerService.findBySeasonId(seasonId);
+        return managerService.findBySeasonId(seasonId).stream()
+            .map(this::filterWinterTransfersForViewer)
+            .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
@@ -76,7 +81,7 @@ public class ManagerController {
         if (BeforeSeasonAccess.isDetailBlocked(seasonService)) {
             return ResponseEntity.notFound().build();
         }
-        ManagerDto manager = managerService.findById(id);
+        ManagerDto manager = filterWinterTransfersForViewer(managerService.findById(id));
         if (manager == null) {
             return ResponseEntity.notFound().build();
         }
@@ -247,6 +252,35 @@ public class ManagerController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    private ManagerDto filterWinterTransfersForViewer(ManagerDto manager) {
+        if (manager == null) {
+            return null;
+        }
+        Season season = seasonService.findCurrentSeason().orElse(null);
+        if (season == null || season.getSeasonState() != SeasonState.RUNNING_HINRUNDE) {
+            return manager;
+        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User effective = null;
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            User user = userRepository.findByLogin(auth.getName()).orElse(null);
+            effective = user != null ? resolveEffectiveUser(user) : null;
+        }
+        if (effective == null || manager.getUserId() == null || !manager.getUserId().equals(effective.getId())) {
+            clearWinterTransfers(manager);
+        }
+        return manager;
+    }
+
+    private void clearWinterTransfers(ManagerDto manager) {
+        manager.setPlayerExchangedOld1(null);
+        manager.setPlayerExchangedOld2(null);
+        manager.setPlayerExchangedOld3(null);
+        manager.setPlayerExchangedNew1(null);
+        manager.setPlayerExchangedNew2(null);
+        manager.setPlayerExchangedNew3(null);
     }
 
     private User resolveEffectiveUser(User user) {

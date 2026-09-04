@@ -41,6 +41,13 @@ public class RoundDetailDto {
         private Integer pointsTotal;
         private Integer managerCount;
         private String pictureUrl;
+        private String gameName;
+        private String opponent;
+        private String homeAway;
+        private Integer goalHost;
+        private Integer goalVisitor;
+        private Integer goalsOwn;
+        private Integer goalsOpponent;
 
         public Long getPlayerId() { return playerId; }
         public void setPlayerId(Long playerId) { this.playerId = playerId; }
@@ -70,6 +77,20 @@ public class RoundDetailDto {
         public void setManagerCount(Integer managerCount) { this.managerCount = managerCount; }
         public String getPictureUrl() { return pictureUrl; }
         public void setPictureUrl(String pictureUrl) { this.pictureUrl = pictureUrl; }
+        public String getGameName() { return gameName; }
+        public void setGameName(String gameName) { this.gameName = gameName; }
+        public String getOpponent() { return opponent; }
+        public void setOpponent(String opponent) { this.opponent = opponent; }
+        public String getHomeAway() { return homeAway; }
+        public void setHomeAway(String homeAway) { this.homeAway = homeAway; }
+        public Integer getGoalHost() { return goalHost; }
+        public void setGoalHost(Integer goalHost) { this.goalHost = goalHost; }
+        public Integer getGoalVisitor() { return goalVisitor; }
+        public void setGoalVisitor(Integer goalVisitor) { this.goalVisitor = goalVisitor; }
+        public Integer getGoalsOwn() { return goalsOwn; }
+        public void setGoalsOwn(Integer goalsOwn) { this.goalsOwn = goalsOwn; }
+        public Integer getGoalsOpponent() { return goalsOpponent; }
+        public void setGoalsOpponent(Integer goalsOpponent) { this.goalsOpponent = goalsOpponent; }
     }
 
     public static class RulePointDto {

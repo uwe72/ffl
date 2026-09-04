@@ -127,6 +127,8 @@ public class ManagerRoundService {
                     }
                     pp.setManagerCount(managerCountMap.getOrDefault(player.getId(), 0));
                     
+                    populateGameInfo(pp, player, games);
+                    
                     Map<String, RoundDetailDto.RulePointDto> mergedRules = new LinkedHashMap<>();
                     for (RoundDetailDto.RulePointDto rp : rulePoints) {
                         mergedRules.merge(rp.getRule(), rp, (a, b) -> {
@@ -147,6 +149,35 @@ public class ManagerRoundService {
 
             return dto;
         }).collect(Collectors.toList());
+    }
+    
+    private void populateGameInfo(RoundDetailDto.PlayerPointDto pp, Player player, List<Game> games) {
+        for (Game game : games) {
+            Set<Player> hostPlayers = game.getPlayersHost();
+            Set<Player> visitorPlayers = game.getPlayersVisitor();
+            Hibernate.initialize(hostPlayers);
+            Hibernate.initialize(visitorPlayers);
+            boolean isHost = hostPlayers.contains(player);
+            boolean isVisitor = visitorPlayers.contains(player);
+            if (isHost || isVisitor) {
+                Team host = game.getHost();
+                Team visitor = game.getVisitor();
+                String hostName = host != null ? host.getName() : "";
+                String visitorName = visitor != null ? visitor.getName() : "";
+                pp.setGameName(hostName + " - " + visitorName);
+                pp.setGoalHost(game.getGoalHost());
+                pp.setGoalVisitor(game.getGoalVisitor());
+                Team opponent = isHost ? visitor : host;
+                pp.setOpponent(opponent != null
+                    ? (opponent.getShortName() != null && !opponent.getShortName().isBlank()
+                        ? opponent.getShortName() : opponent.getName())
+                    : "");
+                pp.setHomeAway(isHost ? "H" : "A");
+                pp.setGoalsOwn(isHost ? game.getGoalHost() : game.getGoalVisitor());
+                pp.setGoalsOpponent(isHost ? game.getGoalVisitor() : game.getGoalHost());
+                break;
+            }
+        }
     }
     
     private Map<Long, PlayerRank> loadPlayerRanksForRound(Set<Long> playerIds, Long roundId) {

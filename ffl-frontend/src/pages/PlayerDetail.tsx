@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { usePlayer, useUpdatePlayer, usePlayerRanks } from '../hooks/usePlayers'
 import { useAuth } from '../context/AuthContext'
 import { positionLabels, positionColors } from './Players'
@@ -9,13 +8,10 @@ import Button from '../components/Button'
 import BackButton from '../components/BackButton'
 import SortIcon from '../components/SortIcon'
 import Badge from '../components/Badge'
-import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
+import { TableHead, ThSortable, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
-import { getChartColors } from '../utils/chartColors'
 import { buildGamePointsRows, shortRuleLabel } from '../utils/gamePoints'
 import type { Position } from '../types'
-
-const chartColors = getChartColors()
 
 type SortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'hinrunde' | 'rueckrunde'
 type GameSortKey = 'roundNumber' | 'gameName' | 'ruleLabel' | 'points'
@@ -128,60 +124,6 @@ export default function PlayerDetail() {
     editData.position !== player.position ||
     editData.aktiv !== (player.aktiv ?? true)
   )
-
-  const chartData = useMemo(() => {
-    if (!playerRanks || !player?.season?.currentMatchday) return []
-    
-    const maxMatchday = player.season.currentMatchday
-    const ranksMap = new Map(playerRanks.map(r => [r.roundNumber, r]))
-    
-    return Array.from({ length: maxMatchday }, (_, i) => {
-      const roundNumber = i + 1
-      const rank = ranksMap.get(roundNumber)
-      return {
-        name: `${roundNumber}`,
-        punkte: rank?.pointsRound ?? 0,
-        roundNumber,
-        gameName: rank?.gameName,
-        goalHost: rank?.goalHost,
-        goalVisitor: rank?.goalVisitor,
-        rules: rank?.rules
-      }
-    })
-  }, [playerRanks, player?.season?.currentMatchday])
-
-  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ payload: { punkte: number; gameName?: string; goalHost?: number; goalVisitor?: number; rules?: Array<{ ruleLabel: string; count: number; points: number }> } }>; label?: string }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload
-      const gameName = data.gameName
-      const goalHost = data.goalHost
-      const goalVisitor = data.goalVisitor
-      const rules = data.rules
-      
-      return (
-        <div className="bg-surface border border-border rounded-card p-3 shadow-lg min-w-[180px]">
-          <p className="text-foreground font-semibold">Spieltag {label}</p>
-          {gameName && (
-            <p className="text-muted text-sm">
-              {gameName}{goalHost != null && goalVisitor != null ? ` ${goalHost}:${goalVisitor}` : ''}
-            </p>
-          )}
-          <p className="text-primary">{data.punkte} Punkte</p>
-          {rules && rules.length > 0 && (
-            <>
-              <hr className="border-border my-2" />
-              {rules.map((rule, idx) => (
-                <p key={idx} className="text-muted text-sm">
-                  {rule.count}x {rule.ruleLabel} ({rule.points})
-                </p>
-              ))}
-            </>
-          )}
-        </div>
-      )
-    }
-    return null
-  }
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -337,7 +279,7 @@ export default function PlayerDetail() {
     <div className="max-w-6xl">
       <BackButton to="/players" className="mb-4" />
 
-      <div className={`${isMobile ? 'px-3 py-0.5 bg-surface mb-0' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
+      <div className={`${isMobile ? 'p-2 bg-surface mb-6' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
         <div className="flex items-center gap-4">
           {!isMobile && (
             player.pictureUrl ? (
@@ -612,69 +554,52 @@ export default function PlayerDetail() {
       </div>
 
       <div className="flex flex-col">
-      {chartData.length > 0 && (
-        <div className={`hidden md:block order-3 md:order-3 px-3 py-4 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
-          <h3 className="text-xl font-semibold text-foreground mb-3">Punkte pro Spieltag</h3>
-          <div className="bg-card p-4 rounded-card border border-border">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                <XAxis dataKey="name" stroke={chartColors.axis} />
-                <YAxis stroke={chartColors.axis} />
-                <Tooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
-                <Bar dataKey="punkte" fill={chartColors.accent} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
       {gamePointsRows.length > 0 && (
-        <div className={`order-1 md:order-1 px-3 py-4 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
-          <h3 className="text-base md:text-xl font-semibold text-foreground mb-4">Punkte</h3>
+        <div className={`order-1 md:order-2 p-2 md:p-6 bg-surface border border-border rounded-card mb-6`}>
+          {!isMobile && (
+            <h3 className="text-base md:text-xl font-semibold text-foreground mb-4">Punkte</h3>
+          )}
           {!isMobile && (
             <div className="overflow-x-auto rounded-card border border-border">
-              <TableContent>
-                <table className="w-full">
-                  <TableHead>
-                    <tr>
-                      <ThSortable align="center" onClick={() => handleGameSort('roundNumber')}>
-                        Spieltag<SortIcon column="roundNumber" activeKey={gameSortKey} order={gameSortOrder} />
-                      </ThSortable>
-                      <ThSortable align="left" onClick={() => handleGameSort('gameName')}>
-                        Spiel<SortIcon column="gameName" activeKey={gameSortKey} order={gameSortOrder} />
-                      </ThSortable>
-                      <ThSortable align="left" onClick={() => handleGameSort('ruleLabel')}>
-                        Regel<SortIcon column="ruleLabel" activeKey={gameSortKey} order={gameSortOrder} />
-                      </ThSortable>
-                      <ThSortable align="center" onClick={() => handleGameSort('points')}>
-                        Punkte<SortIcon column="points" activeKey={gameSortKey} order={gameSortOrder} />
-                      </ThSortable>
+              <table className="w-full">
+                <TableHead>
+                  <tr>
+                    <ThSortable align="center" onClick={() => handleGameSort('roundNumber')}>
+                      Spieltag<SortIcon column="roundNumber" activeKey={gameSortKey} order={gameSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleGameSort('gameName')}>
+                      Spiel<SortIcon column="gameName" activeKey={gameSortKey} order={gameSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleGameSort('ruleLabel')}>
+                      Regel<SortIcon column="ruleLabel" activeKey={gameSortKey} order={gameSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleGameSort('points')}>
+                      Punkte<SortIcon column="points" activeKey={gameSortKey} order={gameSortOrder} />
+                    </ThSortable>
+                  </tr>
+                </TableHead>
+                <TableBody>
+                  {gamePointsRows.map((row, index) => (
+                    <tr key={`${row.roundNumber}-${row.ruleLabel}-${index}`} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                      <td className="px-3 py-2 text-center text-muted tabular-nums">
+                        {row.roundNumber}
+                      </td>
+                      <td className="px-3 py-2 text-foreground">
+                        <span className="font-medium">{row.gameName}</span>
+                        {row.goalHost != null && row.goalVisitor != null && (
+                          <span className="text-subtle"> ({row.goalHost}:{row.goalVisitor})</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-muted">
+                        {row.ruleLabel}{row.count > 1 ? ` (${row.count}x)` : ''}
+                      </td>
+                      <td className="px-3 py-2 text-center font-semibold text-foreground tabular-nums">
+                        {row.points}
+                      </td>
                     </tr>
-                  </TableHead>
-                  <TableBody>
-                    {gamePointsRows.map((row, index) => (
-                      <tr key={`${row.roundNumber}-${row.ruleLabel}-${index}`} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                        <td className="px-3 py-2 text-center text-muted tabular-nums">
-                          {row.roundNumber}
-                        </td>
-                        <td className="px-3 py-2 text-foreground">
-                          <span className="font-medium">{row.gameName}</span>
-                          {row.goalHost != null && row.goalVisitor != null && (
-                            <span className="text-subtle"> ({row.goalHost}:{row.goalVisitor})</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-muted">
-                          {row.ruleLabel}{row.count > 1 ? ` (${row.count}x)` : ''}
-                        </td>
-                        <td className="px-3 py-2 text-center font-semibold text-foreground tabular-nums">
-                          {row.points}
-                        </td>
-                      </tr>
-                    ))}
-                  </TableBody>
-                </table>
-              </TableContent>
+                  ))}
+                </TableBody>
+              </table>
             </div>
           )}
 
@@ -689,10 +614,13 @@ export default function PlayerDetail() {
                 </colgroup>
                 <thead className="bg-elevated sticky top-0">
                   <tr>
-                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">SP.</th>
-                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Spiel</th>
-                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Regel</th>
-                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">PKT.</th>
+                    <th colSpan={4} align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Punkte</th>
+                  </tr>
+                  <tr>
+                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">SP.</th>
+                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">Spiel</th>
+                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">Regel</th>
+                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">PKT.</th>
                   </tr>
                 </thead>
                 <tbody className="bg-surface">
@@ -733,7 +661,7 @@ export default function PlayerDetail() {
       )}
 
       {player.managers && player.managers.length > 0 && (
-        <div className={`order-2 md:order-2 px-3 py-4 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
+        <div className={`order-2 md:order-1 p-2 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
           {!isMobile && (
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base md:text-xl font-semibold text-foreground">Manager</h3>
@@ -749,104 +677,101 @@ export default function PlayerDetail() {
 
           {!isMobile && (
             <div className="overflow-x-auto rounded-card border border-border">
-              <TableContent>
-                <table className="w-full">
-                  <TableHead>
-                    <tr>
-                      <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
-                        Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
-                      </ThSortable>
-                      <ThSortable align="center" onClick={() => handleSort('positionChange')}>
-                        +-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
-                      </ThSortable>
-                      <ThSortable align="left" onClick={() => handleSort('shortName')}>
-                        Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
-                      </ThSortable>
-                      <ThSortable align="left" onClick={() => handleSort('firstName')}>
-                        Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
-                      </ThSortable>
-                      <ThSortable align="left" onClick={() => handleSort('lastName')}>
-                        Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
-                      </ThSortable>
-                      <ThSortable align="center" onClick={() => handleSort('pointsTotal')}>
-                        Punkte<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
-                      </ThSortable>
-                      <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
-                        {player?.season?.currentMatchday ? `${player.season.currentMatchday}. Spieltag` : 'Spieltag'}<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
-                      </ThSortable>
-                      <ThSortable align="center" onClick={() => handleSort('hinrunde')}>
-                        Hinrunde<SortIcon column="hinrunde" activeKey={sortKey} order={sortOrder} />
-                      </ThSortable>
-                      <ThSortable align="center" onClick={() => handleSort('rueckrunde')}>
-                        Rückrunde<SortIcon column="rueckrunde" activeKey={sortKey} order={sortOrder} />
-                      </ThSortable>
-                    </tr>
-                  </TableHead>
-                  <TableBody>
-                    {filteredAndSortedManagers.length > 0 ? (
-                      filteredAndSortedManagers.map((manager, index) => (
-                        <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                          <td className="px-3 py-2 text-center text-foreground">
-                            {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            {manager.positionChange != null && manager.positionChange !== 0 ? (
-                              <span className={`${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
-                                {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
-                              </span>
-                            ) : (
-                              <span className="text-subtle">-</span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2">
-                            <RouterLink to={`/managers/${manager.id}`} className="link font-medium">
-                              {manager.shortName || manager.name || '-'}
-                            </RouterLink>
-                          </td>
-                          <td className="px-3 py-2 text-muted">
-                            {manager.firstName || '-'}
-                          </td>
-                          <td className="px-3 py-2 text-muted">
-                            {manager.lastName || '-'}
-                          </td>
-                          <td className="px-3 py-2 text-center text-foreground">
-                            {manager.pointsTotal ?? '-'}
-                          </td>
-                          <td className="px-3 py-2 text-center text-muted">
-                            {manager.pointsLastRound ?? '-'}
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            {manager.hinrunde ? (
-                              <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-accent">Hin</span>
-                            ) : (
-                              <span className="text-subtle">-</span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            {manager.rueckrunde ? (
-                              <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-success">Rück</span>
-                            ) : (
-                              <span className="text-subtle">-</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={9} className="text-center text-subtle py-8">
-                          Keine Manager gefunden
+              <table className="w-full">
+                <TableHead>
+                  <tr>
+                    <ThSortable align="center" onClick={() => handleSort('positionTotal')}>
+                      Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('positionChange')}>
+                      +-<SortIcon column="positionChange" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleSort('shortName')}>
+                      Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleSort('firstName')}>
+                      Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleSort('lastName')}>
+                      Nachname<SortIcon column="lastName" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('pointsTotal')}>
+                      Punkte<SortIcon column="pointsTotal" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
+                      {player?.season?.currentMatchday ? `${player.season.currentMatchday}. Spieltag` : 'Spieltag'}<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('hinrunde')}>
+                      Hinrunde<SortIcon column="hinrunde" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleSort('rueckrunde')}>
+                      Rückrunde<SortIcon column="rueckrunde" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                  </tr>
+                </TableHead>
+                <TableBody>
+                  {filteredAndSortedManagers.length > 0 ? (
+                    filteredAndSortedManagers.map((manager, index) => (
+                      <tr key={manager.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                        <td className="px-3 py-2 text-center text-foreground">
+                          {manager.positionTotal ? `${manager.positionTotal}.` : '-'}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {manager.positionChange != null && manager.positionChange !== 0 ? (
+                            <span className={`${manager.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                              {manager.positionChange > 0 ? `↑${manager.positionChange}` : `↓${Math.abs(manager.positionChange)}`}
+                            </span>
+                          ) : (
+                            <span className="text-subtle">-</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          <RouterLink to={`/managers/${manager.id}`} className="link font-medium">
+                            {manager.shortName || manager.name || '-'}
+                          </RouterLink>
+                        </td>
+                        <td className="px-3 py-2 text-muted">
+                          {manager.firstName || '-'}
+                        </td>
+                        <td className="px-3 py-2 text-muted">
+                          {manager.lastName || '-'}
+                        </td>
+                        <td className="px-3 py-2 text-center text-foreground">
+                          {manager.pointsTotal ?? '-'}
+                        </td>
+                        <td className="px-3 py-2 text-center text-muted">
+                          {manager.pointsLastRound ?? '-'}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {manager.hinrunde ? (
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-accent">Hin</span>
+                          ) : (
+                            <span className="text-subtle">-</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {manager.rueckrunde ? (
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-success">Rück</span>
+                          ) : (
+                            <span className="text-subtle">-</span>
+                          )}
                         </td>
                       </tr>
-                    )}
-                  </TableBody>
-                </table>
-              </TableContent>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={9} className="text-center text-subtle py-8">
+                        Keine Manager gefunden
+                      </td>
+                    </tr>
+                  )}
+                </TableBody>
+              </table>
             </div>
           )}
 
           {isMobile && (
             <>
-              <h3 className="text-base font-semibold text-foreground mb-4">Manager</h3>
               <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
               <table className="w-full border-collapse text-sm table-fixed">
                 <colgroup>
@@ -859,7 +784,7 @@ export default function PlayerDetail() {
                 <thead className="bg-elevated sticky top-0">
                   <tr>
                     <th colSpan={3} align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">
-                      {player?.season?.currentMatchday ? `${player.season.currentMatchday}. Spieltag` : 'Spieltag'}
+                      Manager
                     </th>
                     <th colSpan={2} align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">
                       Punkte

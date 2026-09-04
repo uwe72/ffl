@@ -1,8 +1,8 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { useManager, useManagerRoundDetails, useUpdateManagerDetails } from '../hooks/useManagers'
 import { useDashboardAufstellung } from '../hooks/useDashboard'
+import { useCurrentSeason } from '../hooks/useSeasons'
 import { useAuth } from '../context/AuthContext'
 import { useAvatar, useUploadAvatar, useDeleteAvatar } from '../hooks/useAvatar'
 import { positionLabels, positionColors } from './Players'
@@ -14,10 +14,9 @@ import Badge from '../components/Badge'
 import ScoreLine from '../components/statistik/ScoreLine'
 import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
-import { getChartColors } from '../utils/chartColors'
-import type { Player, RulePoint } from '../types'
-
-const chartColors = getChartColors()
+import { buildManagerGamePointsRows } from '../utils/managerGamePoints'
+import { shortRuleLabel } from '../utils/gamePoints'
+import type { Player } from '../types'
 
 const mailThemeLabels = {
   LIGHTMODE: 'Lightmode',
@@ -33,6 +32,7 @@ const positionOrder: Record<string, number> = {
 
 type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'einsatzquote' | 'prize' | 'position' | 'team'
 type SortOrder = 'asc' | 'desc'
+type GameSortKey = 'roundNumber' | 'gameName' | 'playerName' | 'ruleLabel' | 'points'
 
 function PlayerRow({ player, compact }: { player: Player; compact: boolean }) {
   const currentTeam = player.teams[player.teams.length - 1]
@@ -266,6 +266,7 @@ export default function ManagerDetail() {
   const { data: manager, isLoading, error } = useManager(Number(id))
   const { data: roundDetails } = useManagerRoundDetails(Number(id))
   const { data: aufstellung } = useDashboardAufstellung(Number(id))
+  const { data: season } = useCurrentSeason()
   const isVorsaison = aufstellung?.phase === 'VORSAISON'
   const feldModus = isVorsaison ? 'wert' : 'gesamt'
   const { user } = useAuth()
@@ -278,6 +279,10 @@ export default function ManagerDetail() {
 
   const isAdmin = user?.role === 'ADMIN'
   const isOwnManager = !!(user && manager && manager.login === user.login)
+  const isHinrunde = season?.seasonState === 'RUNNING_HINRUNDE'
+  const isOwnManagerForWinter = isOwnManager ||
+    (isAdmin && !!manager?.login && manager.login === season?.adminFallbackUser)
+  const showWinterSections = !isHinrunde || isOwnManagerForWinter
 
   const [stammdatenOpen, setStammdatenOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -287,6 +292,9 @@ export default function ManagerDetail() {
     description: '',
     mailTheme: 'LIGHTMODE'
   })
+
+  const [gameSortKey, setGameSortKey] = useState<GameSortKey>('roundNumber')
+  const [gameSortOrder, setGameSortOrder] = useState<SortOrder>('asc')
 
   useEffect(() => {
     if (manager) {
@@ -334,6 +342,42 @@ export default function ManagerDetail() {
     const last = manager.lastName?.trim()?.[0] ?? ''
     return (first + last).toUpperCase()
   }, [manager])
+
+  const handleGameSort = (key: GameSortKey) => {
+    if (gameSortKey === key) {
+      setGameSortOrder(gameSortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setGameSortKey(key)
+      setGameSortOrder('asc')
+    }
+  }
+
+  const gamePointsRows = useMemo(() => {
+    return buildManagerGamePointsRows(roundDetails).sort((a, b) => {
+      let comparison = 0
+      switch (gameSortKey) {
+        case 'roundNumber':
+          comparison = a.roundNumber - b.roundNumber
+          break
+        case 'gameName':
+          comparison = (isMobile ? a.opponent : a.gameName).localeCompare(isMobile ? b.opponent : b.gameName)
+          break
+        case 'playerName':
+          comparison = a.playerName.localeCompare(b.playerName)
+          break
+        case 'ruleLabel':
+          comparison = a.ruleLabel.localeCompare(b.ruleLabel)
+          break
+        case 'points':
+          comparison = a.points - b.points
+          break
+      }
+      if (comparison === 0) {
+        comparison = a.roundNumber - b.roundNumber
+      }
+      return gameSortOrder === 'asc' ? comparison : -comparison
+    })
+  }, [roundDetails, gameSortKey, gameSortOrder, isMobile])
 
   const handleAvatarClick = () => {
     if (isOwnManager) {
@@ -432,49 +476,11 @@ export default function ManagerDetail() {
     ? [...hinrundePlayers.filter(p => !oldPlayers.find(op => op.id === p.id)), ...newPlayers]
     : hinrundePlayers
 
-  const chartData = roundDetails?.map(r => ({
-    name: `${r.roundNumber}`,
-    punkte: r.pointsRound,
-    roundNumber: r.roundNumber,
-    playerPoints: r.playerPoints
-  })) || []
-
-  const positionChartData = roundDetails?.map(r => ({
-    name: `${r.roundNumber}`,
-    position: r.positionTotal,
-    roundNumber: r.roundNumber
-  })) || []
-
-  const lastRound = roundDetails && roundDetails.length > 0 ? roundDetails[roundDetails.length - 1] : null
-  const lastRoundPlayerPoints = lastRound?.playerPoints || []
-
-  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ payload: { punkte: number; playerPoints: Array<{ playerName: string; points: number }> } }>; label?: string }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload
-      const playerPoints = data.playerPoints || []
-      return (
-        <div className="bg-surface border border-border rounded-card p-3 shadow-lg">
-          <p className="text-foreground font-semibold mb-2">Spieltag {label}</p>
-          <p className="text-primary font-medium mb-2">{data.punkte} Punkte</p>
-          {playerPoints.length > 0 && (
-            <div className="text-sm">
-              <p className="text-muted mb-1">Spieler:</p>
-              {playerPoints.map((pp: { playerName: string; points: number }, idx: number) => (
-                <p key={idx} className="text-foreground">{pp.playerName}: {pp.points} Pkt</p>
-              ))}
-            </div>
-          )}
-        </div>
-      )
-    }
-    return null
-  }
-
   return (
     <div className="max-w-7xl">
       <BackButton to="/managers" className="mb-4" />
 
-      <div className={`${isMobile ? 'px-3 py-0.5 bg-surface mb-0' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
+      <div className={`${isMobile ? 'p-2 bg-surface mb-6' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
         <div className="flex items-center gap-4">
           {!isMobile && (
             <>
@@ -700,17 +706,12 @@ export default function ManagerDetail() {
       </div>
 
       {isMobile && (
-        aufstellung ? (
-          <AufstellungVertikal aufstellung={aufstellung} modus={feldModus} />
-        ) : (
-          <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
-        )
-      )}
-
-      {lastRoundPlayerPoints.length > 0 && (
-        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
-          <h3 className="text-xl font-semibold text-foreground mb-4">Punkte letzte Runde</h3>
-          <LastRoundPlayerTable players={lastRoundPlayerPoints} allPlayers={rueckrundePlayers.length > 0 ? rueckrundePlayers : hinrundePlayers} />
+        <div className="p-2 bg-surface border border-border rounded-card mb-6">
+          {aufstellung ? (
+            <AufstellungVertikal aufstellung={aufstellung} modus={feldModus} />
+          ) : (
+            <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+          )}
         </div>
       )}
 
@@ -720,213 +721,129 @@ export default function ManagerDetail() {
         </div>
       )}
 
-      {oldPlayers.length > 0 && !isMobile && (
+      {showWinterSections && oldPlayers.length > 0 && !isMobile && (
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <PlayerTable players={oldPlayers} title="Winterwechsel – Raus" />
         </div>
       )}
 
-      {newPlayers.length > 0 && !isMobile && (
+      {showWinterSections && newPlayers.length > 0 && !isMobile && (
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <PlayerTable players={newPlayers} title="Winterwechsel – Rein" />
         </div>
       )}
 
-      {hasExchanges && rueckrundePlayers.length > 0 && !isMobile && (
+      {showWinterSections && hasExchanges && rueckrundePlayers.length > 0 && !isMobile && (
         <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
           <PlayerTable players={rueckrundePlayers} title={`Rückrunde-Aufstellung (${rueckrundePlayers.length} Spieler)`} />
         </div>
       )}
 
-      {chartData.length > 0 && (
-        <div className={`px-3 py-4 md:p-6 bg-surface border border-border ${isMobile ? 'mb-0' : 'mb-6'}`}>
-          <h3 className="text-xl font-semibold text-foreground mb-3">Punkte pro Spieltag</h3>
-          <div className="bg-card p-4 rounded-card border border-border">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                <XAxis dataKey="name" stroke={chartColors.axis} />
-                <YAxis stroke={chartColors.axis} />
-                <RechartsTooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }} />
-                <Bar dataKey="punkte" fill={chartColors.accent} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
+      {gamePointsRows.length > 0 && (
+        <div className={`p-2 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
+          {!isMobile && (
+            <h3 className="text-base md:text-xl font-semibold text-foreground mb-4">Punkte</h3>
+          )}
+          {!isMobile && (
+            <div className="overflow-x-auto rounded-card border border-border">
+              <table className="w-full">
+                <TableHead>
+                  <tr>
+                    <ThSortable align="center" onClick={() => handleGameSort('roundNumber')}>
+                      Spieltag<SortIcon column="roundNumber" activeKey={gameSortKey} order={gameSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleGameSort('gameName')}>
+                      Spiel<SortIcon column="gameName" activeKey={gameSortKey} order={gameSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleGameSort('playerName')}>
+                      Spieler<SortIcon column="playerName" activeKey={gameSortKey} order={gameSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleGameSort('ruleLabel')}>
+                      Regel<SortIcon column="ruleLabel" activeKey={gameSortKey} order={gameSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="center" onClick={() => handleGameSort('points')}>
+                      Punkte<SortIcon column="points" activeKey={gameSortKey} order={gameSortOrder} />
+                    </ThSortable>
+                  </tr>
+                </TableHead>
+                <TableBody>
+                  {gamePointsRows.map((row, index) => (
+                    <tr key={`${row.roundNumber}-${row.playerId}-${row.rule}-${index}`} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                      <td className="px-3 py-2 text-center text-muted tabular-nums">
+                        {row.roundNumber}
+                      </td>
+                      <td className="px-3 py-2 text-foreground">
+                        <span className="font-medium">{row.gameName}</span>
+                        {row.goalHost != null && row.goalVisitor != null && (
+                          <span className="text-subtle"> ({row.goalHost}:{row.goalVisitor})</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <RouterLink to={`/players/${row.playerId}`} className="link font-medium">
+                          {row.playerName}
+                        </RouterLink>
+                      </td>
+                      <td className="px-3 py-2 text-muted">
+                        {row.ruleLabel}{row.count > 1 ? ` (${row.count}x)` : ''}
+                      </td>
+                      <td className="px-3 py-2 text-center font-semibold text-foreground tabular-nums">
+                        {row.points}
+                      </td>
+                    </tr>
+                  ))}
+                </TableBody>
+              </table>
+            </div>
+          )}
 
-      {positionChartData.length > 0 && (
-        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
-          <h3 className="text-xl font-semibold text-foreground mb-3">Gesamtposition pro Spieltag</h3>
-          <div className="bg-card p-4 rounded-card border border-border">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={positionChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                <XAxis dataKey="name" stroke={chartColors.axis} label={{ value: 'Spieltag', position: 'bottom', fill: chartColors.axis }} />
-                <YAxis stroke={chartColors.axis} reversed domain={[1, 'auto']} tickCount={10} />
-                <RechartsTooltip
-                  cursor={false}
-                  wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-surface border border-border rounded-card p-3 shadow-lg">
-                          <p className="text-foreground font-semibold">Spieltag {label}</p>
-                          <p className="text-primary">Position: {payload[0].value}.</p>
-                        </div>
-                      )
-                    }
-                    return null
-                  }}
-                />
-                <Line type="monotone" dataKey="position" stroke={chartColors.accent} strokeWidth={2} dot={{ fill: chartColors.accent, strokeWidth: 2 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {isMobile && (
+            <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
+              <table className="w-full border-collapse text-sm table-fixed">
+                <colgroup>
+                  <col className="w-9" />
+                  <col className="w-auto" />
+                  <col className="w-auto" />
+                  <col className="w-9" />
+                </colgroup>
+                <thead className="bg-elevated sticky top-0">
+                  <tr>
+                    <th colSpan={4} align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Punkte</th>
+                  </tr>
+                  <tr>
+                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">SP.</th>
+                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">Spieler</th>
+                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">Regel</th>
+                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">PKT.</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-surface">
+                  {gamePointsRows.map((row, index) => (
+                    <tr key={`${row.roundNumber}-${row.playerId}-${row.rule}-${index}`} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center font-medium text-foreground">
+                        {row.roundNumber}
+                      </td>
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums min-w-0">
+                        <RouterLink to={`/players/${row.playerId}`} className="font-medium truncate block min-w-0 text-link">
+                          {row.playerName}
+                        </RouterLink>
+                      </td>
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums min-w-0 text-muted">
+                        <span className="truncate block min-w-0" title={`${shortRuleLabel(row.rule)}${row.count > 1 ? ` (${row.count}x)` : ''}`}>
+                          {shortRuleLabel(row.rule)}{row.count > 1 ? ` (${row.count}x)` : ''}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center font-bold text-foreground">
+                        {row.points}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>
   )
 }
 
-type LastRoundSortKey = 'nameKicker' | 'team' | 'position' | 'prize' | 'points'
-
-function LastRoundPlayerTable({ players, allPlayers }: { players: { playerId: number; playerName: string; points: number; rules: RulePoint[] }[]; allPlayers: Player[] }) {
-  const [sortKey, setSortKey] = useState<LastRoundSortKey>('points')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
-
-  const handleSort = (key: LastRoundSortKey) => {
-    if (sortKey === key) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortKey(key)
-      setSortOrder('desc')
-    }
-  }
-
-  const enrichedPlayers = useMemo(() => {
-    return players.map(pp => {
-      const player = allPlayers.find(p => p.id === pp.playerId)
-      return {
-        ...pp,
-        player: player || null
-      }
-    })
-  }, [players, allPlayers])
-
-  const sortedPlayers = useMemo(() => {
-    return [...enrichedPlayers].sort((a, b) => {
-      let comparison = 0
-      const playerA = a.player
-      const playerB = b.player
-      
-      switch (sortKey) {
-        case 'nameKicker':
-          comparison = a.playerName.localeCompare(b.playerName)
-          break
-        case 'team':
-          const teamA = playerA?.teams[playerA.teams.length - 1]?.name || ''
-          const teamB = playerB?.teams[playerB.teams.length - 1]?.name || ''
-          comparison = teamA.localeCompare(teamB)
-          break
-        case 'position':
-          const posA = playerA ? (positionOrder[playerA.position] || 0) : 999
-          const posB = playerB ? (positionOrder[playerB.position] || 0) : 999
-          comparison = posA - posB
-          break
-        case 'prize':
-          const prizeA = playerA?.prize || 0
-          const prizeB = playerB?.prize || 0
-          comparison = prizeA - prizeB
-          break
-        case 'points':
-          comparison = a.points - b.points
-          break
-      }
-      return sortOrder === 'asc' ? comparison : -comparison
-    })
-  }, [enrichedPlayers, sortKey, sortOrder])
-
-  return (
-    <div>
-      <div className="overflow-x-auto rounded-card border border-border">
-        <table className="w-full">
-          <TableHead>
-            <tr>
-              <ThSortable onClick={() => handleSort('nameKicker')}>
-                Spieler<SortIcon column="nameKicker" activeKey={sortKey} order={sortOrder} />
-              </ThSortable>
-              <ThSortable onClick={() => handleSort('team')}>
-                Team<SortIcon column="team" activeKey={sortKey} order={sortOrder} />
-              </ThSortable>
-              <ThSortable onClick={() => handleSort('position')}>
-                Position<SortIcon column="position" activeKey={sortKey} order={sortOrder} />
-              </ThSortable>
-              <ThSortable align="right" onClick={() => handleSort('prize')}>
-                Wert<SortIcon column="prize" activeKey={sortKey} order={sortOrder} />
-              </ThSortable>
-              <ThSortable align="right" onClick={() => handleSort('points')}>
-                Punkte<SortIcon column="points" activeKey={sortKey} order={sortOrder} />
-              </ThSortable>
-            </tr>
-          </TableHead>
-          <TableBody>
-            {sortedPlayers.map((pp) => {
-              const player = pp.player
-              const currentTeam = player?.teams[player.teams.length - 1]
-              const rulesText = pp.rules && pp.rules.length > 0 
-                ? pp.rules.map(r => `${r.ruleLabel}${r.count > 1 ? ` (${r.count}x)` : ''}`).join(', ')
-                : '-'
-              return (
-                <tr key={pp.playerId} className="hover:bg-card-hover border-b border-border">
-                  <td className="px-2 py-2 md:px-3">
-                    <RouterLink
-                      to={`/players/${pp.playerId}`}
-                      className="flex items-center link"
-                    >
-                      {pp.player?.pictureUrl && (
-                        <img src={pp.player.pictureUrl} alt={pp.playerName} className="w-10 h-10 rounded-full object-cover mr-3" />
-                      )}
-                      <div className="font-medium text-link">{pp.playerName}</div>
-                    </RouterLink>
-                  </td>
-                  <td className="px-2 py-2 md:px-3">
-                    {currentTeam?.logoSUrl && (
-                      <img 
-                        src={currentTeam.logoSUrl} 
-                        alt={currentTeam.name}
-                        className="w-6 h-6 object-contain inline-block mr-2"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                      />
-                    )}
-                    <span className="text-muted">{currentTeam?.name || '-'}</span>
-                  </td>
-                  <td className="px-2 py-2 md:px-3">
-                    {player && (
-        <span className={`text-xs font-medium px-2 py-0.5 rounded-badge ${positionColors[player.position]}`}>
-                        {positionLabels[player.position]}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-2 py-2 md:px-3 text-right font-medium text-primary">
-                    {player ? `${(player.prize / 1000000).toFixed(1)} Mio.` : '-'}
-                  </td>
-                  <td className="px-2 py-2 md:px-3 text-right">
-                    <span 
-                      className="font-medium text-primary cursor-help" 
-                      title={rulesText}
-                    >
-                      {pp.points}
-                    </span>
-                  </td>
-                </tr>
-              )
-            })}
-          </TableBody>
-        </table>
-      </div>
-
-      <div className="h-10" />
-    </div>
-  )
-}

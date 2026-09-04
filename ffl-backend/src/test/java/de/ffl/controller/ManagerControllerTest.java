@@ -5,6 +5,7 @@ import de.ffl.domain.SeasonState;
 import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.ManagerDto;
+import de.ffl.dto.PlayerDto;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.PointsRepository;
 import de.ffl.repository.UserRepository;
@@ -88,6 +89,19 @@ class ManagerControllerTest {
         return User.builder().id(id).login(login).role(role).build();
     }
 
+    private ManagerDto managerWithTransfers(Long id, Long userId) {
+        ManagerDto dto = new ManagerDto();
+        dto.setId(id);
+        dto.setUserId(userId);
+        PlayerDto oldPlayer = new PlayerDto();
+        oldPlayer.setId(100L);
+        PlayerDto newPlayer = new PlayerDto();
+        newPlayer.setId(200L);
+        dto.setPlayerExchangedOld1(oldPlayer);
+        dto.setPlayerExchangedNew1(newPlayer);
+        return dto;
+    }
+
     @Test
     void getManagerById_beforeSeason_nonAdmin_returnsNotFound() {
         when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.BEFORE_SEASON)));
@@ -125,6 +139,95 @@ class ManagerControllerTest {
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().getId()).isEqualTo(7L);
+    }
+
+    @Test
+    void getManagerById_hinrunde_otherManager_clearsWinterTransfers() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_HINRUNDE)));
+        authAs("ROLE_USER");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));
+        when(managerService.findById(7L)).thenReturn(managerWithTransfers(7L, 99L));
+
+        ResponseEntity<ManagerDto> response = managerController.getManagerById(7L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().getPlayerExchangedOld1()).isNull();
+        assertThat(response.getBody().getPlayerExchangedNew1()).isNull();
+        assertThat(response.getBody().getUserId()).isEqualTo(99L);
+    }
+
+    @Test
+    void getManagerById_hinrunde_ownManager_keepsWinterTransfers() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_HINRUNDE)));
+        authAs("ROLE_USER");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));
+        when(managerService.findById(7L)).thenReturn(managerWithTransfers(7L, 7L));
+
+        ResponseEntity<ManagerDto> response = managerController.getManagerById(7L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().getPlayerExchangedOld1()).isNotNull();
+        assertThat(response.getBody().getPlayerExchangedNew1()).isNotNull();
+    }
+
+    @Test
+    void getManagerById_hinrunde_admin_withoutFallback_clearsWinterTransfers() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_HINRUNDE)));
+        authAs("ROLE_ADMIN");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(1L, "user", UserRole.ADMIN)));
+        when(managerService.findById(7L)).thenReturn(managerWithTransfers(7L, 99L));
+
+        ResponseEntity<ManagerDto> response = managerController.getManagerById(7L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().getPlayerExchangedOld1()).isNull();
+        assertThat(response.getBody().getPlayerExchangedNew1()).isNull();
+    }
+
+    @Test
+    void getManagerById_hinrunde_admin_fallbackManager_keepsWinterTransfers() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(seasonWithFallback(SeasonState.RUNNING_HINRUNDE)));
+        authAs("ROLE_ADMIN");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(1L, "user", UserRole.ADMIN)));
+        when(userRepository.findByLogin("uwe72")).thenReturn(Optional.of(user(99L, "uwe72", UserRole.NORMAL)));
+        when(managerService.findById(7L)).thenReturn(managerWithTransfers(7L, 99L));
+
+        ResponseEntity<ManagerDto> response = managerController.getManagerById(7L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().getPlayerExchangedOld1()).isNotNull();
+        assertThat(response.getBody().getPlayerExchangedNew1()).isNotNull();
+    }
+
+    @Test
+    void getManagerById_rueckrunde_otherManager_keepsWinterTransfers() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_RUECKRUNDE)));
+        authAs("ROLE_USER");
+        when(managerService.findById(7L)).thenReturn(managerWithTransfers(7L, 99L));
+
+        ResponseEntity<ManagerDto> response = managerController.getManagerById(7L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().getPlayerExchangedOld1()).isNotNull();
+        assertThat(response.getBody().getPlayerExchangedNew1()).isNotNull();
+    }
+
+    @Test
+    void getAllManagers_hinrunde_clearsWinterTransfersForOtherManagers() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_HINRUNDE)));
+        authAs("ROLE_USER");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));
+        when(managerService.findAll()).thenReturn(List.of(
+            managerWithTransfers(1L, 7L),
+            managerWithTransfers(2L, 99L)
+        ));
+
+        List<ManagerDto> result = managerController.getAllManagers();
+
+        assertThat(result.get(0).getPlayerExchangedOld1()).isNotNull();
+        assertThat(result.get(0).getPlayerExchangedNew1()).isNotNull();
+        assertThat(result.get(1).getPlayerExchangedOld1()).isNull();
+        assertThat(result.get(1).getPlayerExchangedNew1()).isNull();
     }
 
     @Test
