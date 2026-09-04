@@ -701,19 +701,24 @@ export default function PlayerDetail() {
                       <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center font-medium text-foreground">
                         {row.roundNumber}
                       </td>
-                      <td className="px-2 py-2 border-b border-border overflow-hidden min-w-0">
-                        <span className="font-medium truncate block min-w-0" title={row.opponent || row.gameName}>
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums min-w-0">
+                        <span
+                          className="font-medium truncate block min-w-0"
+                          title={`${row.opponent || row.gameName}${row.goalsOwn != null && row.goalsOpponent != null ? ` (${row.goalsOwn}:${row.goalsOpponent})` : ''}${row.homeAway ? ` ${row.homeAway}` : ''}`}
+                        >
                           {row.opponent || row.gameName}
+                          {row.goalsOwn != null && row.goalsOpponent != null && (
+                            <span className="text-subtle"> ({row.goalsOwn}:{row.goalsOpponent})</span>
+                          )}
+                          {row.homeAway && (
+                            <span className="text-subtle"> {row.homeAway}</span>
+                          )}
                         </span>
-                        {row.goalsOwn != null && row.goalsOpponent != null && (
-                          <span className="text-subtle"> ({row.goalsOwn}:{row.goalsOpponent})</span>
-                        )}
-                        {row.homeAway && (
-                          <span className="text-subtle"> {row.homeAway}</span>
-                        )}
                       </td>
-                      <td className="px-2 py-2 border-b border-border overflow-hidden min-w-0 text-muted">
-                        {shortRuleLabel(row.rule)}{row.count > 1 ? ` (${row.count}x)` : ''}
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums min-w-0 text-muted">
+                        <span className="truncate block min-w-0" title={`${shortRuleLabel(row.rule)}${row.count > 1 ? ` (${row.count}x)` : ''}`}>
+                          {shortRuleLabel(row.rule)}{row.count > 1 ? ` (${row.count}x)` : ''}
+                        </span>
                       </td>
                       <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center font-bold text-foreground">
                         {row.points}
