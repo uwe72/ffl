@@ -51,6 +51,8 @@ public class TeamChangeMailService {
                                            BudgetDto budget,
                                            String webUrl,
                                            int teamChangeCount,
+                                           boolean winterChange,
+                                           int transferRound,
                                            PaymentReminderDto paymentReminder,
                                            boolean showTopPaymentNotice,
                                            boolean startgeldReceived) {
@@ -81,7 +83,7 @@ public class TeamChangeMailService {
 
             helper.setSubject("↻ FFL | " + teamChangeCount + ". Änderung | " + userLogin + " | " + seasonName);
 
-            String html = buildTeamChangeHtml(greeting, userName, seasonName, changeTypeLabel, exchanges, positionGroups, budget, webUrl, teamChangeCount, paymentReminder, showTopPaymentNotice, startgeldReceived);
+            String html = buildTeamChangeHtml(greeting, userName, seasonName, changeTypeLabel, exchanges, positionGroups, budget, webUrl, teamChangeCount, winterChange, transferRound, paymentReminder, showTopPaymentNotice, startgeldReceived);
             helper.setText(html, true);
 
             mailSender.send(msg);
@@ -92,18 +94,21 @@ public class TeamChangeMailService {
         }
     }
 
-    private String buildTeamChangeHtml(String greeting, String userName, String seasonName, String changeTypeLabel,
-                                       List<ExchangeDto> exchanges, List<PositionGroupDto> positionGroups,
-                                       BudgetDto budget, String webUrl, int teamChangeCount,
-                                       PaymentReminderDto paymentReminder,
-                                       boolean showTopPaymentNotice,
-                                       boolean startgeldReceived) {
+    String buildTeamChangeHtml(String greeting, String userName, String seasonName, String changeTypeLabel,
+                               List<ExchangeDto> exchanges, List<PositionGroupDto> positionGroups,
+                               BudgetDto budget, String webUrl, int teamChangeCount,
+                               boolean winterChange, int transferRound,
+                               PaymentReminderDto paymentReminder,
+                               boolean showTopPaymentNotice,
+                               boolean startgeldReceived) {
         Context context = new Context(Locale.GERMAN);
         context.setVariable("greeting", greeting);
         context.setVariable("userName", userName);
         context.setVariable("seasonName", seasonName);
         context.setVariable("changeTypeLabel", changeTypeLabel);
         context.setVariable("teamChangeCount", teamChangeCount);
+        context.setVariable("winterChange", winterChange);
+        context.setVariable("transferRound", transferRound);
         context.setVariable("exchanges", exchanges);
         context.setVariable("positionGroups", positionGroups);
         context.setVariable("budget", budget);

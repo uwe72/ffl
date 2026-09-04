@@ -849,6 +849,9 @@ public class ManagerService {
 
             int teamChangeCount = manager.getTeamChangeCount() != null ? manager.getTeamChangeCount() : 0;
 
+            boolean winterChange = season.getSeasonState() == SeasonState.RUNNING_HINRUNDE;
+            int transferRound = season.getStartRoundRueckrunde() != null ? season.getStartRoundRueckrunde() : 16;
+
             de.ffl.dto.PaymentReminderDto paymentReminder =
                 paymentReminderService.buildReminder(season, manager.getId(), user.getLogin());
 
@@ -860,8 +863,8 @@ public class ManagerService {
 
             teamChangeMailService.sendTeamChangeConfirmation(
                 user.getEmail(), user.getLogin(), greeting, userName, seasonName, changeTypeLabel,
-                exchanges, positionGroups, budgetDto, webUrl, teamChangeCount, paymentReminder, showTopPaymentNotice,
-                startgeldReceived);
+                exchanges, positionGroups, budgetDto, webUrl, teamChangeCount, winterChange, transferRound,
+                paymentReminder, showTopPaymentNotice, startgeldReceived);
         } catch (Exception e) {
             org.slf4j.LoggerFactory.getLogger(ManagerService.class)
                 .warn("Teamänderungsmail konnte nicht gesendet werden: {}", e.getMessage());
