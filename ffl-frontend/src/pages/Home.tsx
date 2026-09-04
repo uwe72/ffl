@@ -516,7 +516,7 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
 
   return (
     <div className="flex flex-col gap-0">
-      <div className="p-6 bg-surface border border-border rounded-card px-3 py-3">
+      <div className="p-6 bg-surface border border-border rounded-card px-3 py-3 mb-2">
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-semibold text-foreground shrink-0">Manager ({filteredManagers.length})</h3>
@@ -555,14 +555,16 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
           )}
         </div>
       </div>
-      <ManagersMobileTable
-        managers={filteredManagers}
-        canNavigateToManager={canNavigateToManager}
-        headerTitle={headerTitle}
-        selected={selected}
-        myManagerId={myManagerId}
-        rowRef={rowRef}
-      />
+      <div className="p-2 bg-surface border border-border rounded-card">
+        <ManagersMobileTable
+          managers={filteredManagers}
+          canNavigateToManager={canNavigateToManager}
+          headerTitle={headerTitle}
+          selected={selected}
+          myManagerId={myManagerId}
+          rowRef={rowRef}
+        />
+      </div>
     </div>
   )
 }
@@ -841,7 +843,7 @@ export default function Home() {
       </div>
     ) : (
       <div {...groupSwipe} className="flex flex-col gap-0 flex-1" style={{ touchAction: 'pan-y' }}>
-        <div className="p-6 bg-surface border border-border rounded-card px-3 py-0.5">
+        <div className="p-6 bg-surface border border-border rounded-card px-3 py-0.5 mb-2">
           <div className="relative z-20 shrink-0 mb-1">
             <div className="flex items-center gap-2">
               <div className="min-w-0 flex-1">
@@ -927,14 +929,16 @@ export default function Home() {
           )}
         </div>
         {activeGroup && (
-          <GroupMobileTable group={activeGroup} canNavigateToManager={canNavigateToManager} headerTitle={groupHeaderTitle} />
+          <div className="p-2 bg-surface border border-border rounded-card">
+            <GroupMobileTable group={activeGroup} canNavigateToManager={canNavigateToManager} headerTitle={groupHeaderTitle} />
+          </div>
         )}
       </div>
     )
 
   const card = (children: ReactNode, fill = false) => (
     <div
-      className={`p-6 bg-surface border border-border rounded-card${isMobile ? ' px-3 py-0.5' : ''}${fill ? ' h-full w-fit self-start flex flex-col min-h-0 max-w-[1300px] overflow-y-auto' : ''}`}
+      className={`p-6 bg-surface border border-border rounded-card${isMobile ? ' px-3 py-0.5 mb-2' : ''}${fill ? ' h-full w-fit self-start flex flex-col min-h-0 max-w-[1300px] overflow-y-auto' : ''}`}
     >
       <div className={`relative z-20 shrink-0${isMobile ? ' mb-1' : ' mb-4'}`}>
         {isMobile ? (
@@ -953,8 +957,8 @@ export default function Home() {
                   <ScoreLine
                     position={displayAufstellung?.positionSpieltag ?? null}
                     positionVorher={displayAufstellung?.positionSpieltagVorher ?? null}
-                    punkte={displayAufstellung?.punkteSpieltag ?? null}
-                    punkteVorher={displayAufstellung?.punkteSpieltagVorher ?? null}
+                    punkteGesamt={displayAufstellung?.punkteGesamt ?? null}
+                    punkteSpieltag={displayAufstellung?.punkteSpieltag ?? null}
                   />
                 </div>
               )}
@@ -1163,11 +1167,13 @@ export default function Home() {
               </div>
             )}
             {activeManagerId && aufstellungQuery.data && (
-              <AufstellungVertikal
-                aufstellung={aufstellungQuery.data}
-                modus={feldModus}
-                hinrundeFilter
-              />
+              <div className="p-2 bg-surface border border-border rounded-card">
+                <AufstellungVertikal
+                  aufstellung={aufstellungQuery.data}
+                  modus={feldModus}
+                  hinrundeFilter
+                />
+              </div>
             )}
           </div>
         )}

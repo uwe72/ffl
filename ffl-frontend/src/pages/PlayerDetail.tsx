@@ -58,7 +58,7 @@ export default function PlayerDetail() {
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [gameSortKey, setGameSortKey] = useState<GameSortKey>('roundNumber')
-  const [gameSortOrder, setGameSortOrder] = useState<SortOrder>('asc')
+  const [gameSortOrder, setGameSortOrder] = useState<SortOrder>('desc')
   const [editData, setEditData] = useState({
     nameKicker: '',
     nameKickerAlt1: '',
@@ -279,7 +279,7 @@ export default function PlayerDetail() {
     <div className="max-w-6xl">
       <BackButton to="/players" className="mb-4" />
 
-      <div className={`${isMobile ? 'p-2 bg-surface mb-6' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
+      <div className={`${isMobile ? 'p-2 bg-surface mb-2' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
         <div className="flex items-center gap-4">
           {!isMobile && (
             player.pictureUrl ? (
@@ -311,8 +311,8 @@ export default function PlayerDetail() {
                   <ScoreLine
                     position={player.positionLastRound ?? null}
                     positionVorher={null}
-                    punkte={player.pointsLastRound ?? null}
-                    punkteVorher={null}
+                    punkteGesamt={player.points ?? null}
+                    punkteSpieltag={player.pointsLastRound ?? null}
                     einsatzquote={player.einsatzquote ?? null}
                   />
                 </div>
@@ -555,7 +555,7 @@ export default function PlayerDetail() {
 
       <div className="flex flex-col">
       {gamePointsRows.length > 0 && (
-        <div className={`order-1 md:order-2 p-2 md:p-6 bg-surface border border-border rounded-card mb-6`}>
+        <div className={`order-1 p-2 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-2' : 'mb-6'}`}>
           {!isMobile && (
             <h3 className="text-base md:text-xl font-semibold text-foreground mb-4">Punkte</h3>
           )}
@@ -661,7 +661,7 @@ export default function PlayerDetail() {
       )}
 
       {player.managers && player.managers.length > 0 && (
-        <div className={`order-2 md:order-1 p-2 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
+        <div className={`order-2 p-2 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
           {!isMobile && (
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base md:text-xl font-semibold text-foreground">Manager</h3>

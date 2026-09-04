@@ -33,7 +33,7 @@ export default function HeroSection({ collapsed, onMenuClick }: HeroSectionProps
   }
 
   return (
-    <div className="hero relative h-[84px] md:h-[102px] shrink-0 overflow-hidden bg-header">
+    <div className="hero relative h-[80px] md:h-[102px] shrink-0 overflow-hidden bg-header">
       <div
         className="absolute inset-0 bg-cover bg-no-repeat"
         style={{

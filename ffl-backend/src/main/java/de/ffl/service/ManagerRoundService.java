@@ -36,12 +36,9 @@ public class ManagerRoundService {
         if (manager == null) return List.of();
 
         List<ManagerRank> managerRanks = managerRankRepository.findByManagerIdOrderByRoundIdAsc(managerId);
-        
-        Set<Long> exchangedOldIds = getExchangedOldPlayerIds(manager);
-        Set<Long> exchangedNewIds = getExchangedNewPlayerIds(manager);
-        
-        int transferRound = findTransferRound(manager, managerRanks);
-        
+
+        int transferRound = findTransferRound(manager);
+
         Season season = manager.getSeason();
         Integer currentMatchday = season != null ? season.getCurrentMatchday() : null;
 
@@ -55,7 +52,7 @@ public class ManagerRoundService {
             dto.setPositionRound(rank.getPositionRound());
             dto.setPositionTotal(rank.getPositionTotal());
 
-            List<Player> activePlayers = getActivePlayersForRound(manager, rank.getRound().getNumber(), transferRound, exchangedOldIds, exchangedNewIds);
+            List<Player> activePlayers = getActivePlayersForRound(manager, rank.getRound().getNumber(), transferRound);
             
             List<Game> games = gameRepository.findByRoundId(rank.getRound().getId());
             List<Long> gameIds = games.stream().map(Game::getId).toList();
@@ -235,84 +232,39 @@ public class ManagerRoundService {
         };
     }
 
-    private Set<Long> getExchangedOldPlayerIds(Manager manager) {
-        Set<Long> ids = new HashSet<>();
-        if (manager.getPlayerExchangedOld1() != null) ids.add(manager.getPlayerExchangedOld1().getId());
-        if (manager.getPlayerExchangedOld2() != null) ids.add(manager.getPlayerExchangedOld2().getId());
-        if (manager.getPlayerExchangedOld3() != null) ids.add(manager.getPlayerExchangedOld3().getId());
-        return ids;
-    }
-
-    private Set<Long> getExchangedNewPlayerIds(Manager manager) {
-        Set<Long> ids = new HashSet<>();
-        if (manager.getPlayerExchangedNew1() != null) ids.add(manager.getPlayerExchangedNew1().getId());
-        if (manager.getPlayerExchangedNew2() != null) ids.add(manager.getPlayerExchangedNew2().getId());
-        if (manager.getPlayerExchangedNew3() != null) ids.add(manager.getPlayerExchangedNew3().getId());
-        return ids;
-    }
-
-    private int findTransferRound(Manager manager, List<ManagerRank> ranks) {
+    private int findTransferRound(Manager manager) {
         if (manager.getPlayerExchangedNew1() == null && manager.getPlayerExchangedNew2() == null && manager.getPlayerExchangedNew3() == null) {
             return Integer.MAX_VALUE;
         }
-        
-        return 18;
+
+        Season season = manager.getSeason();
+        return season != null && season.getStartRoundRueckrunde() != null ? season.getStartRoundRueckrunde() : 16;
     }
 
-    private List<Player> getActivePlayersForRound(Manager manager, int roundNumber, int transferRound, Set<Long> exchangedOldIds, Set<Long> exchangedNewIds) {
+    private List<Player> getActivePlayersForRound(Manager manager, int roundNumber, int transferRound) {
         List<Player> players = new ArrayList<>();
-        
-        if (roundNumber < transferRound) {
-            if (manager.getPlayerGoalkeeper() != null && !exchangedOldIds.contains(manager.getPlayerGoalkeeper().getId())) 
-                players.add(manager.getPlayerGoalkeeper());
-            if (manager.getPlayerDefender1() != null && !exchangedOldIds.contains(manager.getPlayerDefender1().getId())) 
-                players.add(manager.getPlayerDefender1());
-            if (manager.getPlayerDefender2() != null && !exchangedOldIds.contains(manager.getPlayerDefender2().getId())) 
-                players.add(manager.getPlayerDefender2());
-            if (manager.getPlayerDefender3() != null && !exchangedOldIds.contains(manager.getPlayerDefender3().getId())) 
-                players.add(manager.getPlayerDefender3());
-            if (manager.getPlayerMidfield1() != null && !exchangedOldIds.contains(manager.getPlayerMidfield1().getId())) 
-                players.add(manager.getPlayerMidfield1());
-            if (manager.getPlayerMidfield2() != null && !exchangedOldIds.contains(manager.getPlayerMidfield2().getId())) 
-                players.add(manager.getPlayerMidfield2());
-            if (manager.getPlayerMidfield3() != null && !exchangedOldIds.contains(manager.getPlayerMidfield3().getId())) 
-                players.add(manager.getPlayerMidfield3());
-            if (manager.getPlayerStriker1() != null && !exchangedOldIds.contains(manager.getPlayerStriker1().getId())) 
-                players.add(manager.getPlayerStriker1());
-            if (manager.getPlayerStriker2() != null && !exchangedOldIds.contains(manager.getPlayerStriker2().getId())) 
-                players.add(manager.getPlayerStriker2());
-            if (manager.getPlayerStriker3() != null && !exchangedOldIds.contains(manager.getPlayerStriker3().getId())) 
-                players.add(manager.getPlayerStriker3());
-            if (manager.getPlayerFreeChoice() != null && !exchangedOldIds.contains(manager.getPlayerFreeChoice().getId())) 
-                players.add(manager.getPlayerFreeChoice());
-        } else {
-            if (manager.getPlayerGoalkeeper() != null && !exchangedOldIds.contains(manager.getPlayerGoalkeeper().getId())) 
-                players.add(manager.getPlayerGoalkeeper());
-            if (manager.getPlayerDefender1() != null && !exchangedOldIds.contains(manager.getPlayerDefender1().getId())) 
-                players.add(manager.getPlayerDefender1());
-            if (manager.getPlayerDefender2() != null && !exchangedOldIds.contains(manager.getPlayerDefender2().getId())) 
-                players.add(manager.getPlayerDefender2());
-            if (manager.getPlayerDefender3() != null && !exchangedOldIds.contains(manager.getPlayerDefender3().getId())) 
-                players.add(manager.getPlayerDefender3());
-            if (manager.getPlayerMidfield1() != null && !exchangedOldIds.contains(manager.getPlayerMidfield1().getId())) 
-                players.add(manager.getPlayerMidfield1());
-            if (manager.getPlayerMidfield2() != null && !exchangedOldIds.contains(manager.getPlayerMidfield2().getId())) 
-                players.add(manager.getPlayerMidfield2());
-            if (manager.getPlayerMidfield3() != null && !exchangedOldIds.contains(manager.getPlayerMidfield3().getId())) 
-                players.add(manager.getPlayerMidfield3());
-            if (manager.getPlayerStriker1() != null && !exchangedOldIds.contains(manager.getPlayerStriker1().getId())) 
-                players.add(manager.getPlayerStriker1());
-            if (manager.getPlayerStriker2() != null && !exchangedOldIds.contains(manager.getPlayerStriker2().getId())) 
-                players.add(manager.getPlayerStriker2());
-            if (manager.getPlayerStriker3() != null && !exchangedOldIds.contains(manager.getPlayerStriker3().getId())) 
-                players.add(manager.getPlayerStriker3());
-            if (manager.getPlayerFreeChoice() != null && !exchangedOldIds.contains(manager.getPlayerFreeChoice().getId())) 
-                players.add(manager.getPlayerFreeChoice());
+
+        if (manager.getPlayerGoalkeeper() != null) players.add(manager.getPlayerGoalkeeper());
+        if (manager.getPlayerDefender1() != null) players.add(manager.getPlayerDefender1());
+        if (manager.getPlayerDefender2() != null) players.add(manager.getPlayerDefender2());
+        if (manager.getPlayerDefender3() != null) players.add(manager.getPlayerDefender3());
+        if (manager.getPlayerMidfield1() != null) players.add(manager.getPlayerMidfield1());
+        if (manager.getPlayerMidfield2() != null) players.add(manager.getPlayerMidfield2());
+        if (manager.getPlayerMidfield3() != null) players.add(manager.getPlayerMidfield3());
+        if (manager.getPlayerStriker1() != null) players.add(manager.getPlayerStriker1());
+        if (manager.getPlayerStriker2() != null) players.add(manager.getPlayerStriker2());
+        if (manager.getPlayerStriker3() != null) players.add(manager.getPlayerStriker3());
+        if (manager.getPlayerFreeChoice() != null) players.add(manager.getPlayerFreeChoice());
+
+        if (roundNumber >= transferRound) {
+            if (manager.getPlayerExchangedOld1() != null) players.removeIf(p -> p.getId().equals(manager.getPlayerExchangedOld1().getId()));
+            if (manager.getPlayerExchangedOld2() != null) players.removeIf(p -> p.getId().equals(manager.getPlayerExchangedOld2().getId()));
+            if (manager.getPlayerExchangedOld3() != null) players.removeIf(p -> p.getId().equals(manager.getPlayerExchangedOld3().getId()));
             if (manager.getPlayerExchangedNew1() != null) players.add(manager.getPlayerExchangedNew1());
             if (manager.getPlayerExchangedNew2() != null) players.add(manager.getPlayerExchangedNew2());
             if (manager.getPlayerExchangedNew3() != null) players.add(manager.getPlayerExchangedNew3());
         }
-        
+
         return players;
     }
 
@@ -324,10 +276,9 @@ public class ManagerRoundService {
         Season season = manager.getSeason();
         if (season == null || season.getCurrentMatchday() == null) return List.of();
         
-        int transferRound = findTransferRound(manager, List.of());
-        Set<Long> exchangedOldIds = getExchangedOldPlayerIds(manager);
-        
-        List<Player> currentPlayers = getActivePlayersForRound(manager, season.getCurrentMatchday(), transferRound, exchangedOldIds, Set.of());
+        int transferRound = findTransferRound(manager);
+
+        List<Player> currentPlayers = getActivePlayersForRound(manager, season.getCurrentMatchday(), transferRound);
         if (currentPlayers.isEmpty()) return List.of();
         
         Round currentRound = roundRepository.findBySeasonIdAndNumber(season.getId(), season.getCurrentMatchday()).orElse(null);

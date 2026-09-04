@@ -595,7 +595,7 @@ export default function Register() {
     >
       <div className={`bg-surface/70 backdrop-blur-md border border-border rounded-card w-full ${step === 4 ? 'max-w-[1250px]' : step === 3 ? 'max-w-[1170px]' : 'max-w-[940px]'} max-h-[92vh] flex flex-col shadow-2xl overflow-hidden`}>
 
-        <div className="relative h-28 shrink-0 overflow-hidden">
+        <div className="relative h-[106px] md:h-28 shrink-0 overflow-hidden">
           <div
             className="absolute inset-0 bg-[length:100%_auto] bg-center bg-no-repeat"
             style={{ backgroundImage: 'url(/hero-banner.png)' }}
