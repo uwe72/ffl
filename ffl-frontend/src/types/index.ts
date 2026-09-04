@@ -53,6 +53,7 @@ export interface Season {
   iban?: string
   bic?: string
   kontoinhaber?: string
+  adminFallbackUser?: string
 }
 
 export type SeasonState = 'BEFORE_SEASON' | 'RUNNING_HINRUNDE' | 'RUNNING_RUECKRUNDE'
@@ -224,8 +225,12 @@ export interface PlayerRank {
   positionRound: number
   played: boolean
   gameName?: string
+  opponent?: string
+  homeAway?: string
   goalHost?: number
   goalVisitor?: number
+  goalsOwn?: number
+  goalsOpponent?: number
   rules?: RulePoint[]
 }
 
@@ -679,6 +684,7 @@ export interface Document {
   fileSize: number
   uploadedAt: string
   uploadedBy: string
+  description: string | null
   shareToken: string
 }
 
@@ -691,7 +697,7 @@ export interface SetupPreviewTeamBreakdown {
   hasStriker: boolean
 }
 
-export type SurveyStatus = 'ANGELEGT' | 'GESTARTET' | 'BEENDET' | 'VEROEFFENTLICHT'
+export type SurveyStatus = 'ANGELEGT' | 'GESTARTET' | 'BEENDET'
 export type QuestionType = 'RATING' | 'SINGLE' | 'MULTI' | 'TEXTFIELD' | 'TEXTAREA'
 
 export interface SurveyQuestionOption {
@@ -797,15 +803,6 @@ export interface SurveyResult {
   responseCount: number
   questions: QuestionResult[]
   responses: SurveyResponseDetail[]
-}
-
-export interface PublicSurveyResult {
-  id: number
-  title: string
-  description?: string | null
-  status: SurveyStatus
-  responseCount: number
-  questions: QuestionResult[]
 }
 
 export interface SetupPreviewDto {

@@ -530,6 +530,13 @@ public class SeasonCalculationService {
             .filter(g -> g.getRound().getId().equals(round.getId()))
             .collect(Collectors.toList());
 
+        boolean roundPlayed = games.stream()
+            .anyMatch(g -> (g.getFormation() != null && !g.getFormation().isEmpty())
+                || !pointsByGame.getOrDefault(g.getId(), Collections.emptyList()).isEmpty());
+        if (!roundPlayed) {
+            return;
+        }
+
         Set<Long> playingPlayerIds = new HashSet<>();
         for (Game game : games) {
             for (Player p : game.getPlayersHost()) playingPlayerIds.add(p.getId());
@@ -616,6 +623,13 @@ public class SeasonCalculationService {
         List<Game> games = allGames.stream()
             .filter(g -> g.getRound().getId().equals(round.getId()))
             .collect(Collectors.toList());
+
+        boolean roundPlayed = games.stream()
+            .anyMatch(g -> (g.getFormation() != null && !g.getFormation().isEmpty())
+                || !pointsByGame.getOrDefault(g.getId(), Collections.emptyList()).isEmpty());
+        if (!roundPlayed) {
+            return;
+        }
 
         Map<Long, Integer> pointsByPlayer = new HashMap<>();
         for (Game game : games) {

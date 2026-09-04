@@ -116,6 +116,7 @@ public class SeasonController {
                 existing.setIban(season.getIban());
                 existing.setBic(season.getBic());
                 existing.setKontoinhaber(season.getKontoinhaber());
+                existing.setAdminFallbackUser(season.getAdminFallbackUser());
                 return ResponseEntity.ok(seasonRepository.save(existing));
             })
             .orElse(ResponseEntity.notFound().build());

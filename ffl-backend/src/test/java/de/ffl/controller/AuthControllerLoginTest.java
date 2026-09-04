@@ -1,6 +1,7 @@
 package de.ffl.controller;
 
 import de.ffl.config.JwtTokenProvider;
+import de.ffl.domain.Season;
 import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.AuthResponse;
@@ -23,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -135,6 +137,9 @@ class AuthControllerLoginTest {
     void login_excludedNormalUser_doesNotRecordLogin() {
         User user = user("uwe72", UserRole.NORMAL);
         stubSuccessfulLogin(user);
+        Season season = new Season();
+        season.setAdminFallbackUser("uwe72");
+        when(seasonRepository.findAll()).thenReturn(List.of(season));
 
         ResponseEntity<?> response = authController.login(request("uwe72"));
 

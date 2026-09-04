@@ -133,12 +133,18 @@ public class SurveyService {
     }
 
     @Transactional
-    public SurveyAdminDto publishSurvey(Long id) {
+    public SurveyAdminDto reopenSurvey(Long id) {
         Survey survey = requireSurvey(id);
         if (survey.getStatus() != SurveyStatus.BEENDET) {
-            throw new IllegalArgumentException("Nur beendete Umfragen können veröffentlicht werden");
+            throw new IllegalArgumentException("Nur beendete Umfragen können reaktiviert werden");
         }
-        survey.setStatus(SurveyStatus.VEROEFFENTLICHT);
+        if (surveyRepository.existsByStatus(SurveyStatus.GESTARTET)) {
+            throw new IllegalArgumentException("Es ist bereits eine Umfrage gestartet. Beende sie zuerst.");
+        }
+        if (!survey.getDeadline().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Das Zieldatum muss in der Zukunft liegen");
+        }
+        survey.setStatus(SurveyStatus.GESTARTET);
         survey.setUpdatedAt(LocalDateTime.now());
         return toAdminDto(surveyRepository.save(survey), surveyResponseRepository.countBySurveyId(id));
     }
@@ -279,28 +285,6 @@ public class SurveyService {
             .responseCount(responseCount)
             .questions(questions)
             .responses(detail)
-            .build();
-    }
-
-    @Transactional(readOnly = true)
-    public PublicSurveyResultDto getPublicResult(Long surveyId) {
-        Survey survey = requireSurvey(surveyId);
-        if (survey.getStatus() != SurveyStatus.VEROEFFENTLICHT) {
-            throw new IllegalArgumentException("Die Ergebnisse dieser Umfrage sind nicht veröffentlicht");
-        }
-        long responseCount = surveyResponseRepository.countBySurveyId(surveyId);
-        List<SurveyResponse> responses = surveyResponseRepository.findBySurveyIdWithAnswers(surveyId);
-        List<QuestionResult> questions = survey.getQuestions().stream()
-            .map(q -> buildQuestionResult(q, responses, false))
-            .toList();
-
-        return PublicSurveyResultDto.builder()
-            .id(survey.getId())
-            .title(survey.getTitle())
-            .description(survey.getDescription())
-            .status(survey.getStatus())
-            .responseCount(responseCount)
-            .questions(questions)
             .build();
     }
 

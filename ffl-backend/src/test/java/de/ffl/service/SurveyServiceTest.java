@@ -190,32 +190,6 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
-    void publish_makesResultsPublicAndStripsFreeTexts() {
-        SurveyAdminDto dto = createStartedSurvey();
-        Long ratingId = dto.getQuestions().get(0).getId();
-        Long singleId = dto.getQuestions().get(1).getId();
-        Long freeId = dto.getQuestions().get(3).getId();
-        submit(dto.getId(), List.of(
-            answer(ratingId, null, "5"),
-            answer(singleId, List.of(dto.getQuestions().get(1).getOptions().get(0).getId()), null),
-            answer(freeId, null, "Geheim")
-        ));
-
-        assertThatThrownBy(() -> surveyService.getPublicResult(dto.getId()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("nicht veröffentlicht");
-
-        surveyService.endSurvey(dto.getId());
-        surveyService.publishSurvey(dto.getId());
-
-        PublicSurveyResultDto publicResult = surveyService.getPublicResult(dto.getId());
-        assertThat(publicResult.getStatus()).isEqualTo(SurveyStatus.VEROEFFENTLICHT);
-        assertThat(publicResult.getResponseCount()).isEqualTo(1);
-        QuestionResult freeResult = publicResult.getQuestions().get(3);
-        assertThat(freeResult.getFreeTexts()).isNull();
-    }
-
-    @Test
     void getActiveSurvey_returnsStartedOrNull() {
         assertThat(surveyService.getActiveSurvey()).isNull();
         SurveyAdminDto dto = createStartedSurvey();
@@ -230,6 +204,54 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         assertThatThrownBy(() -> surveyService.endSurvey(dto.getId()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Nur gestartete");
+    }
+
+    @Test
+    void reopenSurvey_movesBeendetBackToGestartet() {
+        SurveyAdminDto dto = createStartedSurvey();
+        surveyService.endSurvey(dto.getId());
+        assertThat(surveyService.getAdminSurvey(dto.getId()).getStatus()).isEqualTo(SurveyStatus.BEENDET);
+
+        surveyService.reopenSurvey(dto.getId());
+
+        assertThat(surveyService.getAdminSurvey(dto.getId()).getStatus()).isEqualTo(SurveyStatus.GESTARTET);
+        assertThat(surveyService.getActiveSurvey().getId()).isEqualTo(dto.getId());
+    }
+
+    @Test
+    void reopenSurvey_requiresBeendet() {
+        SurveyAdminDto dto = createStartedSurvey();
+        assertThatThrownBy(() -> surveyService.reopenSurvey(dto.getId()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Nur beendete");
+    }
+
+    @Test
+    void reopenSurvey_blocksWhenAnotherStarted() {
+        SurveyAdminDto a = createStartedSurvey();
+        surveyService.endSurvey(a.getId());
+        SurveyAdminDto b = surveyService.createSurvey(fullSurveyRequest());
+        surveyService.startSurvey(b.getId());
+
+        assertThatThrownBy(() -> surveyService.reopenSurvey(a.getId()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("bereits eine Umfrage gestartet");
+    }
+
+    @Test
+    void reopenSurvey_requiresFutureDeadline() {
+        SurveyAdminDto dto = createStartedSurvey();
+        entityManager.createNativeQuery("UPDATE ffl_survey SET deadline = :past WHERE id = :id")
+            .setParameter("past", LocalDateTime.now().minusMinutes(5))
+            .setParameter("id", dto.getId())
+            .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+        surveyService.endSurvey(dto.getId());
+
+        assertThatThrownBy(() -> surveyService.reopenSurvey(dto.getId()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Zukunft");
     }
 
     private void submit(Long surveyId, List<SurveyAnswerInput> answers) {
@@ -319,12 +341,6 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         surveyService.endSurvey(dto.getId());
         surveyService.deleteSurvey(dto.getId());
         assertThat(surveyService.listSurveys()).extracting(SurveyAdminDto::getId).doesNotContain(dto.getId());
-
-        SurveyAdminDto second = createStartedSurvey();
-        surveyService.endSurvey(second.getId());
-        surveyService.publishSurvey(second.getId());
-        surveyService.deleteSurvey(second.getId());
-        assertThat(surveyService.listSurveys()).extracting(SurveyAdminDto::getId).doesNotContain(second.getId());
     }
 
     @Test

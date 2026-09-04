@@ -17,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/documents")
@@ -67,15 +69,30 @@ public class DocumentController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> uploadDocument(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadDocument(@RequestParam("file") MultipartFile file,
+                                            @RequestParam(value = "description", required = false) String description) {
         try {
             String uploaderLogin = getCurrentLogin();
-            DocumentDto created = documentService.upload(file, uploaderLogin);
+            DocumentDto created = documentService.upload(file, uploaderLogin, description);
             return ResponseEntity.ok(created);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Fehler beim Hochladen: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateDocumentDescription(@PathVariable Long id,
+                                                       @RequestBody(required = false) Map<String, String> body) {
+        try {
+            String description = body != null ? body.get("description") : null;
+            return ResponseEntity.ok(documentService.updateDescription(id, description));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

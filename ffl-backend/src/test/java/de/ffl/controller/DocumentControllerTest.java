@@ -21,6 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -168,5 +170,45 @@ class DocumentControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
+    }
+
+    @Test
+    void updateDocumentDescription_success_returnsUpdatedDto() {
+        setAuthenticated();
+        DocumentDto updated = sampleDto();
+        updated.setDescription("Neue Beschreibung");
+        when(documentService.updateDescription(1L, "Neue Beschreibung")).thenReturn(updated);
+
+        ResponseEntity<?> response = documentController.updateDocumentDescription(1L,
+            Map.of("description", "Neue Beschreibung"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isInstanceOf(DocumentDto.class);
+        assertThat(((DocumentDto) response.getBody()).getDescription()).isEqualTo("Neue Beschreibung");
+    }
+
+    @Test
+    void updateDocumentDescription_notFound_returnsNotFound() {
+        setAuthenticated();
+        when(documentService.updateDescription(999L, "x"))
+            .thenThrow(new NoSuchElementException("Dokument nicht gefunden"));
+
+        ResponseEntity<?> response = documentController.updateDocumentDescription(999L,
+            Map.of("description", "x"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void updateDocumentDescription_invalidDescription_returnsBadRequest() {
+        setAuthenticated();
+        when(documentService.updateDescription(1L, "x".repeat(81)))
+            .thenThrow(new IllegalArgumentException("Beschreibung darf maximal 80 Zeichen lang sein"));
+
+        ResponseEntity<?> response = documentController.updateDocumentDescription(1L,
+            Map.of("description", "x".repeat(81)));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isEqualTo("Beschreibung darf maximal 80 Zeichen lang sein");
     }
 }

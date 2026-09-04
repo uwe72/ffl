@@ -213,7 +213,7 @@ export default function History() {
                 <ThSortable numeric align="right" onClick={() => handleSort('anzahlManager')}>
                   {isMobile ? 'Manager' : 'Anzahl Manager'}<SortIcon column="anzahlManager" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
-                {isAdmin && <Th> </Th>}
+                {isAdmin && !isMobile && <Th> </Th>}
               </tr>
             </TableHead>
             <TableBody>
@@ -257,7 +257,7 @@ export default function History() {
                         <td className="px-2 py-2 md:px-3 font-medium text-foreground">{isMobile ? shortSaison(entry.saison) : entry.saison}</td>
                         <td className="px-2 py-2 md:px-3 text-right text-foreground tabular-nums">{isMobile ? formatBudgetShort(entry.budget) : `${formatEuro(entry.budget)} €`}</td>
                         <td className="px-2 py-2 md:px-3 text-right text-foreground tabular-nums">{entry.anzahlManager}</td>
-                        {isAdmin && (
+                        {isAdmin && !isMobile && (
                           <td className="px-2 py-2 md:px-3">
                             <div className="flex gap-2 justify-end">
                               <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startEdit(entry)}>Bearbeiten</Button>
@@ -271,7 +271,7 @@ export default function History() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={isAdmin ? 4 : 3} className="text-center text-subtle py-8">
+                  <td colSpan={isAdmin && !isMobile ? 4 : 3} className="text-center text-subtle py-8">
                     Keine Einträge vorhanden
                   </td>
                 </tr>

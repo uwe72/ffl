@@ -27,8 +27,8 @@ export default function Managers({ fill = false, showEinsatzquote = false }: { f
   const { data: currentManager } = useCurrentManager()
 
   const isAdmin = user?.role === 'ADMIN'
-  const uwe72 = useMemo(() => managers?.find(m => m.shortName === 'uwe72'), [managers])
-  const myManagerId = isAdmin ? uwe72?.id : currentManager?.id
+  const fallbackManager = useMemo(() => managers?.find(m => m.shortName === currentSeason?.adminFallbackUser), [managers, currentSeason])
+  const myManagerId = isAdmin ? fallbackManager?.id : currentManager?.id
 
   const rowRef = useRef<HTMLTableRowElement | null>(null)
 

@@ -683,7 +683,7 @@ export default function ManagerDetail() {
             )}
           </div>
 
-          {isAdmin && (
+          {isAdmin && !isMobile && (
             <Button
               variant={stammdatenOpen ? 'ghost' : 'emphasized'}
               size={isMobile ? 'sm' : 'input'}

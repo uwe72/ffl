@@ -120,6 +120,7 @@ function buildExistingTransfers(manager: Manager): TransferRow[] {
 export default function MyTeam() {
   const isMobile = useIsMobile()
   const { user, updateProfileInfo } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
   const [manager, setManager] = useState<Manager | null>(null)
   const [season, setSeason] = useState<Season | null>(null)
   const [allPlayers, setAllPlayers] = useState<Player[]>([])
@@ -128,6 +129,7 @@ export default function MyTeam() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [notFound, setNotFound] = useState(false)
+  const [adminNoFallback, setAdminNoFallback] = useState(false)
 
   const [freePosition, setFreePosition] = useState<'DEFENDER' | 'MIDFIELD' | 'STRIKER'>('DEFENDER')
   const [selectedPlayers, setSelectedPlayers] = useState<Record<string, number | null>>(() => {
@@ -153,7 +155,7 @@ export default function MyTeam() {
   const [transferSuccess, setTransferSuccess] = useState('')
 
   const avatarInputRef = useRef<HTMLInputElement>(null)
-  const { data: avatarUrl } = useAvatar(user?.id ?? null)
+  const { data: avatarUrl } = useAvatar(isAdmin ? null : user?.id ?? null)
   const uploadAvatar = useUploadAvatar()
   const deleteAvatar = useDeleteAvatar()
 
@@ -173,6 +175,11 @@ export default function MyTeam() {
         } catch (err) {
           const axiosErr = err as AxiosError
           if (axiosErr.response?.status === 404) {
+            if (isAdmin) {
+              setAdminNoFallback(true)
+              setLoading(false)
+              return
+            }
             setNotFound(true)
             setLoading(false)
             return
@@ -683,6 +690,19 @@ export default function MyTeam() {
     )
   }
 
+  if (adminNoFallback) {
+    return (
+      <div>
+        <BackButton to="/" className="mb-4" />
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card text-center">
+          <i className="sap-icon sap-icon-information text-[40px] text-subtle mb-3" />
+          <p className="text-foreground font-medium mb-2">Für die ADMIN-Rolle ist in der aktuellen Saison kein Fallback-Team hinterlegt.</p>
+          <p className="text-sm text-muted">Lege in der Saisonverwaltung unter „Admin Fallback User" einen Manager fest, damit hier dessen Team angezeigt wird.</p>
+        </div>
+      </div>
+    )
+  }
+
   if (notFound) {
     return (
       <div>
@@ -792,47 +812,68 @@ export default function MyTeam() {
         <div className="flex flex-col md:flex-row md:items-start gap-4">
           <div className="flex items-center gap-4 md:items-start">
             <div className="relative group w-12 h-12 shrink-0">
-              <button
-                onClick={() => avatarInputRef.current?.click()}
-                className="w-12 h-12 p-0 rounded-full overflow-hidden cursor-pointer"
-                disabled={uploadAvatar.isPending || deleteAvatar.isPending}
-                aria-label="Profilbild ändern"
-                title="Profilbild ändern"
-              >
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center text-base font-bold">
-                    {avatarInitials}
-                  </div>
-                )}
-              </button>
-              {avatarUrl && (
-                <button
-                  type="button"
-                  onClick={handleAvatarDelete}
-                  disabled={deleteAvatar.isPending || uploadAvatar.isPending}
-                  className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                  aria-label="Profilbild löschen"
-                  title="Profilbild löschen"
-                >
-                  <i className="sap-icon sap-icon-delete text-xs" />
-                </button>
+              {isAdmin ? (
+                <div className="w-12 h-12 rounded-full overflow-hidden">
+                  {manager?.avatarUrl ? (
+                    <img src={manager.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center text-base font-bold">
+                      {avatarInitials}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="w-12 h-12 p-0 rounded-full overflow-hidden cursor-pointer"
+                    disabled={uploadAvatar.isPending || deleteAvatar.isPending}
+                    aria-label="Profilbild ändern"
+                    title="Profilbild ändern"
+                  >
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center text-base font-bold">
+                        {avatarInitials}
+                      </div>
+                    )}
+                  </button>
+                  {avatarUrl && (
+                    <button
+                      type="button"
+                      onClick={handleAvatarDelete}
+                      disabled={deleteAvatar.isPending || uploadAvatar.isPending}
+                      className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-danger hover:bg-danger-hover text-danger-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                      aria-label="Profilbild löschen"
+                      title="Profilbild löschen"
+                    >
+                      <i className="sap-icon sap-icon-delete text-xs" />
+                    </button>
+                  )}
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                </>
               )}
-              <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                onChange={handleAvatarChange}
-              />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground truncate">
-                {manager?.firstName && manager?.lastName
-                  ? `${manager.firstName} ${manager.lastName}`
-                  : manager?.login || '-'}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground truncate">
+                  {manager?.firstName && manager?.lastName
+                    ? `${manager.firstName} ${manager.lastName}`
+                    : manager?.login || '-'}
+                </h2>
+                {isAdmin && (
+                  <span className="shrink-0 text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
+                    Fallback (Admin)
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-muted mt-1 truncate">
                 {manager?.login ?? '-'}
               </p>
@@ -840,34 +881,38 @@ export default function MyTeam() {
                 <p className="text-sm text-muted italic mt-1 truncate">„{manager.description.trim()}"</p>
               )}
             </div>
-            <button
-              type="button"
-              onClick={() => setProfileOpen(o => !o)}
-              aria-expanded={profileOpen}
-              aria-controls="profile-form"
-              aria-label={profileOpen ? 'Profilbearbeitung schließen' : 'Profil bearbeiten'}
-              title={profileOpen ? 'Schließen' : 'Bearbeiten'}
+            {!isAdmin && (
+              <button
+                type="button"
+                onClick={() => setProfileOpen(o => !o)}
+                aria-expanded={profileOpen}
+                aria-controls="profile-form"
+                aria-label={profileOpen ? 'Profilbearbeitung schließen' : 'Profil bearbeiten'}
+                title={profileOpen ? 'Schließen' : 'Bearbeiten'}
                 className="md:hidden shrink-0 ml-auto w-9 h-9 rounded-full bg-accent-muted text-accent hover:bg-accent hover:text-accent-foreground flex items-center justify-center transition-colors shadow-sm"
-            >
-              <i className={`sap-icon ${profileOpen ? 'sap-icon-decline' : 'sap-icon-edit'} text-sm`} />
-            </button>
+              >
+                <i className={`sap-icon ${profileOpen ? 'sap-icon-decline' : 'sap-icon-edit'} text-sm`} />
+              </button>
+            )}
           </div>
-          <div className="hidden md:block w-auto md:ml-auto">
-            <Button
-              variant={profileOpen ? 'ghost' : 'emphasized'}
-              size={isMobile ? 'sm' : 'input'}
-              onClick={() => setProfileOpen(o => !o)}
-              aria-expanded={profileOpen}
-              aria-controls="profile-form"
-              className="w-full md:w-auto"
-            >
-              <i className={`sap-icon sap-icon-slim-arrow-${profileOpen ? 'up' : 'down'} text-xs mr-1`} />
-              {profileOpen ? 'Schließen' : 'Bearbeiten'}
-            </Button>
-          </div>
+          {!isAdmin && (
+            <div className="hidden md:block w-auto md:ml-auto">
+              <Button
+                variant={profileOpen ? 'ghost' : 'emphasized'}
+                size={isMobile ? 'sm' : 'input'}
+                onClick={() => setProfileOpen(o => !o)}
+                aria-expanded={profileOpen}
+                aria-controls="profile-form"
+                className="w-full md:w-auto"
+              >
+                <i className={`sap-icon sap-icon-slim-arrow-${profileOpen ? 'up' : 'down'} text-xs mr-1`} />
+                {profileOpen ? 'Schließen' : 'Bearbeiten'}
+              </Button>
+            </div>
+          )}
         </div>
 
-        {profileOpen && (
+        {!isAdmin && profileOpen && (
           <div id="profile-form" className="mt-4 pt-4 border-t border-border">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="min-w-0">

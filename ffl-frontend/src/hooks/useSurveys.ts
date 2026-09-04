@@ -33,14 +33,6 @@ export const usePublicSurvey = (id: number) => {
   })
 }
 
-export const usePublicSurveyResult = (id: number, enabled?: boolean) => {
-  return useQuery({
-    queryKey: ['survey', 'public', id, 'result'],
-    queryFn: () => surveyPublicApi.result(id).then(res => res.data),
-    enabled: !!id && enabled !== false,
-  })
-}
-
 export const useCreateSurvey = () => {
   const queryClient = useQueryClient()
   return useMutation({
@@ -80,10 +72,10 @@ export const useDeleteSurvey = () => {
 export const useSurveyStatusAction = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, action }: { id: number; action: 'start' | 'end' | 'publish' }) => {
+    mutationFn: ({ id, action }: { id: number; action: 'start' | 'end' | 'reopen' }) => {
       if (action === 'start') return surveyApi.start(id).then(res => res.data)
       if (action === 'end') return surveyApi.end(id).then(res => res.data)
-      return surveyApi.publish(id).then(res => res.data)
+      return surveyApi.reopen(id).then(res => res.data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surveys'] })

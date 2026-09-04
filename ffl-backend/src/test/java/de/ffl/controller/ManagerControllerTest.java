@@ -2,6 +2,8 @@ package de.ffl.controller;
 
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
+import de.ffl.domain.User;
+import de.ffl.domain.UserRole;
 import de.ffl.dto.ManagerDto;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.PointsRepository;
@@ -78,6 +80,14 @@ class ManagerControllerTest {
         return Season.builder().id(1L).name("2026/27").seasonState(state).build();
     }
 
+    private Season seasonWithFallback(SeasonState state) {
+        return Season.builder().id(1L).name("2026/27").seasonState(state).adminFallbackUser("uwe72").build();
+    }
+
+    private User user(Long id, String login, UserRole role) {
+        return User.builder().id(id).login(login).role(role).build();
+    }
+
     @Test
     void getManagerById_beforeSeason_nonAdmin_returnsNotFound() {
         when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.BEFORE_SEASON)));
@@ -115,5 +125,58 @@ class ManagerControllerTest {
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().getId()).isEqualTo(7L);
+    }
+
+    @Test
+    void getCurrentManager_normalUser_usesOwnUserId() {
+        authAs("ROLE_USER");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));
+        ManagerDto dto = new ManagerDto();
+        dto.setId(7L);
+        when(managerService.findByUserId(7L)).thenReturn(dto);
+
+        ResponseEntity<?> response = managerController.getCurrentManager();
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(((ManagerDto) response.getBody()).getId()).isEqualTo(7L);
+    }
+
+    @Test
+    void getCurrentManager_admin_withFallback_returnsFallbackManager() {
+        authAs("ROLE_ADMIN");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(1L, "user", UserRole.ADMIN)));
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(seasonWithFallback(SeasonState.RUNNING_HINRUNDE)));
+        when(userRepository.findByLogin("uwe72")).thenReturn(Optional.of(user(99L, "uwe72", UserRole.NORMAL)));
+        ManagerDto dto = new ManagerDto();
+        dto.setId(42L);
+        when(managerService.findByUserId(99L)).thenReturn(dto);
+
+        ResponseEntity<?> response = managerController.getCurrentManager();
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(((ManagerDto) response.getBody()).getId()).isEqualTo(42L);
+    }
+
+    @Test
+    void getCurrentManager_admin_withoutFallback_returnsNotFound() {
+        authAs("ROLE_ADMIN");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(1L, "user", UserRole.ADMIN)));
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_HINRUNDE)));
+
+        ResponseEntity<?> response = managerController.getCurrentManager();
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
+    }
+
+    @Test
+    void getCurrentManager_admin_fallbackUserUnknown_returnsNotFound() {
+        authAs("ROLE_ADMIN");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(1L, "user", UserRole.ADMIN)));
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(seasonWithFallback(SeasonState.RUNNING_HINRUNDE)));
+        when(userRepository.findByLogin("uwe72")).thenReturn(Optional.empty());
+
+        ResponseEntity<?> response = managerController.getCurrentManager();
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
     }
 }

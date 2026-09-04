@@ -2,6 +2,9 @@ package de.ffl.controller;
 
 import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerRank;
+import de.ffl.domain.Season;
+import de.ffl.domain.User;
+import de.ffl.domain.UserRole;
 import de.ffl.dto.ManagerDto;
 import de.ffl.dto.ManagerGroupDto;
 import de.ffl.dto.ManagerRankDto;
@@ -174,13 +177,17 @@ public class ManagerController {
             return ResponseEntity.status(401).build();
         }
         String login = auth.getName();
-        Long userId = userRepository.findByLogin(login)
-            .map(u -> u.getId())
-            .orElse(null);
-        if (userId == null) {
+        User user = userRepository.findByLogin(login).orElse(null);
+        if (user == null) {
             log.warn("getCurrentManager: user not found for login={}", login);
             return ResponseEntity.status(401).build();
         }
+        User effective = resolveEffectiveUser(user);
+        if (effective == null) {
+            log.debug("getCurrentManager: no fallback manager for admin login={}", login);
+            return ResponseEntity.notFound().build();
+        }
+        Long userId = effective.getId();
         try {
             ManagerDto manager = managerService.findByUserId(userId);
             if (manager == null) {
@@ -201,15 +208,17 @@ public class ManagerController {
             return ResponseEntity.status(401).build();
         }
         String login = auth.getName();
-        Long userId = userRepository.findByLogin(login)
-            .map(u -> u.getId())
-            .orElse(null);
-        if (userId == null) {
+        User user = userRepository.findByLogin(login).orElse(null);
+        if (user == null) {
             return ResponseEntity.status(401).build();
         }
+        User effective = resolveEffectiveUser(user);
+        if (effective == null) {
+            return ResponseEntity.badRequest().body("Manager nicht gefunden");
+        }
         try {
-            managerService.updateLineup(userId, request);
-            ManagerDto updated = managerService.findByUserId(userId);
+            managerService.updateLineup(effective.getId(), request);
+            ManagerDto updated = managerService.findByUserId(effective.getId());
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -223,19 +232,34 @@ public class ManagerController {
             return ResponseEntity.status(401).build();
         }
         String login = auth.getName();
-        Long userId = userRepository.findByLogin(login)
-            .map(u -> u.getId())
-            .orElse(null);
-        if (userId == null) {
+        User user = userRepository.findByLogin(login).orElse(null);
+        if (user == null) {
             return ResponseEntity.status(401).build();
         }
+        User effective = resolveEffectiveUser(user);
+        if (effective == null) {
+            return ResponseEntity.badRequest().body("Manager nicht gefunden");
+        }
         try {
-            managerService.updateWinterTransfers(userId, request);
-            ManagerDto updated = managerService.findByUserId(userId);
+            managerService.updateWinterTransfers(effective.getId(), request);
+            ManagerDto updated = managerService.findByUserId(effective.getId());
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    private User resolveEffectiveUser(User user) {
+        if (user.getRole() != UserRole.ADMIN) {
+            return user;
+        }
+        String fallbackLogin = seasonService.findCurrentSeason()
+            .map(Season::getAdminFallbackUser)
+            .orElse(null);
+        if (fallbackLogin == null || fallbackLogin.isBlank()) {
+            return null;
+        }
+        return userRepository.findByLogin(fallbackLogin).orElse(null);
     }
 
     @GetMapping("/{id}/position-stats")

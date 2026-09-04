@@ -423,6 +423,17 @@ public class ManagerGroupService {
             .orElse(null);
     }
 
+    private User resolveAdminFallbackUser() {
+        String fallbackLogin = seasonRepository.findAll().stream()
+            .findFirst()
+            .map(Season::getAdminFallbackUser)
+            .orElse(null);
+        if (fallbackLogin == null || fallbackLogin.isBlank()) {
+            return null;
+        }
+        return userRepository.findByLogin(fallbackLogin).orElse(null);
+    }
+
     private ManagerGroupListDto toListDto(ManagerGroup group) {
         ManagerGroupListDto dto = new ManagerGroupListDto();
         dto.setId(group.getId());
@@ -553,7 +564,7 @@ public class ManagerGroupService {
 
         User sourceUser = currentUser;
         if (currentUser.getRole().name().equals("ADMIN")) {
-            sourceUser = userRepository.findByLogin("uwe72").orElse(null);
+            sourceUser = resolveAdminFallbackUser();
             if (sourceUser == null) {
                 return Collections.emptyList();
             }
@@ -586,7 +597,7 @@ public class ManagerGroupService {
         }
         User sourceUser = currentUser;
         if (currentUser.getRole().name().equals("ADMIN")) {
-            sourceUser = userRepository.findByLogin("uwe72").orElse(null);
+            sourceUser = resolveAdminFallbackUser();
             if (sourceUser == null) {
                 return;
             }

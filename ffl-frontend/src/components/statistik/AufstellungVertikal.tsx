@@ -12,6 +12,15 @@ const POS_BADGE: Record<string, string> = {
   STRIKER: 'ST',
 }
 
+function formatPrice(price: number | undefined): string {
+  if (!price) return '- €'
+  if (price >= 1_000_000) {
+    const millions = price / 1_000_000
+    return `${millions % 1 === 0 ? millions : millions.toFixed(1)}M €`
+  }
+  return `${Math.round(price / 1_000)}K €`
+}
+
 export default function AufstellungVertikal({
   aufstellung,
   hinrundeFilter = false,
@@ -70,7 +79,11 @@ export default function AufstellungVertikal({
                     <div className="truncate font-semibold text-link">{p.name.length > 12 ? `${p.name.slice(0, 12)}...` : p.name}</div>
                   </RouterLink>
                   {p.vereinKuerzel && (
-                    <div className="truncate text-xs text-muted">{p.vereinKuerzel}</div>
+                    <div className="truncate text-xs text-muted">
+                      {p.vereinKuerzel}
+                      {p.einsatzquote != null && <span> · {p.einsatzquote} %</span>}
+                      <span> · {formatPrice(p.marktwert)}</span>
+                    </div>
                   )}
                 </td>
                 <td className={`${td} text-center`}>

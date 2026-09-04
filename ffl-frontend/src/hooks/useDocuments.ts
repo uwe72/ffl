@@ -12,7 +12,19 @@ export const useDocuments = (enabled: boolean = true) => {
 export const useUploadDocument = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (file: File) => documentApi.upload(file).then(res => res.data),
+    mutationFn: ({ file, description }: { file: File; description?: string }) =>
+      documentApi.upload(file, description).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] })
+    },
+  })
+}
+
+export const useUpdateDocumentDescription = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, description }: { id: number; description: string }) =>
+      documentApi.updateDescription(id, description).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] })
     },

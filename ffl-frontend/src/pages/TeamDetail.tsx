@@ -140,7 +140,7 @@ export default function TeamDetail() {
               )}
             </div>
 
-            {isAdmin && (
+            {isAdmin && !isMobile && (
               <Button
                 variant={stammdatenOpen ? 'ghost' : 'emphasized'}
                 size={isMobile ? 'sm' : 'input'}

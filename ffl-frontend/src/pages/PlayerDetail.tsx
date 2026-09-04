@@ -12,11 +12,13 @@ import Badge from '../components/Badge'
 import { TableContent, TableHead, ThSortable, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 import { getChartColors } from '../utils/chartColors'
+import { buildGamePointsRows, shortRuleLabel } from '../utils/gamePoints'
 import type { Position } from '../types'
 
 const chartColors = getChartColors()
 
 type SortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'hinrunde' | 'rueckrunde'
+type GameSortKey = 'roundNumber' | 'gameName' | 'ruleLabel' | 'points'
 type SortOrder = 'asc' | 'desc'
 
 function formatPrice(price: number | undefined): string {
@@ -59,6 +61,8 @@ export default function PlayerDetail() {
   const isMobile = useIsMobile()
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+  const [gameSortKey, setGameSortKey] = useState<GameSortKey>('roundNumber')
+  const [gameSortOrder, setGameSortOrder] = useState<SortOrder>('asc')
   const [editData, setEditData] = useState({
     nameKicker: '',
     nameKickerAlt1: '',
@@ -187,6 +191,39 @@ export default function PlayerDetail() {
       setSortOrder('asc')
     }
   }
+
+  const handleGameSort = (key: GameSortKey) => {
+    if (gameSortKey === key) {
+      setGameSortOrder(gameSortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setGameSortKey(key)
+      setGameSortOrder('asc')
+    }
+  }
+
+  const gamePointsRows = useMemo(() => {
+    return buildGamePointsRows(playerRanks).sort((a, b) => {
+      let comparison = 0
+      switch (gameSortKey) {
+        case 'roundNumber':
+          comparison = a.roundNumber - b.roundNumber
+          break
+        case 'gameName':
+          comparison = (isMobile ? a.opponent : a.gameName).localeCompare(isMobile ? b.opponent : b.gameName)
+          break
+        case 'ruleLabel':
+          comparison = a.ruleLabel.localeCompare(b.ruleLabel)
+          break
+        case 'points':
+          comparison = a.points - b.points
+          break
+      }
+      if (comparison === 0) {
+        comparison = a.roundNumber - b.roundNumber
+      }
+      return gameSortOrder === 'asc' ? comparison : -comparison
+    })
+  }, [playerRanks, gameSortKey, gameSortOrder, isMobile])
 
   const mobileManagers = useMemo(() => {
     if (!player?.managers) return []
@@ -558,7 +595,7 @@ export default function PlayerDetail() {
             )}
           </div>
 
-          {isAdmin && (
+          {isAdmin && !isMobile && (
             <Button
               variant={stammdatenOpen ? 'ghost' : 'emphasized'}
               size={isMobile ? 'sm' : 'input'}
@@ -576,7 +613,7 @@ export default function PlayerDetail() {
 
       <div className="flex flex-col">
       {chartData.length > 0 && (
-        <div className={`order-2 md:order-1 px-3 py-4 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
+        <div className={`hidden md:block order-3 md:order-3 px-3 py-4 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
           <h3 className="text-xl font-semibold text-foreground mb-3">Punkte pro Spieltag</h3>
           <div className="bg-card p-4 rounded-card border border-border">
             <ResponsiveContainer width="100%" height={300}>
@@ -592,11 +629,109 @@ export default function PlayerDetail() {
         </div>
       )}
 
+      {gamePointsRows.length > 0 && (
+        <div className={`order-1 md:order-1 px-3 py-4 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
+          <h3 className="text-base md:text-xl font-semibold text-foreground mb-4">Punkte</h3>
+          {!isMobile && (
+            <div className="overflow-x-auto rounded-card border border-border">
+              <TableContent>
+                <table className="w-full">
+                  <TableHead>
+                    <tr>
+                      <ThSortable align="center" onClick={() => handleGameSort('roundNumber')}>
+                        Spieltag<SortIcon column="roundNumber" activeKey={gameSortKey} order={gameSortOrder} />
+                      </ThSortable>
+                      <ThSortable align="left" onClick={() => handleGameSort('gameName')}>
+                        Spiel<SortIcon column="gameName" activeKey={gameSortKey} order={gameSortOrder} />
+                      </ThSortable>
+                      <ThSortable align="left" onClick={() => handleGameSort('ruleLabel')}>
+                        Regel<SortIcon column="ruleLabel" activeKey={gameSortKey} order={gameSortOrder} />
+                      </ThSortable>
+                      <ThSortable align="center" onClick={() => handleGameSort('points')}>
+                        Punkte<SortIcon column="points" activeKey={gameSortKey} order={gameSortOrder} />
+                      </ThSortable>
+                    </tr>
+                  </TableHead>
+                  <TableBody>
+                    {gamePointsRows.map((row, index) => (
+                      <tr key={`${row.roundNumber}-${row.ruleLabel}-${index}`} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                        <td className="px-3 py-2 text-center text-muted tabular-nums">
+                          {row.roundNumber}
+                        </td>
+                        <td className="px-3 py-2 text-foreground">
+                          <span className="font-medium">{row.gameName}</span>
+                          {row.goalHost != null && row.goalVisitor != null && (
+                            <span className="text-subtle"> ({row.goalHost}:{row.goalVisitor})</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-muted">
+                          {row.ruleLabel}{row.count > 1 ? ` (${row.count}x)` : ''}
+                        </td>
+                        <td className="px-3 py-2 text-center font-semibold text-foreground tabular-nums">
+                          {row.points}
+                        </td>
+                      </tr>
+                    ))}
+                  </TableBody>
+                </table>
+              </TableContent>
+            </div>
+          )}
+
+          {isMobile && (
+            <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
+              <table className="w-full border-collapse text-sm table-fixed">
+                <colgroup>
+                  <col className="w-9" />
+                  <col className="w-auto" />
+                  <col className="w-auto" />
+                  <col className="w-9" />
+                </colgroup>
+                <thead className="bg-elevated sticky top-0">
+                  <tr>
+                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">SP.</th>
+                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Spiel</th>
+                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Regel</th>
+                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">PKT.</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-surface">
+                  {gamePointsRows.map((row, index) => (
+                    <tr key={`${row.roundNumber}-${row.ruleLabel}-${index}`} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center font-medium text-foreground">
+                        {row.roundNumber}
+                      </td>
+                      <td className="px-2 py-2 border-b border-border overflow-hidden min-w-0">
+                        <span className="font-medium truncate block min-w-0" title={row.opponent || row.gameName}>
+                          {row.opponent || row.gameName}
+                        </span>
+                        {row.goalsOwn != null && row.goalsOpponent != null && (
+                          <span className="text-subtle"> ({row.goalsOwn}:{row.goalsOpponent})</span>
+                        )}
+                        {row.homeAway && (
+                          <span className="text-subtle"> {row.homeAway}</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-2 border-b border-border overflow-hidden min-w-0 text-muted">
+                        {shortRuleLabel(row.rule)}{row.count > 1 ? ` (${row.count}x)` : ''}
+                      </td>
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center font-bold text-foreground">
+                        {row.points}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {player.managers && player.managers.length > 0 && (
-        <div className={`order-1 md:order-2 px-3 py-4 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
+        <div className={`order-2 md:order-2 px-3 py-4 md:p-6 bg-surface border border-border rounded-card ${isMobile ? 'mb-0' : 'mb-6'}`}>
           {!isMobile && (
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-foreground">Manager mit diesem Spieler ({player.managers.length})</h3>
+              <h3 className="text-base md:text-xl font-semibold text-foreground">Manager</h3>
               <input
                 type="text"
                 placeholder="Manager suchen..."
@@ -705,7 +840,9 @@ export default function PlayerDetail() {
           )}
 
           {isMobile && (
-            <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
+            <>
+              <h3 className="text-base font-semibold text-foreground mb-4">Manager</h3>
+              <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
               <table className="w-full border-collapse text-sm table-fixed">
                 <colgroup>
                   <col className="w-9" />
@@ -763,6 +900,7 @@ export default function PlayerDetail() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       )}

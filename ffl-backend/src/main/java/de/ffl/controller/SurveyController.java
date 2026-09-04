@@ -63,9 +63,9 @@ public class SurveyController {
         return ResponseEntity.ok(surveyService.endSurvey(id));
     }
 
-    @PostMapping("/{id}/publish")
-    public ResponseEntity<SurveyAdminDto> publish(@PathVariable Long id) {
-        return ResponseEntity.ok(surveyService.publishSurvey(id));
+    @PostMapping("/{id}/reopen")
+    public ResponseEntity<SurveyAdminDto> reopen(@PathVariable Long id) {
+        return ResponseEntity.ok(surveyService.reopenSurvey(id));
     }
 
     @GetMapping("/{id}/result")

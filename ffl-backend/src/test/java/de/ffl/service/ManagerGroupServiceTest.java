@@ -270,6 +270,7 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
 
     @Test
     void adminSeesGroupsOfHardcodedUserUwe72() {
+        season.setAdminFallbackUser("uwe72");
         authenticateAs("uwe72");
         Long groupId = createGroup("Uwe72Gruppe", season.getId(), List.of());
 

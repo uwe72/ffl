@@ -24,6 +24,10 @@ public class PlayerRankDto {
     private String gameName;
     private Integer goalHost;
     private Integer goalVisitor;
+    private String opponent;
+    private String homeAway;
+    private Integer goalsOwn;
+    private Integer goalsOpponent;
     @Builder.Default
     private List<RulePointDto> rules = new ArrayList<>();
 

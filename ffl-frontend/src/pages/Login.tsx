@@ -223,14 +223,15 @@ export default function Login() {
                 </Button>
               </div>
               <div className="flex gap-3">
-                <Button
-                  variant="ghost"
-                  type="button"
-                  onClick={() => navigate('/register')}
-                  disabled={season?.seasonState !== 'BEFORE_SEASON'}
-                >
-                  Registrieren
-                </Button>
+                {season?.seasonState === 'BEFORE_SEASON' && (
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    onClick={() => navigate('/register')}
+                  >
+                    Registrieren
+                  </Button>
+                )}
                 <Button
                   variant="emphasized"
                   type="submit"

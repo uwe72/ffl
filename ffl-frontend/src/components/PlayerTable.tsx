@@ -194,7 +194,11 @@ function PlayerMobileTable({ players, isBeforeSeason, title }: {
                   </div>
                 </RouterLink>
                 {p.teams.length > 0 && (
-                  <div className="truncate text-xs text-muted">{p.teams[0].name}</div>
+                  <div className="truncate text-xs text-muted">
+                    {p.teams[0].shortName ?? p.teams[0].name}
+                    {p.einsatzquote != null && <span> · {p.einsatzquote} %</span>}
+                    <span> · {formatPrice(p.prize)}</span>
+                  </div>
                 )}
               </td>
               <td className={`${td} text-center`}>

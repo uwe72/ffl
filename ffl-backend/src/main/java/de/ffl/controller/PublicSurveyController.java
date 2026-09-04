@@ -1,6 +1,5 @@
 package de.ffl.controller;
 
-import de.ffl.dto.PublicSurveyResultDto;
 import de.ffl.dto.SurveyAnswerRequest;
 import de.ffl.dto.SurveyPublicDto;
 import de.ffl.service.SurveyService;
@@ -35,10 +34,5 @@ public class PublicSurveyController {
     public ResponseEntity<?> submit(@PathVariable Long id, @Valid @RequestBody SurveyAnswerRequest request) {
         surveyService.submitResponse(id, request);
         return ResponseEntity.ok(Map.of("status", "ok"));
-    }
-
-    @GetMapping("/{id}/result")
-    public ResponseEntity<PublicSurveyResultDto> result(@PathVariable Long id) {
-        return ResponseEntity.ok(surveyService.getPublicResult(id));
     }
 }

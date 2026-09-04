@@ -476,13 +476,14 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
 }) {
   const { user } = useAuth()
   const { data: currentManager } = useCurrentManager()
+  const { data: season } = useCurrentSeason()
   const [searchTerm, setSearchTerm] = useState('')
   const [selected, setSelected] = useState(false)
   const rowRef = useRef<HTMLTableRowElement | null>(null)
 
   const isAdmin = user?.role === 'ADMIN'
-  const uwe72 = useMemo(() => managers?.find(m => m.shortName === 'uwe72'), [managers])
-  const myManagerId = isAdmin ? uwe72?.id : currentManager?.id
+  const fallbackManager = useMemo(() => managers?.find(m => m.shortName === season?.adminFallbackUser), [managers, season])
+  const myManagerId = isAdmin ? fallbackManager?.id : currentManager?.id
 
   const filteredManagers = useMemo(() => {
     if (!managers) return []
@@ -534,7 +535,7 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
                 onClick={handleSelectMe}
                 size="input"
                 variant="secondary"
-                className="shrink-0"
+                className="shrink-0 w-[38px] h-[38px] px-0"
                 aria-label="Selektiere mich"
                 title="Selektiere mich"
               >
@@ -904,6 +905,12 @@ export default function Home() {
                             Als Standard
                           </Button>
                         )}
+                        <div className="border-t border-border pt-3">
+                          <Button variant="ghost" size="input" className="w-full" onClick={() => setGroupMenuOpen(false)}>
+                            <i className="sap-icon sap-icon-decline text-sm" />
+                            Fenster schließen
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -997,11 +1004,6 @@ export default function Home() {
                   {showCarouselNav && (
                     <div className="text-center text-xs text-subtle">Alternative: Wischen zum Wechseln</div>
                   )}
-                  {carouselEnabled && activeManagerId != null && !isOwnTeam && (
-                    <Button variant="ghost" size="input" onClick={handleToggleFavorite}>
-                      {isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit'}
-                    </Button>
-                  )}
                   {carouselEnabled && (
                     <div className="flex flex-col gap-1.5">
                       <span className="text-xs font-semibold uppercase tracking-wider text-muted">Manager suchen</span>
@@ -1023,6 +1025,17 @@ export default function Home() {
                       Standard entfernen
                     </Button>
                   )}
+                  {carouselEnabled && activeManagerId != null && !isOwnTeam && (
+                    <Button variant="transparent" size="input" onClick={handleToggleFavorite}>
+                      {isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit'}
+                    </Button>
+                  )}
+                  <div className="border-t border-border pt-3">
+                    <Button variant="ghost" size="input" className="w-full" onClick={() => setMenuOpen(false)}>
+                      <i className="sap-icon sap-icon-decline text-sm" />
+                      Fenster schließen
+                    </Button>
+                  </div>
                 </div>
               )}
                 </div>

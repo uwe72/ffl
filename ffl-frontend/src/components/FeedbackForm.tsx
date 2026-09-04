@@ -111,7 +111,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
         </div>
         <Button
           variant="transparent"
-          size={isMobile ? 'sm' : 'input'}
+          size={isMobile ? 'default' : 'input'}
           onClick={handleClose}
         >
           Schließen
@@ -206,7 +206,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
       <div className="col-span-2 mt-3 flex gap-2">
         <Button
           variant="emphasized"
-          size={isMobile ? 'sm' : 'input'}
+          size={isMobile ? 'default' : 'input'}
           type="submit"
           disabled={isLoading}
         >
@@ -214,7 +214,7 @@ export default function FeedbackForm({ onSuccess, onCancel }: Props) {
         </Button>
         <Button
           variant="ghost"
-          size={isMobile ? 'sm' : 'input'}
+          size={isMobile ? 'default' : 'input'}
           onClick={handleCancel}
           disabled={isLoading}
         >

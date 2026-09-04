@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { usePublicSurvey, usePublicSurveyResult, useSubmitSurvey } from '../hooks/useSurveys'
+import { usePublicSurvey, useSubmitSurvey } from '../hooks/useSurveys'
 import type { SurveyQuestion, SurveyAnswerInput } from '../types'
 import Button from '../components/Button'
 import BackButton from '../components/BackButton'
@@ -126,7 +126,6 @@ export default function SurveyPublic() {
   const { id } = useParams<{ id: string }>()
   const surveyId = Number(id)
   const { data: survey, isLoading, error } = usePublicSurvey(surveyId)
-  const { data: result } = usePublicSurveyResult(surveyId, survey?.status === 'VEROEFFENTLICHT')
   const submit = useSubmitSurvey()
   const [answers, setAnswers] = useState<AnswerState>({})
   const [submitted, setSubmitted] = useState(false)
@@ -167,17 +166,6 @@ export default function SurveyPublic() {
           <p className="text-muted text-sm">Deine Antwort wurde übermittelt.</p>
         </div>
       </div>
-    )
-  }
-
-  if (survey.status === 'VEROEFFENTLICHT') {
-    return (
-      <PublicResults
-        title={survey.title}
-        description={survey.description ?? ''}
-        responseCount={result?.responseCount ?? 0}
-        questions={result?.questions ?? []}
-      />
     )
   }
 
@@ -305,95 +293,6 @@ export default function SurveyPublic() {
         >
           {submit.isPending ? 'Wird gesendet...' : 'Absenden'}
         </Button>
-      </div>
-    </div>
-  )
-}
-
-function PublicResults({ title, description, responseCount, questions }: {
-  title: string
-  description: string
-  responseCount: number
-  questions: { questionId: number; text: string; type: string; answerCount?: number; mean?: number; ratingDistribution?: number[]; counts?: { optionText: string; count: number }[] }[]
-}) {
-  const maxCount = Math.max(1, ...questions.flatMap(q => q.counts?.map(c => c.count) ?? [q.answerCount ?? 0]))
-  return (
-    <div>
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-4">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-            {description && (
-              <p className="text-sm text-muted mt-1 whitespace-pre-wrap">{description}</p>
-            )}
-          </div>
-        </div>
-
-        <p className="text-sm text-subtle mt-5">{responseCount} Antworten</p>
-      </div>
-
-      <div className="flex flex-col gap-4 mb-4">
-        {questions.map(q => {
-          if (q.type === 'RATING') {
-            const total = q.ratingDistribution?.reduce((a, b) => a + b, 0) ?? 0
-            return (
-              <div key={q.questionId} className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-medium text-foreground">{q.text}</p>
-                  {q.mean != null && (
-                    <span className="text-sm text-foreground font-semibold tabular-nums">{q.mean.toFixed(2)} / 5</span>
-                  )}
-                </div>
-                <div className="flex flex-col gap-2">
-                  {[5, 4, 3, 2, 1].map(star => {
-                    const count = q.ratingDistribution?.[star - 1] ?? 0
-                    const pct = total > 0 ? Math.round((count / total) * 100) : 0
-                    return (
-                      <div key={star} className="flex items-center gap-3">
-                        <span className="text-sm text-muted w-8 shrink-0 text-right">{star}★</span>
-                        <div className="flex-1 h-5 bg-elevated rounded-full overflow-hidden">
-                          <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className="text-sm text-subtle w-8 shrink-0 tabular-nums">{count}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          }
-          if (q.type === 'SINGLE' || q.type === 'MULTI') {
-            return (
-              <div key={q.questionId} className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
-                <p className="font-medium text-foreground mb-3">{q.text}</p>
-                <div className="flex flex-col gap-2">
-                  {(q.counts ?? []).map(c => {
-                    const pct = Math.round((c.count / maxCount) * 100)
-                    return (
-                      <div key={c.optionText} className="flex items-center gap-3">
-                        <span className="text-sm text-muted flex-1 min-w-0 truncate">{c.optionText}</span>
-                        <div className="flex-1 h-5 bg-elevated rounded-full overflow-hidden">
-                          <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className="text-sm text-subtle w-8 shrink-0 tabular-nums">{c.count}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          }
-          return (
-            <div key={q.questionId} className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
-              <p className="font-medium text-foreground mb-1">{q.text}</p>
-              <p className="text-sm text-subtle">{q.answerCount ?? 0} Antworten</p>
-            </div>
-          )
-        })}
-      </div>
-
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
-        <BackButton to="/" className="px-0 pt-0" />
       </div>
     </div>
   )

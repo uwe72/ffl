@@ -9,7 +9,6 @@ const STATUS_LABEL: Record<string, string> = {
   ANGELEGT: 'Angelegt',
   GESTARTET: 'Gestartet',
   BEENDET: 'Beendet',
-  VEROEFFENTLICHT: 'Veröffentlicht',
 }
 
 const TYPE_LABEL: Record<QuestionType, string> = {
@@ -28,7 +27,6 @@ function defaultMaxLength(type: QuestionType): number | null {
 
 function statusClass(status: string) {
   if (status === 'GESTARTET') return 'text-success bg-success-bg'
-  if (status === 'VEROEFFENTLICHT') return 'text-link bg-accent-muted'
   return 'text-muted bg-elevated'
 }
 
@@ -85,7 +83,7 @@ export default function SurveyAdmin() {
   const [isNew, setIsNew] = useState(false)
   const [activeId, setActiveId] = useState<number | null>(null)
 
-  const changeStatus = (id: number, action: 'start' | 'end' | 'publish') => {
+  const changeStatus = (id: number, action: 'start' | 'end' | 'reopen') => {
     statusAction.mutate({ id, action }, {
       onError: err => alert(err instanceof Error ? err.message : 'Aktion fehlgeschlagen'),
     })
@@ -174,7 +172,7 @@ export default function SurveyAdmin() {
                 <div className="flex flex-wrap items-center gap-2 shrink-0">
                   {s.status === 'ANGELEGT' && (
                     <>
-                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startEdit(s)}>Bearbeiten</Button>
+                      {!isMobile && <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startEdit(s)}>Bearbeiten</Button>}
                       <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'start')}>Starten</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
                       <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
@@ -191,14 +189,7 @@ export default function SurveyAdmin() {
                   {s.status === 'BEENDET' && (
                     <>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
-                      <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'publish')}>Veröffentlichen</Button>
-                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
-                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
-                    </>
-                  )}
-                  {s.status === 'VEROEFFENTLICHT' && (
-                    <>
-                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
+                      <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'reopen')}>Reaktivieren</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
                       <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
                     </>

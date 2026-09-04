@@ -124,7 +124,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
               { to: '/emails', label: 'E-Mailadressen', icon: 'sap-icon-email' },
               { to: '/mailing', label: 'Mailing', icon: 'sap-icon-marketing-campaign' },
               { to: '/season', label: 'Saison', icon: 'sap-icon-date-time' },
-              { to: '/statistik', label: 'Statistik', icon: 'sap-icon-bar-chart' },
+              { to: '/statistik', label: 'Statistiken', icon: 'sap-icon-bar-chart' },
               { to: '/system', label: 'System', icon: 'sap-icon-settings' },
               { to: '/umfragen', label: 'Umfragen', icon: 'sap-icon-survey' },
             ]}

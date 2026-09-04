@@ -1,4 +1,4 @@
-import { useInvitationPreview } from '../hooks/useSeasons'
+import { useInvitationPreview, usePublicCurrentSeason } from '../hooks/useSeasons'
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -20,6 +20,8 @@ function Card({ children }: { children: React.ReactNode }) {
 
 export default function RulesContent() {
   const { data: preview, isLoading, isError } = useInvitationPreview()
+  const { data: season } = usePublicCurrentSeason()
+  const isBeforeSeason = season?.seasonState === 'BEFORE_SEASON'
 
   if (isLoading) {
     return (
@@ -46,7 +48,7 @@ export default function RulesContent() {
               FFL &middot; Fantasy Football League
             </p>
             <h2 className="m-0 mb-1 text-surface text-2xl font-bold leading-tight">
-              Einladung
+              {isBeforeSeason ? 'Einladung' : 'Die FFL in Kürze'}
             </h2>
             <p className="m-0 text-on-dark-muted text-sm font-medium">
               Saison <strong className="font-bold text-on-dark">{preview.seasonName}</strong>
@@ -62,11 +64,13 @@ export default function RulesContent() {
       </div>
 
       <section>
-        <SectionEyebrow>Die neue Saison ruft!</SectionEyebrow>
+        <SectionEyebrow>{isBeforeSeason ? 'Die neue Saison ruft!' : 'Das Spiel'}</SectionEyebrow>
         <Card>
-          <p className="m-0 mb-3 text-muted">
-            Ab <strong className="font-semibold text-foreground">{preview.startDateLong}</strong> rollt der Ball wieder, und damit geht auch unsere <strong className="font-semibold text-foreground">Fantasy Football League</strong> in die nächste Saison. Wir freuen uns, wenn Du dabei bist.
-          </p>
+          {isBeforeSeason && (
+            <p className="m-0 mb-3 text-muted">
+              Ab <strong className="font-semibold text-foreground">{preview.startDateLong}</strong> rollt der Ball wieder, und damit geht auch unsere <strong className="font-semibold text-foreground">Fantasy Football League</strong> in die nächste Saison. Wir freuen uns, wenn Du dabei bist.
+            </p>
+          )}
           <p className="m-0 mb-3 text-muted">
             Wir betreuen das Spiel seit <strong className="font-semibold text-foreground">2011/2012</strong>, mittlerweile spielen <strong className="font-semibold text-foreground">200 bis 260 Fußballfans</strong> mit, von Deutschland bis Irland, Kanada und Kuba.
           </p>
@@ -76,20 +80,22 @@ export default function RulesContent() {
         </Card>
       </section>
 
-      <section>
-        <SectionEyebrow>Jetzt anmelden</SectionEyebrow>
-        <Card>
-          <p className="m-0 mb-3 text-muted">Registriere Dich und stelle Dein Team auf:</p>
-          <ul className="m-0 mb-3 pl-5 text-muted space-y-1.5 list-disc marker:text-subtle">
-            <li>
-              <strong className="font-semibold text-foreground">
-                Anmeldeschluss: {preview.deadlineDate} um {preview.deadlineTime} Uhr
-              </strong>
-            </li>
-            <li>Bis dahin kannst Du Dein Team <strong className="font-semibold text-foreground">beliebig oft umbauen</strong></li>
-          </ul>
-        </Card>
-      </section>
+      {isBeforeSeason && (
+        <section>
+          <SectionEyebrow>Jetzt anmelden</SectionEyebrow>
+          <Card>
+            <p className="m-0 mb-3 text-muted">Registriere Dich und stelle Dein Team auf:</p>
+            <ul className="m-0 mb-3 pl-5 text-muted space-y-1.5 list-disc marker:text-subtle">
+              <li>
+                <strong className="font-semibold text-foreground">
+                  Anmeldeschluss: {preview.deadlineDate} um {preview.deadlineTime} Uhr
+                </strong>
+              </li>
+              <li>Bis dahin kannst Du Dein Team <strong className="font-semibold text-foreground">beliebig oft umbauen</strong></li>
+            </ul>
+          </Card>
+        </section>
+      )}
 
       <section>
         <SectionEyebrow>Spielregeln</SectionEyebrow>

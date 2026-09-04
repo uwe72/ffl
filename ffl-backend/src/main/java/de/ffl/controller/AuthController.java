@@ -53,8 +53,6 @@ public class AuthController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
-    private static final String EXCLUDED_LOGIN_FROM_STATISTICS = "uwe72";
-
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -114,7 +112,9 @@ public class AuthController {
 
         User user = userRepository.findByLoginIgnoreCase(request.getLogin()).orElseThrow();
         log.info("login successful: {} {} ({})", user.getFirstName(), user.getLastName(), user.getLogin());
-        if (user.getRole() == UserRole.NORMAL && !EXCLUDED_LOGIN_FROM_STATISTICS.equalsIgnoreCase(user.getLogin())) {
+        String adminFallbackUser = seasonRepository.findAll().stream().findFirst()
+            .map(Season::getAdminFallbackUser).orElse(null);
+        if (user.getRole() == UserRole.NORMAL && !user.getLogin().equalsIgnoreCase(adminFallbackUser)) {
             try {
                 loginStatisticsService.recordLogin(user);
             } catch (Exception e) {

@@ -188,12 +188,20 @@ function MonthlyStatPanel<T>({ useStats, toStatMonths, title, subtitle, countLab
     })
   }
 
+  const alphanumericCompare = (a: string, b: string): number =>
+    a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+
   const sortedUsers = (month: StatMonth): StatUser[] => {
     const sort = subSort[monthKey(month.year, month.month)] ?? { key: 'count' as SubSortKey, order: 'desc' as const }
     const arr = [...month.users]
     arr.sort((a, b) => {
-      const cmp = sort.key === 'login' ? a.login.localeCompare(b.login) : a.count - b.count
-      return sort.order === 'asc' ? cmp : -cmp
+      if (sort.key === 'login') {
+        const cmp = alphanumericCompare(a.login, b.login)
+        return sort.order === 'asc' ? cmp : -cmp
+      }
+      const countCmp = a.count - b.count
+      if (countCmp !== 0) return sort.order === 'asc' ? countCmp : -countCmp
+      return alphanumericCompare(a.login, b.login)
     })
     return arr
   }

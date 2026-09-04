@@ -223,7 +223,8 @@ export default function Season() {
         bankName: season.bankName ?? '',
         iban: season.iban ?? '',
         bic: season.bic ?? '',
-        kontoinhaber: season.kontoinhaber ?? ''
+        kontoinhaber: season.kontoinhaber ?? '',
+        adminFallbackUser: season.adminFallbackUser ?? ''
       })
       setHasChanges(false)
       if (!setupSeasonName) {
@@ -370,7 +371,8 @@ export default function Season() {
       bankName: season.bankName ?? '',
       iban: season.iban ?? '',
       bic: season.bic ?? '',
-      kontoinhaber: season.kontoinhaber ?? ''
+      kontoinhaber: season.kontoinhaber ?? '',
+      adminFallbackUser: season.adminFallbackUser ?? ''
     })
     setHasChanges(false)
   }
@@ -457,6 +459,22 @@ export default function Season() {
                 readOnly
                 className="input-field w-full px-3 py-2 rounded-control focus:outline-none"
               />
+            </FormCard>
+
+            <FormCard>
+              <label className="block text-sm text-muted mb-1">Admin Fallback User</label>
+              <select
+                value={formData.adminFallbackUser || ''}
+                onChange={(e) => handleChange('adminFallbackUser', e.target.value)}
+                className="input-field w-full px-3 py-2 rounded-control focus:outline-none"
+              >
+                <option value="">Keiner</option>
+                {(managersBySeason || []).map((m) => (
+                  <option key={m.id} value={m.shortName || ''}>
+                    {m.shortName}
+                  </option>
+                ))}
+              </select>
             </FormCard>
 
             <FormCard className="md:col-span-2">

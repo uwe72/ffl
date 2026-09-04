@@ -9,6 +9,7 @@ public class DocumentDto {
     private long fileSize;
     private String uploadedAt;
     private String uploadedBy;
+    private String description;
     private String shareToken;
 
     public static DocumentDto fromEntity(Document doc) {
@@ -19,6 +20,7 @@ public class DocumentDto {
         dto.setFileSize(doc.getFileSize());
         dto.setUploadedAt(doc.getUploadedAt() != null ? doc.getUploadedAt().toString() : null);
         dto.setUploadedBy(doc.getUploadedBy());
+        dto.setDescription(doc.getDescription());
         dto.setShareToken(doc.getShareToken());
         return dto;
     }
@@ -35,6 +37,8 @@ public class DocumentDto {
     public void setUploadedAt(String uploadedAt) { this.uploadedAt = uploadedAt; }
     public String getUploadedBy() { return uploadedBy; }
     public void setUploadedBy(String uploadedBy) { this.uploadedBy = uploadedBy; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
     public String getShareToken() { return shareToken; }
     public void setShareToken(String shareToken) { this.shareToken = shareToken; }
 }

@@ -6,6 +6,7 @@ import de.ffl.domain.Player;
 import de.ffl.domain.PlayerRank;
 import de.ffl.domain.Position;
 import de.ffl.domain.Season;
+import de.ffl.domain.Team;
 import de.ffl.domain.Game;
 import de.ffl.domain.Points;
 import de.ffl.domain.Rule;
@@ -58,15 +59,22 @@ public class PlayerService {
             return Map.of();
         }
         List<PlayerRank> allRanks = playerRankRepository.findByPlayerIdInWithRound(playerIds);
+        Map<Long, Season> playerToSeason = buildPlayerSeasonMap(playerIds);
         Map<Long, PlayerRank> latestRankPerPlayer = new HashMap<>();
         for (PlayerRank rank : allRanks) {
+            if (rank.getRound() == null) continue;
             Long playerId = rank.getPlayer().getId();
+            Season season = playerToSeason.get(playerId);
+            if (season == null || season.getCurrentMatchday() == null
+                || rank.getRound().getNumber() > season.getCurrentMatchday()) {
+                continue;
+            }
             latestRankPerPlayer.compute(playerId, (k, current) -> {
                 if (current == null) {
                     return rank;
                 }
-                long currentRoundId = current.getRound() != null ? current.getRound().getId() : 0;
-                long newRoundId = rank.getRound() != null ? rank.getRound().getId() : 0;
+                long currentRoundId = current.getRound().getId();
+                long newRoundId = rank.getRound().getId();
                 return newRoundId > currentRoundId ? rank : current;
             });
         }
@@ -82,15 +90,22 @@ public class PlayerService {
             return Map.of();
         }
         List<PlayerRank> allRanks = playerRankRepository.findByPlayerIdInWithRound(playerIds);
+        Map<Long, Season> playerToSeason = buildPlayerSeasonMap(playerIds);
         Map<Long, PlayerRank> latestRankPerPlayer = new HashMap<>();
         for (PlayerRank rank : allRanks) {
+            if (rank.getRound() == null) continue;
             Long playerId = rank.getPlayer().getId();
+            Season season = playerToSeason.get(playerId);
+            if (season == null || season.getCurrentMatchday() == null
+                || rank.getRound().getNumber() > season.getCurrentMatchday()) {
+                continue;
+            }
             latestRankPerPlayer.compute(playerId, (k, current) -> {
                 if (current == null) {
                     return rank;
                 }
-                long currentRoundId = current.getRound() != null ? current.getRound().getId() : 0;
-                long newRoundId = rank.getRound() != null ? rank.getRound().getId() : 0;
+                long currentRoundId = current.getRound().getId();
+                long newRoundId = rank.getRound().getId();
                 return newRoundId > currentRoundId ? rank : current;
             });
         }
@@ -99,6 +114,17 @@ public class PlayerService {
             result.put(entry.getKey(), entry.getValue().getPositionTotal());
         }
         return result;
+    }
+
+    private Map<Long, Season> buildPlayerSeasonMap(List<Long> playerIds) {
+        Map<Long, Season> playerToSeason = new HashMap<>();
+        List<Player> players = playerRepository.findAllById(playerIds);
+        for (Player p : players) {
+            if (p.getSeason() != null) {
+                playerToSeason.put(p.getId(), p.getSeason());
+            }
+        }
+        return playerToSeason;
     }
 
     private Map<Long, Integer> buildPlayerPointsLastRoundMap(List<Long> playerIds) {
@@ -430,6 +456,16 @@ public class PlayerService {
                         dto.setGameName(hostName + " - " + visitorName);
                         dto.setGoalHost(game.getGoalHost());
                         dto.setGoalVisitor(game.getGoalVisitor());
+
+                        boolean isHost = game.getPlayersHost().contains(player);
+                        Team opponent = isHost ? game.getVisitor() : game.getHost();
+                        dto.setOpponent(opponent != null
+                            ? (opponent.getShortName() != null && !opponent.getShortName().isBlank()
+                                ? opponent.getShortName() : opponent.getName())
+                            : "");
+                        dto.setHomeAway(isHost ? "H" : "A");
+                        dto.setGoalsOwn(isHost ? game.getGoalHost() : game.getGoalVisitor());
+                        dto.setGoalsOpponent(isHost ? game.getGoalVisitor() : game.getGoalHost());
                     });
                 
                 List<Points> roundPoints = pointsByRoundId.getOrDefault(rank.getRound().getId(), List.of());
@@ -489,36 +525,36 @@ public class PlayerService {
         playerRepository.deleteById(id);
     }
 
-    private Integer getPlayerPoints(Long playerId) {
-        List<PlayerRank> ranks = playerRankRepository.findByPlayerId(playerId);
-        return ranks.stream()
+    private PlayerRank getLatestPlayedRank(Long playerId) {
+        Player player = playerRepository.findById(playerId).orElse(null);
+        if (player == null) return null;
+        Season season = player.getSeason();
+        Integer currentMatchday = season != null ? season.getCurrentMatchday() : null;
+        if (currentMatchday == null) return null;
+        return playerRankRepository.findByPlayerId(playerId).stream()
+            .filter(r -> r.getRound() != null && r.getRound().getNumber() <= currentMatchday)
             .max(Comparator.comparing(r -> r.getRound().getId()))
-            .map(PlayerRank::getPointsTotal)
-            .orElse(0);
-    }
-    
-    private Integer getPlayerPositionTotal(Long playerId) {
-        List<PlayerRank> ranks = playerRankRepository.findByPlayerId(playerId);
-        return ranks.stream()
-            .max(Comparator.comparing(r -> r.getRound().getId()))
-            .map(PlayerRank::getPositionTotal)
-            .orElse(null);
-    }
-    
-    private Integer getPlayerPointsLastRound(Long playerId) {
-        List<PlayerRank> ranks = playerRankRepository.findByPlayerId(playerId);
-        return ranks.stream()
-            .max(Comparator.comparing(r -> r.getRound().getId()))
-            .map(PlayerRank::getPointsRound)
             .orElse(null);
     }
 
+    private Integer getPlayerPoints(Long playerId) {
+        PlayerRank rank = getLatestPlayedRank(playerId);
+        return rank != null ? rank.getPointsTotal() : 0;
+    }
+    
+    private Integer getPlayerPositionTotal(Long playerId) {
+        PlayerRank rank = getLatestPlayedRank(playerId);
+        return rank != null ? rank.getPositionTotal() : null;
+    }
+    
+    private Integer getPlayerPointsLastRound(Long playerId) {
+        PlayerRank rank = getLatestPlayedRank(playerId);
+        return rank != null ? rank.getPointsRound() : null;
+    }
+
     private Integer getPlayerPositionLastRound(Long playerId) {
-        List<PlayerRank> ranks = playerRankRepository.findByPlayerId(playerId);
-        return ranks.stream()
-            .max(Comparator.comparing(r -> r.getRound().getId()))
-            .map(PlayerRank::getPositionRound)
-            .orElse(null);
+        PlayerRank rank = getLatestPlayedRank(playerId);
+        return rank != null ? rank.getPositionRound() : null;
     }
 
     public List<PlayerSearchDto> searchPlayers(Long seasonId, String searchTerm) {

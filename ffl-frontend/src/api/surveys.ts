@@ -5,7 +5,6 @@ import type {
   SurveyCreateRequest,
   SurveyAnswerRequest,
   SurveyResult,
-  PublicSurveyResult,
 } from '../types'
 
 export const surveyApi = {
@@ -17,7 +16,7 @@ export const surveyApi = {
   remove: (id: number) => api.delete(`/surveys/${id}`),
   start: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/start`),
   end: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/end`),
-  publish: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/publish`),
+  reopen: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/reopen`),
   result: (id: number) => api.get<SurveyResult>(`/surveys/${id}/result`),
 }
 
@@ -26,5 +25,4 @@ export const surveyPublicApi = {
   get: (id: number) => api.get<SurveyPublic>(`/public/survey/${id}`),
   submit: (id: number, data: SurveyAnswerRequest) =>
     api.post(`/public/survey/${id}/submit`, data),
-  result: (id: number) => api.get<PublicSurveyResult>(`/public/survey/${id}/result`),
 }

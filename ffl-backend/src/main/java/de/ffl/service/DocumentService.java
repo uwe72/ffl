@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 public class DocumentService {
 
     private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
+    private static final int MAX_DESCRIPTION_LENGTH = 80;
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
         "application/pdf",
         "text/plain",
@@ -68,7 +70,7 @@ public class DocumentService {
     }
 
     @Transactional
-    public DocumentDto upload(MultipartFile file, String uploaderLogin) throws IOException {
+    public DocumentDto upload(MultipartFile file, String uploaderLogin, String description) throws IOException {
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
             throw new IllegalArgumentException("Nur PDF, TXT, PNG und JPG Dateien sind erlaubt");
@@ -87,6 +89,7 @@ public class DocumentService {
             .fileSize(file.getSize())
             .uploadedAt(Instant.now())
             .uploadedBy(uploaderLogin)
+            .description(normalizeDescription(description))
             .data(file.getBytes())
             .shareToken(UUID.randomUUID().toString())
             .build();
@@ -127,5 +130,24 @@ public class DocumentService {
             throw new IllegalArgumentException("Dokument nicht gefunden");
         }
         documentRepository.deleteById(id);
+    }
+
+    @Transactional
+    public DocumentDto updateDescription(Long id, String description) {
+        Document doc = documentRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Dokument nicht gefunden"));
+        doc.setDescription(normalizeDescription(description));
+        return DocumentDto.fromEntity(documentRepository.save(doc));
+    }
+
+    private String normalizeDescription(String description) {
+        if (description == null || description.isBlank()) {
+            return null;
+        }
+        String trimmed = description.trim();
+        if (trimmed.length() > MAX_DESCRIPTION_LENGTH) {
+            throw new IllegalArgumentException("Beschreibung darf maximal " + MAX_DESCRIPTION_LENGTH + " Zeichen lang sein");
+        }
+        return trimmed;
     }
 }

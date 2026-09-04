@@ -98,6 +98,9 @@ public class Season {
     @Column(name = "kontoinhaber")
     private String kontoinhaber;
 
+    @Column(name = "admin_fallback_user")
+    private String adminFallbackUser;
+
     @Column(name = "best_team_json", columnDefinition = "TEXT")
     @JsonIgnore
     private String bestTeamJson;

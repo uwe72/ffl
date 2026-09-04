@@ -34,6 +34,9 @@ public class Document {
     @Column(nullable = false)
     private String uploadedBy;
 
+    @Column
+    private String description;
+
     @Column(columnDefinition = "bytea", nullable = false)
     private byte[] data;
 
