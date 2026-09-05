@@ -47,7 +47,16 @@ function clearDraft(surveyId: number) {
   }
 }
 
+function questionNumber(questions: SurveyQuestion[], index: number): number {
+  let count = 0
+  for (let i = 0; i <= index; i++) {
+    if (questions[i].type !== 'SEPARATOR') count++
+  }
+  return count
+}
+
 function isAnswered(question: SurveyQuestion, input: SurveyAnswerInput | undefined): boolean {
+  if (question.type === 'SEPARATOR') return false
   if (!input) return false
   if (question.type === 'RATING') return !!input.value
   if (question.type === 'TEXTFIELD' || question.type === 'TEXTAREA') return !!input.value && input.value.trim() !== ''
@@ -226,12 +235,20 @@ export default function SurveyPublic() {
 
       <div className="flex flex-col gap-1 md:gap-4 mb-1 md:mb-4">
         {survey.questions.map((question, index) => {
+          if (question.type === 'SEPARATOR') {
+            return (
+              <div key={question.id} className="flex items-center gap-3 mt-4 md:mt-6 px-1">
+                <h3 className="text-lg font-bold text-foreground whitespace-pre-wrap">{question.text}</h3>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+            )
+          }
           const input = answers[question.id]
           return (
             <div key={question.id} className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <p className="font-medium text-foreground">
-                  <span className="text-subtle">Frage {index + 1}:</span> {question.text}
+                  <span className="text-subtle">Frage {questionNumber(survey.questions, index)}:</span> {question.text}
                   {question.required && <span className="text-danger ml-1">*</span>}
                 </p>
                 {question.type !== 'TEXTFIELD' && question.type !== 'TEXTAREA' && (

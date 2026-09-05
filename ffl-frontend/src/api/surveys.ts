@@ -18,6 +18,7 @@ export const surveyApi = {
   remove: (id: number) => api.delete(`/surveys/${id}`),
   start: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/start`),
   end: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/end`),
+  reset: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/reset`),
   reopen: (id: number, data?: { deadline: string | null }) =>
     api.post<SurveyAdmin>(`/surveys/${id}/reopen`, data ?? {}),
   result: (id: number) => api.get<SurveyResult>(`/surveys/${id}/result`),

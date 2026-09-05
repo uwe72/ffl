@@ -72,9 +72,10 @@ export const useDeleteSurvey = () => {
 export const useSurveyStatusAction = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, action, deadline }: { id: number; action: 'start' | 'end' | 'reopen'; deadline?: string }) => {
+    mutationFn: ({ id, action, deadline }: { id: number; action: 'start' | 'end' | 'reopen' | 'reset'; deadline?: string }) => {
       if (action === 'start') return surveyApi.start(id).then(res => res.data)
       if (action === 'end') return surveyApi.end(id).then(res => res.data)
+      if (action === 'reset') return surveyApi.reset(id).then(res => res.data)
       return surveyApi.reopen(id, deadline ? { deadline } : undefined).then(res => res.data)
     },
     onSuccess: () => {

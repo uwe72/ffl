@@ -207,6 +207,52 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    void resetSurvey_movesGestartetToAngelegt() {
+        SurveyAdminDto dto = createStartedSurvey();
+        assertThat(surveyService.getActiveSurvey().getId()).isEqualTo(dto.getId());
+
+        SurveyAdminDto reset = surveyService.resetSurvey(dto.getId());
+
+        assertThat(reset.getStatus()).isEqualTo(SurveyStatus.ANGELEGT);
+        assertThat(surveyService.getActiveSurvey()).isNull();
+        assertThat(surveyService.getAdminSurvey(dto.getId()).getStatus()).isEqualTo(SurveyStatus.ANGELEGT);
+        assertThat(surveyService.getAdminSurvey(dto.getId()).getQuestions()).hasSize(dto.getQuestions().size());
+    }
+
+    @Test
+    void resetSurvey_movesBeendetToAngelegt() {
+        SurveyAdminDto dto = createStartedSurvey();
+        surveyService.endSurvey(dto.getId());
+
+        SurveyAdminDto reset = surveyService.resetSurvey(dto.getId());
+
+        assertThat(reset.getStatus()).isEqualTo(SurveyStatus.ANGELEGT);
+        assertThat(surveyService.getAdminSurvey(dto.getId()).getStatus()).isEqualTo(SurveyStatus.ANGELEGT);
+    }
+
+    @Test
+    void resetSurvey_withResponses_throws() {
+        SurveyAdminDto dto = createStartedSurvey();
+        Long ratingId = dto.getQuestions().get(0).getId();
+        Long singleId = dto.getQuestions().get(1).getId();
+        Long singleYes = dto.getQuestions().get(1).getOptions().get(0).getId();
+        submit(dto.getId(), List.of(answer(ratingId, null, "4"), answer(singleId, List.of(singleYes), null)));
+
+        assertThatThrownBy(() -> surveyService.resetSurvey(dto.getId()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("bereits Antworten");
+        assertThat(surveyService.getAdminSurvey(dto.getId()).getStatus()).isEqualTo(SurveyStatus.GESTARTET);
+    }
+
+    @Test
+    void resetSurvey_requiresGestartetOrBeendet() {
+        SurveyAdminDto dto = surveyService.createSurvey(fullSurveyRequest());
+        assertThatThrownBy(() -> surveyService.resetSurvey(dto.getId()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Nur gestartete oder beendete");
+    }
+
+    @Test
     void reopenSurvey_movesBeendetBackToGestartet() {
         SurveyAdminDto dto = createStartedSurvey();
         surveyService.endSurvey(dto.getId());
@@ -356,6 +402,86 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         assertThatThrownBy(() -> surveyService.updateSurveyMeta(dto.getId(), req))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Zieldatum");
+    }
+
+    @Test
+    void createSurvey_separatorForcesOptionalAndNoOptions() {
+        SurveyCreateRequest req = new SurveyCreateRequest();
+        req.setTitle("Gruppenumfrage");
+        req.setDeadline(LocalDateTime.now().plusDays(30));
+        SurveyQuestionRequest separator = new SurveyQuestionRequest();
+        separator.setType(QuestionType.SEPARATOR);
+        separator.setText("Abschnitt 1");
+        separator.setRequired(true);
+        separator.setMaxLength(100);
+        separator.setOptions(List.of("SollIgnoriertWerden"));
+        SurveyQuestionRequest rating = new SurveyQuestionRequest();
+        rating.setType(QuestionType.RATING);
+        rating.setText("Wie zufrieden?");
+        rating.setRequired(true);
+        req.setQuestions(List.of(separator, rating));
+
+        SurveyAdminDto dto = surveyService.createSurvey(req);
+        SurveyQuestionAdminDto sep = dto.getQuestions().get(0);
+        assertThat(sep.getType()).isEqualTo(QuestionType.SEPARATOR);
+        assertThat(sep.getRequired()).isFalse();
+        assertThat(sep.getMaxLength()).isNull();
+        assertThat(sep.getOptions()).isEmpty();
+    }
+
+    @Test
+    void separator_skipsAnswersAndResultStats() {
+        SurveyCreateRequest req = new SurveyCreateRequest();
+        req.setTitle("Gruppenumfrage");
+        req.setDeadline(LocalDateTime.now().plusDays(30));
+        SurveyQuestionRequest separator = new SurveyQuestionRequest();
+        separator.setType(QuestionType.SEPARATOR);
+        separator.setText("Abschnitt 1");
+        SurveyQuestionRequest rating = new SurveyQuestionRequest();
+        rating.setType(QuestionType.RATING);
+        rating.setText("Wie zufrieden?");
+        rating.setRequired(true);
+        req.setQuestions(List.of(separator, rating));
+
+        SurveyAdminDto dto = surveyService.startSurvey(surveyService.createSurvey(req).getId());
+        Long separatorId = dto.getQuestions().get(0).getId();
+        Long ratingId = dto.getQuestions().get(1).getId();
+
+        submit(dto.getId(), List.of(answer(ratingId, null, "3")));
+        SurveyResultDto result = surveyService.getResult(dto.getId());
+
+        assertThat(result.getResponseCount()).isEqualTo(1);
+        QuestionResult sepResult = result.getQuestions().get(0);
+        assertThat(sepResult.getType()).isEqualTo(QuestionType.SEPARATOR);
+        assertThat(sepResult.getText()).isEqualTo("Abschnitt 1");
+        assertThat(sepResult.getMean()).isNull();
+        assertThat(sepResult.getRatingDistribution()).isNull();
+        assertThat(sepResult.getCounts()).isNull();
+        assertThat(sepResult.getFreeTexts()).isNull();
+        assertThat(sepResult.getAnswerCount()).isNull();
+        assertThat(result.getResponses().get(0).getAnswers())
+            .extracting(AnswerDetailDto::getQuestionId)
+            .doesNotContain(separatorId);
+    }
+
+    @Test
+    void copySurvey_keepsSeparatorType() {
+        SurveyCreateRequest req = new SurveyCreateRequest();
+        req.setTitle("Gruppenumfrage");
+        req.setDeadline(LocalDateTime.now().plusDays(30));
+        SurveyQuestionRequest separator = new SurveyQuestionRequest();
+        separator.setType(QuestionType.SEPARATOR);
+        separator.setText("Abschnitt 1");
+        SurveyQuestionRequest rating = new SurveyQuestionRequest();
+        rating.setType(QuestionType.RATING);
+        rating.setText("Wie zufrieden?");
+        rating.setRequired(true);
+        req.setQuestions(List.of(separator, rating));
+
+        SurveyAdminDto dto = surveyService.createSurvey(req);
+        SurveyAdminDto copy = surveyService.copySurvey(dto.getId());
+        assertThat(copy.getQuestions().get(0).getType()).isEqualTo(QuestionType.SEPARATOR);
+        assertThat(copy.getQuestions().get(0).getText()).isEqualTo("Abschnitt 1");
     }
 
     private void submit(Long surveyId, List<SurveyAnswerInput> answers) {

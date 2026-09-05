@@ -133,6 +133,21 @@ public class SurveyService {
     }
 
     @Transactional
+    public SurveyAdminDto resetSurvey(Long id) {
+        Survey survey = requireSurvey(id);
+        SurveyStatus status = survey.getStatus();
+        if (status != SurveyStatus.GESTARTET && status != SurveyStatus.BEENDET) {
+            throw new IllegalArgumentException("Nur gestartete oder beendete Umfragen können zurückgesetzt werden");
+        }
+        if (surveyResponseRepository.countBySurveyId(id) > 0) {
+            throw new IllegalArgumentException("Die Umfrage hat bereits Antworten und kann nicht zurückgesetzt werden");
+        }
+        survey.setStatus(SurveyStatus.ANGELEGT);
+        survey.setUpdatedAt(LocalDateTime.now());
+        return toAdminDto(surveyRepository.save(survey), 0);
+    }
+
+    @Transactional
     public SurveyAdminDto reopenSurvey(Long id, LocalDateTime newDeadline) {
         Survey survey = requireSurvey(id);
         if (survey.getStatus() != SurveyStatus.BEENDET) {
@@ -317,16 +332,17 @@ public class SurveyService {
         int qi = 0;
         for (SurveyQuestionRequest r : questionRequests) {
             QuestionType type = r.getType() == null ? QuestionType.TEXTAREA : r.getType();
+            boolean separator = type == QuestionType.SEPARATOR;
             Question q = Question.builder()
                 .survey(survey)
                 .type(type)
                 .text(r.getText())
                 .orderIndex(r.getOrderIndex() != null ? r.getOrderIndex() : qi)
-                .required(r.getRequired() != null ? r.getRequired() : false)
-                .maxLength(r.getMaxLength() != null ? r.getMaxLength() : defaultMaxLength(type))
+                .required(!separator && Boolean.TRUE.equals(r.getRequired()))
+                .maxLength(separator ? null : (r.getMaxLength() != null ? r.getMaxLength() : defaultMaxLength(type)))
                 .options(new ArrayList<>())
                 .build();
-            if (r.getOptions() != null) {
+            if (!separator && r.getOptions() != null) {
                 int oi = 0;
                 for (String optionText : r.getOptions()) {
                     if (optionText == null || optionText.isBlank()) continue;
@@ -381,6 +397,8 @@ public class SurveyService {
                 }
                 response.getAnswers().add(Answer.builder()
                     .surveyResponse(response).question(q).value(value).build());
+            }
+            case SEPARATOR -> {
             }
         }
     }
@@ -488,6 +506,8 @@ public class SurveyService {
                     .toList();
                 builder.answerCount(texts.size());
                 builder.freeTexts(includeFreeText ? texts : null);
+            }
+            case SEPARATOR -> {
             }
         }
         return builder.build();

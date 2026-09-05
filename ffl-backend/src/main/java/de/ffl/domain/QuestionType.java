@@ -5,5 +5,6 @@ public enum QuestionType {
     SINGLE,
     MULTI,
     TEXTFIELD,
-    TEXTAREA
+    TEXTAREA,
+    SEPARATOR
 }

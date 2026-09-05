@@ -705,7 +705,7 @@ export interface SetupPreviewTeamBreakdown {
 }
 
 export type SurveyStatus = 'ANGELEGT' | 'GESTARTET' | 'BEENDET'
-export type QuestionType = 'RATING' | 'SINGLE' | 'MULTI' | 'TEXTFIELD' | 'TEXTAREA'
+export type QuestionType = 'RATING' | 'SINGLE' | 'MULTI' | 'TEXTFIELD' | 'TEXTAREA' | 'SEPARATOR'
 
 export interface SurveyQuestionOption {
   id: number

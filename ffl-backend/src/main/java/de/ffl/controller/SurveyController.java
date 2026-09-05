@@ -65,6 +65,11 @@ public class SurveyController {
         return ResponseEntity.ok(surveyService.endSurvey(id));
     }
 
+    @PostMapping("/{id}/reset")
+    public ResponseEntity<SurveyAdminDto> reset(@PathVariable Long id) {
+        return ResponseEntity.ok(surveyService.resetSurvey(id));
+    }
+
     @PostMapping("/{id}/reopen")
     public ResponseEntity<SurveyAdminDto> reopen(@PathVariable Long id,
                                                  @RequestBody(required = false) SurveyReopenRequest request) {

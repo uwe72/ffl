@@ -7,6 +7,7 @@ import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import BackButton from '../components/BackButton'
 import Button from '../components/Button'
 import useIsMobile from '../hooks/useIsMobile'
+import { trackEvent } from '../hooks/useMatomo'
 
 const STATUS_LABEL: Record<string, string> = {
   ANGELEGT: 'Angelegt',
@@ -20,6 +21,7 @@ const TYPE_LABEL: Record<QuestionType, string> = {
   MULTI: 'Mehrfachauswahl',
   TEXTFIELD: 'Textfeld',
   TEXTAREA: 'Textarea',
+  SEPARATOR: 'Trenner (Gruppe)',
 }
 
 function defaultMaxLength(type: QuestionType): number | null {
@@ -93,6 +95,37 @@ let draftQuestionKeyCounter = 0
 function nextDraftKey(): string {
   draftQuestionKeyCounter += 1
   return `q-${draftQuestionKeyCounter}`
+}
+
+function buildWhatsappText(draft: Draft): string {
+  const lines: string[] = []
+  lines.push(`*${draft.title.trim()}*`)
+  const description = draft.description.trim()
+  if (description) {
+    lines.push('')
+    lines.push(description)
+  }
+  let questionNumber = 0
+  for (const q of draft.questions) {
+    if (q.type === 'SEPARATOR') {
+      lines.push('')
+      lines.push(`*${q.text.trim()}*`)
+      continue
+    }
+    questionNumber += 1
+    let questionLine = `${questionNumber}. ${q.text.trim()}`
+    if (q.type === 'RATING') questionLine += ' (1–5 Sterne)'
+    if (q.required) questionLine += ' (Pflicht)'
+    lines.push('')
+    lines.push(questionLine)
+    if (q.type === 'SINGLE' || q.type === 'MULTI') {
+      const marker = q.type === 'SINGLE' ? '○' : '☐'
+      for (const o of q.options) {
+        if (o.text.trim() !== '') lines.push(`${marker} ${o.text.trim()}`)
+      }
+    }
+  }
+  return lines.join('\n')
 }
 
 function SortableQuestionCard({ id, headerLabel, isMobile, onRemove, children }: {
@@ -170,10 +203,15 @@ export default function SurveyAdmin() {
   const [activeId, setActiveId] = useState<number | null>(null)
   const [reopenTarget, setReopenTarget] = useState<SurveyAdmin | null>(null)
 
-  const changeStatus = (id: number, action: 'start' | 'end' | 'reopen', deadline?: string) => {
+  const changeStatus = (id: number, action: 'start' | 'end' | 'reopen' | 'reset', deadline?: string) => {
     statusAction.mutate({ id, action, deadline }, {
       onError: err => alert(apiErrorMessage(err)),
     })
+  }
+
+  const resetStatus = (id: number) => {
+    if (!window.confirm('Möchtest du den Status dieser Umfrage wirklich auf „Angelegt" zurücksetzen?')) return
+    changeStatus(id, 'reset')
   }
 
   const remove = (id: number, responseCount: number) => {
@@ -288,6 +326,7 @@ export default function SurveyAdmin() {
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startMetaEdit(s)}>Bearbeiten</Button>
                       <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'end')}>Beenden</Button>
+                      {s.responseCount === 0 && <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => resetStatus(s.id)}>Zurücksetzen</Button>}
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
                       <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
                     </>
@@ -297,6 +336,7 @@ export default function SurveyAdmin() {
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startMetaEdit(s)}>Bearbeiten</Button>
                       <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => requestReopen(s)}>Reaktivieren</Button>
+                      {s.responseCount === 0 && <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => resetStatus(s.id)}>Zurücksetzen</Button>}
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
                       <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
                     </>
@@ -339,6 +379,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       : { title: '', description: '', deadline: '', questions: [] },
   )
   const [error, setError] = useState<string | null>(null)
+  const [whatsappCopied, setWhatsappCopied] = useState(false)
   const optionRefs = useRef<Record<number, Record<number, HTMLInputElement | null>>>({})
   const pendingOptionFocus = useRef<{ qIndex: number; oIndex: number } | null>(null)
 
@@ -359,6 +400,10 @@ function SurveyEditor({ existing, isNew, onCancel }: {
 
   const addQuestion = () => {
     setDraft(prev => ({ ...prev, questions: [...prev.questions, { _key: nextDraftKey(), type: 'TEXTAREA', text: '', required: false, maxLength: 4000, options: [] }] }))
+  }
+
+  const addSeparator = () => {
+    setDraft(prev => ({ ...prev, questions: [...prev.questions, { _key: nextDraftKey(), type: 'SEPARATOR', text: '', required: false, maxLength: null, options: [] }] }))
   }
 
   const removeQuestion = (index: number) => {
@@ -423,6 +468,29 @@ function SurveyEditor({ existing, isNew, onCancel }: {
     }))
   }
 
+  const handleWhatsappExport = async () => {
+    const text = buildWhatsappText(draft)
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text)
+      } else {
+        const textarea = document.createElement('textarea')
+        textarea.value = text
+        textarea.style.position = 'fixed'
+        textarea.style.top = '-9999px'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+      trackEvent('survey', 'export_whatsapp')
+      setWhatsappCopied(true)
+      window.setTimeout(() => setWhatsappCopied(false), 2000)
+    } catch {
+      setError('WhatsApp-Export konnte nicht in die Zwischenablage kopiert werden.')
+    }
+  }
+
   const handleSave = async () => {
     if (!draft.title.trim()) {
       setError('Bitte gib einen Titel an.')
@@ -432,7 +500,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       setError('Bitte gib ein Zieldatum an.')
       return
     }
-    if (!draft.questions.some(q => q.required)) {
+    if (!draft.questions.some(q => q.required && q.type !== 'SEPARATOR')) {
       setError('Die Umfrage benötigt mindestens eine Pflichtfrage.')
       return
     }
@@ -442,11 +510,13 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       orderIndex: i,
       required: q.required,
       maxLength: q.type === 'TEXTFIELD' || q.type === 'TEXTAREA' ? q.maxLength : null,
-      options: q.options.map(o => o.text).filter(o => o.trim() !== ''),
+      options: q.type === 'SEPARATOR' ? [] : q.options.map(o => o.text).filter(o => o.trim() !== ''),
     }))
     const missing = questions.findIndex(q => !q.text.trim())
     if (missing >= 0) {
-      setError(`Frage ${missing + 1} hat keinen Text.`)
+      setError(questions[missing].type === 'SEPARATOR'
+        ? `Trenner ${missing + 1} hat keine Überschrift.`
+        : `Frage ${missing + 1} hat keinen Text.`)
       return
     }
     const choiceMissingOptions = questions.findIndex(q => (q.type === 'SINGLE' || q.type === 'MULTI') && (q.options ?? []).length === 0)
@@ -519,10 +589,40 @@ function SurveyEditor({ existing, isNew, onCancel }: {
               <SortableQuestionCard
                 key={q._key}
                 id={q._key}
-                headerLabel={`Frage ${qIndex + 1}`}
+                headerLabel={q.type === 'SEPARATOR' ? 'Trenner' : `Frage ${qIndex + 1}`}
                 isMobile={isMobile}
                 onRemove={() => removeQuestion(qIndex)}
               >
+                {q.type === 'SEPARATOR' ? (
+                  <div className="flex flex-col gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2">
+                        <label className="block text-sm text-muted mb-1">Gruppenüberschrift *</label>
+                        <input
+                          type="text"
+                          value={q.text}
+                          onChange={e => setQuestion(qIndex, { text: e.target.value })}
+                          className="input-field control w-full px-3 py-2 rounded-control text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-muted mb-1">Typ</label>
+                        <select
+                          value={q.type}
+                          onChange={e => {
+                            const type = e.target.value as QuestionType
+                            setQuestion(qIndex, { type, maxLength: defaultMaxLength(type) })
+                          }}
+                          className="input-field control w-full px-3 py-2 rounded-control text-sm"
+                        >
+                          {(Object.keys(TYPE_LABEL) as QuestionType[]).map(t => (
+                            <option key={t} value={t}>{TYPE_LABEL[t]}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
                 <div className="flex flex-col gap-3">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="sm:col-span-2">
@@ -540,7 +640,11 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                         value={q.type}
                         onChange={e => {
                           const type = e.target.value as QuestionType
-                          setQuestion(qIndex, { type, maxLength: defaultMaxLength(type) })
+                          if (type === 'SEPARATOR') {
+                            setQuestion(qIndex, { type, required: false, maxLength: null, options: [] })
+                          } else {
+                            setQuestion(qIndex, { type, maxLength: defaultMaxLength(type) })
+                          }
                         }}
                         className="input-field control w-full px-3 py-2 rounded-control text-sm"
                       >
@@ -603,15 +707,22 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                     </div>
                   )}
                 </div>
+                )}
               </SortableQuestionCard>
             ))}
           </div>
         </SortableContext>
       </DndContext>
 
-      <div className="mt-4">
+      <div className="mt-4 flex items-center gap-2 flex-wrap">
         <Button variant="ghost" size={isMobile ? 'sm' : 'input'} onClick={addQuestion}>
           + Frage hinzufügen
+        </Button>
+        <Button variant="ghost" size={isMobile ? 'sm' : 'input'} onClick={addSeparator}>
+          + Trenner hinzufügen
+        </Button>
+        <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={handleWhatsappExport}>
+          {whatsappCopied ? 'Kopiert!' : 'WhatsApp Export'}
         </Button>
       </div>
 
@@ -845,6 +956,14 @@ function SurveyResults({ id, onBack }: { id: number; onBack: () => void }) {
 
       <div className="flex flex-col gap-4">
         {result.questions.map(q => {
+          if (q.type === 'SEPARATOR') {
+            return (
+              <div key={q.questionId} className="flex items-center gap-3 pt-2">
+                <h3 className="text-lg font-bold text-foreground whitespace-pre-wrap">{q.text}</h3>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+            )
+          }
           if (q.type === 'RATING') {
             const total = q.ratingDistribution?.reduce((a, b) => a + b, 0) ?? 0
             return (
