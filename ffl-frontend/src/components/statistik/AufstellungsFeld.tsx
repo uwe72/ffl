@@ -4,9 +4,22 @@ import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
 import type { Manager } from '../../types'
 import FallblattTafel from './FallblattTafel'
 import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
-import { positionLabels } from '../../utils/positions'
 import { quoteBadgeClasses } from '../../utils/quote'
 import useElementSize from '../../hooks/useElementSize'
+
+const POSITION_SHORT_LABELS: Record<string, string> = {
+  GOALKEEPER: 'TW',
+  DEFENDER: 'VT',
+  MIDFIELD: 'MF',
+  STRIKER: 'ST',
+}
+
+const POSITION_BADGE_CLASS: Record<string, string> = {
+  GOALKEEPER: 'pos-goalkeeper',
+  DEFENDER: 'pos-defender',
+  MIDFIELD: 'pos-midfield',
+  STRIKER: 'pos-striker',
+}
 
 const CARD_W = 142
 const CARD_H = 146
@@ -189,7 +202,12 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       <div>
         <div className="px-2 pt-0.5 pb-2 text-center">
           <div className="text-[11px] font-semibold text-foreground flex items-center justify-center gap-1.5 flex-wrap">
-            <span>{positionLabels[player.position]}</span>
+            <span className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge ${POSITION_BADGE_CLASS[player.position] ?? 'pos-goalkeeper'}`}>
+              {POSITION_SHORT_LABELS[player.position] ?? player.position}
+            </span>
+            <span className="inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge bg-elevated text-muted">
+              {formatMillionsShort(player.marktwert)}
+            </span>
             {player.einsatzquote != null && (
               <span
                 className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge ${quoteBadgeClasses(player.einsatzquote)}`}
@@ -241,11 +259,6 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
           <div className="text-[11px] font-semibold px-1 truncate max-w-full">{fullName}</div>
         </div>
       )}
-      <div className="absolute bottom-1.5 inset-x-0 flex justify-center pointer-events-none">
-        <span className="text-[11px] font-bold text-[#fafaf9] bg-black rounded-full px-2 py-0.5 tabular-nums">
-          {formatMillionsShort(player.marktwert)} €
-        </span>
-      </div>
     </div>
   )
 

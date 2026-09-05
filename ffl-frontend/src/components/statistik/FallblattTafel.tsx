@@ -78,9 +78,9 @@ function Section({ headLabel, rightLabel, leftDigits, rightDigits, leftSecondary
   return (
     <div className="ffl-board__block">
       <div className="ffl-board__row">
-        <Col head={headLabel} digits={leftDigits} secondary={leftSecondary} />
-        {rightDigits && <Col label={rightLabel} digits={rightDigits} secondary={rightSecondary} />}
         {children && <div className="ffl-board__picslot">{children}</div>}
+        {rightDigits && <Col label={rightLabel} digits={rightDigits} secondary={rightSecondary} />}
+        <Col head={headLabel} digits={leftDigits} secondary={leftSecondary} />
       </div>
     </div>
   )
