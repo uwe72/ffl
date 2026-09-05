@@ -30,6 +30,7 @@ public class SpielerAufstellungDto {
     private Integer tore;
     private Integer zuNull;
     private Boolean gespielt;
+    private String einsatzstatus;
     private Integer einsaetze;
     private Integer einsatzquote;
     private Boolean aktiv;

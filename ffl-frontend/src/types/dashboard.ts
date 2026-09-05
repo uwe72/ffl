@@ -20,6 +20,7 @@ export interface SpielerAufstellung {
   tore: number
   zuNull: number
   gespielt: boolean
+  einsatzstatus?: 'GESPIELT' | 'NICHT_GESPIELT' | 'OFFEN'
   einsaetze: number
   einsatzquote?: number
   aktiv?: boolean

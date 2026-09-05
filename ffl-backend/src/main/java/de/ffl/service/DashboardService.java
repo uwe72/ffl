@@ -2,6 +2,7 @@ package de.ffl.service;
 
 import de.ffl.domain.*;
 import de.ffl.dto.*;
+import de.ffl.repository.GameRepository;
 import de.ffl.repository.ManagerRankRepository;
 import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.PlayerRankRepository;
@@ -27,6 +28,7 @@ public class DashboardService {
     private final ManagerRankRepository managerRankRepository;
     private final PlayerRankRepository playerRankRepository;
     private final RoundRepository roundRepository;
+    private final GameRepository gameRepository;
     private final PointsRepository pointsRepository;
 
     public DashboardService(
@@ -34,11 +36,13 @@ public class DashboardService {
             ManagerRankRepository managerRankRepository,
             PlayerRankRepository playerRankRepository,
             RoundRepository roundRepository,
+            GameRepository gameRepository,
             PointsRepository pointsRepository) {
         this.managerRepository = managerRepository;
         this.managerRankRepository = managerRankRepository;
         this.playerRankRepository = playerRankRepository;
         this.roundRepository = roundRepository;
+        this.gameRepository = gameRepository;
         this.pointsRepository = pointsRepository;
     }
 
@@ -55,12 +59,17 @@ public class DashboardService {
         List<RosterPlayer> roster = fullRoster(manager);
 
         Map<Long, PlayerRank> rankByPlayer = new HashMap<>();
+        Map<Long, Game> gameByTeamId = new HashMap<>();
         if (currentMatchday > 0) {
             Round round = roundRepository.findBySeasonIdAndNumber(season.getId(), currentMatchday).orElse(null);
             if (round != null) {
                 List<Long> playerIds = roster.stream().map(r -> r.player.getId()).toList();
                 for (PlayerRank pr : playerRankRepository.findByPlayerIdInAndRoundId(playerIds, round.getId())) {
                     rankByPlayer.put(pr.getPlayer().getId(), pr);
+                }
+                for (Game g : gameRepository.findByRoundId(round.getId())) {
+                    if (g.getHost() != null) gameByTeamId.put(g.getHost().getId(), g);
+                    if (g.getVisitor() != null) gameByTeamId.put(g.getVisitor().getId(), g);
                 }
             }
         }
@@ -89,6 +98,8 @@ public class DashboardService {
             PlayerRank pr = rankByPlayer.get(p.getId());
             boolean activeNow = isRueckrunde ? rp.activeRueckrunde : rp.activeHinrunde;
             boolean gespielt = activeNow && pr != null && Boolean.TRUE.equals(pr.getPlayed());
+            Team team = letztesTeam(p);
+            Game teamGame = team != null ? gameByTeamId.get(team.getId()) : null;
             int einsaetze = pr != null && pr.getNumberMatches() != null ? pr.getNumberMatches() : 0;
             spieler.add(SpielerAufstellungDto.builder()
                 .id(p.getId())
@@ -108,6 +119,7 @@ public class DashboardService {
                 .tore(tore(p))
                 .zuNull(zuNull(p))
                 .gespielt(gespielt)
+                .einsatzstatus(einsatzstatus(gespielt, teamGame))
                 .einsaetze(einsaetze)
                 .einsatzquote(p.getEinsatzquote())
                 .aktiv(activeNow)
@@ -430,6 +442,12 @@ public class DashboardService {
     private Team letztesTeam(Player p) {
         if (p.getTeams() == null || p.getTeams().isEmpty()) return null;
         return p.getTeams().get(p.getTeams().size() - 1);
+    }
+
+    private String einsatzstatus(boolean gespielt, Game game) {
+        if (gespielt) return "GESPIELT";
+        if (game != null && game.getFormation() != null && !game.getFormation().isEmpty()) return "NICHT_GESPIELT";
+        return "OFFEN";
     }
 
     private int tore(Player p) {
