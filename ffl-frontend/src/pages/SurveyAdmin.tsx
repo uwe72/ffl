@@ -67,13 +67,18 @@ function apiErrorMessage(err: unknown): string {
   return 'Aktion fehlgeschlagen'
 }
 
+interface DraftOption {
+  _key: string
+  text: string
+}
+
 interface DraftQuestion {
   _key: string
   type: QuestionType
   text: string
   required: boolean
   maxLength: number | null
-  options: string[]
+  options: DraftOption[]
 }
 
 interface Draft {
@@ -121,6 +126,33 @@ function SortableQuestionCard({ id, headerLabel, isMobile, onRemove, children }:
         </div>
         <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={onRemove}>Entfernen</Button>
       </div>
+      {children}
+    </div>
+  )
+}
+
+function SortableOptionRow({ id, children }: {
+  id: string
+  children: React.ReactNode
+}) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`flex items-center gap-2 ${isDragging ? 'shadow-md' : ''}`}
+    >
+      <button
+        ref={setActivatorNodeRef}
+        {...attributes}
+        {...listeners}
+        style={{ touchAction: 'none' }}
+        className="cursor-grab active:cursor-grabbing text-muted hover:text-accent p-1 shrink-0"
+        aria-label="Option verschieben"
+        title="Option verschieben"
+      >
+        <i className="sap-icon sap-icon-move text-base" />
+      </button>
       {children}
     </div>
   )
@@ -301,7 +333,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
             text: q.text,
             required: q.required,
             maxLength: q.maxLength ?? defaultMaxLength(q.type),
-            options: q.options.map(o => o.text),
+            options: q.options.map(o => ({ _key: nextDraftKey(), text: o.text })),
           })),
         }
       : { title: '', description: '', deadline: '', questions: [] },
@@ -349,11 +381,26 @@ function SurveyEditor({ existing, isNew, onCancel }: {
     })
   }
 
+  const handleOptionDragEnd = (qIndex: number) => (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    setDraft(prev => ({
+      ...prev,
+      questions: prev.questions.map((q, i) => {
+        if (i !== qIndex) return q
+        const from = q.options.findIndex(o => o._key === active.id)
+        const to = q.options.findIndex(o => o._key === over.id)
+        if (from < 0 || to < 0) return q
+        return { ...q, options: arrayMove(q.options, from, to) }
+      }),
+    }))
+  }
+
   const setOption = (qIndex: number, oIndex: number, value: string) => {
     setDraft(prev => ({
       ...prev,
       questions: prev.questions.map((q, i) =>
-        i === qIndex ? { ...q, options: q.options.map((o, j) => (j === oIndex ? value : o)) } : q,
+        i === qIndex ? { ...q, options: q.options.map((o, j) => (j === oIndex ? { ...o, text: value } : o)) } : q,
       ),
     }))
   }
@@ -362,7 +409,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
     const newIndex = draft.questions[qIndex].options.length
     setDraft(prev => ({
       ...prev,
-      questions: prev.questions.map((q, i) => (i === qIndex ? { ...q, options: [...q.options, ''] } : q)),
+      questions: prev.questions.map((q, i) => (i === qIndex ? { ...q, options: [...q.options, { _key: nextDraftKey(), text: '' }] } : q)),
     }))
     pendingOptionFocus.current = { qIndex, oIndex: newIndex }
   }
@@ -395,7 +442,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       orderIndex: i,
       required: q.required,
       maxLength: q.type === 'TEXTFIELD' || q.type === 'TEXTAREA' ? q.maxLength : null,
-      options: q.options.filter(o => o.trim() !== ''),
+      options: q.options.map(o => o.text).filter(o => o.trim() !== ''),
     }))
     const missing = questions.findIndex(q => !q.text.trim())
     if (missing >= 0) {
@@ -531,21 +578,25 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                   {(q.type === 'SINGLE' || q.type === 'MULTI') && (
                     <div className="flex flex-col gap-2">
                       <label className="text-sm text-muted">Optionen</label>
-                      {q.options.map((opt, oIndex) => (
-                        <div key={oIndex} className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            ref={el => {
-                              if (!optionRefs.current[qIndex]) optionRefs.current[qIndex] = {}
-                              optionRefs.current[qIndex][oIndex] = el
-                            }}
-                            value={opt}
-                            onChange={e => setOption(qIndex, oIndex, e.target.value)}
-                            className="input-field control w-full px-3 py-2 rounded-control text-sm"
-                          />
-                          <Button variant="negative" size="sm" onClick={() => removeOption(qIndex, oIndex)}>×</Button>
-                        </div>
-                      ))}
+                      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleOptionDragEnd(qIndex)}>
+                        <SortableContext items={q.options.map(o => o._key)} strategy={verticalListSortingStrategy}>
+                          {q.options.map((opt, oIndex) => (
+                            <SortableOptionRow key={opt._key} id={opt._key}>
+                              <input
+                                type="text"
+                                ref={el => {
+                                  if (!optionRefs.current[qIndex]) optionRefs.current[qIndex] = {}
+                                  optionRefs.current[qIndex][oIndex] = el
+                                }}
+                                value={opt.text}
+                                onChange={e => setOption(qIndex, oIndex, e.target.value)}
+                                className="input-field control w-full px-3 py-2 rounded-control text-sm"
+                              />
+                              <Button variant="negative" size="sm" onClick={() => removeOption(qIndex, oIndex)}>×</Button>
+                            </SortableOptionRow>
+                          ))}
+                        </SortableContext>
+                      </DndContext>
                       <Button variant="ghost" size={isMobile ? 'sm' : 'input'} className="self-start" onClick={() => addOption(qIndex)}>
                         + Option
                       </Button>
