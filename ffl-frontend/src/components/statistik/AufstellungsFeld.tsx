@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { Aufstellung, SpielerAufstellung } from '../../types/dashboard'
+import type { Manager } from '../../types'
 import FallblattTafel from './FallblattTafel'
 import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
 import { positionLabels } from '../../utils/positions'
@@ -322,6 +323,8 @@ interface AufstellungsFeldProps {
   overlay?: ReactNode
   hideSum?: boolean
   maxWidth?: number
+  manager?: Manager
+  editable?: boolean
 }
 
 export default function AufstellungsFeld({
@@ -333,6 +336,8 @@ export default function AufstellungsFeld({
   overlay,
   hideSum = false,
   maxWidth,
+  manager,
+  editable = false,
 }: AufstellungsFeldProps) {
   const reduceMotion = useMedia('(prefers-reduced-motion: reduce)')
   const canHover = useMedia('(hover: hover)')
@@ -393,7 +398,7 @@ export default function AufstellungsFeld({
       }}
     >
       <div className="img-overlay" />
-      <FallblattTafel aufstellung={aufstellung} />
+      <FallblattTafel aufstellung={aufstellung} manager={manager} editable={editable} />
       {overlay}
       <div
         className="absolute inset-0 flex"

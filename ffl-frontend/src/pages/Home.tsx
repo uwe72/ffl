@@ -18,7 +18,6 @@ import { TableHead, ThSortable, TableBody } from '../components/Table'
 import SortIcon from '../components/SortIcon'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
 import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
-import CoachTafel from '../components/statistik/CoachTafel'
 import ScoreLine from '../components/statistik/ScoreLine'
 import type { Aufstellung } from '../types/dashboard'
 import type { ManagerGroupRoundStats, Manager } from '../types'
@@ -1210,8 +1209,9 @@ export default function Home() {
                     modus={feldModus}
                     overlayLegend
                     hideSum
-                    overlay={activeManager ? <CoachTafel manager={activeManager} editable={isOwnTeam} /> : undefined}
                     maxWidth={spielerMaxWidth}
+                    manager={activeManager}
+                    editable={isOwnTeam}
                   />
                 )}
               </div>,
