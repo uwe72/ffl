@@ -72,11 +72,23 @@ export const useDeleteSurvey = () => {
 export const useSurveyStatusAction = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, action }: { id: number; action: 'start' | 'end' | 'reopen' }) => {
+    mutationFn: ({ id, action, deadline }: { id: number; action: 'start' | 'end' | 'reopen'; deadline?: string }) => {
       if (action === 'start') return surveyApi.start(id).then(res => res.data)
       if (action === 'end') return surveyApi.end(id).then(res => res.data)
-      return surveyApi.reopen(id).then(res => res.data)
+      return surveyApi.reopen(id, deadline ? { deadline } : undefined).then(res => res.data)
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] })
+      queryClient.invalidateQueries({ queryKey: ['survey', 'active'] })
+    },
+  })
+}
+
+export const useUpdateSurveyMeta = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: { title: string; description: string; deadline: string } }) =>
+      surveyApi.updateMeta(id, data).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surveys'] })
       queryClient.invalidateQueries({ queryKey: ['survey', 'active'] })

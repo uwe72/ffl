@@ -2,6 +2,8 @@ package de.ffl.controller;
 
 import de.ffl.dto.SurveyAdminDto;
 import de.ffl.dto.SurveyCreateRequest;
+import de.ffl.dto.SurveyMetaUpdateRequest;
+import de.ffl.dto.SurveyReopenRequest;
 import de.ffl.dto.SurveyResultDto;
 import de.ffl.service.SurveyService;
 import jakarta.validation.Valid;
@@ -64,8 +66,15 @@ public class SurveyController {
     }
 
     @PostMapping("/{id}/reopen")
-    public ResponseEntity<SurveyAdminDto> reopen(@PathVariable Long id) {
-        return ResponseEntity.ok(surveyService.reopenSurvey(id));
+    public ResponseEntity<SurveyAdminDto> reopen(@PathVariable Long id,
+                                                 @RequestBody(required = false) SurveyReopenRequest request) {
+        return ResponseEntity.ok(surveyService.reopenSurvey(id, request == null ? null : request.getDeadline()));
+    }
+
+    @PutMapping("/{id}/meta")
+    public ResponseEntity<SurveyAdminDto> updateMeta(@PathVariable Long id,
+                                                     @Valid @RequestBody SurveyMetaUpdateRequest request) {
+        return ResponseEntity.ok(surveyService.updateSurveyMeta(id, request));
     }
 
     @GetMapping("/{id}/result")

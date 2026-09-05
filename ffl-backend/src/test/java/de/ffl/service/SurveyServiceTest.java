@@ -212,7 +212,7 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         surveyService.endSurvey(dto.getId());
         assertThat(surveyService.getAdminSurvey(dto.getId()).getStatus()).isEqualTo(SurveyStatus.BEENDET);
 
-        surveyService.reopenSurvey(dto.getId());
+        surveyService.reopenSurvey(dto.getId(), null);
 
         assertThat(surveyService.getAdminSurvey(dto.getId()).getStatus()).isEqualTo(SurveyStatus.GESTARTET);
         assertThat(surveyService.getActiveSurvey().getId()).isEqualTo(dto.getId());
@@ -221,7 +221,7 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
     @Test
     void reopenSurvey_requiresBeendet() {
         SurveyAdminDto dto = createStartedSurvey();
-        assertThatThrownBy(() -> surveyService.reopenSurvey(dto.getId()))
+        assertThatThrownBy(() -> surveyService.reopenSurvey(dto.getId(), null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Nur beendete");
     }
@@ -233,7 +233,7 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         SurveyAdminDto b = surveyService.createSurvey(fullSurveyRequest());
         surveyService.startSurvey(b.getId());
 
-        assertThatThrownBy(() -> surveyService.reopenSurvey(a.getId()))
+        assertThatThrownBy(() -> surveyService.reopenSurvey(a.getId(), null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("bereits eine Umfrage gestartet");
     }
@@ -249,9 +249,113 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         entityManager.clear();
         surveyService.endSurvey(dto.getId());
 
-        assertThatThrownBy(() -> surveyService.reopenSurvey(dto.getId()))
+        assertThatThrownBy(() -> surveyService.reopenSurvey(dto.getId(), null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Zukunft");
+    }
+
+    @Test
+    void reopenSurvey_withNewDeadline_reactivatesExpiredSurvey() {
+        SurveyAdminDto dto = createStartedSurvey();
+        entityManager.createNativeQuery("UPDATE ffl_survey SET deadline = :past WHERE id = :id")
+            .setParameter("past", LocalDateTime.now().minusMinutes(5))
+            .setParameter("id", dto.getId())
+            .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+        surveyService.endSurvey(dto.getId());
+
+        LocalDateTime newDeadline = LocalDateTime.now().plusDays(14);
+        SurveyAdminDto reopened = surveyService.reopenSurvey(dto.getId(), newDeadline);
+
+        assertThat(reopened.getStatus()).isEqualTo(SurveyStatus.GESTARTET);
+        assertThat(reopened.getDeadline()).isEqualTo(newDeadline);
+        assertThat(surveyService.getActiveSurvey().getId()).isEqualTo(dto.getId());
+    }
+
+    @Test
+    void reopenSurvey_withPastNewDeadline_throws() {
+        SurveyAdminDto dto = createStartedSurvey();
+        surveyService.endSurvey(dto.getId());
+
+        assertThatThrownBy(() -> surveyService.reopenSurvey(dto.getId(), LocalDateTime.now().minusDays(1)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Zukunft");
+        assertThat(surveyService.getAdminSurvey(dto.getId()).getStatus()).isEqualTo(SurveyStatus.BEENDET);
+    }
+
+    @Test
+    void updateSurveyMeta_onBeendet_updatesTitleDescriptionDeadline() {
+        SurveyAdminDto dto = createStartedSurvey();
+        surveyService.endSurvey(dto.getId());
+
+        SurveyMetaUpdateRequest req = new SurveyMetaUpdateRequest();
+        req.setTitle("Neuer Titel");
+        req.setDescription("Neue Beschreibung");
+        req.setDeadline(LocalDateTime.now().plusDays(21));
+        SurveyAdminDto updated = surveyService.updateSurveyMeta(dto.getId(), req);
+
+        assertThat(updated.getTitle()).isEqualTo("Neuer Titel");
+        assertThat(updated.getDescription()).isEqualTo("Neue Beschreibung");
+        assertThat(updated.getDeadline()).isEqualTo(req.getDeadline());
+        assertThat(updated.getQuestions()).hasSize(dto.getQuestions().size());
+        assertThat(updated.getResponseCount()).isZero();
+    }
+
+    @Test
+    void updateSurveyMeta_requiresBeendetOrGestartet() {
+        SurveyAdminDto angelegt = surveyService.createSurvey(fullSurveyRequest());
+
+        SurveyMetaUpdateRequest req = new SurveyMetaUpdateRequest();
+        req.setTitle("Neu");
+        req.setDeadline(LocalDateTime.now().plusDays(7));
+
+        assertThatThrownBy(() -> surveyService.updateSurveyMeta(angelegt.getId(), req))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Nur gestartete oder beendete");
+    }
+
+    @Test
+    void updateSurveyMeta_onGestartet_updatesDeadlineAndTitle() {
+        SurveyAdminDto dto = createStartedSurvey();
+
+        SurveyMetaUpdateRequest req = new SurveyMetaUpdateRequest();
+        req.setTitle("Neuer Titel");
+        req.setDescription("Neue Beschreibung");
+        req.setDeadline(LocalDateTime.now().plusDays(45));
+        SurveyAdminDto updated = surveyService.updateSurveyMeta(dto.getId(), req);
+
+        assertThat(updated.getTitle()).isEqualTo("Neuer Titel");
+        assertThat(updated.getDescription()).isEqualTo("Neue Beschreibung");
+        assertThat(updated.getDeadline()).isEqualTo(req.getDeadline());
+        assertThat(updated.getStatus()).isEqualTo(SurveyStatus.GESTARTET);
+        assertThat(updated.getQuestions()).hasSize(dto.getQuestions().size());
+    }
+
+    @Test
+    void updateSurveyMeta_onGestartet_pastDeadline_throws() {
+        SurveyAdminDto dto = createStartedSurvey();
+
+        SurveyMetaUpdateRequest req = new SurveyMetaUpdateRequest();
+        req.setTitle("Neu");
+        req.setDeadline(LocalDateTime.now().minusDays(1));
+
+        assertThatThrownBy(() -> surveyService.updateSurveyMeta(dto.getId(), req))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Zukunft");
+        assertThat(surveyService.getAdminSurvey(dto.getId()).getStatus()).isEqualTo(SurveyStatus.GESTARTET);
+    }
+
+    @Test
+    void updateSurveyMeta_requiresDeadline() {
+        SurveyAdminDto dto = createStartedSurvey();
+        surveyService.endSurvey(dto.getId());
+
+        SurveyMetaUpdateRequest req = new SurveyMetaUpdateRequest();
+        req.setTitle("Neu");
+        assertThatThrownBy(() -> surveyService.updateSurveyMeta(dto.getId(), req))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Zieldatum");
     }
 
     private void submit(Long surveyId, List<SurveyAnswerInput> answers) {

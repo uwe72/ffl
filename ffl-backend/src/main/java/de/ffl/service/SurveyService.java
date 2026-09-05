@@ -133,7 +133,7 @@ public class SurveyService {
     }
 
     @Transactional
-    public SurveyAdminDto reopenSurvey(Long id) {
+    public SurveyAdminDto reopenSurvey(Long id, LocalDateTime newDeadline) {
         Survey survey = requireSurvey(id);
         if (survey.getStatus() != SurveyStatus.BEENDET) {
             throw new IllegalArgumentException("Nur beendete Umfragen können reaktiviert werden");
@@ -141,10 +141,32 @@ public class SurveyService {
         if (surveyRepository.existsByStatus(SurveyStatus.GESTARTET)) {
             throw new IllegalArgumentException("Es ist bereits eine Umfrage gestartet. Beende sie zuerst.");
         }
+        if (newDeadline != null) {
+            requireDeadline(newDeadline);
+            survey.setDeadline(newDeadline);
+        }
         if (!survey.getDeadline().isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Das Zieldatum muss in der Zukunft liegen");
+            throw new IllegalArgumentException("Das Zieldatum muss in der Zukunft liegen. Bitte gib ein neues Zieldatum an.");
         }
         survey.setStatus(SurveyStatus.GESTARTET);
+        survey.setUpdatedAt(LocalDateTime.now());
+        return toAdminDto(surveyRepository.save(survey), surveyResponseRepository.countBySurveyId(id));
+    }
+
+    @Transactional
+    public SurveyAdminDto updateSurveyMeta(Long id, SurveyMetaUpdateRequest request) {
+        Survey survey = requireSurvey(id);
+        SurveyStatus status = survey.getStatus();
+        if (status != SurveyStatus.BEENDET && status != SurveyStatus.GESTARTET) {
+            throw new IllegalArgumentException("Nur gestartete oder beendete Umfragen können hier bearbeitet werden");
+        }
+        requireDeadline(request.getDeadline());
+        if (status == SurveyStatus.GESTARTET && !request.getDeadline().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Das Zieldatum muss in der Zukunft liegen");
+        }
+        survey.setTitle(request.getTitle());
+        survey.setDescription(request.getDescription());
+        survey.setDeadline(request.getDeadline());
         survey.setUpdatedAt(LocalDateTime.now());
         return toAdminDto(surveyRepository.save(survey), surveyResponseRepository.countBySurveyId(id));
     }

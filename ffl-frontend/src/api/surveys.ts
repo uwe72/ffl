@@ -12,11 +12,14 @@ export const surveyApi = {
   get: (id: number) => api.get<SurveyAdmin>(`/surveys/${id}`),
   create: (data: SurveyCreateRequest) => api.post<SurveyAdmin>('/surveys', data),
   update: (id: number, data: SurveyCreateRequest) => api.put<SurveyAdmin>(`/surveys/${id}`, data),
+  updateMeta: (id: number, data: { title: string; description: string; deadline: string }) =>
+    api.put<SurveyAdmin>(`/surveys/${id}/meta`, data),
   copy: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/copy`),
   remove: (id: number) => api.delete(`/surveys/${id}`),
   start: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/start`),
   end: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/end`),
-  reopen: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/reopen`),
+  reopen: (id: number, data?: { deadline: string | null }) =>
+    api.post<SurveyAdmin>(`/surveys/${id}/reopen`, data ?? {}),
   result: (id: number) => api.get<SurveyResult>(`/surveys/${id}/result`),
 }
 

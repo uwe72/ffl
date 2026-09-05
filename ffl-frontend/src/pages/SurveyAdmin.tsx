@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSurveys, useCreateSurvey, useUpdateSurvey, useCopySurvey, useDeleteSurvey, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
+import { useSurveys, useCreateSurvey, useUpdateSurvey, useUpdateSurveyMeta, useCopySurvey, useDeleteSurvey, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
 import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import BackButton from '../components/BackButton'
 import Button from '../components/Button'
@@ -57,6 +57,13 @@ function toDatetimeLocal(iso?: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+function apiErrorMessage(err: unknown): string {
+  const data = (err as { response?: { data?: unknown } })?.response?.data
+  if (typeof data === 'string' && data.trim()) return data
+  if (err instanceof Error && err.message) return err.message
+  return 'Aktion fehlgeschlagen'
+}
+
 interface DraftQuestion {
   type: QuestionType
   text: string
@@ -78,14 +85,15 @@ export default function SurveyAdmin() {
   const statusAction = useSurveyStatusAction()
   const deleteMutation = useDeleteSurvey()
   const copyMutation = useCopySurvey()
-  const [mode, setMode] = useState<'list' | 'edit' | 'result'>('list')
+  const [mode, setMode] = useState<'list' | 'edit' | 'meta' | 'result'>('list')
   const [editing, setEditing] = useState<SurveyAdmin | null>(null)
   const [isNew, setIsNew] = useState(false)
   const [activeId, setActiveId] = useState<number | null>(null)
+  const [reopenTarget, setReopenTarget] = useState<SurveyAdmin | null>(null)
 
-  const changeStatus = (id: number, action: 'start' | 'end' | 'reopen') => {
-    statusAction.mutate({ id, action }, {
-      onError: err => alert(err instanceof Error ? err.message : 'Aktion fehlgeschlagen'),
+  const changeStatus = (id: number, action: 'start' | 'end' | 'reopen', deadline?: string) => {
+    statusAction.mutate({ id, action, deadline }, {
+      onError: err => alert(apiErrorMessage(err)),
     })
   }
 
@@ -95,14 +103,28 @@ export default function SurveyAdmin() {
       : 'Möchtest du diese Umfrage wirklich löschen?'
     if (!window.confirm(warning)) return
     deleteMutation.mutate(id, {
-      onError: err => alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen'),
+      onError: err => alert(apiErrorMessage(err)),
     })
   }
 
   const copy = (id: number) => {
     copyMutation.mutate(id, {
-      onError: err => alert(err instanceof Error ? err.message : 'Kopieren fehlgeschlagen'),
+      onError: err => alert(apiErrorMessage(err)),
     })
+  }
+
+  const requestReopen = (s: SurveyAdmin) => {
+    if (new Date(s.deadline).getTime() <= Date.now()) {
+      setReopenTarget(s)
+    } else {
+      changeStatus(s.id, 'reopen')
+    }
+  }
+
+  const startMetaEdit = (s: SurveyAdmin) => {
+    setEditing(s)
+    setIsNew(false)
+    setMode('meta')
   }
 
   const startCreate = () => {
@@ -124,6 +146,10 @@ export default function SurveyAdmin() {
 
   if (mode === 'edit') {
     return <SurveyEditor key={editing?.id ?? 'new'} existing={editing} isNew={isNew} onCancel={() => setMode('list')} />
+  }
+
+  if (mode === 'meta' && editing) {
+    return <SurveyMetaEditor key={editing.id} existing={editing} onCancel={() => setMode('list')} />
   }
 
   if (mode === 'result' && activeId != null) {
@@ -181,6 +207,7 @@ export default function SurveyAdmin() {
                   {s.status === 'GESTARTET' && (
                     <>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
+                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startMetaEdit(s)}>Bearbeiten</Button>
                       <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'end')}>Beenden</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
                       <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
@@ -189,7 +216,8 @@ export default function SurveyAdmin() {
                   {s.status === 'BEENDET' && (
                     <>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
-                      <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'reopen')}>Reaktivieren</Button>
+                      <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startMetaEdit(s)}>Bearbeiten</Button>
+                      <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => requestReopen(s)}>Reaktivieren</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
                       <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
                     </>
@@ -200,6 +228,8 @@ export default function SurveyAdmin() {
           ))}
         </div>
       )}
+
+      <ReopenDialog survey={reopenTarget} onClose={() => setReopenTarget(null)} />
     </div>
   )
 }
@@ -323,7 +353,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       }
       onCancel()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Speichern fehlgeschlagen')
+      setError(apiErrorMessage(e))
     }
   }
 
@@ -473,6 +503,188 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       <div className="mt-6 flex gap-3">
         <Button onClick={handleSave} disabled={create.isPending || update.isPending}>
           {create.isPending || update.isPending ? 'Speichert...' : 'Speichern'}
+        </Button>
+        <Button variant="transparent" onClick={onCancel}>Abbrechen</Button>
+      </div>
+    </div>
+  )
+}
+
+function ReopenDialog({ survey, onClose }: { survey: SurveyAdmin | null; onClose: () => void }) {
+  const statusAction = useSurveyStatusAction()
+  const [deadline, setDeadline] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (survey) {
+      setDeadline(toDatetimeLocal(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()))
+      setError(null)
+    }
+  }, [survey])
+
+  if (!survey) return null
+
+  const handleReopen = async () => {
+    if (!deadline) {
+      setError('Bitte gib ein neues Zieldatum an.')
+      return
+    }
+    setError(null)
+    try {
+      await statusAction.mutateAsync({ id: survey.id, action: 'reopen', deadline })
+      onClose()
+    } catch (e) {
+      setError(apiErrorMessage(e))
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
+      onClick={() => { if (!statusAction.isPending) onClose() }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="survey-reopen-dialog-title"
+        className="bg-surface border border-border rounded-card shadow-2xl w-full max-w-md p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="survey-reopen-dialog-title" className="text-lg font-bold text-foreground">
+          Umfrage reaktivieren
+        </h2>
+        <p className="text-sm text-muted mt-2">
+          Das Zieldatum von „{survey.title}" ist abgelaufen. Setze ein neues Zieldatum, um die Umfrage wieder zu öffnen.
+        </p>
+        <div className="mt-4">
+          <label className="block text-sm text-muted mb-1">Umfrage möglich bis *</label>
+          <input
+            type="datetime-local"
+            value={deadline}
+            onChange={e => setDeadline(e.target.value)}
+            className="input-field control w-full px-3 py-2 rounded-control text-sm"
+          />
+        </div>
+        {error && (
+          <div className="mt-4 p-3 rounded-control border border-danger/40 bg-danger-bg text-danger text-sm">
+            {error}
+          </div>
+        )}
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="ghost" size="input" onClick={onClose} disabled={statusAction.isPending}>
+            Abbrechen
+          </Button>
+          <Button variant="emphasized" size="input" onClick={handleReopen} disabled={statusAction.isPending}>
+            {statusAction.isPending ? 'Wird geöffnet...' : 'Reaktivieren'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SurveyMetaEditor({ existing, onCancel }: {
+  existing: SurveyAdmin
+  onCancel: () => void
+}) {
+  const isMobile = useIsMobile()
+  const updateMeta = useUpdateSurveyMeta()
+  const [draft, setDraft] = useState({
+    title: existing.title,
+    description: existing.description ?? '',
+    deadline: toDatetimeLocal(existing.deadline),
+  })
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSave = async () => {
+    if (!draft.title.trim()) {
+      setError('Bitte gib einen Titel an.')
+      return
+    }
+    if (!draft.deadline) {
+      setError('Bitte gib ein Zieldatum an.')
+      return
+    }
+    setError(null)
+    try {
+      await updateMeta.mutateAsync({
+        id: existing.id,
+        data: { title: draft.title, description: draft.description, deadline: draft.deadline },
+      })
+      onCancel()
+    } catch (e) {
+      setError(apiErrorMessage(e))
+    }
+  }
+
+  return (
+    <div className="max-w-3xl">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-xl font-semibold text-foreground">Umfrage bearbeiten</h2>
+          <Button variant="transparent" size={isMobile ? 'sm' : 'input'} onClick={onCancel}>
+            <i className="sap-icon sap-icon-nav-back text-base" />
+            Zurück
+          </Button>
+        </div>
+      </div>
+
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
+        <p className="text-sm text-muted mb-4">
+          Hier können nur Titel, Beschreibung und Zieldatum geändert werden. Die Fragen bleiben unverändert.
+        </p>
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="block text-sm text-muted mb-1">Titel *</label>
+            <input
+              type="text"
+              value={draft.title}
+              onChange={e => setDraft(prev => ({ ...prev, title: e.target.value }))}
+              className="input-field control w-full px-3 py-2 rounded-control text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-muted mb-1">Beschreibung</label>
+            <textarea
+              value={draft.description}
+              onChange={e => setDraft(prev => ({ ...prev, description: e.target.value }))}
+              rows={2}
+              className="input-field control w-full px-3 py-2 rounded-control text-sm resize-y"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-muted mb-1">Umfrage möglich bis *</label>
+            <input
+              type="datetime-local"
+              value={draft.deadline}
+              onChange={e => setDraft(prev => ({ ...prev, deadline: e.target.value }))}
+              className="input-field control w-full px-3 py-2 rounded-control text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-muted mb-1">Fragen (schreibgeschützt)</label>
+            <div className="flex flex-col divide-y divide-border border border-border rounded-control">
+              {existing.questions.map(q => (
+                <div key={q.id} className="px-3 py-2 flex items-center gap-3 text-sm">
+                  <span className="text-foreground flex-1 min-w-0 truncate">{q.text}</span>
+                  <span className="text-subtle shrink-0">{TYPE_LABEL[q.type]}</span>
+                  {q.required && <span className="text-subtle shrink-0">Pflicht</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mt-4 p-3 rounded-control border border-danger/40 bg-danger-bg text-danger text-sm">
+          {error}
+        </div>
+      )}
+
+      <div className="mt-6 flex gap-3">
+        <Button onClick={handleSave} disabled={updateMeta.isPending}>
+          {updateMeta.isPending ? 'Speichert...' : 'Speichern'}
         </Button>
         <Button variant="transparent" onClick={onCancel}>Abbrechen</Button>
       </div>
