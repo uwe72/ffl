@@ -6,8 +6,8 @@ import { useSurveys, useCreateSurvey, useUpdateSurvey, useUpdateSurveyMeta, useC
 import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import BackButton from '../components/BackButton'
 import Button from '../components/Button'
+import SurveyPreviewDialog from '../components/SurveyPreviewDialog'
 import useIsMobile from '../hooks/useIsMobile'
-import { trackEvent } from '../hooks/useMatomo'
 
 const STATUS_LABEL: Record<string, string> = {
   ANGELEGT: 'Angelegt',
@@ -83,7 +83,7 @@ interface DraftQuestion {
   options: DraftOption[]
 }
 
-interface Draft {
+export interface Draft {
   title: string
   description: string
   deadline: string
@@ -95,37 +95,6 @@ let draftQuestionKeyCounter = 0
 function nextDraftKey(): string {
   draftQuestionKeyCounter += 1
   return `q-${draftQuestionKeyCounter}`
-}
-
-function buildWhatsappText(draft: Draft): string {
-  const lines: string[] = []
-  lines.push(`*${draft.title.trim()}*`)
-  const description = draft.description.trim()
-  if (description) {
-    lines.push('')
-    lines.push(description)
-  }
-  let questionNumber = 0
-  for (const q of draft.questions) {
-    if (q.type === 'SEPARATOR') {
-      lines.push('')
-      lines.push(`*${q.text.trim()}*`)
-      continue
-    }
-    questionNumber += 1
-    let questionLine = `${questionNumber}. ${q.text.trim()}`
-    if (q.type === 'RATING') questionLine += ' (1–5 Sterne)'
-    if (q.required) questionLine += ' (Pflicht)'
-    lines.push('')
-    lines.push(questionLine)
-    if (q.type === 'SINGLE' || q.type === 'MULTI') {
-      const marker = q.type === 'SINGLE' ? '○' : '☐'
-      for (const o of q.options) {
-        if (o.text.trim() !== '') lines.push(`${marker} ${o.text.trim()}`)
-      }
-    }
-  }
-  return lines.join('\n')
 }
 
 function SortableQuestionCard({ id, headerLabel, isMobile, onRemove, children }: {
@@ -379,7 +348,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       : { title: '', description: '', deadline: '', questions: [] },
   )
   const [error, setError] = useState<string | null>(null)
-  const [whatsappCopied, setWhatsappCopied] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
   const optionRefs = useRef<Record<number, Record<number, HTMLInputElement | null>>>({})
   const pendingOptionFocus = useRef<{ qIndex: number; oIndex: number } | null>(null)
 
@@ -466,29 +435,6 @@ function SurveyEditor({ existing, isNew, onCancel }: {
         i === qIndex ? { ...q, options: q.options.filter((_, j) => j !== oIndex) } : q,
       ),
     }))
-  }
-
-  const handleWhatsappExport = async () => {
-    const text = buildWhatsappText(draft)
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(text)
-      } else {
-        const textarea = document.createElement('textarea')
-        textarea.value = text
-        textarea.style.position = 'fixed'
-        textarea.style.top = '-9999px'
-        document.body.appendChild(textarea)
-        textarea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textarea)
-      }
-      trackEvent('survey', 'export_whatsapp')
-      setWhatsappCopied(true)
-      window.setTimeout(() => setWhatsappCopied(false), 2000)
-    } catch {
-      setError('WhatsApp-Export konnte nicht in die Zwischenablage kopiert werden.')
-    }
   }
 
   const handleSave = async () => {
@@ -721,8 +667,8 @@ function SurveyEditor({ existing, isNew, onCancel }: {
         <Button variant="ghost" size={isMobile ? 'sm' : 'input'} onClick={addSeparator}>
           + Trenner hinzufügen
         </Button>
-        <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={handleWhatsappExport}>
-          {whatsappCopied ? 'Kopiert!' : 'WhatsApp Export'}
+        <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => setShowPreview(true)}>
+          Vorschau
         </Button>
       </div>
 
@@ -738,6 +684,10 @@ function SurveyEditor({ existing, isNew, onCancel }: {
         </Button>
         <Button variant="transparent" onClick={onCancel}>Abbrechen</Button>
       </div>
+
+      {showPreview && (
+        <SurveyPreviewDialog draft={draft} onClose={() => setShowPreview(false)} />
+      )}
     </div>
   )
 }
