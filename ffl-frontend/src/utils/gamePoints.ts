@@ -2,6 +2,7 @@ import type { PlayerRank } from '../types'
 
 export interface GamePointsRow {
   roundNumber: number
+  pointsRound?: number
   gameName: string
   opponent: string
   homeAway: string
@@ -29,6 +30,13 @@ export function shortRuleLabel(rule: string): string {
   return SHORT_RULE_LABELS[rule] ?? rule
 }
 
+export function splitGameName(gameName: string): { host: string; visitor: string } {
+  const idx = gameName.indexOf(' - ')
+  const host = idx >= 0 ? gameName.slice(0, idx) : gameName
+  const visitor = idx >= 0 ? gameName.slice(idx + 3) : ''
+  return { host, visitor }
+}
+
 export function buildGamePointsRows(ranks: PlayerRank[] | undefined): GamePointsRow[] {
   if (!ranks) return []
 
@@ -40,6 +48,7 @@ export function buildGamePointsRows(ranks: PlayerRank[] | undefined): GamePoints
       if (!rule.points || rule.points <= 0) continue
       rows.push({
         roundNumber: rank.roundNumber,
+        pointsRound: rank.pointsRound,
         gameName: rank.gameName ?? '',
         opponent: rank.opponent ?? '',
         homeAway: rank.homeAway ?? '',

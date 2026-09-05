@@ -36,7 +36,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -1462,6 +1464,9 @@ public class MatchdayMailTransactionService {
         if (survey == null) {
             return "";
         }
+        if (survey.getDeadline() != null && survey.getDeadline().isBefore(java.time.LocalDateTime.now())) {
+            return "";
+        }
         String border = isDark ? "1px solid #555555" : "1px solid #c0c0c0";
         String accent = isDark ? "#FFD60A" : "#b7791f";
         StringBuilder sb = new StringBuilder();
@@ -1475,12 +1480,22 @@ public class MatchdayMailTransactionService {
               .append(";font-style:italic;font-size:13px;line-height:1.5;margin:0 0 6px 0;\">")
               .append(escape(description.trim())).append("</div>");
         }
-        String deadline = survey.getDeadline() != null
-            ? survey.getDeadline().format(SURVEY_DEADLINE_FMT)
-            : "bald";
+        String meta = "Anonym, dauert 1 Minute";
+        if (survey.getDeadline() != null) {
+            long days = ChronoUnit.DAYS.between(LocalDate.now(), survey.getDeadline().toLocalDate());
+            if (days <= 0) {
+                meta += " · endet heute, bis zum " + survey.getDeadline().format(SURVEY_DEADLINE_FMT) + ".";
+            } else if (days == 1) {
+                meta += " · endet morgen, bis zum " + survey.getDeadline().format(SURVEY_DEADLINE_FMT) + ".";
+            } else {
+                meta += " · noch " + days + " Tage, bis zum " + survey.getDeadline().format(SURVEY_DEADLINE_FMT) + ".";
+            }
+        } else {
+            meta += ".";
+        }
         sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;line-height:1.5;\"><tr>");
         sb.append("<td style=\"color:").append(textPrimary).append(";padding:0;\">")
-          .append("Anonym, dauert eine Minute · noch bis ").append(deadline).append("</td>");
+          .append(meta).append("</td>");
         if (webUrl != null && !webUrl.isBlank() && survey.getId() != null) {
             String base = webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
             sb.append("<td align=\"right\" style=\"white-space:nowrap;vertical-align:top;padding:0;padding-left:10px;\">")

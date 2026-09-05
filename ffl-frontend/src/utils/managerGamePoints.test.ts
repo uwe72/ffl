@@ -70,8 +70,8 @@ test('Zwei verschiedene Regeln eines Spielers ergeben zwei Zeilen mit Spieler un
     }),
   ]
   assert.deepEqual(buildManagerGamePointsRows(details), [
-    { roundNumber: 1, gameName: 'HSV - BVB', opponent: 'BVB', homeAway: 'H', goalHost: 2, goalVisitor: 0, goalsOwn: 2, goalsOpponent: 0, playerId: 7, playerName: 'Kicker Star', rule: 'TO_NULL_DEFENDER', ruleLabel: 'Zu Null Verteidiger', count: 1, points: 2 },
-    { roundNumber: 1, gameName: 'HSV - BVB', opponent: 'BVB', homeAway: 'H', goalHost: 2, goalVisitor: 0, goalsOwn: 2, goalsOpponent: 0, playerId: 7, playerName: 'Kicker Star', rule: 'GOAL_DEFENDER', ruleLabel: 'Tor Verteidiger', count: 1, points: 7 },
+    { roundNumber: 1, pointsRound: 0, gameName: 'HSV - BVB', opponent: 'BVB', homeAway: 'H', goalHost: 2, goalVisitor: 0, goalsOwn: 2, goalsOpponent: 0, playerId: 7, playerName: 'Kicker Star', playerFullName: 'Kicker Star', pictureUrl: undefined, position: undefined, teamName: undefined, teamLogoUrl: undefined, rule: 'TO_NULL_DEFENDER', ruleLabel: 'Zu Null Verteidiger', count: 1, points: 2 },
+    { roundNumber: 1, pointsRound: 0, gameName: 'HSV - BVB', opponent: 'BVB', homeAway: 'H', goalHost: 2, goalVisitor: 0, goalsOwn: 2, goalsOpponent: 0, playerId: 7, playerName: 'Kicker Star', playerFullName: 'Kicker Star', pictureUrl: undefined, position: undefined, teamName: undefined, teamLogoUrl: undefined, rule: 'GOAL_DEFENDER', ruleLabel: 'Tor Verteidiger', count: 1, points: 7 },
   ])
 })
 
@@ -132,6 +132,74 @@ test('Mehrere gleiche Regeln werden als Zeile mit Anzahl und Gesamtpunkten ueber
     }),
   ]
   assert.deepEqual(buildManagerGamePointsRows(details), [
-    { roundNumber: 1, gameName: '', opponent: '', homeAway: '', goalHost: undefined, goalVisitor: undefined, goalsOwn: undefined, goalsOpponent: undefined, playerId: 5, playerName: 'Spieler C', rule: 'GOAL_MIDFIELDER', ruleLabel: 'Tor Mittelfeldspieler', count: 3, points: 15 },
+    { roundNumber: 1, pointsRound: 0, gameName: '', opponent: '', homeAway: '', goalHost: undefined, goalVisitor: undefined, goalsOwn: undefined, goalsOpponent: undefined, playerId: 5, playerName: 'Spieler C', playerFullName: 'Spieler C', pictureUrl: undefined, position: undefined, teamName: undefined, teamLogoUrl: undefined, rule: 'GOAL_MIDFIELDER', ruleLabel: 'Tor Mittelfeldspieler', count: 3, points: 15 },
+  ])
+})
+
+test('Punkte des Spieltags werden als pointsRound uebernommen', () => {
+  const details = [
+    round({
+      roundNumber: 5,
+      pointsRound: 12,
+      playerPoints: [
+        {
+          playerId: 6,
+          playerName: 'Spieler D',
+          points: 12,
+          rules: [{ rule: 'GOAL_STRIKER', ruleLabel: 'Tor Stürmer', count: 1, points: 3 }, { rule: 'GOAL_DEFENDER', ruleLabel: 'Tor Verteidiger', count: 1, points: 9 }],
+        },
+      ],
+    }),
+  ]
+  const rows = buildManagerGamePointsRows(details)
+  assert.equal(rows.length, 2)
+  assert.equal(rows[0].pointsRound, 12)
+  assert.equal(rows[1].pointsRound, 12)
+})
+
+test('Vor- und Nachname werden als playerFullName uebernommen, sonst Fallback auf Kurzname', () => {
+  const details = [
+    round({
+      playerPoints: [
+        {
+          playerId: 9,
+          playerName: 'M. Mustermann',
+          firstName: 'Max',
+          lastName: 'Mustermann',
+          points: 3,
+          rules: [{ rule: 'GOAL_STRIKER', ruleLabel: 'Tor Stürmer', count: 1, points: 3 }],
+        },
+        {
+          playerId: 10,
+          playerName: 'Nur Kurzname',
+          points: 2,
+          rules: [{ rule: 'GOAL_DEFENDER', ruleLabel: 'Tor Verteidiger', count: 1, points: 2 }],
+        },
+      ],
+    }),
+  ]
+  const rows = buildManagerGamePointsRows(details)
+  assert.equal(rows[0].playerFullName, 'Max Mustermann')
+  assert.equal(rows[1].playerFullName, 'Nur Kurzname')
+})
+
+test('Position und Verein werden als Zeilenfelder uebernommen', () => {
+  const details = [
+    round({
+      playerPoints: [
+        {
+          playerId: 11,
+          playerName: 'Torwart Toni',
+          position: 'GOALKEEPER',
+          teamName: 'FC Musterstadt',
+          teamLogoUrl: '/logo.png',
+          points: 5,
+          rules: [{ rule: 'TO_NULL_GOALKEEPER', ruleLabel: 'Zu Null Torwart', count: 1, points: 5 }],
+        },
+      ],
+    }),
+  ]
+  assert.deepEqual(buildManagerGamePointsRows(details), [
+    { roundNumber: 1, pointsRound: 0, gameName: '', opponent: '', homeAway: '', goalHost: undefined, goalVisitor: undefined, goalsOwn: undefined, goalsOpponent: undefined, playerId: 11, playerName: 'Torwart Toni', playerFullName: 'Torwart Toni', pictureUrl: undefined, position: 'GOALKEEPER', teamName: 'FC Musterstadt', teamLogoUrl: '/logo.png', rule: 'TO_NULL_GOALKEEPER', ruleLabel: 'Zu Null Torwart', count: 1, points: 5 },
   ])
 })

@@ -29,6 +29,8 @@ public class RoundDetailDto {
     public static class PlayerPointDto {
         private Long playerId;
         private String playerName;
+        private String firstName;
+        private String lastName;
         private Integer points;
         private List<RulePointDto> rules;
         private String position;
@@ -53,6 +55,10 @@ public class RoundDetailDto {
         public void setPlayerId(Long playerId) { this.playerId = playerId; }
         public String getPlayerName() { return playerName; }
         public void setPlayerName(String playerName) { this.playerName = playerName; }
+        public String getFirstName() { return firstName; }
+        public void setFirstName(String firstName) { this.firstName = firstName; }
+        public String getLastName() { return lastName; }
+        public void setLastName(String lastName) { this.lastName = lastName; }
         public Integer getPoints() { return points; }
         public void setPoints(Integer points) { this.points = points; }
         public List<RulePointDto> getRules() { return rules; }

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, Fragment } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { usePlayer, useUpdatePlayer, usePlayerRanks } from '../hooks/usePlayers'
 import { useAuth } from '../context/AuthContext'
@@ -10,7 +10,7 @@ import SortIcon from '../components/SortIcon'
 import Badge from '../components/Badge'
 import { TableHead, ThSortable, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
-import { buildGamePointsRows, shortRuleLabel } from '../utils/gamePoints'
+import { buildGamePointsRows, shortRuleLabel, splitGameName } from '../utils/gamePoints'
 import type { Position } from '../types'
 
 type SortKey = 'positionTotal' | 'positionChange' | 'shortName' | 'pointsTotal' | 'pointsLastRound' | 'firstName' | 'lastName' | 'hinrunde' | 'rueckrunde'
@@ -46,6 +46,32 @@ function managerLogin(m: { shortName?: string; name?: string }): string {
 
 function managerFullName(m: { firstName?: string; lastName?: string; name?: string }): string {
   return [m.firstName, m.lastName].filter(Boolean).join(' ') || m.name || '-'
+}
+
+function GameNameCell({ row }: { row: { gameName: string; homeAway?: string; goalHost?: number; goalVisitor?: number } }) {
+  return (
+    <td className="px-3 py-2 text-foreground whitespace-nowrap">
+      {row.gameName && (
+        <span>
+          {(() => {
+            const { host, visitor } = splitGameName(row.gameName)
+            const ownClub = row.homeAway === 'H' ? host : visitor
+            const opponent = row.homeAway === 'H' ? visitor : host
+            return (
+              <>
+                <span className="font-semibold">{ownClub}</span>
+                {' - '}
+                <span className="text-muted">{opponent}</span>
+              </>
+            )
+          })()}
+        </span>
+      )}
+      {row.goalHost != null && row.goalVisitor != null && (
+        <span className="text-subtle"> ({row.goalHost}:{row.goalVisitor})</span>
+      )}
+    </td>
+  )
 }
 
 export default function PlayerDetail() {
@@ -166,6 +192,20 @@ export default function PlayerDetail() {
       return gameSortOrder === 'asc' ? comparison : -comparison
     })
   }, [playerRanks, gameSortKey, gameSortOrder, isMobile])
+
+  const gameGroups = useMemo(() => {
+    if (gameSortKey !== 'roundNumber') return []
+    const groups: Array<{ roundNumber: number; pointsRound?: number; rows: typeof gamePointsRows }> = []
+    for (const row of gamePointsRows) {
+      const last = groups[groups.length - 1]
+      if (!last || last.roundNumber !== row.roundNumber) {
+        groups.push({ roundNumber: row.roundNumber, pointsRound: row.pointsRound, rows: [row] })
+      } else {
+        last.rows.push(row)
+      }
+    }
+    return groups
+  }, [gamePointsRows, gameSortKey])
 
   const mobileManagers = useMemo(() => {
     if (!player?.managers) return []
@@ -564,9 +604,11 @@ export default function PlayerDetail() {
               <table className="w-full">
                 <TableHead>
                   <tr>
-                    <ThSortable align="center" onClick={() => handleGameSort('roundNumber')}>
-                      Spieltag<SortIcon column="roundNumber" activeKey={gameSortKey} order={gameSortOrder} />
-                    </ThSortable>
+                    {gameGroups.length === 0 && (
+                      <ThSortable align="center" onClick={() => handleGameSort('roundNumber')}>
+                        Spieltag<SortIcon column="roundNumber" activeKey={gameSortKey} order={gameSortOrder} />
+                      </ThSortable>
+                    )}
                     <ThSortable align="left" onClick={() => handleGameSort('gameName')}>
                       Spiel<SortIcon column="gameName" activeKey={gameSortKey} order={gameSortOrder} />
                     </ThSortable>
@@ -579,17 +621,34 @@ export default function PlayerDetail() {
                   </tr>
                 </TableHead>
                 <TableBody>
-                  {gamePointsRows.map((row, index) => (
+                  {gameGroups.length > 0 ? gameGroups.map((group, groupIndex) => (
+                    <Fragment key={`group-${group.roundNumber}`}>
+                      <tr>
+                        <td colSpan={3} className="px-3 py-1.5 bg-elevated text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border">
+                          <span className="flex justify-between">
+                            <span>Spieltag {group.roundNumber}</span>
+                            {group.pointsRound != null && <span className="normal-case">{group.pointsRound} Punkte</span>}
+                          </span>
+                        </td>
+                      </tr>
+                      {group.rows.map((row, index) => (
+                        <tr key={`${row.roundNumber}-${row.ruleLabel}-${index}`} className={`hover:bg-card-hover border-b border-border ${groupIndex % 2 === 1 ? 'bg-zebra' : ''}`}>
+                          <GameNameCell row={row} />
+                          <td className="px-3 py-2 text-muted">
+                            {row.ruleLabel}{row.count > 1 ? ` (${row.count}x)` : ''}
+                          </td>
+                          <td className="px-3 py-2 text-center font-semibold text-foreground tabular-nums">
+                            {row.points}
+                          </td>
+                        </tr>
+                      ))}
+                    </Fragment>
+                  )) : gamePointsRows.map((row, index) => (
                     <tr key={`${row.roundNumber}-${row.ruleLabel}-${index}`} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                       <td className="px-3 py-2 text-center text-muted tabular-nums">
                         {row.roundNumber}
                       </td>
-                      <td className="px-3 py-2 text-foreground">
-                        <span className="font-medium">{row.gameName}</span>
-                        {row.goalHost != null && row.goalVisitor != null && (
-                          <span className="text-subtle"> ({row.goalHost}:{row.goalVisitor})</span>
-                        )}
-                      </td>
+                      <GameNameCell row={row} />
                       <td className="px-3 py-2 text-muted">
                         {row.ruleLabel}{row.count > 1 ? ` (${row.count}x)` : ''}
                       </td>

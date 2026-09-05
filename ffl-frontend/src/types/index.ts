@@ -254,6 +254,8 @@ export interface RulePoint {
 export interface PlayerPoint {
   playerId: number
   playerName: string
+  firstName?: string
+  lastName?: string
   points: number
   rules: RulePoint[]
   position?: string

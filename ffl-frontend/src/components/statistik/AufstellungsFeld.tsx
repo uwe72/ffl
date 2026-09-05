@@ -139,6 +139,10 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       style={{ borderRadius: 6 }}
     >
       <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: posColor }} />
+      <i
+        className={`absolute top-1 left-3 sap-icon text-[12px] ${player.gespielt ? 'sap-icon-accept ffl-einsatz-ok' : 'sap-icon-decline ffl-einsatz-no'}`}
+        title={player.gespielt ? 'Einsatz am aktuellen Spieltag' : 'Kein Einsatz am aktuellen Spieltag'}
+      />
       <div className="flex-1 flex flex-col items-center justify-center gap-2 px-1 min-h-0">
         <div className="relative flex-shrink-0">
           {player.pictureUrl ? (

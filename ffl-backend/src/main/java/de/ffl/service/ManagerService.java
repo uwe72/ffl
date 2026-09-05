@@ -103,9 +103,10 @@ public class ManagerService {
         Map<Long, Integer> playerPositionMap = buildPlayerPositionMap(playerIds, managers);
         Map<Long, Integer> playerPointsLastRoundMap = buildPlayerPointsLastRoundMap(playerIds, managers);
         Map<Long, Integer> playerPositionChangeMap = buildPlayerPositionChangeMap(playerIds, managers);
-        
+        Map<Long, Integer> managerCountMap = buildManagerCountMap(playerIds);
+
         return convertToDto(manager, latestPlayerRanks, latestManagerRanks, allManagerRanks,
-                           playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap);
+                           playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap);
     }
 
     private List<ManagerDto> convertManagersToDto(List<Manager> managers) {
@@ -118,10 +119,11 @@ public class ManagerService {
         Map<Long, Integer> playerPositionMap = buildPlayerPositionMap(playerIds, managers);
         Map<Long, Integer> playerPointsLastRoundMap = buildPlayerPointsLastRoundMap(playerIds, managers);
         Map<Long, Integer> playerPositionChangeMap = buildPlayerPositionChangeMap(playerIds, managers);
+        Map<Long, Integer> managerCountMap = buildManagerCountMap(playerIds);
         
         return managers.stream()
             .map(m -> convertToDto(m, latestPlayerRanks, latestManagerRanks, allManagerRanks, 
-                                   playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap))
+                                   playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap))
             .collect(Collectors.toList());
     }
 
@@ -147,6 +149,23 @@ public class ManagerService {
             if (m.getPlayerExchangedNew3() != null) playerIds.add(m.getPlayerExchangedNew3().getId());
         }
         return playerIds;
+    }
+
+    private Map<Long, Integer> buildManagerCountMap(Set<Long> playerIds) {
+        if (playerIds.isEmpty()) {
+            return Map.of();
+        }
+        List<Object[]> counts = managerRepository.countManagersByPlayerIdIn(new ArrayList<>(playerIds));
+        Map<Long, Integer> result = new HashMap<>();
+        for (Object[] row : counts) {
+            Long playerId = ((Number) row[0]).longValue();
+            Integer count = ((Number) row[1]).intValue();
+            result.put(playerId, count);
+        }
+        for (Long playerId : playerIds) {
+            result.putIfAbsent(playerId, 0);
+        }
+        return result;
     }
 
     private Map<Long, PlayerRank> loadLatestPlayerRanks(Set<Long> playerIds) {
@@ -302,7 +321,8 @@ public class ManagerService {
                                      Map<Long, List<ManagerRank>> allManagerRanks,
                                      Map<Long, Integer> playerPositionMap,
                                      Map<Long, Integer> playerPointsLastRoundMap,
-                                     Map<Long, Integer> playerPositionChangeMap) {
+                                     Map<Long, Integer> playerPositionChangeMap,
+                                     Map<Long, Integer> managerCountMap) {
         Hibernate.initialize(manager.getUser());
         Hibernate.initialize(manager.getSeason());
         
@@ -333,72 +353,72 @@ public class ManagerService {
         
         if (manager.getPlayerGoalkeeper() != null) {
             dto.setPlayerGoalkeeper(convertPlayer(manager.getPlayerGoalkeeper(), latestPlayerRanks, 
-                                                   playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                   playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerDefender1() != null) {
             dto.setPlayerDefender1(convertPlayer(manager.getPlayerDefender1(), latestPlayerRanks,
-                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerDefender2() != null) {
             dto.setPlayerDefender2(convertPlayer(manager.getPlayerDefender2(), latestPlayerRanks,
-                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerDefender3() != null) {
             dto.setPlayerDefender3(convertPlayer(manager.getPlayerDefender3(), latestPlayerRanks,
-                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerMidfield1() != null) {
             dto.setPlayerMidfield1(convertPlayer(manager.getPlayerMidfield1(), latestPlayerRanks,
-                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerMidfield2() != null) {
             dto.setPlayerMidfield2(convertPlayer(manager.getPlayerMidfield2(), latestPlayerRanks,
-                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerMidfield3() != null) {
             dto.setPlayerMidfield3(convertPlayer(manager.getPlayerMidfield3(), latestPlayerRanks,
-                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                  playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerStriker1() != null) {
             dto.setPlayerStriker1(convertPlayer(manager.getPlayerStriker1(), latestPlayerRanks,
-                                                 playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                 playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerStriker2() != null) {
             dto.setPlayerStriker2(convertPlayer(manager.getPlayerStriker2(), latestPlayerRanks,
-                                                 playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                 playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerStriker3() != null) {
             dto.setPlayerStriker3(convertPlayer(manager.getPlayerStriker3(), latestPlayerRanks,
-                                                 playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                 playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerFreeChoice() != null) {
             dto.setPlayerFreeChoice(convertPlayer(manager.getPlayerFreeChoice(), latestPlayerRanks,
-                                                   playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                   playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         
         if (manager.getPlayerExchangedOld1() != null) {
             dto.setPlayerExchangedOld1(convertPlayer(manager.getPlayerExchangedOld1(), latestPlayerRanks,
-                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerExchangedOld2() != null) {
             dto.setPlayerExchangedOld2(convertPlayer(manager.getPlayerExchangedOld2(), latestPlayerRanks,
-                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerExchangedOld3() != null) {
             dto.setPlayerExchangedOld3(convertPlayer(manager.getPlayerExchangedOld3(), latestPlayerRanks,
-                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerExchangedNew1() != null) {
             dto.setPlayerExchangedNew1(convertPlayer(manager.getPlayerExchangedNew1(), latestPlayerRanks,
-                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerExchangedNew2() != null) {
             dto.setPlayerExchangedNew2(convertPlayer(manager.getPlayerExchangedNew2(), latestPlayerRanks,
-                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         if (manager.getPlayerExchangedNew3() != null) {
             dto.setPlayerExchangedNew3(convertPlayer(manager.getPlayerExchangedNew3(), latestPlayerRanks,
-                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap));
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         
         int teamValue = calculateTeamValue(manager);
@@ -474,12 +494,14 @@ public class ManagerService {
                                       Map<Long, PlayerRank> latestPlayerRanks,
                                       Map<Long, Integer> playerPositionMap,
                                       Map<Long, Integer> playerPointsLastRoundMap,
-                                      Map<Long, Integer> playerPositionChangeMap) {
+                                     Map<Long, Integer> playerPositionChangeMap,
+                                     Map<Long, Integer> managerCountMap) {
         if (player == null) return null;
         
         Hibernate.initialize(player.getTeams());
         
         PlayerDto dto = PlayerDto.fromEntity(player);
+        dto.setManagerCount(managerCountMap.getOrDefault(player.getId(), 0));
         
         PlayerRank rank = latestPlayerRanks.get(player.getId());
         if (rank != null) {

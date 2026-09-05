@@ -824,4 +824,6 @@ body {
 .ffl-board__badge--up{background:linear-gradient(180deg,#2f8055,#1c5638); color:#eafaf0}
 .ffl-board__badge--down{background:linear-gradient(180deg,#93413f,#5e2528); color:#ffeceb}
 .ffl-board__badge--punkte{top:auto; bottom:calc(-18 * var(--u))}
+.ffl-einsatz-ok{ color:#2f8055 }
+.ffl-einsatz-no{ color:#93413f }
 

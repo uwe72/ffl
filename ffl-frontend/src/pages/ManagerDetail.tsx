@@ -1,5 +1,5 @@
 import { useParams, Link as RouterLink } from 'react-router-dom'
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, Fragment } from 'react'
 import { useManager, useManagerRoundDetails, useUpdateManagerDetails } from '../hooks/useManagers'
 import { useDashboardAufstellung } from '../hooks/useDashboard'
 import { useCurrentSeason } from '../hooks/useSeasons'
@@ -15,7 +15,8 @@ import ScoreLine from '../components/statistik/ScoreLine'
 import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import { buildManagerGamePointsRows } from '../utils/managerGamePoints'
-import { shortRuleLabel } from '../utils/gamePoints'
+import type { ManagerGamePointsRow } from '../utils/managerGamePoints'
+import { shortRuleLabel, splitGameName } from '../utils/gamePoints'
 import type { Player } from '../types'
 
 const mailThemeLabels = {
@@ -32,7 +33,7 @@ const positionOrder: Record<string, number> = {
 
 type SortKey = 'positionTotal' | 'positionChange' | 'nameKicker' | 'points' | 'pointsLastRound' | 'managerCount' | 'einsatzquote' | 'prize' | 'position' | 'team'
 type SortOrder = 'asc' | 'desc'
-type GameSortKey = 'roundNumber' | 'gameName' | 'playerName' | 'ruleLabel' | 'points'
+type GameSortKey = 'roundNumber' | 'gameName' | 'playerName' | 'position' | 'teamName' | 'ruleLabel' | 'points'
 
 function PlayerRow({ player, compact }: { player: Player; compact: boolean }) {
   const currentTeam = player.teams[player.teams.length - 1]
@@ -261,6 +262,81 @@ function PlayerTable({ players, title }: { players: Player[]; title: string }) {
   )
 }
 
+function GamePointRow({ row, zebra, hideRound = false }: { row: ManagerGamePointsRow; zebra: boolean; hideRound?: boolean }) {
+  return (
+    <tr className={`hover:bg-card-hover border-b border-border ${zebra ? 'bg-zebra' : ''}`}>
+      {!hideRound && (
+        <td className="px-3 py-2 text-center text-muted tabular-nums">
+          {row.roundNumber}
+        </td>
+      )}
+      <td className="px-3 py-2">
+        <RouterLink to={`/players/${row.playerId}`} className="flex items-center link">
+          {row.pictureUrl && (
+            <img src={row.pictureUrl} alt={row.playerName} className="w-10 h-10 rounded-full object-cover mr-3" />
+          )}
+          <div>
+            <div className="font-medium text-link whitespace-nowrap">{row.playerName}</div>
+            {row.playerFullName !== row.playerName && (
+              <div className="text-sm text-subtle whitespace-nowrap">
+                {row.playerFullName}
+              </div>
+            )}
+          </div>
+        </RouterLink>
+      </td>
+      <td className="px-3 py-2">
+        {row.position ? (
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-badge whitespace-nowrap ${positionColors[row.position]}`}>
+            {positionLabels[row.position]}
+          </span>
+        ) : '-'}
+      </td>
+      <td className="px-3 py-2 text-muted">
+        {row.teamName ? (
+          <span className="flex items-center gap-1">
+            {row.teamLogoUrl && (
+              <img
+                src={row.teamLogoUrl}
+                alt={row.teamName}
+                className="w-5 h-5 object-contain flex-shrink-0"
+              />
+            )}
+            <span className="font-semibold text-foreground whitespace-nowrap">{row.teamName}</span>
+          </span>
+        ) : '-'}
+      </td>
+      <td className="px-3 py-2 text-foreground whitespace-nowrap">
+        {row.gameName && (
+          <span>
+            {(() => {
+              const { host, visitor } = splitGameName(row.gameName)
+              const ownClub = row.homeAway === 'H' ? host : visitor
+              const opponent = row.homeAway === 'H' ? visitor : host
+              return (
+                <>
+                  <span className="font-semibold">{ownClub}</span>
+                  {' - '}
+                  <span className="text-muted">{opponent}</span>
+                </>
+              )
+            })()}
+          </span>
+        )}
+        {row.goalHost != null && row.goalVisitor != null && (
+          <span className="text-subtle"> ({row.goalHost}:{row.goalVisitor})</span>
+        )}
+      </td>
+      <td className="px-3 py-2 text-muted">
+        {row.ruleLabel}{row.count > 1 ? ` (${row.count}x)` : ''}
+      </td>
+      <td className="px-3 py-2 text-center font-semibold text-foreground tabular-nums">
+        {row.points}
+      </td>
+    </tr>
+  )
+}
+
 export default function ManagerDetail() {
   const { id } = useParams<{ id: string }>()
   const { data: manager, isLoading, error } = useManager(Number(id))
@@ -363,7 +439,13 @@ export default function ManagerDetail() {
           comparison = (isMobile ? a.opponent : a.gameName).localeCompare(isMobile ? b.opponent : b.gameName)
           break
         case 'playerName':
-          comparison = a.playerName.localeCompare(b.playerName)
+          comparison = a.playerFullName.localeCompare(b.playerFullName)
+          break
+        case 'position':
+          comparison = (positionOrder[a.position ?? ''] || 0) - (positionOrder[b.position ?? ''] || 0)
+          break
+        case 'teamName':
+          comparison = (a.teamName ?? '').localeCompare(b.teamName ?? '')
           break
         case 'ruleLabel':
           comparison = a.ruleLabel.localeCompare(b.ruleLabel)
@@ -378,6 +460,20 @@ export default function ManagerDetail() {
       return gameSortOrder === 'asc' ? comparison : -comparison
     })
   }, [roundDetails, gameSortKey, gameSortOrder, isMobile])
+
+  const gameGroups = useMemo(() => {
+    if (gameSortKey !== 'roundNumber') return []
+    const groups: Array<{ roundNumber: number; pointsRound?: number; rows: typeof gamePointsRows }> = []
+    for (const row of gamePointsRows) {
+      const last = groups[groups.length - 1]
+      if (!last || last.roundNumber !== row.roundNumber) {
+        groups.push({ roundNumber: row.roundNumber, pointsRound: row.pointsRound, rows: [row] })
+      } else {
+        last.rows.push(row)
+      }
+    }
+    return groups
+  }, [gamePointsRows, gameSortKey])
 
   const handleAvatarClick = () => {
     if (isOwnManager) {
@@ -749,14 +845,22 @@ export default function ManagerDetail() {
               <table className="w-full">
                 <TableHead>
                   <tr>
-                    <ThSortable align="center" onClick={() => handleGameSort('roundNumber')}>
-                      Spieltag<SortIcon column="roundNumber" activeKey={gameSortKey} order={gameSortOrder} />
+                    {gameGroups.length === 0 && (
+                      <ThSortable align="center" onClick={() => handleGameSort('roundNumber')}>
+                        Spieltag<SortIcon column="roundNumber" activeKey={gameSortKey} order={gameSortOrder} />
+                      </ThSortable>
+                    )}
+                    <ThSortable align="left" onClick={() => handleGameSort('playerName')}>
+                      Spieler<SortIcon column="playerName" activeKey={gameSortKey} order={gameSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleGameSort('position')}>
+                      Position<SortIcon column="position" activeKey={gameSortKey} order={gameSortOrder} />
+                    </ThSortable>
+                    <ThSortable align="left" onClick={() => handleGameSort('teamName')}>
+                      Verein<SortIcon column="teamName" activeKey={gameSortKey} order={gameSortOrder} />
                     </ThSortable>
                     <ThSortable align="left" onClick={() => handleGameSort('gameName')}>
                       Spiel<SortIcon column="gameName" activeKey={gameSortKey} order={gameSortOrder} />
-                    </ThSortable>
-                    <ThSortable align="left" onClick={() => handleGameSort('playerName')}>
-                      Spieler<SortIcon column="playerName" activeKey={gameSortKey} order={gameSortOrder} />
                     </ThSortable>
                     <ThSortable align="left" onClick={() => handleGameSort('ruleLabel')}>
                       Regel<SortIcon column="ruleLabel" activeKey={gameSortKey} order={gameSortOrder} />
@@ -767,29 +871,22 @@ export default function ManagerDetail() {
                   </tr>
                 </TableHead>
                 <TableBody>
-                  {gamePointsRows.map((row, index) => (
-                    <tr key={`${row.roundNumber}-${row.playerId}-${row.rule}-${index}`} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                      <td className="px-3 py-2 text-center text-muted tabular-nums">
-                        {row.roundNumber}
-                      </td>
-                      <td className="px-3 py-2 text-foreground">
-                        <span className="font-medium">{row.gameName}</span>
-                        {row.goalHost != null && row.goalVisitor != null && (
-                          <span className="text-subtle"> ({row.goalHost}:{row.goalVisitor})</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2">
-                        <RouterLink to={`/players/${row.playerId}`} className="link font-medium">
-                          {row.playerName}
-                        </RouterLink>
-                      </td>
-                      <td className="px-3 py-2 text-muted">
-                        {row.ruleLabel}{row.count > 1 ? ` (${row.count}x)` : ''}
-                      </td>
-                      <td className="px-3 py-2 text-center font-semibold text-foreground tabular-nums">
-                        {row.points}
-                      </td>
-                    </tr>
+                  {gameGroups.length > 0 ? gameGroups.map((group, groupIndex) => (
+                    <Fragment key={`group-${group.roundNumber}`}>
+                      <tr>
+                        <td colSpan={6} className="px-3 py-1.5 bg-elevated text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border">
+                          <span className="flex justify-between">
+                            <span>Spieltag {group.roundNumber}</span>
+                            {group.pointsRound != null && <span className="normal-case">{group.pointsRound} Punkte</span>}
+                          </span>
+                        </td>
+                      </tr>
+                      {group.rows.map((row, index) => (
+                        <GamePointRow key={`${row.roundNumber}-${row.playerId}-${row.rule}-${index}`} row={row} zebra={groupIndex % 2 === 1} hideRound />
+                      ))}
+                    </Fragment>
+                  )) : gamePointsRows.map((row, index) => (
+                    <GamePointRow key={`${row.roundNumber}-${row.playerId}-${row.rule}-${index}`} row={row} zebra={index % 2 === 1} />
                   ))}
                 </TableBody>
               </table>

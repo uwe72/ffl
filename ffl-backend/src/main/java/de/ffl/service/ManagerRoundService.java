@@ -98,6 +98,9 @@ public class ManagerRoundService {
                     RoundDetailDto.PlayerPointDto pp = new RoundDetailDto.PlayerPointDto();
                     pp.setPlayerId(player.getId());
                     pp.setPlayerName(player.getNameKicker());
+                    pp.setFirstName(player.getFirstName());
+                    pp.setLastName(player.getLastName());
+                    pp.setPictureUrl(player.getPictureUrl());
                     pp.setPoints(totalPoints);
                     
                     pp.setPosition(player.getPosition() != null ? player.getPosition().name() : null);
