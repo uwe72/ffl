@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import type { Aufstellung } from '../../types/dashboard'
 import { positionBadgeVariant } from '../../utils/positions'
+import { quoteBadgeClasses } from '../../utils/quote'
 
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
 
@@ -69,10 +70,18 @@ export default function AufstellungVertikal({
                   <RouterLink to={`/players/${p.id}`} className="link" onClick={(e) => e.stopPropagation()}>
                     <div className="truncate font-semibold text-link">{p.name.length > 12 ? `${p.name.slice(0, 12)}...` : p.name}</div>
                   </RouterLink>
-                  {p.vereinKuerzel && (
-                    <div className="truncate text-xs text-muted">
-                      {p.vereinKuerzel}
-                      {p.einsatzquote != null && <span> · {p.einsatzquote} %</span>}
+                  {(p.vereinKuerzel || p.einsatzquote != null) && (
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {p.vereinKuerzel && (
+                        <span className="truncate text-xs text-muted">{p.vereinKuerzel}</span>
+                      )}
+                      {p.einsatzquote != null && (
+                        <span
+                          className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge shrink-0 ${quoteBadgeClasses(p.einsatzquote)}`}
+                        >
+                          {p.einsatzquote} %
+                        </span>
+                      )}
                     </div>
                   )}
                 </td>

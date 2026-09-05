@@ -119,6 +119,65 @@ class EinsatzquoteServiceTest {
         assertThat(managerRepository.findById(manager.getId()).orElseThrow().getEinsatzquote()).isEqualTo(75);
     }
 
+    @Test
+    void calculateSeason_shouldCountPartiallyEnteredRounds() {
+        Season season = Season.builder()
+                .name("2025/26")
+                .budget(30000000)
+                .seasonState(SeasonState.RUNNING_HINRUNDE)
+                .startRoundRueckrunde(16)
+                .build();
+        season = seasonRepository.save(season);
+
+        Team t1 = teamRepository.save(Team.builder().name("T1").shortName("T1").build());
+        Team t2 = teamRepository.save(Team.builder().name("T2").shortName("T2").build());
+        Team t3 = teamRepository.save(Team.builder().name("T3").shortName("T3").build());
+        Team t4 = teamRepository.save(Team.builder().name("T4").shortName("T4").build());
+        season.setTeams(new HashSet<>(java.util.List.of(t1, t2, t3, t4)));
+        season = seasonRepository.save(season);
+
+        Player p1 = player(season, t1, "Alpha");
+        Player p2 = player(season, t2, "Beta");
+        Player p3 = player(season, t3, "Gamma");
+        Player p4 = player(season, t4, "Delta");
+
+        Round r1 = roundRepository.save(Round.builder().number(1).season(season).build());
+        Round r2 = roundRepository.save(Round.builder().number(2).season(season).build());
+
+        gameRepository.save(game(r1, t1, t2, formation("Alpha", "Beta")));
+        gameRepository.save(unenteredGame(r1, t3, t4));
+
+        gameRepository.save(game(r2, t1, t3, formation(null, "Gamma")));
+        gameRepository.save(game(r2, t2, t4, formation("Beta", "Delta")));
+
+        User user = User.builder()
+                .login("uwe72")
+                .password("$2a$10$test")
+                .email("test@test.de")
+                .firstName("Uwe")
+                .lastName("Sieben")
+                .role(UserRole.NORMAL)
+                .build();
+        user = userRepository.save(user);
+
+        Manager manager = Manager.builder().user(user).season(season).budget(10000000).build();
+        manager.setPlayerGoalkeeper(p1);
+        manager.setPlayerDefender1(p3);
+        manager = managerRepository.save(manager);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        seasonCalculationService.calculateSeason(season.getId());
+
+        assertThat(playerRepository.findById(p1.getId()).orElseThrow().getEinsatzquote()).isEqualTo(50);
+        assertThat(playerRepository.findById(p2.getId()).orElseThrow().getEinsatzquote()).isEqualTo(100);
+        assertThat(playerRepository.findById(p3.getId()).orElseThrow().getEinsatzquote()).isEqualTo(100);
+        assertThat(playerRepository.findById(p4.getId()).orElseThrow().getEinsatzquote()).isEqualTo(100);
+
+        assertThat(managerRepository.findById(manager.getId()).orElseThrow().getEinsatzquote()).isEqualTo(67);
+    }
+
     private Player player(Season season, Team team, String name) {
         Player player = Player.builder()
                 .nameKicker(name)
@@ -140,6 +199,15 @@ class EinsatzquoteServiceTest {
                 .visitor(visitor)
                 .formation(formation)
                 .formationExtern(formation)
+                .build();
+    }
+
+    private Game unenteredGame(Round round, Team host, Team visitor) {
+        return Game.builder()
+                .name(host.getShortName() + " - " + visitor.getShortName())
+                .round(round)
+                .host(host)
+                .visitor(visitor)
                 .build();
     }
 

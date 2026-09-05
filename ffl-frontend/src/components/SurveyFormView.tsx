@@ -1,4 +1,4 @@
-import type { SurveyQuestion, SurveyAnswerInput } from '../types'
+import type { QuestionType, SurveyQuestion, SurveyAnswerInput } from '../types'
 
 export type SurveyAnswerState = Record<number, SurveyAnswerInput>
 
@@ -11,7 +11,7 @@ export function formatDateTime(iso: string) {
   }
 }
 
-export function questionNumber(questions: SurveyQuestion[], index: number): number {
+export function questionNumber(questions: { type: QuestionType }[], index: number): number {
   let count = 0
   for (let i = 0; i <= index; i++) {
     if (questions[i].type !== 'SEPARATOR') count++

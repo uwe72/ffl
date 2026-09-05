@@ -373,20 +373,39 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
   )
 }
 
-function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, selected, myManagerId, rowRef }: {
+type ManagersMobileSortKey = 'positionTotal' | 'pointsLastRound'
+
+const SORT_TITLES: Record<ManagersMobileSortKey, string> = {
+  positionTotal: 'Sortierung: Position',
+  pointsLastRound: 'Sortierung: Spieltagspunkte',
+}
+
+const SORT_NEXT: Record<ManagersMobileSortKey, ManagersMobileSortKey> = {
+  positionTotal: 'pointsLastRound',
+  pointsLastRound: 'positionTotal',
+}
+
+function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, selected, myManagerId, rowRef, sortKey }: {
   managers: Manager[]
   canNavigateToManager: boolean
   headerTitle: string
   selected: boolean
   myManagerId: number | undefined
   rowRef: React.RefObject<HTMLTableRowElement | null>
+  sortKey: ManagersMobileSortKey
 }) {
   const th = 'px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
   const td = 'px-2 py-2 border-b border-border overflow-hidden tabular-nums'
-  const sorted = useMemo(
-    () => [...(managers ?? [])].sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999)),
-    [managers]
-  )
+  const sorted = useMemo(() => {
+    return [...(managers ?? [])].sort((a, b) => {
+      if (sortKey === 'pointsLastRound') {
+        const diff = (b.pointsLastRound ?? 0) - (a.pointsLastRound ?? 0)
+        if (diff !== 0) return diff
+        return (a.positionTotal ?? 999) - (b.positionTotal ?? 999)
+      }
+      return (a.positionTotal ?? 999) - (b.positionTotal ?? 999)
+    })
+  }, [managers, sortKey])
   return (
     <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
       <table className="w-full border-collapse text-sm table-fixed">
@@ -478,6 +497,7 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
   const { data: season } = useCurrentSeason()
   const [searchTerm, setSearchTerm] = useState('')
   const [selected, setSelected] = useState(false)
+  const [sortKey, setSortKey] = useState<ManagersMobileSortKey>('positionTotal')
   const rowRef = useRef<HTMLTableRowElement | null>(null)
 
   const isAdmin = user?.role === 'ADMIN'
@@ -541,6 +561,16 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
                 <i className="sap-icon sap-icon-account text-[14px]" />
               </Button>
             )}
+            <Button
+              onClick={() => setSortKey(SORT_NEXT[sortKey])}
+              size="input"
+              variant="secondary"
+              className="shrink-0 w-[38px] h-[38px] px-0"
+              aria-label={SORT_TITLES[sortKey]}
+              title={SORT_TITLES[sortKey]}
+            >
+              <i className="sap-icon sap-icon-sort text-[14px]" />
+            </Button>
           </div>
           {hasActiveFilter && (
             <button
@@ -562,6 +592,7 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
           selected={selected}
           myManagerId={myManagerId}
           rowRef={rowRef}
+          sortKey={sortKey}
         />
       </div>
     </div>

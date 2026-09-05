@@ -7,6 +7,7 @@ import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import BackButton from '../components/BackButton'
 import Button from '../components/Button'
 import SurveyPreviewDialog from '../components/SurveyPreviewDialog'
+import { questionNumber } from '../components/SurveyFormView'
 import useIsMobile from '../hooks/useIsMobile'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -479,13 +480,13 @@ function SurveyEditor({ existing, isNew, onCancel }: {
     const missing = questions.findIndex(q => !q.text.trim())
     if (missing >= 0) {
       setError(questions[missing].type === 'SEPARATOR'
-        ? `Trenner ${missing + 1} hat keine Überschrift.`
-        : `Frage ${missing + 1} hat keinen Text.`)
+        ? `Der Trenner an Position ${missing + 1} hat keine Überschrift.`
+        : `Frage ${questionNumber(draft.questions, missing)} hat keinen Text.`)
       return false
     }
     const choiceMissingOptions = questions.findIndex(q => (q.type === 'SINGLE' || q.type === 'MULTI') && (q.options ?? []).length === 0)
     if (choiceMissingOptions >= 0) {
-      setError(`Auswahlfrage ${choiceMissingOptions + 1} benötigt mindestens eine Option.`)
+      setError(`Auswahlfrage ${questionNumber(draft.questions, choiceMissingOptions)} benötigt mindestens eine Option.`)
       return false
     }
     setError(null)
@@ -566,7 +567,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
               <SortableQuestionCard
                 key={q._key}
                 id={q._key}
-                headerLabel={q.type === 'SEPARATOR' ? 'Trenner' : `Frage ${qIndex + 1}`}
+                headerLabel={q.type === 'SEPARATOR' ? 'Trenner' : `Frage ${questionNumber(draft.questions, qIndex)}`}
                 isMobile={isMobile}
                 isSeparator={q.type === 'SEPARATOR'}
                 onRemove={() => removeQuestion(qIndex)}

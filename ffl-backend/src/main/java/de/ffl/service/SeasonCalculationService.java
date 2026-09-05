@@ -117,7 +117,7 @@ public class SeasonCalculationService {
         log(logCallback, "═══════════════════════════════════════════════════════════");
         log(logCallback, "  EINSATZQUOTEN");
         log(logCallback, "═══════════════════════════════════════════════════════════");
-        calculateEinsatzquoten(season, rounds, logCallback);
+        calculateEinsatzquoten(season, rounds, allGames, logCallback);
         log(logCallback, "");
 
         Integer maxMatchday = gameRepository.findMaxRoundWithFormationOrPoints(seasonId);
@@ -722,48 +722,75 @@ public class SeasonCalculationService {
         return players;
     }
 
-    private void calculateEinsatzquoten(Season season, List<Round> rounds, Consumer<String> logCallback) {
+    private void calculateEinsatzquoten(Season season, List<Round> rounds, List<Game> allGames, Consumer<String> logCallback) {
         log(logCallback, "  └─ Berechne Einsatzquoten...");
 
         int transferRound = season.getStartRoundRueckrunde() != null ? season.getStartRoundRueckrunde() : 16;
 
-        List<Round> completeRounds = rounds.stream()
-            .filter(this::isCompleteRound)
-            .sorted(Comparator.comparing(Round::getNumber))
+        List<Game> enteredGames = allGames.stream()
+            .filter(g -> g.getFormation() != null && !g.getFormation().isEmpty())
             .collect(Collectors.toList());
-        log(logCallback, "     • Komplette Spieltage: " + completeRounds.size());
+        log(logCallback, "     • Spiele mit Aufstellung: " + enteredGames.size());
 
         List<Player> players = playerRepository.findBySeasonId(season.getId());
         List<Manager> managers = managerRepository.findBySeasonId(season.getId());
 
-        if (completeRounds.isEmpty()) {
+        if (enteredGames.isEmpty()) {
             for (Player player : players) player.setEinsatzquote(null);
             for (Manager manager : managers) manager.setEinsatzquote(null);
             playerRepository.saveAll(players);
             managerRepository.saveAll(managers);
-            log(logCallback, "     ✓ Einsatzquoten zurückgesetzt (keine kompletten Spieltage)");
+            log(logCallback, "     ✓ Einsatzquoten zurückgesetzt (keine Spiele mit Aufstellung)");
             return;
         }
 
-        Set<Long> completeRoundIds = completeRounds.stream().map(Round::getId).collect(Collectors.toSet());
-        int completeCount = completeRounds.size();
+        Map<Long, Set<Long>> enteredTeamIdsByRound = new HashMap<>();
+        Map<Long, Set<Long>> playingPlayerIdsByRound = new HashMap<>();
+        for (Game game : enteredGames) {
+            if (game.getRound() == null) continue;
+            Long roundId = game.getRound().getId();
+            if (game.getHost() != null) {
+                enteredTeamIdsByRound.computeIfAbsent(roundId, k -> new HashSet<>()).add(game.getHost().getId());
+            }
+            if (game.getVisitor() != null) {
+                enteredTeamIdsByRound.computeIfAbsent(roundId, k -> new HashSet<>()).add(game.getVisitor().getId());
+            }
+            Set<Long> playingIds = playingPlayerIdsByRound.computeIfAbsent(roundId, k -> new HashSet<>());
+            for (Player p : game.getPlayersHost()) playingIds.add(p.getId());
+            for (Player p : game.getPlayersVisitor()) playingIds.add(p.getId());
+        }
 
-        Map<Long, Map<Long, PlayerRank>> playerRankByPlayerAndRound = loadPlayerRanksByRound(players, completeRoundIds);
+        Map<Long, Set<Long>> teamIdsByPlayer = new HashMap<>();
+        for (Player player : players) {
+            teamIdsByPlayer.put(player.getId(),
+                player.getTeams().stream().map(Team::getId).collect(Collectors.toSet()));
+        }
 
         for (Player player : players) {
-            int played = countPlayed(player.getId(), playerRankByPlayerAndRound, completeRoundIds);
-            player.setEinsatzquote(roundPercent(played, completeCount));
+            int played = 0;
+            int games = 0;
+            for (Round round : rounds) {
+                Set<Long> enteredTeamIds = enteredTeamIdsByRound.getOrDefault(round.getId(), Collections.emptySet());
+                if (enteredTeamIds.isEmpty()) continue;
+                if (teamIdsByPlayer.get(player.getId()).stream().noneMatch(enteredTeamIds::contains)) continue;
+                games++;
+                if (playingPlayerIdsByRound.getOrDefault(round.getId(), Collections.emptySet()).contains(player.getId())) played++;
+            }
+            player.setEinsatzquote(games == 0 ? null : roundPercent(played, games));
         }
         playerRepository.saveAll(players);
 
         for (Manager manager : managers) {
             int einsaetze = 0;
             int slots = 0;
-            for (Round round : completeRounds) {
+            for (Round round : rounds) {
+                Set<Long> enteredTeamIds = enteredTeamIdsByRound.getOrDefault(round.getId(), Collections.emptySet());
+                if (enteredTeamIds.isEmpty()) continue;
                 Set<Player> lineup = getActivePlayersForRound(manager, round.getNumber(), transferRound);
-                slots += lineup.size();
                 for (Player player : lineup) {
-                    if (isPlayed(player.getId(), round.getId(), playerRankByPlayerAndRound)) einsaetze++;
+                    if (teamIdsByPlayer.get(player.getId()).stream().noneMatch(enteredTeamIds::contains)) continue;
+                    slots++;
+                    if (playingPlayerIdsByRound.getOrDefault(round.getId(), Collections.emptySet()).contains(player.getId())) einsaetze++;
                 }
             }
             manager.setEinsatzquote(slots == 0 ? null : roundPercent(einsaetze, slots));
@@ -771,45 +798,6 @@ public class SeasonCalculationService {
         managerRepository.saveAll(managers);
 
         log(logCallback, "     ✓ Einsatzquoten berechnet");
-    }
-
-    private boolean isCompleteRound(Round round) {
-        List<Game> games = gameRepository.findByRoundId(round.getId());
-        return !games.isEmpty() && games.stream()
-            .allMatch(g -> g.getFormation() != null && !g.getFormation().isEmpty());
-    }
-
-    private Map<Long, Map<Long, PlayerRank>> loadPlayerRanksByRound(List<Player> players, Set<Long> roundIds) {
-        Map<Long, Map<Long, PlayerRank>> result = new HashMap<>();
-        if (players.isEmpty()) return result;
-        List<Long> playerIds = players.stream().map(Player::getId).collect(Collectors.toList());
-        List<PlayerRank> ranks = playerRankRepository.findByPlayerIdIn(new ArrayList<>(playerIds));
-        for (PlayerRank rank : ranks) {
-            if (rank.getRound() != null && roundIds.contains(rank.getRound().getId())) {
-                result.computeIfAbsent(rank.getPlayer().getId(), k -> new HashMap<>())
-                    .put(rank.getRound().getId(), rank);
-            }
-        }
-        return result;
-    }
-
-    private int countPlayed(Long playerId, Map<Long, Map<Long, PlayerRank>> ranksByRound, Set<Long> roundIds) {
-        Map<Long, PlayerRank> map = ranksByRound.get(playerId);
-        int count = 0;
-        if (map != null) {
-            for (Long roundId : roundIds) {
-                PlayerRank rank = map.get(roundId);
-                if (rank != null && Boolean.TRUE.equals(rank.getPlayed())) count++;
-            }
-        }
-        return count;
-    }
-
-    private boolean isPlayed(Long playerId, Long roundId, Map<Long, Map<Long, PlayerRank>> ranksByRound) {
-        Map<Long, PlayerRank> map = ranksByRound.get(playerId);
-        if (map == null) return false;
-        PlayerRank rank = map.get(roundId);
-        return rank != null && Boolean.TRUE.equals(rank.getPlayed());
     }
 
     private Integer roundPercent(int numerator, int denominator) {

@@ -5,6 +5,7 @@ import type { Manager } from '../../types'
 import FallblattTafel from './FallblattTafel'
 import { formatPoints, formatMillionen, formatMillionsShort } from '../../utils/format'
 import { positionLabels } from '../../utils/positions'
+import { quoteBadgeClasses } from '../../utils/quote'
 import useElementSize from '../../hooks/useElementSize'
 
 const CARD_W = 142
@@ -49,12 +50,6 @@ function bigOf(p: SpielerAufstellung, modus: FeldModus): number {
 function bigText(p: SpielerAufstellung, modus: FeldModus): string {
   if (modus === 'wert') return formatMillionsShort(p.marktwert)
   return formatPoints(bigOf(p, modus))
-}
-
-function quoteBadgeClasses(quote: number): string {
-  if (quote >= 67) return 'bg-success/15 text-success'
-  if (quote >= 34) return 'bg-warning/15 text-warning'
-  return 'bg-danger/15 text-danger'
 }
 
 function useMedia(query: string): boolean {
