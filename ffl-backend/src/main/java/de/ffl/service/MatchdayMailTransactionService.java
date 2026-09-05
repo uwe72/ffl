@@ -581,7 +581,7 @@ public class MatchdayMailTransactionService {
         });
 
         if (activeSurvey != null) {
-            sb.append(renderSurveyHint(activeSurvey, webUrl, cardBg, textPrimary, linkColor, isDark));
+            sb.append(renderSurveyHint(activeSurvey, webUrl, cardBg, textPrimary, textSecondary, linkColor, isDark));
         }
 
         appendRosterTable(sb, roster, playerRankByPlayerId, teamsByPlayerId, roundNumber, transferRound, isDark, textPrimary, textSecondary, textTertiary);
@@ -1457,7 +1457,7 @@ public class MatchdayMailTransactionService {
     }
 
     static String renderSurveyHint(SurveyPublicDto survey, String webUrl,
-                                   String cardBg, String textPrimary,
+                                   String cardBg, String textPrimary, String textSecondary,
                                    String linkColor, boolean isDark) {
         if (survey == null) {
             return "";
@@ -1469,6 +1469,12 @@ public class MatchdayMailTransactionService {
           .append(";border-radius:12px;padding:12px 14px;margin:0 0 14px 0;\">");
         sb.append("<div style=\"color:").append(accent).append(";font-size:13px;font-weight:700;margin:0 0 2px 0;\">")
           .append("\uD83D\uDCCA").append("Umfrage: ").append(escape(survey.getTitle())).append("</div>");
+        String description = survey.getDescription();
+        if (description != null && !description.isBlank()) {
+            sb.append("<div style=\"color:").append(textSecondary)
+              .append(";font-style:italic;font-size:13px;line-height:1.5;margin:0 0 6px 0;\">")
+              .append(escape(description.trim())).append("</div>");
+        }
         String deadline = survey.getDeadline() != null
             ? survey.getDeadline().format(SURVEY_DEADLINE_FMT)
             : "bald";

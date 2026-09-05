@@ -72,15 +72,15 @@ export default function AufstellungVertikal({
                   </RouterLink>
                   {(p.vereinKuerzel || p.einsatzquote != null) && (
                     <div className="flex items-center gap-1.5 min-w-0">
-                      {p.vereinKuerzel && (
-                        <span className="truncate text-xs text-muted">{p.vereinKuerzel}</span>
-                      )}
                       {p.einsatzquote != null && (
                         <span
-                          className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge shrink-0 ${quoteBadgeClasses(p.einsatzquote)}`}
+                          className={`inline-flex items-center justify-center h-4 w-9 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge shrink-0 ${quoteBadgeClasses(p.einsatzquote)}`}
                         >
                           {p.einsatzquote} %
                         </span>
+                      )}
+                      {p.vereinKuerzel && (
+                        <span className="truncate text-xs text-muted">{p.vereinKuerzel}</span>
                       )}
                     </div>
                   )}
