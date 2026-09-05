@@ -97,19 +97,23 @@ function nextDraftKey(): string {
   return `q-${draftQuestionKeyCounter}`
 }
 
-function SortableQuestionCard({ id, headerLabel, isMobile, onRemove, children }: {
+function SortableQuestionCard({ id, headerLabel, isMobile, isSeparator, onRemove, children }: {
   id: string
   headerLabel: string
   isMobile: boolean
+  isSeparator?: boolean
   onRemove: () => void
   children: React.ReactNode
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id })
+  const separatorClasses = isSeparator
+    ? (isDragging ? 'border-info shadow-lg' : 'bg-info-bg border-info')
+    : undefined
   return (
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`p-5 bg-surface border rounded-card ${isDragging ? 'border-border-strong shadow-lg' : 'border-border'}`}
+      className={`p-5 bg-surface border rounded-card ${isDragging ? 'border-border-strong shadow-lg' : 'border-border'} ${separatorClasses ?? ''}`}
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -119,12 +123,12 @@ function SortableQuestionCard({ id, headerLabel, isMobile, onRemove, children }:
             {...listeners}
             style={{ touchAction: 'none' }}
             className="cursor-grab active:cursor-grabbing text-muted hover:text-accent p-1"
-            aria-label="Frage verschieben"
-            title="Frage verschieben"
+            aria-label={isSeparator ? 'Trenner verschieben' : 'Frage verschieben'}
+            title={isSeparator ? 'Trenner verschieben' : 'Frage verschieben'}
           >
             <i className="sap-icon sap-icon-move text-base" />
           </button>
-          <span className="text-sm font-semibold text-foreground">{headerLabel}</span>
+          <span className={`text-sm font-semibold ${isSeparator ? 'text-info' : 'text-foreground'}`}>{headerLabel}</span>
         </div>
         <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={onRemove}>Entfernen</Button>
       </div>
@@ -537,6 +541,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                 id={q._key}
                 headerLabel={q.type === 'SEPARATOR' ? 'Trenner' : `Frage ${qIndex + 1}`}
                 isMobile={isMobile}
+                isSeparator={q.type === 'SEPARATOR'}
                 onRemove={() => removeQuestion(qIndex)}
               >
                 {q.type === 'SEPARATOR' ? (
