@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useSurveys, useCreateSurvey, useUpdateSurvey, useUpdateSurveyMeta, useCopySurvey, useDeleteSurvey, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
 import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import BackButton from '../components/BackButton'
@@ -65,6 +68,7 @@ function apiErrorMessage(err: unknown): string {
 }
 
 interface DraftQuestion {
+  _key: string
   type: QuestionType
   text: string
   required: boolean
@@ -77,6 +81,49 @@ interface Draft {
   description: string
   deadline: string
   questions: DraftQuestion[]
+}
+
+let draftQuestionKeyCounter = 0
+
+function nextDraftKey(): string {
+  draftQuestionKeyCounter += 1
+  return `q-${draftQuestionKeyCounter}`
+}
+
+function SortableQuestionCard({ id, headerLabel, isMobile, onRemove, children }: {
+  id: string
+  headerLabel: string
+  isMobile: boolean
+  onRemove: () => void
+  children: React.ReactNode
+}) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`p-5 bg-surface border rounded-card ${isDragging ? 'border-border-strong shadow-lg' : 'border-border'}`}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <button
+            ref={setActivatorNodeRef}
+            {...attributes}
+            {...listeners}
+            style={{ touchAction: 'none' }}
+            className="cursor-grab active:cursor-grabbing text-muted hover:text-accent p-1"
+            aria-label="Frage verschieben"
+            title="Frage verschieben"
+          >
+            <i className="sap-icon sap-icon-move text-base" />
+          </button>
+          <span className="text-sm font-semibold text-foreground">{headerLabel}</span>
+        </div>
+        <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={onRemove}>Entfernen</Button>
+      </div>
+      {children}
+    </div>
+  )
 }
 
 export default function SurveyAdmin() {
@@ -249,6 +296,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
           description: existing.description ?? '',
           deadline: toDatetimeLocal(existing.deadline),
           questions: existing.questions.map(q => ({
+            _key: nextDraftKey(),
             type: q.type,
             text: q.text,
             required: q.required,
@@ -278,11 +326,27 @@ function SurveyEditor({ existing, isNew, onCancel }: {
   }
 
   const addQuestion = () => {
-    setDraft(prev => ({ ...prev, questions: [...prev.questions, { type: 'TEXTAREA', text: '', required: false, maxLength: 4000, options: [] }] }))
+    setDraft(prev => ({ ...prev, questions: [...prev.questions, { _key: nextDraftKey(), type: 'TEXTAREA', text: '', required: false, maxLength: 4000, options: [] }] }))
   }
 
   const removeQuestion = (index: number) => {
     setDraft(prev => ({ ...prev, questions: prev.questions.filter((_, i) => i !== index) }))
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    setDraft(prev => {
+      const from = prev.questions.findIndex(q => q._key === active.id)
+      const to = prev.questions.findIndex(q => q._key === over.id)
+      if (from < 0 || to < 0) return prev
+      return { ...prev, questions: arrayMove(prev.questions, from, to) }
+    })
   }
 
   const setOption = (qIndex: number, oIndex: number, value: string) => {
@@ -401,92 +465,98 @@ function SurveyEditor({ existing, isNew, onCancel }: {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col gap-3">
-        {draft.questions.map((q, qIndex) => (
-          <div key={qIndex} className="p-5 bg-surface border border-border rounded-card">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-foreground">Frage {qIndex + 1}</span>
-              <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => removeQuestion(qIndex)}>Entfernen</Button>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2">
-                  <label className="block text-sm text-muted mb-1">Fragetext *</label>
-                  <input
-                    type="text"
-                    value={q.text}
-                    onChange={e => setQuestion(qIndex, { text: e.target.value })}
-                    className="input-field control w-full px-3 py-2 rounded-control text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-muted mb-1">Typ</label>
-                  <select
-                    value={q.type}
-                    onChange={e => {
-                      const type = e.target.value as QuestionType
-                      setQuestion(qIndex, { type, maxLength: defaultMaxLength(type) })
-                    }}
-                    className="input-field control w-full px-3 py-2 rounded-control text-sm"
-                  >
-                    {(Object.keys(TYPE_LABEL) as QuestionType[]).map(t => (
-                      <option key={t} value={t}>{TYPE_LABEL[t]}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2 flex items-center">
-                  <label className="flex items-center gap-2 text-sm text-foreground">
-                    <input
-                      type="checkbox"
-                      checked={q.required}
-                      onChange={e => setQuestion(qIndex, { required: e.target.checked })}
-                      className="h-4 w-4 accent-accent"
-                    />
-                    Pflichtfrage
-                  </label>
-                </div>
-                {(q.type === 'TEXTFIELD' || q.type === 'TEXTAREA') && (
-                  <div className="flex flex-col gap-1">
-                    <label className="text-sm text-muted">Max. Länge (Zeichen)</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={q.maxLength ?? ''}
-                      onChange={e => setQuestion(qIndex, { maxLength: e.target.value === '' ? null : Number(e.target.value) })}
-                      className="input-field control w-full px-3 py-2 rounded-control text-sm"
-                    />
-                  </div>
-                )}
-              </div>
-              {(q.type === 'SINGLE' || q.type === 'MULTI') && (
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm text-muted">Optionen</label>
-                  {q.options.map((opt, oIndex) => (
-                    <div key={oIndex} className="flex items-center gap-2">
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={draft.questions.map(q => q._key)} strategy={verticalListSortingStrategy}>
+          <div className="mt-4 flex flex-col gap-3">
+            {draft.questions.map((q, qIndex) => (
+              <SortableQuestionCard
+                key={q._key}
+                id={q._key}
+                headerLabel={`Frage ${qIndex + 1}`}
+                isMobile={isMobile}
+                onRemove={() => removeQuestion(qIndex)}
+              >
+                <div className="flex flex-col gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm text-muted mb-1">Fragetext *</label>
                       <input
                         type="text"
-                        ref={el => {
-                          if (!optionRefs.current[qIndex]) optionRefs.current[qIndex] = {}
-                          optionRefs.current[qIndex][oIndex] = el
-                        }}
-                        value={opt}
-                        onChange={e => setOption(qIndex, oIndex, e.target.value)}
+                        value={q.text}
+                        onChange={e => setQuestion(qIndex, { text: e.target.value })}
                         className="input-field control w-full px-3 py-2 rounded-control text-sm"
                       />
-                      <Button variant="negative" size="sm" onClick={() => removeOption(qIndex, oIndex)}>×</Button>
                     </div>
-                  ))}
-                  <Button variant="ghost" size={isMobile ? 'sm' : 'input'} className="self-start" onClick={() => addOption(qIndex)}>
-                    + Option
-                  </Button>
+                    <div>
+                      <label className="block text-sm text-muted mb-1">Typ</label>
+                      <select
+                        value={q.type}
+                        onChange={e => {
+                          const type = e.target.value as QuestionType
+                          setQuestion(qIndex, { type, maxLength: defaultMaxLength(type) })
+                        }}
+                        className="input-field control w-full px-3 py-2 rounded-control text-sm"
+                      >
+                        {(Object.keys(TYPE_LABEL) as QuestionType[]).map(t => (
+                          <option key={t} value={t}>{TYPE_LABEL[t]}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-2 flex items-center">
+                      <label className="flex items-center gap-2 text-sm text-foreground">
+                        <input
+                          type="checkbox"
+                          checked={q.required}
+                          onChange={e => setQuestion(qIndex, { required: e.target.checked })}
+                          className="h-4 w-4 accent-accent"
+                        />
+                        Pflichtfrage
+                      </label>
+                    </div>
+                    {(q.type === 'TEXTFIELD' || q.type === 'TEXTAREA') && (
+                      <div className="flex flex-col gap-1">
+                        <label className="text-sm text-muted">Max. Länge (Zeichen)</label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={q.maxLength ?? ''}
+                          onChange={e => setQuestion(qIndex, { maxLength: e.target.value === '' ? null : Number(e.target.value) })}
+                          className="input-field control w-full px-3 py-2 rounded-control text-sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {(q.type === 'SINGLE' || q.type === 'MULTI') && (
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm text-muted">Optionen</label>
+                      {q.options.map((opt, oIndex) => (
+                        <div key={oIndex} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            ref={el => {
+                              if (!optionRefs.current[qIndex]) optionRefs.current[qIndex] = {}
+                              optionRefs.current[qIndex][oIndex] = el
+                            }}
+                            value={opt}
+                            onChange={e => setOption(qIndex, oIndex, e.target.value)}
+                            className="input-field control w-full px-3 py-2 rounded-control text-sm"
+                          />
+                          <Button variant="negative" size="sm" onClick={() => removeOption(qIndex, oIndex)}>×</Button>
+                        </div>
+                      ))}
+                      <Button variant="ghost" size={isMobile ? 'sm' : 'input'} className="self-start" onClick={() => addOption(qIndex)}>
+                        + Option
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </SortableQuestionCard>
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
 
       <div className="mt-4">
         <Button variant="ghost" size={isMobile ? 'sm' : 'input'} onClick={addQuestion}>

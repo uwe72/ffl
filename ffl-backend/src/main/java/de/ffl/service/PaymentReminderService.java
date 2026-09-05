@@ -75,29 +75,38 @@ public class PaymentReminderService {
         dto.setLastUeberweisungCheck(lastUeberweisungCheck);
         dto.setLastPaypalCheckFormatted(lastPaypalCheck != null ? lastPaypalCheck.format(DATE_FORMAT) : null);
         dto.setLastUeberweisungCheckFormatted(lastUeberweisungCheck != null ? lastUeberweisungCheck.format(DATE_FORMAT) : null);
-        dto.setHinweis(buildHinweis(lastPaypalCheck, lastUeberweisungCheck));
+        dto.setHinweis(buildHinweis(lastPaypalCheck, lastUeberweisungCheck, false));
+        dto.setHinweisHtml(buildHinweis(lastPaypalCheck, lastUeberweisungCheck, true));
         return dto;
     }
 
-    private String buildHinweis(LocalDate lastPaypalCheck, LocalDate lastUeberweisungCheck) {
+    private String buildHinweis(LocalDate lastPaypalCheck, LocalDate lastUeberweisungCheck, boolean html) {
         StringBuilder sb = new StringBuilder();
         boolean hasPaypal = lastPaypalCheck != null;
         boolean hasUeberweisung = lastUeberweisungCheck != null;
 
         if (hasPaypal && hasUeberweisung) {
-            sb.append("PayPal-Zahlungen sind bis zum ").append(lastPaypalCheck.format(DATE_FORMAT))
-              .append(" berücksichtigt, Überweisungen bis zum ").append(lastUeberweisungCheck.format(DATE_FORMAT))
+            sb.append("PayPal-Zahlungen sind bis zum ").append(formatDate(lastPaypalCheck, html))
+              .append(" berücksichtigt, Überweisungen bis zum ").append(formatDate(lastUeberweisungCheck, html))
               .append(". ");
         } else if (hasPaypal) {
-            sb.append("PayPal-Zahlungen sind bis zum ").append(lastPaypalCheck.format(DATE_FORMAT))
+            sb.append("PayPal-Zahlungen sind bis zum ").append(formatDate(lastPaypalCheck, html))
               .append(" berücksichtigt. ");
         } else if (hasUeberweisung) {
-            sb.append("Überweisungen sind bis zum ").append(lastUeberweisungCheck.format(DATE_FORMAT))
+            sb.append("Überweisungen sind bis zum ").append(formatDate(lastUeberweisungCheck, html))
               .append(" berücksichtigt. ");
         }
 
         sb.append("Falls du bereits bezahlt hast, kannst du diese Erinnerung ignorieren.");
         return sb.toString();
+    }
+
+    private String formatDate(LocalDate date, boolean html) {
+        String formatted = date.format(DATE_FORMAT);
+        if (!html) {
+            return formatted;
+        }
+        return "<span style=\"font-size:15px;font-weight:700;\">" + formatted + "</span>";
     }
 
     private BigDecimal resolveSpieleinsatz(Season season) {

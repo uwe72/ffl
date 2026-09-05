@@ -22,6 +22,7 @@ public class PaymentReminderDto {
     private String lastPaypalCheckFormatted;
     private String lastUeberweisungCheckFormatted;
     private String hinweis;
+    private String hinweisHtml;
 
     public PaymentReminderDto() {}
 
@@ -65,4 +66,6 @@ public class PaymentReminderDto {
     public void setLastUeberweisungCheckFormatted(String lastUeberweisungCheckFormatted) { this.lastUeberweisungCheckFormatted = lastUeberweisungCheckFormatted; }
     public String getHinweis() { return hinweis; }
     public void setHinweis(String hinweis) { this.hinweis = hinweis; }
+    public String getHinweisHtml() { return hinweisHtml; }
+    public void setHinweisHtml(String hinweisHtml) { this.hinweisHtml = hinweisHtml; }
 }

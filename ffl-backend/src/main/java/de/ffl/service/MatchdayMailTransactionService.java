@@ -654,9 +654,9 @@ public class MatchdayMailTransactionService {
             sb.append("</div></div>");
         }
 
-        if (pr.getHinweis() != null && !pr.getHinweis().isBlank()) {
+        if (pr.getHinweisHtml() != null && !pr.getHinweisHtml().isBlank()) {
             sb.append("<p style=\"margin:14px 0 0 0;color:").append(textTertiary).append(";font-size:11px;line-height:1.5;\">")
-              .append(escape(pr.getHinweis())).append("</p>");
+              .append(pr.getHinweisHtml()).append("</p>");
         }
 
         sb.append("</div>");

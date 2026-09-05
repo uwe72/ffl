@@ -67,6 +67,12 @@ class PaymentReminderServiceTest extends AbstractSeasonTestBase {
         assertTrue(reminder.getHinweis().contains("15.03.2026"));
         assertTrue(reminder.getHinweis().contains("10.03.2026"));
         assertTrue(reminder.getHinweis().contains("bereits bezahlt"));
+        assertNotNull(reminder.getHinweisHtml());
+        assertTrue(reminder.getHinweisHtml().contains(
+            "<span style=\"font-size:15px;font-weight:700;\">15.03.2026</span>"));
+        assertTrue(reminder.getHinweisHtml().contains(
+            "<span style=\"font-size:15px;font-weight:700;\">10.03.2026</span>"));
+        assertTrue(reminder.getHinweisHtml().contains("bereits bezahlt"));
     }
 
     @Test
@@ -112,5 +118,7 @@ class PaymentReminderServiceTest extends AbstractSeasonTestBase {
         assertNull(reminder.getLastPaypalCheckFormatted());
         assertFalse(reminder.getHinweis().contains("PayPal-Zahlungen sind bis zum"));
         assertTrue(reminder.getHinweis().contains("Überweisungen sind bis zum 10.03.2026"));
+        assertFalse(reminder.getHinweisHtml().contains("PayPal-Zahlungen sind bis zum"));
+        assertTrue(reminder.getHinweisHtml().contains("bis zum <span style=\"font-size:15px;font-weight:700;\">10.03.2026</span> berücksichtigt"));
     }
 }
