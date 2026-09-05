@@ -106,14 +106,14 @@ function SortableQuestionCard({ id, headerLabel, isMobile, isSeparator, onRemove
   children: React.ReactNode
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id })
-  const separatorClasses = isSeparator
-    ? (isDragging ? 'border-info shadow-lg' : 'bg-info-bg border-info')
-    : undefined
+  const containerClasses = isSeparator
+    ? `p-5 border rounded-card bg-info-bg-strong ${isDragging ? 'border-info shadow-lg' : 'border-info'}`
+    : `p-5 border rounded-card bg-surface ${isDragging ? 'border-border-strong shadow-lg' : 'border-border'}`
   return (
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`p-5 bg-surface border rounded-card ${isDragging ? 'border-border-strong shadow-lg' : 'border-border'} ${separatorClasses ?? ''}`}
+      className={containerClasses}
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -128,7 +128,7 @@ function SortableQuestionCard({ id, headerLabel, isMobile, isSeparator, onRemove
           >
             <i className="sap-icon sap-icon-move text-base" />
           </button>
-          <span className={`text-sm font-semibold ${isSeparator ? 'text-info' : 'text-foreground'}`}>{headerLabel}</span>
+          <span className={`text-sm font-semibold ${isSeparator ? 'text-info-strong' : 'text-foreground'}`}>{headerLabel}</span>
         </div>
         <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={onRemove}>Entfernen</Button>
       </div>
@@ -351,10 +351,14 @@ function SurveyEditor({ existing, isNew, onCancel }: {
         }
       : { title: '', description: '', deadline: '', questions: [] },
   )
+  const [created, setCreated] = useState<SurveyAdmin | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showPreview, setShowPreview] = useState(false)
+  const [saved, setSaved] = useState(false)
   const optionRefs = useRef<Record<number, Record<number, HTMLInputElement | null>>>({})
   const pendingOptionFocus = useRef<{ qIndex: number; oIndex: number } | null>(null)
+  const questionTextRefs = useRef<Record<number, HTMLInputElement | null>>({})
+  const pendingTextFocus = useRef<number | null>(null)
 
   useEffect(() => {
     if (pendingOptionFocus.current) {
@@ -362,7 +366,15 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       optionRefs.current[qIndex]?.[oIndex]?.focus()
       pendingOptionFocus.current = null
     }
+    if (pendingTextFocus.current != null) {
+      questionTextRefs.current[pendingTextFocus.current]?.focus()
+      pendingTextFocus.current = null
+    }
   })
+
+  useEffect(() => {
+    setSaved(false)
+  }, [draft])
 
   const setQuestion = (index: number, patch: Partial<DraftQuestion>) => {
     setDraft(prev => ({
@@ -372,10 +384,12 @@ function SurveyEditor({ existing, isNew, onCancel }: {
   }
 
   const addQuestion = () => {
+    pendingTextFocus.current = draft.questions.length
     setDraft(prev => ({ ...prev, questions: [...prev.questions, { _key: nextDraftKey(), type: 'TEXTAREA', text: '', required: false, maxLength: 4000, options: [] }] }))
   }
 
   const addSeparator = () => {
+    pendingTextFocus.current = draft.questions.length
     setDraft(prev => ({ ...prev, questions: [...prev.questions, { _key: nextDraftKey(), type: 'SEPARATOR', text: '', required: false, maxLength: null, options: [] }] }))
   }
 
@@ -441,18 +455,18 @@ function SurveyEditor({ existing, isNew, onCancel }: {
     }))
   }
 
-  const handleSave = async () => {
+  const saveDraft = async () => {
     if (!draft.title.trim()) {
       setError('Bitte gib einen Titel an.')
-      return
+      return false
     }
     if (!draft.deadline) {
       setError('Bitte gib ein Zieldatum an.')
-      return
+      return false
     }
     if (!draft.questions.some(q => q.required && q.type !== 'SEPARATOR')) {
       setError('Die Umfrage benötigt mindestens eine Pflichtfrage.')
-      return
+      return false
     }
     const questions: SurveyQuestionRequest[] = draft.questions.map((q, i) => ({
       type: q.type,
@@ -467,32 +481,45 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       setError(questions[missing].type === 'SEPARATOR'
         ? `Trenner ${missing + 1} hat keine Überschrift.`
         : `Frage ${missing + 1} hat keinen Text.`)
-      return
+      return false
     }
     const choiceMissingOptions = questions.findIndex(q => (q.type === 'SINGLE' || q.type === 'MULTI') && (q.options ?? []).length === 0)
     if (choiceMissingOptions >= 0) {
       setError(`Auswahlfrage ${choiceMissingOptions + 1} benötigt mindestens eine Option.`)
-      return
+      return false
     }
     setError(null)
     try {
       const payload = { title: draft.title, description: draft.description, deadline: draft.deadline, questions }
-      if (isNew) {
-        await create.mutateAsync(payload)
+      if (created) {
+        await update.mutateAsync({ id: created.id, data: payload })
+      } else if (isNew) {
+        const survey = await create.mutateAsync(payload)
+        setCreated(survey)
       } else if (existing) {
         await update.mutateAsync({ id: existing.id, data: payload })
       }
-      onCancel()
+      setSaved(true)
+      return true
     } catch (e) {
       setError(apiErrorMessage(e))
+      return false
     }
+  }
+
+  const handleSave = async () => {
+    await saveDraft()
+  }
+
+  const handleSaveAndClose = async () => {
+    if (await saveDraft()) onCancel()
   }
 
   return (
     <div className="max-w-3xl">
       <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-xl font-semibold text-foreground">{isNew ? 'Neue Umfrage' : 'Umfrage bearbeiten'}</h2>
+          <h2 className="text-xl font-semibold text-foreground">{isNew && !created ? 'Neue Umfrage' : 'Umfrage bearbeiten'}</h2>
           <Button variant="transparent" size={isMobile ? 'sm' : 'input'} onClick={onCancel}>
             <i className="sap-icon sap-icon-nav-back text-base" />
             Zurück
@@ -551,6 +578,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                         <label className="block text-sm text-muted mb-1">Gruppenüberschrift *</label>
                         <input
                           type="text"
+                          ref={el => { questionTextRefs.current[qIndex] = el }}
                           value={q.text}
                           onChange={e => setQuestion(qIndex, { text: e.target.value })}
                           className="input-field control w-full px-3 py-2 rounded-control text-sm"
@@ -580,6 +608,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                       <label className="block text-sm text-muted mb-1">Fragetext *</label>
                       <input
                         type="text"
+                        ref={el => { questionTextRefs.current[qIndex] = el }}
                         value={q.text}
                         onChange={e => setQuestion(qIndex, { text: e.target.value })}
                         className="input-field control w-full px-3 py-2 rounded-control text-sm"
@@ -683,11 +712,15 @@ function SurveyEditor({ existing, isNew, onCancel }: {
         </div>
       )}
 
-      <div className="mt-6 flex gap-3">
-        <Button onClick={handleSave} disabled={create.isPending || update.isPending}>
-          {create.isPending || update.isPending ? 'Speichert...' : 'Speichern'}
+      <div className="mt-6 flex items-center gap-3 flex-wrap">
+        <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={handleSave} disabled={create.isPending || update.isPending}>
+          Speichern
         </Button>
-        <Button variant="transparent" onClick={onCancel}>Abbrechen</Button>
+        <Button size={isMobile ? 'sm' : 'input'} onClick={handleSaveAndClose} disabled={create.isPending || update.isPending}>
+          {create.isPending || update.isPending ? 'Speichert...' : 'Speichern & schließen'}
+        </Button>
+        <Button variant="transparent" size={isMobile ? 'sm' : 'input'} onClick={onCancel}>Abbrechen</Button>
+        {saved && <span className="text-sm text-muted">Gespeichert</span>}
       </div>
 
       {showPreview && (
@@ -782,15 +815,20 @@ function SurveyMetaEditor({ existing, onCancel }: {
     deadline: toDatetimeLocal(existing.deadline),
   })
   const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
 
-  const handleSave = async () => {
+  useEffect(() => {
+    setSaved(false)
+  }, [draft])
+
+  const saveDraft = async () => {
     if (!draft.title.trim()) {
       setError('Bitte gib einen Titel an.')
-      return
+      return false
     }
     if (!draft.deadline) {
       setError('Bitte gib ein Zieldatum an.')
-      return
+      return false
     }
     setError(null)
     try {
@@ -798,10 +836,20 @@ function SurveyMetaEditor({ existing, onCancel }: {
         id: existing.id,
         data: { title: draft.title, description: draft.description, deadline: draft.deadline },
       })
-      onCancel()
+      setSaved(true)
+      return true
     } catch (e) {
       setError(apiErrorMessage(e))
+      return false
     }
+  }
+
+  const handleSave = async () => {
+    await saveDraft()
+  }
+
+  const handleSaveAndClose = async () => {
+    if (await saveDraft()) onCancel()
   }
 
   return (
@@ -869,11 +917,15 @@ function SurveyMetaEditor({ existing, onCancel }: {
         </div>
       )}
 
-      <div className="mt-6 flex gap-3">
-        <Button onClick={handleSave} disabled={updateMeta.isPending}>
-          {updateMeta.isPending ? 'Speichert...' : 'Speichern'}
+      <div className="mt-6 flex items-center gap-3 flex-wrap">
+        <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={handleSave} disabled={updateMeta.isPending}>
+          Speichern
         </Button>
-        <Button variant="transparent" onClick={onCancel}>Abbrechen</Button>
+        <Button size={isMobile ? 'sm' : 'input'} onClick={handleSaveAndClose} disabled={updateMeta.isPending}>
+          {updateMeta.isPending ? 'Speichert...' : 'Speichern & schließen'}
+        </Button>
+        <Button variant="transparent" size={isMobile ? 'sm' : 'input'} onClick={onCancel}>Abbrechen</Button>
+        {saved && <span className="text-sm text-muted">Gespeichert</span>}
       </div>
     </div>
   )

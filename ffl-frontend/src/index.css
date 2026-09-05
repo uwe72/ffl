@@ -49,7 +49,9 @@
   --ffl-danger: #b91c1c;
   --ffl-danger-hover: #991b1b;
   --ffl-info: #2563eb;
+  --ffl-info-strong: #1d4ed8;
   --ffl-info-bg: #e8effc;
+  --ffl-info-bg-strong: #cfdff7;
 
   /* Overlays */
   --ffl-overlay: rgba(28, 25, 23, 0.55);
@@ -148,7 +150,9 @@
   --color-orange: var(--ffl-orange);
   --color-orange-bg: #ffedd5;
   --color-info: var(--ffl-info);
+  --color-info-strong: var(--ffl-info-strong);
   --color-info-bg: var(--ffl-info-bg);
+  --color-info-bg-strong: var(--ffl-info-bg-strong);
 
   --color-log-bg: var(--ffl-sidebar);
   --color-log-text: var(--ffl-text-on-dark);
