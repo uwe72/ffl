@@ -954,8 +954,8 @@ export default function Home() {
               {!isVorsaison && (
                 <div className="mt-0.5 text-xs text-muted leading-relaxed">
                   <ScoreLine
-                    position={displayAufstellung?.positionSpieltag ?? null}
-                    positionVorher={displayAufstellung?.positionSpieltagVorher ?? null}
+                    position={displayAufstellung?.positionGesamt ?? null}
+                    positionVorher={displayAufstellung?.positionGesamtVorher ?? null}
                     punkteGesamt={displayAufstellung?.punkteGesamt ?? null}
                     punkteSpieltag={displayAufstellung?.punkteSpieltag ?? null}
                   />
@@ -1028,7 +1028,7 @@ export default function Home() {
                       Standard entfernen
                     </Button>
                   )}
-                  {carouselEnabled && activeManagerId != null && !isOwnTeam && (
+                  {carouselEnabled && activeManagerId != null && (
                     <Button variant="transparent" size="input" onClick={handleToggleFavorite}>
                       {isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit'}
                     </Button>
@@ -1088,7 +1088,7 @@ export default function Home() {
                 </button>
                 {menuOpen && (
                   <div className="absolute right-0 top-full mt-2 z-50 w-72 bg-surface border border-border rounded-card shadow-xl p-3 flex flex-col gap-3">
-                    {carouselEnabled && activeManagerId != null && !isOwnTeam && (
+                    {carouselEnabled && activeManagerId != null && (
                       <Button variant="ghost" size="input" onClick={handleToggleFavorite}>
                         {isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit'}
                       </Button>

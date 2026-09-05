@@ -309,7 +309,7 @@ export default function PlayerDetail() {
                 </div>
                 <div className="mt-0.5 text-xs text-muted leading-relaxed">
                   <ScoreLine
-                    position={player.positionLastRound ?? null}
+                    position={player.positionTotal ?? null}
                     positionVorher={null}
                     punkteGesamt={player.points ?? null}
                     punkteSpieltag={player.pointsLastRound ?? null}

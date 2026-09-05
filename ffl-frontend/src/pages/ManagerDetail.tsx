@@ -552,8 +552,8 @@ export default function ManagerDetail() {
                 </div>
                 <div className="mt-0.5 text-xs text-muted leading-relaxed">
                   <ScoreLine
-                    position={aufstellung?.positionSpieltag ?? null}
-                    positionVorher={aufstellung?.positionSpieltagVorher ?? null}
+                    position={aufstellung?.positionGesamt ?? null}
+                    positionVorher={aufstellung?.positionGesamtVorher ?? null}
                     punkteGesamt={aufstellung?.punkteGesamt ?? null}
                     punkteSpieltag={aufstellung?.punkteSpieltag ?? null}
                     einsatzquote={manager.einsatzquote ?? null}
