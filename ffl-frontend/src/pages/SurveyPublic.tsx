@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { usePublicSurvey, useSubmitSurvey } from '../hooks/useSurveys'
 import type { SurveyAnswerInput } from '../types'
@@ -66,14 +66,6 @@ export default function SurveyPublic() {
     }
   }, [answers, survey])
 
-  const progress = useMemo(() => {
-    if (!survey || survey.questions.length === 0) return 0
-    const required = survey.questions.filter(q => q.required)
-    if (required.length === 0) return 100
-    const answered = required.filter(q => isAnswered(q, answers[q.id])).length
-    return Math.round((answered / required.length) * 100)
-  }, [survey, answers])
-
   if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
   if (error || !survey) {
     return <div className="text-center py-8 text-danger">Umfrage nicht gefunden</div>
@@ -128,7 +120,6 @@ export default function SurveyPublic() {
         title={survey.title}
         description={survey.description}
         deadline={survey.deadline}
-        progress={progress}
       />
       <SurveyFormQuestions
         questions={survey.questions}

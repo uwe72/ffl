@@ -95,11 +95,10 @@ export function ChoiceInput({ question, input, onChange }: {
   )
 }
 
-export function SurveyFormHeader({ title, description, deadline, progress }: {
+export function SurveyFormHeader({ title, description, deadline }: {
   title: string
   description?: string | null
   deadline?: string | null
-  progress?: number
 }) {
   return (
     <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-1 md:mb-4">
@@ -115,17 +114,6 @@ export function SurveyFormHeader({ title, description, deadline, progress }: {
         </div>
       </div>
 
-      {progress !== undefined && (
-        <div className="mt-5">
-          <div className="flex items-center justify-between text-xs text-muted mb-1">
-            <span>Fortschritt</span>
-            <span>{progress}%</span>
-          </div>
-          <div className="h-2 w-full bg-elevated rounded-full overflow-hidden">
-            <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${progress}%` }} />
-          </div>
-        </div>
-      )}
     </div>
   )
 }
