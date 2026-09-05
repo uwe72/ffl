@@ -51,6 +51,12 @@ function bigText(p: SpielerAufstellung, modus: FeldModus): string {
   return formatPoints(bigOf(p, modus))
 }
 
+function quoteBadgeClasses(quote: number): string {
+  if (quote >= 67) return 'bg-success/15 text-success'
+  if (quote >= 34) return 'bg-warning/15 text-warning'
+  return 'bg-danger/15 text-danger'
+}
+
 function useMedia(query: string): boolean {
   return useMemo(() => {
     if (typeof window === 'undefined') return false
@@ -168,9 +174,15 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
       </div>
       <div>
         <div className="px-2 pt-0.5 pb-2 text-center">
-          <div className="text-[11px] font-semibold text-foreground">
-            {positionLabels[player.position]}
-            {player.einsatzquote != null ? ` · ${player.einsatzquote} %` : ''}
+          <div className="text-[11px] font-semibold text-foreground flex items-center justify-center gap-1.5 flex-wrap">
+            <span>{positionLabels[player.position]}</span>
+            {player.einsatzquote != null && (
+              <span
+                className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge ${quoteBadgeClasses(player.einsatzquote)}`}
+              >
+                {player.einsatzquote} %
+              </span>
+            )}
           </div>
         </div>
       </div>
