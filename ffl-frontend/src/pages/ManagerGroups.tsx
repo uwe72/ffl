@@ -117,7 +117,7 @@ export default function ManagerGroups() {
       <BackButton to="/" className="mb-4" />
       <div className="md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
         <div
-          className="flex items-start gap-3 p-3 w-full max-w-full bg-info-bg border border-info/30 rounded-card mb-6 md:shrink-0"
+          className="flex items-start gap-3 p-3 w-full max-w-full bg-info-bg border border-info/30 rounded-card mb-1 md:mb-6 md:shrink-0"
           style={tableWidth ? { maxWidth: tableWidth } : undefined}
         >
           <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0 mt-0.5" />
@@ -137,13 +137,13 @@ export default function ManagerGroups() {
             )}
           </div>
         </div>
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-1 md:mb-0 w-full max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
         <div className="flex items-center justify-between gap-4 mb-4 md:shrink-0">
           <h2 className="hidden md:block text-xl font-semibold text-foreground">Manager-Gruppen ({sortedGroups.length})</h2>
           <Button
             onClick={() => navigate('/manager-groups/create')}
-            size={isMobile ? 'sm' : 'input'}
-            className="w-full md:w-auto md:inline-flex"
+            size="input"
+            className="w-fit md:w-auto md:inline-flex"
           >
             + Neue Gruppe
           </Button>
@@ -216,7 +216,7 @@ export default function ManagerGroups() {
 
         {isMobile && (
           <div>
-            <div className="grid gap-4">
+            <div className="grid gap-2">
               {sortedGroups.length > 0 ? (
                 sortedGroups.map((group) => (
                   <ManagerGroupCard key={group.id} group={group} />

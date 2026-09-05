@@ -516,7 +516,7 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
 
   return (
     <div className="flex flex-col gap-0">
-      <div className="p-6 bg-surface border border-border rounded-card px-3 py-3 mb-2">
+      <div className="p-6 bg-surface border border-border rounded-card px-3 py-3 mb-1">
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-semibold text-foreground shrink-0">Manager ({filteredManagers.length})</h3>
@@ -843,7 +843,7 @@ export default function Home() {
       </div>
     ) : (
       <div {...groupSwipe} className="flex flex-col gap-0 flex-1" style={{ touchAction: 'pan-y' }}>
-        <div className="p-6 bg-surface border border-border rounded-card px-3 py-0.5 mb-2">
+        <div className="p-6 bg-surface border border-border rounded-card px-3 py-0.5 mb-1">
           <div className="relative z-20 shrink-0 mb-1">
             <div className="flex items-center gap-2">
               <div className="min-w-0 flex-1">
@@ -938,7 +938,7 @@ export default function Home() {
 
   const card = (children: ReactNode, fill = false) => (
     <div
-      className={`p-6 bg-surface border border-border rounded-card${isMobile ? ' px-3 py-0.5 mb-2' : ''}${fill ? ' h-full w-fit self-start flex flex-col min-h-0 max-w-[1300px] overflow-y-auto' : ''}`}
+      className={`p-6 bg-surface border border-border rounded-card${isMobile ? ' px-3 py-0.5 mb-1' : ''}${fill ? ' h-full w-fit self-start flex flex-col min-h-0 max-w-[1300px] overflow-y-auto' : ''}`}
     >
       <div className={`relative z-20 shrink-0${isMobile ? ' mb-1' : ' mb-4'}`}>
         {isMobile ? (
@@ -1143,6 +1143,7 @@ export default function Home() {
           ]}
           active={activeTab}
           onChange={handleTabChange}
+          className="mb-1"
         />
         {activeTab === 'gruppen' ? (
           renderMobileGroups()

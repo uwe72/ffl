@@ -143,7 +143,7 @@ export default function History() {
   return (
     <div>
       <BackButton to="/" className="mb-4" />
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 w-full md:w-fit max-w-full">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-1 md:mb-6 w-full md:w-fit max-w-full">
         <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
           <div>
             <h2 className="text-xl font-semibold text-foreground">
@@ -282,7 +282,7 @@ export default function History() {
       </div>
 
       {chartData.length > 0 && (
-        <div className="p-6 bg-surface border border-border rounded-card mb-6 mt-6">
+        <div className="p-2 md:p-6 bg-surface border border-border rounded-card mt-1 mb-1 md:mt-6 md:mb-6">
           <h3 className="text-xl font-semibold text-foreground mb-3">Entwicklung der Anzahl Mitspieler</h3>
           <div className="bg-card p-4 rounded-card border border-border">
             <ResponsiveContainer width="100%" height={300}>

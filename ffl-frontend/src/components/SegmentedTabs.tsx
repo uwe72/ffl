@@ -7,13 +7,14 @@ interface SegmentedTabsProps {
   items: TabItem[]
   active: string
   onChange: (key: string) => void
+  className?: string
 }
 
-export default function SegmentedTabs({ items, active, onChange }: SegmentedTabsProps) {
+export default function SegmentedTabs({ items, active, onChange, className = '' }: SegmentedTabsProps) {
   return (
     <div
       role="group"
-      className="inline-flex w-full sm:w-auto rounded-control border border-border-strong bg-elevated p-0.5"
+      className={`inline-flex w-full sm:w-auto rounded-control border border-border-strong bg-elevated p-0.5 ${className}`}
     >
       {items.map(item => {
         const isActive = item.key === active

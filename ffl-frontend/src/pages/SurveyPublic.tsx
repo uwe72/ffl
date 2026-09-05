@@ -202,7 +202,7 @@ export default function SurveyPublic() {
   return (
     <div className="pb-6">
       <BackButton to="/" className="mb-4" />
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-4">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-1 md:mb-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h2 className="text-xl font-semibold text-foreground">{survey.title}</h2>
@@ -224,7 +224,7 @@ export default function SurveyPublic() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 mb-4">
+      <div className="flex flex-col gap-1 md:gap-4 mb-1 md:mb-4">
         {survey.questions.map((question, index) => {
           const input = answers[question.id]
           return (
@@ -279,12 +279,12 @@ export default function SurveyPublic() {
       </div>
 
       {validationError && (
-        <div className="mb-4 p-3 rounded-control border border-danger/40 bg-danger-bg text-danger text-sm">
+        <div className="mb-1 md:mb-4 p-3 rounded-control border border-danger/40 bg-danger-bg text-danger text-sm">
           {validationError}
         </div>
       )}
 
-      <div className="flex items-center justify-end gap-4 mb-8">
+      <div className="flex items-center justify-end gap-4 mb-4 md:mb-8">
         <p className="text-xs text-subtle">Deine Antworten sind anonym.</p>
         <Button
           onClick={handleSubmit}

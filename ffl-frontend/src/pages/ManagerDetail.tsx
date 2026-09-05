@@ -480,7 +480,7 @@ export default function ManagerDetail() {
     <div className="max-w-7xl">
       <BackButton to="/managers" className="mb-4" />
 
-      <div className={`${isMobile ? 'p-2 bg-surface mb-2' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
+      <div className={`${isMobile ? 'p-2 bg-surface mb-1' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
         <div className="flex items-center gap-4">
           {!isMobile && (
             <>
@@ -706,7 +706,7 @@ export default function ManagerDetail() {
       </div>
 
       {isMobile && (
-        <div className="p-2 bg-surface border border-border rounded-card mb-2">
+        <div className="p-2 bg-surface border border-border rounded-card mb-1">
           {aufstellung ? (
             <AufstellungVertikal aufstellung={aufstellung} modus={feldModus} />
           ) : (
