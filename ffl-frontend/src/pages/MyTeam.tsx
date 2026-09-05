@@ -664,7 +664,7 @@ export default function MyTeam() {
     ]
     return (
       <div className="max-w-6xl" aria-busy="true">
-        <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+        <div className="p-4 bg-elevated border border-border rounded-card mb-1 md:mb-6">
           <div className="grid grid-cols-3 gap-4">
             {[0, 1, 2].map(i => (
               <div key={i}>
@@ -767,7 +767,7 @@ export default function MyTeam() {
       <BackButton to="/" className="mb-4" />
 
       {isHinrunde && (
-        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6">
+        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-1 md:mb-6">
           <i className="sap-icon sap-icon-switch-classes text-[18px] text-info shrink-0" />
           <p className="text-sm text-foreground">
             Die Hinrunde läuft. Du kannst bis zu <span className="font-semibold">3 Spieler</span> wechseln (Winterwechsel).
@@ -777,7 +777,7 @@ export default function MyTeam() {
       )}
 
       {isRueckrunde && !hasExistingTransfers && (
-        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6">
+        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-1 md:mb-6">
           <i className="sap-icon sap-icon-locked text-[18px] text-info shrink-0" />
           <p className="text-sm text-foreground">
             Die Rückrunde läuft. Deine Aufstellung kann nicht mehr geändert werden.
@@ -786,7 +786,7 @@ export default function MyTeam() {
       )}
 
       {isRueckrunde && hasExistingTransfers && (
-        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-6">
+        <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card mb-1 md:mb-6">
           <i className="sap-icon sap-icon-locked text-[18px] text-info shrink-0" />
           <p className="text-sm text-foreground">
             Die Rückrunde läuft. Deine Winterwechsel sind aktiv.
@@ -808,7 +808,7 @@ export default function MyTeam() {
         </div>
       )}
 
-      <div className="p-4 bg-elevated border border-border rounded-card mb-6">
+      <div className="p-4 bg-elevated border border-border rounded-card mb-1 md:mb-6">
         <div className="flex flex-col md:flex-row md:items-start gap-4">
           <div className="flex items-center gap-4 md:items-start">
             <div className="relative group w-12 h-12 shrink-0">
@@ -863,10 +863,13 @@ export default function MyTeam() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground truncate">
+                <h2 className="text-xl md:text-3xl font-semibold md:font-bold text-foreground truncate">
                   {manager?.firstName && manager?.lastName
                     ? `${manager.firstName} ${manager.lastName}`
                     : manager?.login || '-'}
+                  {manager?.firstName && manager?.lastName && (
+                    <span className="md:hidden"> ({manager?.login ?? '-'})</span>
+                  )}
                 </h2>
                 {isAdmin && (
                   <span className="shrink-0 text-[10px] font-semibold bg-accent-soft text-accent-hover rounded-badge px-1.5 py-0.5 leading-none">
@@ -874,7 +877,7 @@ export default function MyTeam() {
                   </span>
                 )}
               </div>
-              <p className="text-sm text-muted mt-1 truncate">
+              <p className="hidden md:block text-sm text-muted mt-1 truncate">
                 {manager?.login ?? '-'}
               </p>
               {manager?.description?.trim() && (
@@ -997,7 +1000,7 @@ export default function MyTeam() {
         )}
       </div>
 
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-1 md:mb-6">
         <h3 className="text-xl font-semibold text-foreground mb-4">Aufstellung (Hinrunde)</h3>
         <div
           className="grid grid-cols-1 sm:grid-cols-3 gap-6"
@@ -1090,7 +1093,7 @@ export default function MyTeam() {
       </div>
 
       {isHinrunde && (
-        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-1 md:mb-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
             <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
               Winterwechsel
@@ -1239,7 +1242,7 @@ export default function MyTeam() {
       )}
 
       {isRueckrunde && hasExistingTransfers && (
-        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-1 md:mb-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
             <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
               Winterwechsel
@@ -1274,7 +1277,7 @@ export default function MyTeam() {
       )}
 
       {hasActiveTransfers && (
-        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
+        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-1 md:mb-6">
           <h3 className="text-xl font-semibold text-foreground mb-4">Aufstellung (Rückrunde)</h3>
           <div
             className="grid grid-cols-1 sm:grid-cols-3 gap-6"

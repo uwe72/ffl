@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { usePlayers, usePublicPlayers } from '../hooks/usePlayers'
 import { usePublicCurrentSeason } from '../hooks/useSeasons'
+import BackButton from '../components/BackButton'
 import PlayerTable, { positionLabels, positionColors } from '../components/PlayerTable'
 
 export { positionLabels, positionColors }
@@ -22,7 +23,8 @@ export default function Players() {
 
     return (
       <div className="md:h-full md:flex md:flex-col md:min-h-0">
-        <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
+        <BackButton to="/" className="mb-4 md:shrink-0" />
+        <div className="md:px-3 md:py-4 md:p-6 md:bg-surface md:border md:border-border md:rounded-card md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
           <PlayerTable players={publicQuery.data ?? []} isPublic enableExport enableCompact defaultAktivFilter="aktiv" mobileDashboardLayout defaultSortKey="positionTotal" defaultSortOrder="asc" scroll />
         </div>
       </div>
@@ -34,7 +36,8 @@ export default function Players() {
 
   return (
     <div className="md:h-full md:flex md:flex-col md:min-h-0">
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
+      <BackButton to="/" className="mb-4 md:shrink-0" />
+      <div className="md:px-3 md:py-4 md:p-6 md:bg-surface md:border md:border-border md:rounded-card md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
         <PlayerTable players={authedQuery.data ?? []} enableExport enableCompact defaultAktivFilter="aktiv" mobileDashboardLayout defaultSortKey="positionTotal" defaultSortOrder="asc" scroll />
       </div>
 

@@ -283,7 +283,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
 
   if (variant === 'card') {
     return (
-      <div className="p-6 bg-surface border border-border rounded-card px-3 py-3 mb-4">
+      <div className="p-6 bg-surface border border-border rounded-card px-3 py-3 mb-1">
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-base font-semibold text-foreground">Spieler ({count ?? 0})</h3>
@@ -660,6 +660,7 @@ export default function PlayerTable({
 
   return (
     <div className={scroll ? 'flex-1 min-h-0 flex flex-col' : ''}>
+      {!isMobile && (
       <div className={`flex items-center justify-between mb-4${scroll ? ' shrink-0' : ''}`}>
         {!hideFilters && (
         <h2 className="hidden md:block text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
@@ -685,6 +686,7 @@ export default function PlayerTable({
           )}
         </div>
       </div>
+      )}
 
       {!hideFilters && (
       <div className={scroll ? 'shrink-0' : ''}>
@@ -906,7 +908,7 @@ export default function PlayerTable({
       )}
 
       {isMobile && mobileDashboardLayout && (
-        <div>
+        <div className="p-2 bg-surface border border-border rounded-card">
           <PlayerMobileTable players={filteredPlayers} isBeforeSeason={isBeforeSeason} title={tableTitle} />
         </div>
       )}

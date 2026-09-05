@@ -122,32 +122,38 @@ export default function RulesContent() {
       </section>
 
       <section>
-        <SectionEyebrow>Spielerliste und Saisonverlauf</SectionEyebrow>
+        <SectionEyebrow>{isBeforeSeason ? 'Spielerliste und Saisonverlauf' : 'Sonstiges'}</SectionEyebrow>
         <Card>
           <ul className="m-0 pl-5 text-muted space-y-1.5 list-disc marker:text-subtle">
-            {preview.playersUrl ? (
-              <li><a className="link font-semibold" href={preview.playersUrl}>Spielerliste online öffnen</a> oder im <strong className="font-semibold text-foreground">kicker Sonderheft</strong></li>
-            ) : (
-              <li>Die Spielerliste findest du online und im <strong className="font-semibold text-foreground">kicker Sonderheft</strong></li>
-            )}
-            {preview.documentsUrl ? (
-              <li>Die erfolgreichsten Spieler der letzten Saison: in den <a className="link font-semibold" href={preview.documentsUrl}>Dokumenten</a></li>
-            ) : (
-              <li>Die erfolgreichsten Spieler der letzten Saison: in den <strong className="font-semibold text-foreground">Dokumenten</strong></li>
+            {isBeforeSeason && (
+              <>
+                {preview.playersUrl ? (
+                  <li><a className="link font-semibold" href={preview.playersUrl}>Spielerliste online öffnen</a> oder im <strong className="font-semibold text-foreground">kicker Sonderheft</strong></li>
+                ) : (
+                  <li>Die Spielerliste findest du online und im <strong className="font-semibold text-foreground">kicker Sonderheft</strong></li>
+                )}
+                {preview.documentsUrl ? (
+                  <li>Die erfolgreichsten Spieler der letzten Saison: in den <a className="link font-semibold" href={preview.documentsUrl}>Dokumenten</a></li>
+                ) : (
+                  <li>Die erfolgreichsten Spieler der letzten Saison: in den <strong className="font-semibold text-foreground">Dokumenten</strong></li>
+                )}
+              </>
             )}
             <li>In der <strong className="font-semibold text-foreground">Winterpause</strong> dürfen <strong className="font-semibold text-foreground">bis zu drei Spieler</strong> getauscht werden</li>
           </ul>
         </Card>
       </section>
 
-      <section>
-        <SectionEyebrow>Viel Erfolg!</SectionEyebrow>
-        <Card>
-          <p className="m-0 text-muted">
-            Wir wünschen allen Managerinnen und Managern eine gute Hand beim Aufstellen, viele Punkte und vor allem viel Spaß. <strong className="font-semibold text-foreground">Möge das beste Team gewinnen!</strong>
-          </p>
-        </Card>
-      </section>
+      {isBeforeSeason && (
+        <section>
+          <SectionEyebrow>Viel Erfolg!</SectionEyebrow>
+          <Card>
+            <p className="m-0 text-muted">
+              Wir wünschen allen Managerinnen und Managern eine gute Hand beim Aufstellen, viele Punkte und vor allem viel Spaß. <strong className="font-semibold text-foreground">Möge das beste Team gewinnen!</strong>
+            </p>
+          </Card>
+        </section>
+      )}
     </div>
   )
 }
