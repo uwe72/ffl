@@ -101,6 +101,17 @@ public class SurveyService {
     }
 
     @Transactional
+    public void deleteResponse(Long surveyId, Long responseId) {
+        Survey survey = requireSurvey(surveyId);
+        SurveyResponse response = surveyResponseRepository.findById(responseId)
+            .orElseThrow(() -> new IllegalArgumentException("Antwort nicht gefunden"));
+        if (response.getSurvey() == null || !response.getSurvey().getId().equals(survey.getId())) {
+            throw new IllegalArgumentException("Antwort gehört nicht zu dieser Umfrage");
+        }
+        surveyResponseRepository.delete(response);
+    }
+
+    @Transactional
     public SurveyAdminDto startSurvey(Long id) {
         Survey survey = requireSurvey(id);
         if (survey.getStatus() != SurveyStatus.ANGELEGT) {
@@ -529,6 +540,7 @@ public class SurveyService {
             .map(a -> toAnswerDetail(a, questionById.get(a.getQuestion() == null ? null : a.getQuestion().getId())))
             .toList();
         return SurveyResponseDetailDto.builder()
+            .id(response.getId())
             .submittedAt(response.getSubmittedAt())
             .answers(answers)
             .build();

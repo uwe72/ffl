@@ -10,6 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SurveyResponseDetailDto {
+    private Long id;
     private LocalDateTime submittedAt;
     private List<AnswerDetailDto> answers;
 }

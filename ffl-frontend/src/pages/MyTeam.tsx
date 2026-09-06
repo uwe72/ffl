@@ -401,7 +401,11 @@ export default function MyTeam() {
     return grouped
   }, [resultingTeamAfterTransfers])
 
-  const hasExistingTransfers = !!(manager?.playerExchangedOld1 || manager?.playerExchangedOld2 || manager?.playerExchangedOld3)
+  const hasExistingTransfers = !!(
+    (manager?.playerExchangedOld1 && manager?.playerExchangedNew1) ||
+    (manager?.playerExchangedOld2 && manager?.playerExchangedNew2) ||
+    (manager?.playerExchangedOld3 && manager?.playerExchangedNew3)
+  )
   const hasActiveTransfers = isHinrunde
     ? transfers.some(t => t.oldPlayerId && t.newPlayerId)
     : isRueckrunde ? hasExistingTransfers : false
@@ -409,18 +413,18 @@ export default function MyTeam() {
   const existingReplacedIds = useMemo(() => {
     if (!isRueckrunde || !manager) return new Set<number>()
     const ids = new Set<number>()
-    if (manager.playerExchangedOld1) ids.add(manager.playerExchangedOld1.id)
-    if (manager.playerExchangedOld2) ids.add(manager.playerExchangedOld2.id)
-    if (manager.playerExchangedOld3) ids.add(manager.playerExchangedOld3.id)
+    if (manager.playerExchangedOld1 && manager.playerExchangedNew1) ids.add(manager.playerExchangedOld1.id)
+    if (manager.playerExchangedOld2 && manager.playerExchangedNew2) ids.add(manager.playerExchangedOld2.id)
+    if (manager.playerExchangedOld3 && manager.playerExchangedNew3) ids.add(manager.playerExchangedOld3.id)
     return ids
   }, [isRueckrunde, manager])
 
   const existingNewIds = useMemo(() => {
     if (!isRueckrunde || !manager) return new Set<number>()
     const ids = new Set<number>()
-    if (manager.playerExchangedNew1) ids.add(manager.playerExchangedNew1.id)
-    if (manager.playerExchangedNew2) ids.add(manager.playerExchangedNew2.id)
-    if (manager.playerExchangedNew3) ids.add(manager.playerExchangedNew3.id)
+    if (manager.playerExchangedOld1 && manager.playerExchangedNew1) ids.add(manager.playerExchangedNew1.id)
+    if (manager.playerExchangedOld2 && manager.playerExchangedNew2) ids.add(manager.playerExchangedNew2.id)
+    if (manager.playerExchangedOld3 && manager.playerExchangedNew3) ids.add(manager.playerExchangedNew3.id)
     return ids
   }, [isRueckrunde, manager])
 

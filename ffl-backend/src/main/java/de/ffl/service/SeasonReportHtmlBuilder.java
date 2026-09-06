@@ -304,12 +304,12 @@ public class SeasonReportHtmlBuilder {
             playerSlotRow(sb, "Sturm 3", m.getPlayerStriker3(), idx++);
             playerSlotRow(sb, "Freie Wahl", m.getPlayerFreeChoice(), idx++);
 
-            boolean hasExchanges = m.getPlayerExchangedOld1() != null || m.getPlayerExchangedOld2() != null || m.getPlayerExchangedOld3() != null;
-            if (hasExchanges) {
+            List<WinterTransferPairs.Pair> exchangePairs = WinterTransferPairs.of(m);
+            if (!exchangePairs.isEmpty()) {
                 sb.append("<tr><td colspan=\"4\" style=\"padding:6px 6px 2px 6px;font-size:11px;color:").append(TEXT_SECONDARY).append(";font-weight:600;\">Transfers (R\u00fcckrunde)</td></tr>");
-                exchangeRow(sb, m.getPlayerExchangedOld1(), m.getPlayerExchangedNew1(), idx++);
-                exchangeRow(sb, m.getPlayerExchangedOld2(), m.getPlayerExchangedNew2(), idx++);
-                exchangeRow(sb, m.getPlayerExchangedOld3(), m.getPlayerExchangedNew3(), idx++);
+                for (WinterTransferPairs.Pair pair : exchangePairs) {
+                    exchangeRow(sb, pair.oldPlayer(), pair.newPlayer(), idx++);
+                }
             }
 
             sb.append("</table></div>");

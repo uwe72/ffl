@@ -231,6 +231,29 @@ class ManagerControllerTest {
     }
 
     @Test
+    void clearWinterTransfers_returnsUpdatedManager() {
+        authAs("ROLE_ADMIN");
+        ManagerDto dto = new ManagerDto();
+        dto.setId(7L);
+        when(managerService.clearWinterTransfers(7L)).thenReturn(dto);
+
+        ResponseEntity<?> response = managerController.clearWinterTransfers(7L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(((ManagerDto) response.getBody()).getId()).isEqualTo(7L);
+    }
+
+    @Test
+    void clearWinterTransfers_unknownManager_returnsBadRequest() {
+        authAs("ROLE_ADMIN");
+        when(managerService.clearWinterTransfers(99L)).thenThrow(new IllegalArgumentException("Manager nicht gefunden"));
+
+        ResponseEntity<?> response = managerController.clearWinterTransfers(99L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
     void getCurrentManager_normalUser_usesOwnUserId() {
         authAs("ROLE_USER");
         when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));

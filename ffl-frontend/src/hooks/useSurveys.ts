@@ -69,6 +69,18 @@ export const useDeleteSurvey = () => {
   })
 }
 
+export const useDeleteSurveyResponse = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ surveyId, responseId }: { surveyId: number; responseId: number }) =>
+      surveyApi.removeResponse(surveyId, responseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] })
+      queryClient.invalidateQueries({ queryKey: ['survey'] })
+    },
+  })
+}
+
 export const useSurveyStatusAction = () => {
   const queryClient = useQueryClient()
   return useMutation({

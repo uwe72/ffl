@@ -798,6 +798,7 @@ export interface AnswerDetail {
 }
 
 export interface SurveyResponseDetail {
+  id: number
   submittedAt: string
   answers: AnswerDetail[]
 }

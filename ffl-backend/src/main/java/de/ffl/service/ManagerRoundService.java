@@ -236,7 +236,7 @@ public class ManagerRoundService {
     }
 
     private int findTransferRound(Manager manager) {
-        if (manager.getPlayerExchangedNew1() == null && manager.getPlayerExchangedNew2() == null && manager.getPlayerExchangedNew3() == null) {
+        if (!WinterTransferPairs.hasTransfers(manager)) {
             return Integer.MAX_VALUE;
         }
 
@@ -260,12 +260,10 @@ public class ManagerRoundService {
         if (manager.getPlayerFreeChoice() != null) players.add(manager.getPlayerFreeChoice());
 
         if (roundNumber >= transferRound) {
-            if (manager.getPlayerExchangedOld1() != null) players.removeIf(p -> p.getId().equals(manager.getPlayerExchangedOld1().getId()));
-            if (manager.getPlayerExchangedOld2() != null) players.removeIf(p -> p.getId().equals(manager.getPlayerExchangedOld2().getId()));
-            if (manager.getPlayerExchangedOld3() != null) players.removeIf(p -> p.getId().equals(manager.getPlayerExchangedOld3().getId()));
-            if (manager.getPlayerExchangedNew1() != null) players.add(manager.getPlayerExchangedNew1());
-            if (manager.getPlayerExchangedNew2() != null) players.add(manager.getPlayerExchangedNew2());
-            if (manager.getPlayerExchangedNew3() != null) players.add(manager.getPlayerExchangedNew3());
+            for (WinterTransferPairs.Pair pair : WinterTransferPairs.of(manager)) {
+                players.removeIf(p -> p.getId().equals(pair.oldPlayer().getId()));
+                players.add(pair.newPlayer());
+            }
         }
 
         return players;

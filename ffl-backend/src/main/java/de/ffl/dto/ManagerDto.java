@@ -110,22 +110,16 @@ public class ManagerDto {
             dto.setPlayerFreeChoice(PlayerDto.fromEntity(manager.getPlayerFreeChoice()));
         }
         
-        if (manager.getPlayerExchangedOld1() != null) {
+        if (manager.getPlayerExchangedOld1() != null && manager.getPlayerExchangedNew1() != null) {
             dto.setPlayerExchangedOld1(PlayerDto.fromEntity(manager.getPlayerExchangedOld1()));
-        }
-        if (manager.getPlayerExchangedOld2() != null) {
-            dto.setPlayerExchangedOld2(PlayerDto.fromEntity(manager.getPlayerExchangedOld2()));
-        }
-        if (manager.getPlayerExchangedOld3() != null) {
-            dto.setPlayerExchangedOld3(PlayerDto.fromEntity(manager.getPlayerExchangedOld3()));
-        }
-        if (manager.getPlayerExchangedNew1() != null) {
             dto.setPlayerExchangedNew1(PlayerDto.fromEntity(manager.getPlayerExchangedNew1()));
         }
-        if (manager.getPlayerExchangedNew2() != null) {
+        if (manager.getPlayerExchangedOld2() != null && manager.getPlayerExchangedNew2() != null) {
+            dto.setPlayerExchangedOld2(PlayerDto.fromEntity(manager.getPlayerExchangedOld2()));
             dto.setPlayerExchangedNew2(PlayerDto.fromEntity(manager.getPlayerExchangedNew2()));
         }
-        if (manager.getPlayerExchangedNew3() != null) {
+        if (manager.getPlayerExchangedOld3() != null && manager.getPlayerExchangedNew3() != null) {
+            dto.setPlayerExchangedOld3(PlayerDto.fromEntity(manager.getPlayerExchangedOld3()));
             dto.setPlayerExchangedNew3(PlayerDto.fromEntity(manager.getPlayerExchangedNew3()));
         }
         

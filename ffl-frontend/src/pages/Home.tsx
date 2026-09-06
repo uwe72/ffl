@@ -65,6 +65,176 @@ function managerFullName(m: { firstName?: string; lastName?: string; managerName
   return [m.firstName, m.lastName].filter(Boolean).join(' ') || m.managerName || '-'
 }
 
+function HelpRow({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <span className="w-7 flex items-center justify-center shrink-0">{icon}</span>
+      <span className="text-foreground">{children}</span>
+    </div>
+  )
+}
+
+function HomeHelpContent() {
+  return (
+    <div className="flex flex-col gap-3 text-xs">
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted">Spielerkacheln</p>
+        <HelpRow icon={<i className="sap-icon sap-icon-accept ffl-einsatz-ok text-[14px]" />}>
+          Einsatz am aktuellen Spieltag
+        </HelpRow>
+        <HelpRow icon={<i className="sap-icon sap-icon-less text-subtle text-[14px]" />}>
+          Spiel steht noch aus
+        </HelpRow>
+        <HelpRow icon={<i className="sap-icon sap-icon-decline ffl-einsatz-no text-[14px]" />}>
+          Kein Einsatz (Spiel beendet)
+        </HelpRow>
+        <HelpRow
+          icon={
+            <span className="inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge bg-success/15 text-success">
+              75 %
+            </span>
+          }
+        >
+          Einsatzquote ({' '}<span className="text-success">grün</span>: hoch · <span className="text-warning">gelb</span>: mittel · <span className="text-danger">rot</span>: niedrig)
+        </HelpRow>
+        <HelpRow
+          icon={
+            <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-badge bg-accent text-white text-[10px] font-bold leading-none">
+              42
+            </span>
+          }
+        >
+          Punkte gesamt
+        </HelpRow>
+        <HelpRow
+          icon={
+            <span
+              className="inline-flex items-center justify-center h-5 px-1.5 rounded-badge text-[10px] font-bold leading-none"
+              style={{ backgroundColor: 'var(--color-stat-accent)', color: 'var(--color-text-on-accent, #fafaf9)' }}
+            >
+              +9
+            </span>
+          }
+        >
+          Punkte am aktuellen Spieltag
+        </HelpRow>
+        <p className="text-muted">Karte anklicken zum Umdrehen</p>
+      </div>
+      <div className="border-t border-border pt-3">
+        <HomeHelpOptions />
+      </div>
+    </div>
+  )
+}
+
+function HomeHelpTable() {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted">Tabelle</p>
+      <HelpRow
+        icon={
+          <span className="inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge bg-success/15 text-success">
+            75 %
+          </span>
+        }
+      >
+        Einsatzquote (<span className="text-success">grün</span>: hoch · <span className="text-warning">gelb</span>: mittel · <span className="text-danger">rot</span>: niedrig)
+      </HelpRow>
+      <HelpRow
+        icon={
+          <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-badge bg-accent text-white text-[10px] font-bold leading-none">
+            42
+          </span>
+        }
+      >
+        <span className="font-semibold">Punkte</span> – „Ges." = Gesamtpunkte · „Sp." = Punkte des aktuellen Spieltags
+      </HelpRow>
+      <HelpRow icon={<i className="sap-icon sap-icon-accept ffl-einsatz-ok text-[14px]" />}>
+        <span className="font-semibold">Einsatz</span> – „Ges." = Einsätze insgesamt · „Sp." = am aktuellen Spieltag, „√" = gespielt
+      </HelpRow>
+    </div>
+  )
+}
+
+function HomeHelpOptions({ mobile = false }: { mobile?: boolean }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted">Optionen („…" Button)</p>
+      <HelpRow icon={<i className="sap-icon sap-icon-search text-accent text-[14px]" />}>
+        <span className="font-semibold">Manager suchen</span> – Über das Suchfeld einen beliebigen Manager wählen und sein Team anzeigen.
+      </HelpRow>
+      <HelpRow icon={<i className="sap-icon sap-icon-slim-arrow-right text-accent text-[14px]" />}>
+        <span className="font-semibold">Team-Wechsler</span> – {mobile
+          ? 'Durch Wischen zwischen den Favoriten wechseln; „x / y" oben zeigt die aktuelle Position.'
+          : 'Mit den Pfeilen neben dem Titel zwischen den Favoriten wechseln; „x / y“ zeigt die aktuelle Position.'}
+      </HelpRow>
+      <HelpRow icon={<i className="sap-icon sap-icon-favorite text-accent text-[14px]" />}>
+        <span className="font-semibold">Als Favorit / Aus Favoriten entfernen</span> – Manager dauerhaft ins Dashboard holen; Favoriten bleiben beim nächsten Besuch erhalten.
+      </HelpRow>
+      <HelpRow icon={<i className="sap-icon sap-icon-accept text-accent text-[14px]" />}>
+        <span className="font-semibold">Als Standard / Standard entfernen</span> – Einen Favoriten zum Standard-Team machen: Dieses Team ist beim Öffnen des Dashboards vorausgewählt. Ist kein Standard gesetzt, sortiert sich die Reihenfolge der Favoriten nach der Gesamtpunktzahl.
+      </HelpRow>
+    </div>
+  )
+}
+
+function GroupsHelpOptions() {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted">Optionen („…" Button)</p>
+      <HelpRow icon={<i className="sap-icon sap-icon-slim-arrow-right text-accent text-[14px]" />}>
+        <span className="font-semibold">Gruppen-Wechsler</span> – Durch Wischen zwischen den Gruppen wechseln; „x / y" oben zeigt die aktuelle Position.
+      </HelpRow>
+      <HelpRow icon={<i className="sap-icon sap-icon-accept text-accent text-[14px]" />}>
+        <span className="font-semibold">Als Standard</span> – Die als Standard gesetzte Gruppe wird beim Öffnen des Dashboards vorausgewählt. Über den „..."-Button als Standard setzen; ist die Gruppe bereits Standard, wird dies dort angezeigt.
+      </HelpRow>
+    </div>
+  )
+}
+
+function GroupsHelpTable() {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted">Tabelle</p>
+      <HelpRow
+        icon={
+          <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-badge bg-accent text-white text-[10px] font-bold leading-none">
+            1.
+          </span>
+        }
+      >
+        <span className="font-semibold">POS</span> – Position in der Liga-Rangliste
+      </HelpRow>
+      <HelpRow
+        icon={
+          <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-badge bg-accent text-white text-[10px] font-bold leading-none">
+            42
+          </span>
+        }
+      >
+        <span className="font-semibold">Punkte</span> – „GES." = Gesamtpunkte · „Sp." = Punkte des aktuellen Spieltags
+      </HelpRow>
+      <HelpRow icon={<i className="sap-icon sap-icon-employee text-accent text-[14px]" />}>
+        <span className="font-semibold">Manager</span> – Über den Login-Namen gelangst du zur Manager-Detailseite; die eigene Zeile ist hervorgehoben.
+      </HelpRow>
+    </div>
+  )
+}
+
+function ManagersHelpOptions() {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted">Optionen</p>
+      <HelpRow icon={<i className="sap-icon sap-icon-account text-accent text-[14px]" />}>
+        <span className="font-semibold">Selektiere mich</span> – Sprung zur eigenen Zeile: hebt deine Zeile hervor und scrollt direkt zu ihr.
+      </HelpRow>
+      <HelpRow icon={<i className="sap-icon sap-icon-sort text-accent text-[14px]" />}>
+        <span className="font-semibold">Sortierung</span> – Zwischen „Position" (Ranglistenplatz) und „Spieltagspunkte" wechseln.
+      </HelpRow>
+    </div>
+  )
+}
+
 type GroupManagerSortKey = 'shortName' | 'firstName' | 'lastName' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound' | 'einsatzquote'
 
 function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLabel, showCarouselNav, carouselPosition, onPrev, onNext }: {
@@ -498,6 +668,7 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
   const [searchTerm, setSearchTerm] = useState('')
   const [selected, setSelected] = useState(false)
   const [sortKey, setSortKey] = useState<ManagersMobileSortKey>('positionTotal')
+  const [helpOpen, setHelpOpen] = useState(false)
   const rowRef = useRef<HTMLTableRowElement | null>(null)
 
   const isAdmin = user?.role === 'ADMIN'
@@ -533,6 +704,15 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [selected, myManagerId, searchTerm, filteredManagers])
 
+  useEffect(() => {
+    if (!helpOpen) return
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setHelpOpen(false)
+    }
+    document.addEventListener('keydown', keyHandler)
+    return () => document.removeEventListener('keydown', keyHandler)
+  }, [helpOpen])
+
   return (
     <div className="flex flex-col gap-0">
       <div className="p-6 bg-surface border border-border rounded-card px-3 py-3 mb-1">
@@ -550,26 +730,35 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
               />
             </div>
             {myManagerId != null && (
-              <Button
+              <button
+                type="button"
                 onClick={handleSelectMe}
-                size="input"
-                variant="secondary"
-                className="shrink-0 w-[38px] h-[38px] px-0"
                 aria-label="Selektiere mich"
                 title="Selektiere mich"
+                className="shrink-0 w-[38px] h-[38px] rounded-control border border-border-strong text-subtle hover:bg-accent-muted flex items-center justify-center transition-colors"
               >
                 <i className="sap-icon sap-icon-account text-[14px]" />
-              </Button>
+              </button>
             )}
-            <Button
+            <button
+              type="button"
               onClick={() => setSortKey(SORT_NEXT[sortKey])}
+              aria-label={SORT_TITLES[sortKey]}
+              title={SORT_TITLES[sortKey]}
+              className="shrink-0 w-[38px] h-[38px] rounded-control border border-border-strong text-subtle hover:bg-accent-muted flex items-center justify-center transition-colors"
+            >
+              <i className="sap-icon sap-icon-sort text-[14px]" />
+            </button>
+            <Button
+              onClick={() => setHelpOpen(o => !o)}
               size="input"
               variant="secondary"
               className="shrink-0 w-[38px] h-[38px] px-0"
-              aria-label={SORT_TITLES[sortKey]}
-              title={SORT_TITLES[sortKey]}
+              aria-expanded={helpOpen}
+              aria-label="Hilfe"
+              title="Hilfe"
             >
-              <i className="sap-icon sap-icon-sort text-[14px]" />
+              <i className="sap-icon sap-icon-question-mark text-[14px]" />
             </Button>
           </div>
           {hasActiveFilter && (
@@ -584,6 +773,29 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
           )}
         </div>
       </div>
+      {helpOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+          onClick={() => setHelpOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="bg-surface border border-border rounded-card shadow-2xl w-full max-w-sm p-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex flex-col gap-3 text-xs">
+              <ManagersHelpOptions />
+            </div>
+            <div className="border-t border-border pt-3 mt-3">
+              <Button variant="ghost" size="input" className="w-full" onClick={() => setHelpOpen(false)}>
+                <i className="sap-icon sap-icon-decline text-sm" />
+                Fenster schließen
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="p-2 bg-surface border border-border rounded-card">
         <ManagersMobileTable
           managers={filteredManagers}
@@ -613,10 +825,12 @@ export default function Home() {
 
   const [activeManagerId, setActiveManagerId] = useState<number | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [carouselError, setCarouselError] = useState('')
   const [activeGroupId, setActiveGroupId] = useState<number | null>(null)
   const [groupMenuOpen, setGroupMenuOpen] = useState(false)
+  const [groupHelpOpen, setGroupHelpOpen] = useState(false)
   const [groupError, setGroupError] = useState('')
   const groupMenuRef = useRef<HTMLDivElement>(null)
   const spielerWrapRef = useRef<HTMLDivElement>(null)
@@ -625,11 +839,29 @@ export default function Home() {
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
-      if (groupMenuRef.current && !groupMenuRef.current.contains(e.target as Node)) setGroupMenuOpen(false)
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+        setHelpOpen(false)
+      }
+      if (groupMenuRef.current && !groupMenuRef.current.contains(e.target as Node)) {
+        setGroupMenuOpen(false)
+        setGroupHelpOpen(false)
+      }
+    }
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false)
+        setHelpOpen(false)
+        setGroupMenuOpen(false)
+        setGroupHelpOpen(false)
+      }
     }
     document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('keydown', keyHandler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('keydown', keyHandler)
+    }
   }, [])
 
   const [searchParams, setSearchParams] = useSearchParams()
@@ -893,47 +1125,25 @@ export default function Home() {
                       {groupCarouselPosition.replace('/', ' / ')}
                     </span>
                   )}
-                  {showGroupCarouselNav && (
-                    <div className="relative" ref={groupMenuRef}>
+                  <div className="relative flex items-center gap-2" ref={groupMenuRef}>
+                    {showGroupCarouselNav && (
                       <button
                         type="button"
-                        onClick={() => setGroupMenuOpen(o => !o)}
+                        onClick={() => { setGroupHelpOpen(false); setGroupMenuOpen(o => !o) }}
                         aria-label="Mehr Optionen"
                         title="Mehr Optionen"
                         className={`w-8 h-8 rounded-control border border-border-strong flex items-center justify-center transition-colors ${groupMenuOpen ? 'text-accent bg-accent-soft' : 'text-subtle hover:bg-accent-muted'}`}
                       >
                         <i className="sap-icon sap-icon-overflow text-sm" />
                       </button>
+                    )}
                     {groupMenuOpen && (
                       <div className="absolute right-0 top-full mt-2 z-50 w-64 bg-surface border border-border rounded-card shadow-xl p-3 flex flex-col gap-3">
-                        {showGroupCarouselNav && (
-                          <div className="flex items-center justify-between gap-2">
-                            <button
-                              type="button"
-                              onClick={groupPrev}
-                              aria-label="Vorherige Gruppe"
-                              title="Vorherige Gruppe"
-                              className="w-9 h-9 rounded-control border border-border-strong text-accent hover:bg-accent-muted flex items-center justify-center transition-colors"
-                            >
-                              <i className="sap-icon sap-icon-slim-arrow-left text-sm" />
-                            </button>
-                            <span className="text-sm text-muted whitespace-nowrap tabular-nums">{groupCarouselPosition}</span>
-                            <button
-                              type="button"
-                              onClick={groupNext}
-                              aria-label="Nächste Gruppe"
-                              title="Nächste Gruppe"
-                              className="w-9 h-9 rounded-control border border-border-strong text-accent hover:bg-accent-muted flex items-center justify-center transition-colors"
-                            >
-                              <i className="sap-icon sap-icon-slim-arrow-right text-sm" />
-                            </button>
-                          </div>
-                        )}
-                        {showGroupCarouselNav && (
-                          <div className="text-center text-xs text-subtle">Alternative: Wischen zum Wechseln</div>
+                        {showGroupCarouselNav && activeGroup && activeGroup.groupId === standardGroupId && (
+                          <div className="text-center text-xs text-subtle">Diese Gruppe ist bereits Standard.</div>
                         )}
                         {showGroupCarouselNav && activeGroup && activeGroup.groupId !== standardGroupId && (
-                          <Button variant="ghost" size="input" onClick={handleSetStandardGroup}>
+                          <Button variant="transparent" size="input" onClick={handleSetStandardGroup}>
                             Als Standard
                           </Button>
                         )}
@@ -945,8 +1155,43 @@ export default function Home() {
                         </div>
                       </div>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => { setGroupMenuOpen(false); setGroupHelpOpen(o => !o) }}
+                      aria-expanded={groupHelpOpen}
+                      aria-label="Hilfe"
+                      title="Hilfe"
+                      className={`w-8 h-8 rounded-control border border-border-strong flex items-center justify-center transition-colors ${groupHelpOpen ? 'text-accent bg-accent-soft' : 'bg-secondary text-secondary-foreground hover:bg-card-hover'}`}
+                    >
+                      <i className="sap-icon sap-icon-question-mark text-sm" />
+                    </button>
+                    {groupHelpOpen && (
+                      <div
+                        className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+                        onClick={() => setGroupHelpOpen(false)}
+                      >
+                        <div
+                          role="dialog"
+                          aria-modal="true"
+                          className="bg-surface border border-border rounded-card shadow-2xl w-full max-w-sm p-4"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <div className="flex flex-col gap-3 text-xs">
+                            {showGroupCarouselNav && <GroupsHelpOptions />}
+                            <div className={showGroupCarouselNav ? 'border-t border-border pt-3' : ''}>
+                              <GroupsHelpTable />
+                            </div>
+                          </div>
+                          <div className="border-t border-border pt-3 mt-3">
+                            <Button variant="ghost" size="input" className="w-full" onClick={() => setGroupHelpOpen(false)}>
+                              <i className="sap-icon sap-icon-decline text-sm" />
+                              Fenster schließen
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
                 </div>
               </div>
             </div>
@@ -1000,44 +1245,54 @@ export default function Home() {
                     {carouselPosition.replace('/', ' / ')}
                   </span>
                 )}
-                <div className="relative" ref={menuRef}>
+                <div className="relative flex items-center gap-2" ref={menuRef}>
                   <button
                 type="button"
-                onClick={() => setMenuOpen(o => !o)}
+                onClick={() => { setHelpOpen(false); setMenuOpen(o => !o) }}
                 aria-label="Mehr Optionen"
                 title="Mehr Optionen"
                 className={`w-8 h-8 rounded-control border border-border-strong flex items-center justify-center transition-colors ${menuOpen ? 'text-accent bg-accent-soft' : 'text-subtle hover:bg-accent-muted'}`}
               >
                 <i className="sap-icon sap-icon-overflow text-sm" />
               </button>
-              {menuOpen && (
-                <div className="absolute right-0 top-full mt-2 z-50 w-72 bg-surface border border-border rounded-card shadow-xl p-3 flex flex-col gap-3">
-                  {showCarouselNav && (
-                    <div className="flex items-center justify-between gap-2">
-                      <button
-                        type="button"
-                        onClick={carouselPrev}
-                        aria-label="Vorheriges Team"
-                        title="Vorheriges Team"
-                        className="w-9 h-9 rounded-control border border-border-strong text-accent hover:bg-accent-muted flex items-center justify-center transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => { setMenuOpen(false); setHelpOpen(o => !o) }}
+                    aria-expanded={helpOpen}
+                    aria-label="Hilfe"
+                    title="Hilfe"
+                    className={`w-8 h-8 rounded-control border border-border-strong flex items-center justify-center transition-colors ${helpOpen ? 'text-accent bg-accent-soft' : 'bg-secondary text-secondary-foreground hover:bg-card-hover'}`}
+                  >
+                    <i className="sap-icon sap-icon-question-mark text-sm" />
+                  </button>
+                  {helpOpen && (
+                    <div
+                      className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+                      onClick={() => setHelpOpen(false)}
+                    >
+                      <div
+                        role="dialog"
+                        aria-modal="true"
+                        className="bg-surface border border-border rounded-card shadow-2xl w-full max-w-sm p-4"
+                        onClick={e => e.stopPropagation()}
                       >
-                        <i className="sap-icon sap-icon-slim-arrow-left text-sm" />
-                      </button>
-                      <span className="text-sm text-muted whitespace-nowrap tabular-nums">{carouselPosition}</span>
-                      <button
-                        type="button"
-                        onClick={carouselNext}
-                        aria-label="Nächstes Team"
-                        title="Nächstes Team"
-                        className="w-9 h-9 rounded-control border border-border-strong text-accent hover:bg-accent-muted flex items-center justify-center transition-colors"
-                      >
-                        <i className="sap-icon sap-icon-slim-arrow-right text-sm" />
-                      </button>
+                        <div className="flex flex-col gap-3 text-xs">
+                          <HomeHelpOptions mobile />
+                          <div className="border-t border-border pt-3">
+                            <HomeHelpTable />
+                          </div>
+                        </div>
+                        <div className="border-t border-border pt-3 mt-3">
+                          <Button variant="ghost" size="input" className="w-full" onClick={() => setHelpOpen(false)}>
+                            <i className="sap-icon sap-icon-decline text-sm" />
+                            Fenster schließen
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   )}
-                  {showCarouselNav && (
-                    <div className="text-center text-xs text-subtle">Alternative: Wischen zum Wechseln</div>
-                  )}
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-2 z-50 w-72 bg-surface border border-border rounded-card shadow-xl p-3 flex flex-col gap-3">
                   {carouselEnabled && (
                     <div className="flex flex-col gap-1.5">
                       <span className="text-xs font-semibold uppercase tracking-wider text-muted">Manager suchen</span>
@@ -1107,23 +1362,33 @@ export default function Home() {
             )}
             <h2 className="text-xl font-semibold text-foreground min-w-0">{title}</h2>
             <div className="ml-auto flex items-center gap-2">
-              <div className="relative" ref={menuRef}>
+              <div className="relative flex items-center gap-2" ref={menuRef}>
+                {helpOpen && (
+                  <div className="absolute right-0 top-full mt-2 z-50 w-[400px] bg-surface border border-border rounded-card shadow-xl p-4">
+                    <HomeHelpContent />
+                  </div>
+                )}
                 <button
                   type="button"
-                  onClick={() => setMenuOpen(o => !o)}
+                  onClick={() => { setHelpOpen(false); setMenuOpen(o => !o) }}
                   aria-label="Mehr Optionen"
                   title="Mehr Optionen"
                   className={`w-8 h-8 rounded-control border border-border-strong flex items-center justify-center transition-colors ${menuOpen ? 'text-accent bg-accent-soft' : 'text-subtle hover:bg-accent-muted'}`}
                 >
                   <i className="sap-icon sap-icon-overflow text-sm" />
                 </button>
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); setHelpOpen(o => !o) }}
+                  aria-expanded={helpOpen}
+                  aria-label="Hilfe"
+                  title="Hilfe"
+                  className={`w-8 h-8 rounded-control border border-border-strong flex items-center justify-center transition-colors ${helpOpen ? 'text-accent bg-accent-soft' : 'bg-secondary text-secondary-foreground hover:bg-card-hover'}`}
+                >
+                  <i className="sap-icon sap-icon-question-mark text-sm" />
+                </button>
                 {menuOpen && (
                   <div className="absolute right-0 top-full mt-2 z-50 w-72 bg-surface border border-border rounded-card shadow-xl p-3 flex flex-col gap-3">
-                    {carouselEnabled && activeManagerId != null && (
-                      <Button variant="ghost" size="input" onClick={handleToggleFavorite}>
-                        {isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit'}
-                      </Button>
-                    )}
                     {carouselEnabled && (
                       <div className="flex flex-col gap-1.5">
                         <span className="text-xs font-semibold uppercase tracking-wider text-muted">Manager suchen</span>
@@ -1138,6 +1403,11 @@ export default function Home() {
                     {carouselEnabled && isFavorite && favoriteManagerIds.length > 1 && !isStandard && (
                       <Button variant="transparent" size="input" onClick={handleSetStandard}>
                         Als Standard
+                      </Button>
+                    )}
+                    {carouselEnabled && activeManagerId != null && (
+                      <Button variant="transparent" size="input" onClick={handleToggleFavorite}>
+                        {isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit'}
                       </Button>
                     )}
                     {carouselEnabled && isStandard && (

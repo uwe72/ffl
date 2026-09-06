@@ -16,6 +16,8 @@ export const surveyApi = {
     api.put<SurveyAdmin>(`/surveys/${id}/meta`, data),
   copy: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/copy`),
   remove: (id: number) => api.delete(`/surveys/${id}`),
+  removeResponse: (surveyId: number, responseId: number) =>
+    api.delete(`/surveys/${surveyId}/responses/${responseId}`),
   start: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/start`),
   end: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/end`),
   reset: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/reset`),

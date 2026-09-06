@@ -346,9 +346,9 @@ public class DashboardService {
         addIfNotNull(list, m.getPlayerStriker3());
         addIfNotNull(list, m.getPlayerFreeChoice());
         if (roundNumber >= transferRound) {
-            replace(list, m.getPlayerExchangedOld1(), m.getPlayerExchangedNew1());
-            replace(list, m.getPlayerExchangedOld2(), m.getPlayerExchangedNew2());
-            replace(list, m.getPlayerExchangedOld3(), m.getPlayerExchangedNew3());
+            for (WinterTransferPairs.Pair pair : WinterTransferPairs.of(m)) {
+                replace(list, pair.oldPlayer(), pair.newPlayer());
+            }
         }
         return list;
     }
@@ -386,21 +386,14 @@ public class DashboardService {
             boolean exchangedOut = isExchangedOld(m, p);
             roster.add(new RosterPlayer(p, true, !exchangedOut));
         }
-        Player[] news = new Player[] {
-            m.getPlayerExchangedNew1(), m.getPlayerExchangedNew2(), m.getPlayerExchangedNew3()
-        };
-        for (Player p : news) {
-            if (p == null) continue;
+        for (Player p : WinterTransferPairs.newPlayers(m)) {
             roster.add(new RosterPlayer(p, false, true));
         }
         return roster;
     }
 
     private boolean isExchangedOld(Manager m, Player p) {
-        if (p == null) return false;
-        return p.equals(m.getPlayerExchangedOld1())
-            || p.equals(m.getPlayerExchangedOld2())
-            || p.equals(m.getPlayerExchangedOld3());
+        return WinterTransferPairs.isOldPlayerOfCompletePair(m, p);
     }
 
     private void addIfNotNull(List<Player> list, Player p) {

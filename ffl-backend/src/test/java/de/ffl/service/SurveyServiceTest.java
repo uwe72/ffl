@@ -566,6 +566,56 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    void deleteResponse_removesSingleResponseAndUpdateCounts() {
+        SurveyAdminDto dto = createStartedSurvey();
+        Long ratingId = dto.getQuestions().get(0).getId();
+        Long singleId = dto.getQuestions().get(1).getId();
+        Long singleYes = dto.getQuestions().get(1).getOptions().get(0).getId();
+        submit(dto.getId(), List.of(answer(ratingId, null, "5"), answer(singleId, List.of(singleYes), null)));
+        submit(dto.getId(), List.of(answer(ratingId, null, "3"), answer(singleId, List.of(singleYes), null)));
+
+        SurveyResultDto result = surveyService.getResult(dto.getId());
+        assertThat(result.getResponseCount()).isEqualTo(2);
+        Long responseId = result.getResponses().get(0).getId();
+        assertThat(responseId).isNotNull();
+
+        surveyService.deleteResponse(dto.getId(), responseId);
+
+        SurveyResultDto after = surveyService.getResult(dto.getId());
+        assertThat(after.getResponseCount()).isEqualTo(1);
+        assertThat(after.getResponses()).extracting(SurveyResponseDetailDto::getId).doesNotContain(responseId);
+        assertThat(after.getQuestions().get(0).getMean()).isEqualTo(3.0);
+        assertThat(after.getQuestions().get(0).getRatingDistribution()).containsExactly(0, 0, 1, 0, 0);
+    }
+
+    @Test
+    void deleteResponse_withForeignSurvey_throws() {
+        SurveyAdminDto first = createStartedSurvey();
+        Long ratingId = first.getQuestions().get(0).getId();
+        Long singleId = first.getQuestions().get(1).getId();
+        Long singleYes = first.getQuestions().get(1).getOptions().get(0).getId();
+        submit(first.getId(), List.of(answer(ratingId, null, "4"), answer(singleId, List.of(singleYes), null)));
+        Long responseId = surveyService.getResult(first.getId()).getResponses().get(0).getId();
+
+        surveyService.endSurvey(first.getId());
+        SurveyAdminDto second = surveyService.createSurvey(fullSurveyRequest());
+        surveyService.startSurvey(second.getId());
+
+        assertThatThrownBy(() -> surveyService.deleteResponse(second.getId(), responseId))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("gehört nicht zu dieser Umfrage");
+        assertThat(surveyService.getResult(first.getId()).getResponseCount()).isEqualTo(1);
+    }
+
+    @Test
+    void deleteResponse_withUnknownId_throws() {
+        SurveyAdminDto dto = createStartedSurvey();
+        assertThatThrownBy(() -> surveyService.deleteResponse(dto.getId(), 999999L))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Antwort nicht gefunden");
+    }
+
+    @Test
     void deleteSurvey_deletesBeendetAndVeroeffentlicht() {
         SurveyAdminDto dto = createStartedSurvey();
         surveyService.endSurvey(dto.getId());

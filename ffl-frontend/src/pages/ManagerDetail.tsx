@@ -550,9 +550,14 @@ export default function ManagerDetail() {
     )
   }
 
-  const oldPlayers = [manager.playerExchangedOld1, manager.playerExchangedOld2, manager.playerExchangedOld3].filter(Boolean) as Player[]
-  const newPlayers = [manager.playerExchangedNew1, manager.playerExchangedNew2, manager.playerExchangedNew3].filter(Boolean) as Player[]
-  const hasExchanges = oldPlayers.length > 0 || newPlayers.length > 0
+  const transferPairs = [
+    { old: manager.playerExchangedOld1, new: manager.playerExchangedNew1 },
+    { old: manager.playerExchangedOld2, new: manager.playerExchangedNew2 },
+    { old: manager.playerExchangedOld3, new: manager.playerExchangedNew3 },
+  ].filter(t => t.old && t.new)
+  const oldPlayers = transferPairs.map(t => t.old!) as Player[]
+  const newPlayers = transferPairs.map(t => t.new!) as Player[]
+  const hasExchanges = transferPairs.length > 0
 
   const hinrundePlayers: Player[] = [
     manager.playerGoalkeeper,

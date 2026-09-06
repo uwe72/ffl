@@ -449,11 +449,13 @@ public class MatchdayMailTransactionService {
             m.getPlayerDefender1(), m.getPlayerDefender2(), m.getPlayerDefender3(),
             m.getPlayerMidfield1(), m.getPlayerMidfield2(), m.getPlayerMidfield3(),
             m.getPlayerStriker1(), m.getPlayerStriker2(), m.getPlayerStriker3(),
-            m.getPlayerFreeChoice(),
-            m.getPlayerExchangedNew1(), m.getPlayerExchangedNew2(), m.getPlayerExchangedNew3()
+            m.getPlayerFreeChoice()
         };
         for (Player p : players) {
             if (p != null) out.add(p.getId());
+        }
+        for (WinterTransferPairs.Pair pair : WinterTransferPairs.of(m)) {
+            out.add(pair.newPlayer().getId());
         }
     }
 
@@ -959,13 +961,7 @@ public class MatchdayMailTransactionService {
             }
             roster.add(new RosterEntry(p, label, color, true, !exchangedOut));
         }
-        Player[] news = new Player[] {
-            manager.getPlayerExchangedNew1(),
-            manager.getPlayerExchangedNew2(),
-            manager.getPlayerExchangedNew3()
-        };
-        for (Player p : news) {
-            if (p == null) continue;
+        for (Player p : WinterTransferPairs.newPlayers(manager)) {
             Player resolved = playerById.getOrDefault(p.getId(), p);
             String label = positionLabelFromEnum(resolved.getPosition());
             String color = positionColorFromEnum(resolved.getPosition());
@@ -975,10 +971,7 @@ public class MatchdayMailTransactionService {
     }
 
     private boolean isExchangedOld(Manager m, Player p) {
-        if (p == null) return false;
-        return p.equals(m.getPlayerExchangedOld1())
-            || p.equals(m.getPlayerExchangedOld2())
-            || p.equals(m.getPlayerExchangedOld3());
+        return WinterTransferPairs.isOldPlayerOfCompletePair(m, p);
     }
 
     private String positionLabelFromEnum(Position pos) {
@@ -1290,13 +1283,8 @@ public class MatchdayMailTransactionService {
             candidates.add(p);
         }
         if (isRueckrunde) {
-            Player[] news = new Player[] {
-                manager.getPlayerExchangedNew1(),
-                manager.getPlayerExchangedNew2(),
-                manager.getPlayerExchangedNew3()
-            };
-            for (Player p : news) {
-                if (p != null) candidates.add(p);
+            for (Player p : WinterTransferPairs.newPlayers(manager)) {
+                candidates.add(p);
             }
         }
         List<Player> scoringPlayers = new ArrayList<>();

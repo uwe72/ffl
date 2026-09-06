@@ -396,27 +396,21 @@ public class ManagerService {
                                                    playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
         
-        if (manager.getPlayerExchangedOld1() != null) {
+        if (manager.getPlayerExchangedOld1() != null && manager.getPlayerExchangedNew1() != null) {
             dto.setPlayerExchangedOld1(convertPlayer(manager.getPlayerExchangedOld1(), latestPlayerRanks,
                                                       playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
-        }
-        if (manager.getPlayerExchangedOld2() != null) {
-            dto.setPlayerExchangedOld2(convertPlayer(manager.getPlayerExchangedOld2(), latestPlayerRanks,
-                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
-        }
-        if (manager.getPlayerExchangedOld3() != null) {
-            dto.setPlayerExchangedOld3(convertPlayer(manager.getPlayerExchangedOld3(), latestPlayerRanks,
-                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
-        }
-        if (manager.getPlayerExchangedNew1() != null) {
             dto.setPlayerExchangedNew1(convertPlayer(manager.getPlayerExchangedNew1(), latestPlayerRanks,
                                                       playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
-        if (manager.getPlayerExchangedNew2() != null) {
+        if (manager.getPlayerExchangedOld2() != null && manager.getPlayerExchangedNew2() != null) {
+            dto.setPlayerExchangedOld2(convertPlayer(manager.getPlayerExchangedOld2(), latestPlayerRanks,
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
             dto.setPlayerExchangedNew2(convertPlayer(manager.getPlayerExchangedNew2(), latestPlayerRanks,
                                                       playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
-        if (manager.getPlayerExchangedNew3() != null) {
+        if (manager.getPlayerExchangedOld3() != null && manager.getPlayerExchangedNew3() != null) {
+            dto.setPlayerExchangedOld3(convertPlayer(manager.getPlayerExchangedOld3(), latestPlayerRanks,
+                                                      playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
             dto.setPlayerExchangedNew3(convertPlayer(manager.getPlayerExchangedNew3(), latestPlayerRanks,
                                                       playerPositionMap, playerPointsLastRoundMap, playerPositionChangeMap, managerCountMap));
         }
@@ -474,12 +468,10 @@ public class ManagerService {
         Season season = manager.getSeason();
         if (season != null && season.getSeasonState() == SeasonState.RUNNING_RUECKRUNDE) {
             int rueckrundeValue = hinrundeValue;
-            rueckrundeValue -= getPlayerPrize(manager.getPlayerExchangedOld1());
-            rueckrundeValue -= getPlayerPrize(manager.getPlayerExchangedOld2());
-            rueckrundeValue -= getPlayerPrize(manager.getPlayerExchangedOld3());
-            rueckrundeValue += getPlayerPrize(manager.getPlayerExchangedNew1());
-            rueckrundeValue += getPlayerPrize(manager.getPlayerExchangedNew2());
-            rueckrundeValue += getPlayerPrize(manager.getPlayerExchangedNew3());
+            for (WinterTransferPairs.Pair pair : WinterTransferPairs.of(manager)) {
+                rueckrundeValue -= getPlayerPrize(pair.oldPlayer());
+                rueckrundeValue += getPlayerPrize(pair.newPlayer());
+            }
             return rueckrundeValue;
         }
         
@@ -519,6 +511,7 @@ public class ManagerService {
 
     @Transactional
     public Manager createManager(Manager manager) {
+        validateWinterTransferPairs(manager);
         validateTeam(manager);
         Manager saved = managerRepository.save(manager);
         friendTeamService.seedInitialFavorite(saved);
@@ -527,8 +520,35 @@ public class ManagerService {
 
     @Transactional
     public Manager updateManager(Manager manager) {
+        validateWinterTransferPairs(manager);
         validateTeam(manager);
         return managerRepository.save(manager);
+    }
+
+    private void validateWinterTransferPairs(Manager manager) {
+        boolean hasOrphan =
+            (manager.getPlayerExchangedOld1() == null) != (manager.getPlayerExchangedNew1() == null)
+            || (manager.getPlayerExchangedOld2() == null) != (manager.getPlayerExchangedNew2() == null)
+            || (manager.getPlayerExchangedOld3() == null) != (manager.getPlayerExchangedNew3() == null);
+        if (hasOrphan) {
+            throw new IllegalArgumentException("Jeder Winterwechsel benötigt einen Raus- und einen Rein-Spieler");
+        }
+    }
+
+    @Transactional
+    public ManagerDto clearWinterTransfers(Long managerId) {
+        Manager manager = managerRepository.findById(managerId).orElse(null);
+        if (manager == null) {
+            throw new IllegalArgumentException("Manager nicht gefunden");
+        }
+        manager.setPlayerExchangedOld1(null);
+        manager.setPlayerExchangedOld2(null);
+        manager.setPlayerExchangedOld3(null);
+        manager.setPlayerExchangedNew1(null);
+        manager.setPlayerExchangedNew2(null);
+        manager.setPlayerExchangedNew3(null);
+        Manager saved = managerRepository.save(manager);
+        return ManagerDto.fromEntity(saved);
     }
 
     @Transactional
@@ -785,6 +805,12 @@ public class ManagerService {
                 .filter(p -> p.getId().equals(transfers.get(2).getOldPlayerId()))
                 .findFirst().orElse(null);
             newPlayer3 = newPlayerMap.get(transfers.get(2).getNewPlayerId());
+        }
+
+        if ((oldPlayer1 == null) != (newPlayer1 == null)
+            || (oldPlayer2 == null) != (newPlayer2 == null)
+            || (oldPlayer3 == null) != (newPlayer3 == null)) {
+            throw new IllegalArgumentException("Jeder Winterwechsel benötigt einen Raus- und einen Rein-Spieler");
         }
 
         manager.setPlayerExchangedOld1(oldPlayer1);

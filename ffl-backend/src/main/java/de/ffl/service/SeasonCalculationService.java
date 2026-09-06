@@ -711,12 +711,10 @@ public class SeasonCalculationService {
         if (manager.getPlayerFreeChoice() != null) players.add(manager.getPlayerFreeChoice());
 
         if (roundNumber >= transferRound) {
-            if (manager.getPlayerExchangedOld1() != null) players.remove(manager.getPlayerExchangedOld1());
-            if (manager.getPlayerExchangedOld2() != null) players.remove(manager.getPlayerExchangedOld2());
-            if (manager.getPlayerExchangedOld3() != null) players.remove(manager.getPlayerExchangedOld3());
-            if (manager.getPlayerExchangedNew1() != null) players.add(manager.getPlayerExchangedNew1());
-            if (manager.getPlayerExchangedNew2() != null) players.add(manager.getPlayerExchangedNew2());
-            if (manager.getPlayerExchangedNew3() != null) players.add(manager.getPlayerExchangedNew3());
+            for (WinterTransferPairs.Pair pair : WinterTransferPairs.of(manager)) {
+                players.remove(pair.oldPlayer());
+                players.add(pair.newPlayer());
+            }
         }
 
         return players;

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useSurveys, useCreateSurvey, useUpdateSurvey, useUpdateSurveyMeta, useCopySurvey, useDeleteSurvey, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
+import { useSurveys, useCreateSurvey, useUpdateSurvey, useUpdateSurveyMeta, useCopySurvey, useDeleteSurvey, useDeleteSurveyResponse, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
 import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import BackButton from '../components/BackButton'
 import Button from '../components/Button'
@@ -935,6 +935,15 @@ function SurveyMetaEditor({ existing, onCancel }: {
 function SurveyResults({ id, onBack }: { id: number; onBack: () => void }) {
   const isMobile = useIsMobile()
   const { data: result, isLoading } = useSurveyResult(id)
+  const deleteResponse = useDeleteSurveyResponse()
+
+  const removeResponse = (responseId: number) => {
+    if (!window.confirm('Möchtest du diese Antwort wirklich löschen?')) return
+    deleteResponse.mutate({ surveyId: id, responseId }, {
+      onError: err => alert(apiErrorMessage(err)),
+    })
+  }
+
   if (isLoading || !result) return <div className="text-center py-8 text-muted">Laden...</div>
 
   const maxCount = Math.max(
@@ -1044,9 +1053,19 @@ function SurveyResults({ id, onBack }: { id: number; onBack: () => void }) {
             <p className="text-sm text-subtle">Noch keine Antworten</p>
           ) : (
             <div className="flex flex-col gap-4">
-              {result.responses.map((r, i) => (
-                <div key={i} className="border border-border rounded-control p-3">
-                  <p className="text-xs text-subtle mb-2">{formatDate(r.submittedAt)}</p>
+              {result.responses.map(r => (
+                <div key={r.id} className="border border-border rounded-control p-3">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-xs text-subtle">{formatDate(r.submittedAt)}</p>
+                    <Button
+                      variant="negative"
+                      size={isMobile ? 'sm' : 'input'}
+                      onClick={() => removeResponse(r.id)}
+                      disabled={deleteResponse.isPending}
+                    >
+                      Löschen
+                    </Button>
+                  </div>
                   <div className="flex flex-col gap-1.5">
                     {r.answers.map((a, j) => (
                       <div key={j} className="text-sm">

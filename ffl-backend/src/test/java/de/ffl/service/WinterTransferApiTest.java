@@ -1,6 +1,7 @@
 package de.ffl.service;
 
 import de.ffl.domain.*;
+import de.ffl.dto.RoundDetailDto;
 import de.ffl.dto.WinterTransferRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,9 @@ class WinterTransferApiTest extends AbstractSeasonTestBase {
 
     @Autowired
     private ManagerService managerService;
+
+    @Autowired
+    private ManagerRoundService managerRoundService;
 
     private Player mane;
     private Player hack;
@@ -261,6 +265,72 @@ class WinterTransferApiTest extends AbstractSeasonTestBase {
         assertThatThrownBy(() -> managerService.updateWinterTransfers(managerUwe72.getUser().getId(), request))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("budget");
+    }
+
+    @Test
+    void updateManager_rejectsOrphanedWinterExchange() {
+        managerUwe72.setPlayerExchangedOld1(null);
+        managerUwe72.setPlayerExchangedNew1(replacementForMane);
+
+        assertThatThrownBy(() -> managerService.updateManager(managerUwe72))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Raus- und einen Rein-Spieler");
+    }
+
+    @Test
+    void updateManager_rejectsOrphanedOldWinterExchange() {
+        managerUwe72.setPlayerExchangedNew1(null);
+        managerUwe72.setPlayerExchangedOld1(replacementForMane);
+
+        assertThatThrownBy(() -> managerService.updateManager(managerUwe72))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Raus- und einen Rein-Spieler");
+    }
+
+    @Test
+    void clearWinterTransfers_clearsAllExchangeFields() {
+        managerUwe72.setPlayerExchangedNew1(replacementForMane);
+        managerUwe72.setPlayerExchangedOld2(hack);
+        managerUwe72.setPlayerExchangedNew2(replacementForHack);
+        managerUwe72 = managerRepository.save(managerUwe72);
+        entityManager.flush();
+        entityManager.clear();
+
+        var result = managerService.clearWinterTransfers(managerUwe72.getId());
+
+        assertThat(result.getPlayerExchangedOld1()).isNull();
+        assertThat(result.getPlayerExchangedNew1()).isNull();
+        assertThat(result.getPlayerExchangedOld2()).isNull();
+        assertThat(result.getPlayerExchangedNew2()).isNull();
+        assertThat(result.getPlayerExchangedOld3()).isNull();
+        assertThat(result.getPlayerExchangedNew3()).isNull();
+    }
+
+    @Test
+    void orphanedWinterExchange_isIgnoredInRueckrundeCalculation() {
+        season.setSeasonState(SeasonState.RUNNING_RUECKRUNDE);
+        season.setCurrentMatchday(TRANSFER_ROUND);
+        season = seasonRepository.save(season);
+
+        managerUwe72.setPlayerExchangedOld1(null);
+        managerUwe72.setPlayerExchangedNew1(replacementForMane);
+        managerUwe72.setPlayerExchangedOld2(null);
+        managerUwe72.setPlayerExchangedNew2(null);
+        managerUwe72.setPlayerExchangedOld3(null);
+        managerUwe72.setPlayerExchangedNew3(null);
+        managerUwe72 = managerRepository.save(managerUwe72);
+        entityManager.flush();
+        entityManager.clear();
+
+        List<RoundDetailDto.PlayerPointDto> activePlayers =
+            managerRoundService.getCurrentPlayersForManager(managerUwe72.getId());
+
+        assertThat(activePlayers).hasSize(11);
+        List<Long> activePlayerIds = activePlayers.stream()
+            .map(RoundDetailDto.PlayerPointDto::getPlayerId)
+            .toList();
+        assertThat(activePlayerIds).contains(mane.getId());
+        assertThat(activePlayerIds).doesNotContain(replacementForMane.getId());
     }
 
     private WinterTransferRequest buildRequest(List<long[]> pairs) {

@@ -55,6 +55,12 @@ public class SurveyController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{id}/responses/{responseId}")
+    public ResponseEntity<Void> deleteResponse(@PathVariable Long id, @PathVariable Long responseId) {
+        surveyService.deleteResponse(id, responseId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{id}/start")
     public ResponseEntity<SurveyAdminDto> start(@PathVariable Long id) {
         return ResponseEntity.ok(surveyService.startSurvey(id));

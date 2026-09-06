@@ -174,6 +174,16 @@ public class ManagerController {
         return ResponseEntity.ok(updated);
     }
 
+    @DeleteMapping("/{id}/winter-transfers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> clearWinterTransfers(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(managerService.clearWinterTransfers(id));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @GetMapping("/current")
     public ResponseEntity<?> getCurrentManager() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

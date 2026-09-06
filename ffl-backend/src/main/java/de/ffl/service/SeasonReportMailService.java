@@ -152,9 +152,9 @@ public class SeasonReportMailService {
         addIfNotNull(ids, m.getPlayerStriker2());
         addIfNotNull(ids, m.getPlayerStriker3());
         addIfNotNull(ids, m.getPlayerFreeChoice());
-        addIfNotNull(ids, m.getPlayerExchangedNew1());
-        addIfNotNull(ids, m.getPlayerExchangedNew2());
-        addIfNotNull(ids, m.getPlayerExchangedNew3());
+        for (WinterTransferPairs.Pair pair : WinterTransferPairs.of(m)) {
+            addIfNotNull(ids, pair.newPlayer());
+        }
         return ids;
     }
 
