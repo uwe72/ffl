@@ -82,14 +82,6 @@ public class FriendTeamService {
             .orElseThrow(() -> new IllegalArgumentException("Team ist kein Favorit."));
         friendTeamRepository.delete(friendTeam);
         resequence(userId, seasonId);
-
-        List<FriendTeam> remaining = friendTeamRepository
-            .findByOwnerUserIdAndSeasonIdOrderByPositionAsc(userId, seasonId);
-        if (remaining.size() == 1) {
-            FriendTeam last = remaining.get(0);
-            last.setStandard(true);
-            friendTeamRepository.save(last);
-        }
     }
 
     @Transactional

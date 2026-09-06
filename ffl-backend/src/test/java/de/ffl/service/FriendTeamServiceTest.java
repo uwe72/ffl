@@ -138,7 +138,7 @@ class FriendTeamServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
-    void removeFavorite_leavesOne_marksLastAsStandard() {
+    void removeFavorite_leavesOne_keepsStandardUnset() {
         Manager owner = createManager("owner");
         Long userId = owner.getUser().getId();
         Manager friend1 = createManager("friend1");
@@ -151,7 +151,7 @@ class FriendTeamServiceTest extends AbstractSeasonTestBase {
         List<FriendTeamDto> list = friendTeamService.listFavorites(userId, season.getId());
         assertThat(list).hasSize(1);
         assertThat(list.get(0).getFriendManagerId()).isEqualTo(friend2.getId());
-        assertThat(list.get(0).isStandard()).isTrue();
+        assertThat(list.get(0).isStandard()).isFalse();
     }
 
     @Test
