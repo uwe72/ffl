@@ -2,10 +2,10 @@ package de.ffl.controller;
 
 import de.ffl.dto.DownloadStatisticDto;
 import de.ffl.dto.InstallStatisticDto;
-import de.ffl.dto.LoginStatisticDto;
+import de.ffl.dto.VisitStatisticDto;
 import de.ffl.service.DownloadStatisticsService;
 import de.ffl.service.InstallStatisticsService;
-import de.ffl.service.LoginStatisticsService;
+import de.ffl.service.VisitStatisticsService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,27 +17,27 @@ import java.time.LocalDate;
 @RequestMapping("/api/statistics")
 public class StatisticsController {
 
-    private final LoginStatisticsService loginStatisticsService;
+    private final VisitStatisticsService visitStatisticsService;
     private final InstallStatisticsService installStatisticsService;
     private final DownloadStatisticsService downloadStatisticsService;
 
-    public StatisticsController(LoginStatisticsService loginStatisticsService,
+    public StatisticsController(VisitStatisticsService visitStatisticsService,
                                 InstallStatisticsService installStatisticsService,
                                 DownloadStatisticsService downloadStatisticsService) {
-        this.loginStatisticsService = loginStatisticsService;
+        this.visitStatisticsService = visitStatisticsService;
         this.installStatisticsService = installStatisticsService;
         this.downloadStatisticsService = downloadStatisticsService;
     }
 
-    @GetMapping("/logins")
+    @GetMapping("/visits")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<LoginStatisticDto> getLoginStatistics(
+    public ResponseEntity<VisitStatisticDto> getVisitStatistics(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         if (!to.isAfter(from)) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(loginStatisticsService.getStatistics(from.atStartOfDay(), to.atStartOfDay()));
+        return ResponseEntity.ok(visitStatisticsService.getStatistics(from, to));
     }
 
     @GetMapping("/install-clicks")

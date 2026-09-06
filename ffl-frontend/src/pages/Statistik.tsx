@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { useLoginStats } from '../hooks/useLoginStats'
+import { useVisitStats } from '../hooks/useVisitStats'
 import { useInstallStats } from '../hooks/useInstallStats'
 import { useDownloadStats } from '../hooks/useDownloadStats'
-import type { LoginStatMonth, InstallStatMonth, DownloadStatMonth } from '../types'
+import type { VisitStatMonth, InstallStatMonth, DownloadStatMonth } from '../types'
 import BackButton from '../components/BackButton'
 import CardContainer from '../components/CardContainer'
 import Tabs from '../components/Tabs'
@@ -78,21 +78,21 @@ interface MonthlyStatPanelProps<T> {
 }
 
 export default function Statistik() {
-  const [activeTab, setActiveTab] = useState<'logins' | 'install' | 'downloads'>('logins')
+  const [activeTab, setActiveTab] = useState<'visits' | 'install' | 'downloads'>('visits')
 
   return (
     <div>
       <BackButton to="/" className="mb-4" />
       <Tabs
         items={[
-          { key: 'logins', label: 'Einloggen' },
+          { key: 'visits', label: 'Besuche' },
           { key: 'install', label: 'Installieren' },
           { key: 'downloads', label: 'Downloads' },
         ]}
         active={activeTab}
-        onChange={(key) => setActiveTab(key as 'logins' | 'install' | 'downloads')}
+        onChange={(key) => setActiveTab(key as 'visits' | 'install' | 'downloads')}
       />
-      {activeTab === 'logins' && <LoginStatsPanel />}
+      {activeTab === 'visits' && <VisitsStatsPanel />}
       {activeTab === 'install' && <InstallStatsPanel />}
       {activeTab === 'downloads' && <DownloadStatsPanel />}
       <div className="h-10" />
@@ -100,23 +100,23 @@ export default function Statistik() {
   )
 }
 
-function LoginStatsPanel() {
+function VisitsStatsPanel() {
   return (
     <MonthlyStatPanel
-      useStats={useLoginStats}
-      toStatMonths={(months: LoginStatMonth[]) =>
+      useStats={useVisitStats}
+      toStatMonths={(months: VisitStatMonth[]) =>
         months.map(m => ({
           year: m.year,
           month: m.month,
-          total: m.totalLogins,
-          users: m.users.map(({ logins, ...rest }) => ({ ...rest, count: logins })),
+          total: m.totalVisits,
+          users: m.users.map(({ visits, ...rest }) => ({ ...rest, count: visits })),
         }))
       }
-      title="Login-Statistik"
-      subtitle="Anzahl erfolgreicher Logins pro Monat (nur NORMAL-Benutzer)"
-      countLabel="Logins"
-      tooltipLabel="Logins"
-      emptyText="Keine Logins in diesem Monat"
+      title="Besuchs-Statistik"
+      subtitle="Anzahl der Besuchtage pro Monat (jeder Benutzer zählt maximal einmal pro Kalendertag)"
+      countLabel="Besuche"
+      tooltipLabel="Besuche"
+      emptyText="Keine Besuche in diesem Monat"
     />
   )
 }
@@ -184,7 +184,10 @@ function MonthlyStatPanel<T>({ useStats, toStatMonths, title, subtitle, countLab
 
   const chartData = useMemo(() => {
     if (!statMonths) return []
-    return statMonths.map(m => ({ label: monthLabel(m.year, m.month), count: m.total }))
+    return statMonths.map(m => ({
+      label: monthLabel(m.year, m.month),
+      count: m.total,
+    }))
   }, [statMonths])
 
   const sortedMonths = useMemo(() => {
@@ -193,7 +196,9 @@ function MonthlyStatPanel<T>({ useStats, toStatMonths, title, subtitle, countLab
     arr.sort((a, b) => {
       const dateA = a.year * 100 + a.month
       const dateB = b.year * 100 + b.month
-      const cmp = sortKey === 'month' ? dateA - dateB : a.total - b.total
+      const cmp = sortKey === 'month'
+        ? dateA - dateB
+        : a.total - b.total
       return sortOrder === 'asc' ? cmp : -cmp
     })
     return arr
@@ -242,13 +247,14 @@ function MonthlyStatPanel<T>({ useStats, toStatMonths, title, subtitle, countLab
 
   const sortedUsers = (month: StatMonth): StatUser[] => {
     const sort = subSort[monthKey(month.year, month.month)] ?? { key: 'count' as SubSortKey, order: 'desc' as const }
+    const valueOf = (u: StatUser): number => u.count
     const arr = [...month.users]
     arr.sort((a, b) => {
       if (sort.key === 'login') {
         const cmp = alphanumericCompare(userLabel(a), userLabel(b))
         return sort.order === 'asc' ? cmp : -cmp
       }
-      const countCmp = a.count - b.count
+      const countCmp = valueOf(a) - valueOf(b)
       if (countCmp !== 0) return sort.order === 'asc' ? countCmp : -countCmp
       return alphanumericCompare(userLabel(a), userLabel(b))
     })
@@ -295,7 +301,7 @@ function MonthlyStatPanel<T>({ useStats, toStatMonths, title, subtitle, countLab
       }
     >
       {chartData.length > 0 && (
-        <div className="px-6 pt-6">
+        <div className="px-6 pt-6 space-y-4">
           <div className="bg-card p-4 rounded-card border border-border">
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
@@ -310,14 +316,22 @@ function MonthlyStatPanel<T>({ useStats, toStatMonths, title, subtitle, countLab
                       return (
                         <div className="bg-surface border border-border rounded-card p-3 shadow-lg">
                           <p className="text-foreground font-semibold">{label}</p>
-                          <p className="text-primary">{tooltipLabel}: {payload[0].value}</p>
+                          {payload.map((entry, i) => (
+                            <p
+                              key={i}
+                              className={payload.length > 1 ? '' : 'text-primary'}
+                              style={payload.length > 1 ? { color: entry.color } : undefined}
+                            >
+                              {entry.name}: {entry.value}
+                            </p>
+                          ))}
                         </div>
                       )
                     }
                     return null
                   }}
                 />
-                <Line type="monotone" dataKey="count" stroke={chartColors.accent} strokeWidth={2} dot={{ fill: chartColors.accent, strokeWidth: 2 }} />
+                <Line type="monotone" dataKey="count" name={tooltipLabel} stroke={chartColors.accent} strokeWidth={2} dot={{ fill: chartColors.accent, strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

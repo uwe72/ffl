@@ -5,10 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LoginStatisticDto {
-    private java.util.List<LoginStatMonthDto> months;
+public class VisitStatMonthDto {
+    private int year;
+    private int month;
+    private long totalVisits;
+    private List<VisitStatUserDto> users;
 }

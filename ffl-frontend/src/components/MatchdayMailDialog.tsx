@@ -8,6 +8,7 @@ interface MatchdayMailDialogProps {
   roundNumber: number
   managerIds: number[]
   comment?: string
+  commentHeading?: string
   testMode?: boolean
 }
 
@@ -18,6 +19,7 @@ export default function MatchdayMailDialog({
   roundNumber,
   managerIds,
   comment,
+  commentHeading,
   testMode,
 }: MatchdayMailDialogProps) {
   const [logs, setLogs] = useState<string[]>([])
@@ -42,6 +44,7 @@ export default function MatchdayMailDialog({
         roundNumber,
         managerIds,
         comment: comment && comment.trim() ? comment : undefined,
+        commentHeading: commentHeading && commentHeading.trim() ? commentHeading.trim() : undefined,
         testMode: testMode ?? false,
       }
 

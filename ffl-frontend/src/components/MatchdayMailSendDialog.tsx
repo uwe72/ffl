@@ -80,6 +80,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
   const [searchTerm, setSearchTerm] = useState('')
   const [adminFilter, setAdminFilter] = useState(false)
   const [comment, setComment] = useState('')
+  const [commentHeading, setCommentHeading] = useState('')
   const [rangeFrom, setRangeFrom] = useState('')
   const [rangeTo, setRangeTo] = useState('')
   const [testMode, setTestMode] = useState(false)
@@ -343,6 +344,15 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
 
         <div className="p-4 md:p-6 bg-surface border border-border mb-4">
           <label className="text-base md:text-lg font-semibold text-primary block mb-2">
+            Überschrift (optional)
+          </label>
+          <input
+            value={commentHeading}
+            onChange={(e) => setCommentHeading(e.target.value)}
+            placeholder="Optionale Überschrift über dem Kommentar-Block in der Mail (z. B. Hinweis zum Spieltag)"
+            className="input-field w-full px-3 py-2 focus:outline-none"
+          />
+          <label className="text-base md:text-lg font-semibold text-primary block mb-2 mt-4">
             Kommentar (optional)
           </label>
           <div className="quill-mail">
@@ -399,6 +409,7 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           roundNumber={roundNumber}
           managerIds={selectedManagerIds}
           comment={comment}
+          commentHeading={commentHeading}
           testMode={testMode}
         />
       </div>

@@ -4,11 +4,11 @@ import de.ffl.dto.DownloadStatMonthDto;
 import de.ffl.dto.DownloadStatisticDto;
 import de.ffl.dto.InstallStatMonthDto;
 import de.ffl.dto.InstallStatisticDto;
-import de.ffl.dto.LoginStatMonthDto;
-import de.ffl.dto.LoginStatisticDto;
+import de.ffl.dto.VisitStatMonthDto;
+import de.ffl.dto.VisitStatisticDto;
 import de.ffl.service.DownloadStatisticsService;
 import de.ffl.service.InstallStatisticsService;
-import de.ffl.service.LoginStatisticsService;
+import de.ffl.service.VisitStatisticsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 class StatisticsControllerTest {
 
     @Mock
-    private LoginStatisticsService loginStatisticsService;
+    private VisitStatisticsService visitStatisticsService;
 
     @Mock
     private InstallStatisticsService installStatisticsService;
@@ -41,13 +41,13 @@ class StatisticsControllerTest {
     private StatisticsController statisticsController;
 
     @Test
-    void getLoginStatistics_validRange_returnsStatistics() {
-        LoginStatisticDto dto = LoginStatisticDto.builder()
-            .months(java.util.List.of(LoginStatMonthDto.builder().year(2026).month(1).totalLogins(5L).build()))
+    void getVisitStatistics_validRange_returnsStatistics() {
+        VisitStatisticDto dto = VisitStatisticDto.builder()
+            .months(java.util.List.of(VisitStatMonthDto.builder().year(2026).month(1).totalVisits(5L).build()))
             .build();
-        when(loginStatisticsService.getStatistics(any(), any())).thenReturn(dto);
+        when(visitStatisticsService.getStatistics(any(), any())).thenReturn(dto);
 
-        ResponseEntity<LoginStatisticDto> response = statisticsController.getLoginStatistics(
+        ResponseEntity<VisitStatisticDto> response = statisticsController.getVisitStatistics(
             LocalDate.of(2026, 1, 1), LocalDate.of(2026, 2, 1));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -55,21 +55,21 @@ class StatisticsControllerTest {
     }
 
     @Test
-    void getLoginStatistics_emptyRange_returnsBadRequest() {
-        ResponseEntity<LoginStatisticDto> response = statisticsController.getLoginStatistics(
+    void getVisitStatistics_emptyRange_returnsBadRequest() {
+        ResponseEntity<VisitStatisticDto> response = statisticsController.getVisitStatistics(
             LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        verify(loginStatisticsService, never()).getStatistics(any(), any());
+        verify(visitStatisticsService, never()).getStatistics(any(), any());
     }
 
     @Test
-    void getLoginStatistics_invertedRange_returnsBadRequest() {
-        ResponseEntity<LoginStatisticDto> response = statisticsController.getLoginStatistics(
+    void getVisitStatistics_invertedRange_returnsBadRequest() {
+        ResponseEntity<VisitStatisticDto> response = statisticsController.getVisitStatistics(
             LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 1));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        verify(loginStatisticsService, never()).getStatistics(any(), any());
+        verify(visitStatisticsService, never()).getStatistics(any(), any());
     }
 
     @Test

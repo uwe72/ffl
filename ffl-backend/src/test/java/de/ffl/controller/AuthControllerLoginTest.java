@@ -1,7 +1,6 @@
 package de.ffl.controller;
 
 import de.ffl.config.JwtTokenProvider;
-import de.ffl.domain.Season;
 import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.AuthResponse;
@@ -24,7 +23,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,8 +59,6 @@ class AuthControllerLoginTest {
     private EmailAddressService emailAddressService;
     @Mock
     private FriendTeamService friendTeamService;
-    @Mock
-    private LoginStatisticsService loginStatisticsService;
 
     @InjectMocks
     private AuthController authController;
@@ -98,7 +94,7 @@ class AuthControllerLoginTest {
     }
 
     @Test
-    void login_normalUser_recordsLoginAndReturnsOk() {
+    void login_normalUser_returnsOk() {
         User user = user("alice", UserRole.NORMAL);
         stubSuccessfulLogin(user);
 
@@ -107,44 +103,5 @@ class AuthControllerLoginTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isInstanceOf(AuthResponse.class);
         assertThat(((AuthResponse) response.getBody()).getLogin()).isEqualTo("alice");
-        verify(loginStatisticsService).recordLogin(user);
-    }
-
-    @Test
-    void login_recordLoginFails_loginStillSucceeds() {
-        User user = user("alice", UserRole.NORMAL);
-        stubSuccessfulLogin(user);
-        doThrow(new RuntimeException("db down")).when(loginStatisticsService).recordLogin(user);
-
-        ResponseEntity<?> response = authController.login(request("alice"));
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isInstanceOf(AuthResponse.class);
-    }
-
-    @Test
-    void login_adminUser_doesNotRecordLogin() {
-        User user = user("uwe72", UserRole.ADMIN);
-        stubSuccessfulLogin(user);
-
-        ResponseEntity<?> response = authController.login(request("uwe72"));
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        verify(loginStatisticsService, never()).recordLogin(any());
-    }
-
-    @Test
-    void login_excludedNormalUser_doesNotRecordLogin() {
-        User user = user("uwe72", UserRole.NORMAL);
-        stubSuccessfulLogin(user);
-        Season season = new Season();
-        season.setAdminFallbackUser("uwe72");
-        when(seasonRepository.findAll()).thenReturn(List.of(season));
-
-        ResponseEntity<?> response = authController.login(request("uwe72"));
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isInstanceOf(AuthResponse.class);
-        verify(loginStatisticsService, never()).recordLogin(any());
     }
 }

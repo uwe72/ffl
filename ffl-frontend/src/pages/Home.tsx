@@ -1520,7 +1520,7 @@ export default function Home() {
             )}
           </div>
         ) : activeTab === 'manager' ? (
-          <Managers fill showEinsatzquote />
+          <Managers fill enableCompact showEinsatzquote showFavorites showVisits />
         ) : (
           <div className="flex-1 min-h-0 flex flex-col pr-1">
             <div className="max-w-[1300px] flex flex-col gap-6 flex-1 min-h-0">

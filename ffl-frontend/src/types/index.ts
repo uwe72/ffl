@@ -327,6 +327,7 @@ export interface Manager {
   currentMatchday?: number
   teamChangeCount?: number
   einsatzquote?: number
+  visitCount?: number
 }
 
 export interface ManagerInfo {
@@ -541,22 +542,22 @@ export interface ManagerGroupRoundStats {
   }[]
 }
 
-export interface LoginStatUser {
+export interface VisitStatUser {
   login: string
   firstName?: string
   lastName?: string
-  logins: number
+  visits: number
 }
 
-export interface LoginStatMonth {
+export interface VisitStatMonth {
   year: number
   month: number
-  totalLogins: number
-  users: LoginStatUser[]
+  totalVisits: number
+  users: VisitStatUser[]
 }
 
-export interface LoginStatistics {
-  months: LoginStatMonth[]
+export interface VisitStatistics {
+  months: VisitStatMonth[]
 }
 
 export interface InstallStatUser {

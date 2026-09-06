@@ -103,7 +103,7 @@ public class MatchdayMailTransactionService {
 
     public void runMailJob(SseEmitter emitter, Long seasonId, Integer roundNumber,
                            List<Long> managerIds, JavaMailSenderImpl mailSender,
-                           SystemConfig config, String comment, boolean testMode) {
+                           SystemConfig config, String comment, String commentHeading, boolean testMode) {
         SmtpMailTransport.TransportState transportState = new SmtpMailTransport.TransportState();
         try {
             smtpMailTransport.send(emitter, "Lade Spieltags-Daten…");
@@ -374,7 +374,7 @@ public class MatchdayMailTransactionService {
                         dayRankByManagerId.get(managerId), topScorerName, topScorerPoints,
                         playerRankByPlayerId, teamsByPlayerId, playerById, pointsByPlayerId,
                         prevRankByManagerId, transferRound, config.getWebUrl(),
-                        rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment,
+                        rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment, commentHeading,
                         manager.getMailTheme(), paymentReminder, activeSurvey);
 
                     helper.setText(html, true);
@@ -472,6 +472,7 @@ public class MatchdayMailTransactionService {
                                         List<ManagerGroup> managerGroups,
                                         Map<Long, ManagerRank> dayRankByManagerId,
                                         String comment,
+                                        String commentHeading,
                                         MailTheme mailTheme,
                                         de.ffl.dto.PaymentReminderDto paymentReminder,
                                         SurveyPublicDto activeSurvey) {
@@ -564,11 +565,7 @@ public class MatchdayMailTransactionService {
         }
 
         if (comment != null && !comment.isBlank()) {
-            sb.append(renderCommentCard(comment, cardBgAlt, textPrimary, isDark));
-        }
-
-        if (paymentReminder != null && paymentReminder.isOpen()) {
-            appendPaymentReminder(sb, paymentReminder, isDark, cardBg, cardBgAlt, textPrimary, textSecondary, textTertiary, linkColor);
+            sb.append(renderCommentCard(comment, commentHeading, cardBgAlt, textPrimary, isDark));
         }
 
         List<RosterEntry> roster = collectFullRoster(manager, playerById);
@@ -608,6 +605,10 @@ public class MatchdayMailTransactionService {
                 appendManagerGroupTable(sb, group, roundNumber, manager.getId(), dayRankByManagerId,
                     prevRankByManagerId, managersById, isDark, textPrimary, textSecondary, textTertiary, cardBg);
             }
+        }
+
+        if (paymentReminder != null && paymentReminder.isOpen()) {
+            appendPaymentReminder(sb, paymentReminder, isDark, cardBg, cardBgAlt, textPrimary, textSecondary, textTertiary, linkColor);
         }
 
         sb.append("<div style=\"margin-top:24px;color:").append(textTertiary).append(";font-size:12px;text-align:center;\">");
@@ -1436,14 +1437,23 @@ public class MatchdayMailTransactionService {
             new org.jsoup.nodes.Document.OutputSettings().prettyPrint(false));
     }
 
-    static String renderCommentCard(String comment, String cardBgAlt, String textPrimary, boolean isDark) {
+    static String renderCommentCard(String comment, String commentHeading, String cardBgAlt, String textPrimary, boolean isDark) {
         String commentCardStyle = "background:" + cardBgAlt + ";border-radius:12px;padding:12px 14px;margin:0 0 14px 0;color:" + textPrimary + ";font-size:13px;line-height:1.5;border:1px solid " + (isDark ? "#555555" : "#c0c0c0") + ";";
         String commentHtml = sanitizeCommentHtml(comment);
-        if (commentHtml != null && !commentHtml.isBlank() && hasVisibleText(commentHtml)) {
-            commentHtml = PrizeDistributionHtmlBuilder.prepareMailText(commentHtml);
-            return "<div style=\"" + commentCardStyle + "\">" + commentHtml + "</div>";
+        if (commentHtml == null || commentHtml.isBlank() || !hasVisibleText(commentHtml)) {
+            return "";
         }
-        return "";
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div style=\"").append(commentCardStyle).append("\">");
+        if (commentHeading != null && !commentHeading.isBlank()) {
+            String accent = isDark ? "#FFD60A" : "#b7791f";
+            sb.append("<div style=\"color:").append(accent).append(";font-size:13px;font-weight:700;margin:0 0 6px 0;\">")
+              .append("\u2139\uFE0F").append(" ").append(escape(commentHeading.trim())).append("</div>");
+        }
+        commentHtml = PrizeDistributionHtmlBuilder.prepareMailText(commentHtml);
+        sb.append(commentHtml);
+        sb.append("</div>");
+        return sb.toString();
     }
 
     static String renderSurveyHint(SurveyPublicDto survey, String webUrl,

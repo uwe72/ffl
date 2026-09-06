@@ -62,6 +62,7 @@ public class SystemConfigController {
             request.getRoundNumber(),
             request.getManagerIds(),
             request.getComment(),
+            request.getCommentHeading(),
             request.isTestMode());
     }
 }

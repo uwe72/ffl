@@ -27,4 +27,7 @@ public interface DownloadLogRepository extends JpaRepository<DownloadLog, Long> 
            "GROUP BY YEAR(l.accessedAt), MONTH(l.accessedAt), l.documentName " +
            "ORDER BY YEAR(l.accessedAt), MONTH(l.accessedAt), l.documentName")
     List<Object[]> countDownloadsByDocumentAndMonth(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    boolean existsByClientIpAndDocumentNameAndAccessedAtGreaterThanEqual(
+        String clientIp, String documentName, LocalDateTime since);
 }

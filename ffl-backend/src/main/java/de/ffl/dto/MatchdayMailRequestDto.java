@@ -15,5 +15,6 @@ public class MatchdayMailRequestDto {
     private Integer roundNumber;
     private List<Long> managerIds;
     private String comment;
+    private String commentHeading;
     private boolean testMode;
 }

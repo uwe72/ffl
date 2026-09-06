@@ -7,6 +7,7 @@ import de.ffl.domain.User;
 import de.ffl.dto.AddFavoriteRequest;
 import de.ffl.dto.FriendTeamDto;
 import de.ffl.dto.SetStandardRequest;
+import de.ffl.dto.UserIdCount;
 import de.ffl.repository.FriendTeamRepository;
 import de.ffl.repository.ManagerRepository;
 import de.ffl.repository.SeasonRepository;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,6 +45,12 @@ public class FriendTeamService {
             .stream()
             .map(FriendTeamDto::fromEntity)
             .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, Long> getFavoriteCountsByUser(Long seasonId) {
+        return friendTeamRepository.countBySeasonGroupedByOwner(seasonId).stream()
+            .collect(Collectors.toMap(UserIdCount::getUserId, UserIdCount::getCount));
     }
 
     @Transactional

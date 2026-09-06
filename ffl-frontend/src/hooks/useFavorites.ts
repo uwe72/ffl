@@ -2,12 +2,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { favoritesApi } from '../api/favorites'
 
 const favoritesKey = (seasonId: number) => ['favorites', seasonId] as const
+const favoriteCountsKey = (seasonId: number) => ['favorite-counts', seasonId] as const
 
 export const useFavorites = (seasonId: number) => {
   return useQuery({
     queryKey: favoritesKey(seasonId),
     queryFn: () => favoritesApi.list(seasonId),
     enabled: !!seasonId,
+  })
+}
+
+export const useFavoriteCounts = (seasonId: number, enabled: boolean) => {
+  return useQuery({
+    queryKey: favoriteCountsKey(seasonId),
+    queryFn: () => favoritesApi.getCounts(seasonId),
+    enabled: enabled && !!seasonId,
   })
 }
 

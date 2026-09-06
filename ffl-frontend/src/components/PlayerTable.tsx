@@ -679,7 +679,7 @@ export default function PlayerTable({
               />
             </div>
           )}
-          {enableExport && !isMobile && (
+          {enableExport && !isMobile && !compactActive && (
             <Button onClick={exportToExcel} size="input">
               Excel Export
             </Button>

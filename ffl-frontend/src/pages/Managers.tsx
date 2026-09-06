@@ -3,6 +3,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import * as XLSX from 'xlsx'
 import { useManagers, useCurrentManager } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
+import { useFavoriteCounts } from '../hooks/useFavorites'
 import { useAuth } from '../context/AuthContext'
 import { trackEvent } from '../hooks/useMatomo'
 import Button from '../components/Button'
@@ -10,9 +11,9 @@ import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, TableBody, TableRow } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 
-type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound' | 'einsatzquote'
+type SortKey = 'shortName' | 'firstName' | 'lastName' | 'teamValue' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound' | 'einsatzquote' | 'favoriteCount' | 'visitCount'
 
-export default function Managers({ fill = false, showEinsatzquote = false }: { fill?: boolean; showEinsatzquote?: boolean } = {}) {
+export default function Managers({ fill = false, showEinsatzquote = false, showFavorites = false, showVisits = false, enableCompact = false }: { fill?: boolean; showEinsatzquote?: boolean; showFavorites?: boolean; showVisits?: boolean; enableCompact?: boolean } = {}) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
   const { data: currentSeason } = useCurrentSeason()
@@ -23,10 +24,30 @@ export default function Managers({ fill = false, showEinsatzquote = false }: { f
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [selected, setSelected] = useState(false)
 
+  const [compact, setCompact] = useState(() => {
+    const stored = localStorage.getItem('ffl-manager-compact')
+    return stored !== 'false'
+  })
+  const compactActive = enableCompact && compact
+  const handleSetCompact = (next: boolean) => {
+    setCompact(next)
+    localStorage.setItem('ffl-manager-compact', String(next))
+  }
+
   const { data: managers, isLoading, error } = useManagers()
   const { data: currentManager } = useCurrentManager()
 
   const isAdmin = user?.role === 'ADMIN'
+  const showFavoriteColumn = showFavorites && isAdmin
+  const showVisitColumn = showVisits && isAdmin
+  const { data: favoriteCounts } = useFavoriteCounts(currentSeason?.id ?? 0, showFavoriteColumn)
+  const favoriteCountsMap = useMemo(() => {
+    const map = new Map<number, number>()
+    if (favoriteCounts) {
+      Object.entries(favoriteCounts).forEach(([key, value]) => map.set(Number(key), value))
+    }
+    return map
+  }, [favoriteCounts])
   const fallbackManager = useMemo(() => managers?.find(m => m.shortName === currentSeason?.adminFallbackUser), [managers, currentSeason])
   const myManagerId = isAdmin ? fallbackManager?.id : currentManager?.id
 
@@ -81,10 +102,16 @@ export default function Managers({ fill = false, showEinsatzquote = false }: { f
         case 'einsatzquote':
           comparison = (a.einsatzquote ?? 0) - (b.einsatzquote ?? 0)
           break
+        case 'favoriteCount':
+          comparison = (favoriteCountsMap.get(b.userId ?? 0) ?? 0) - (favoriteCountsMap.get(a.userId ?? 0) ?? 0)
+          break
+        case 'visitCount':
+          comparison = (a.visitCount ?? 0) - (b.visitCount ?? 0)
+          break
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-  }, [managers, searchTerm, sortKey, sortOrder])
+  }, [managers, searchTerm, sortKey, sortOrder, favoriteCountsMap])
 
   const exportToExcel = () => {
     if (!filteredManagers || filteredManagers.length === 0) return
@@ -102,6 +129,12 @@ export default function Managers({ fill = false, showEinsatzquote = false }: { f
           : '-'
         row['Pkt.'] = manager.pointsTotal ?? '-'
         row['Spieltag'] = manager.pointsLastRound ?? '-'
+      }
+      if (showFavoriteColumn) {
+        row['Favoriten'] = favoriteCountsMap.get(manager.userId ?? 0) ?? 0
+      }
+      if (showVisitColumn) {
+        row['Besuche'] = manager.visitCount ?? 0
       }
       return row
     })
@@ -140,6 +173,16 @@ export default function Managers({ fill = false, showEinsatzquote = false }: { f
         <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4${fill ? ' shrink-0' : ' md:shrink-0'}`}>
           <h2 className="text-xl font-semibold text-foreground">Manager ({filteredManagers.length})</h2>
           <div className="flex flex-col md:flex-row md:items-center gap-3 w-full md:w-auto">
+            {enableCompact && !isMobile && (
+              <button
+                onClick={() => handleSetCompact(!compact)}
+                title="Kompakte Ansicht (weniger Spalten) oder Detail-Ansicht"
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${compactActive ? 'bg-info-bg text-info border-info' : 'bg-elevated text-muted border-border'} cursor-pointer`}
+              >
+                <i className="sap-icon sap-icon-filter text-[12px]" />
+                {compact ? 'Kompakt' : 'Detail'}
+              </button>
+            )}
             <div className="relative flex-1 md:w-64">
               <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
               <input
@@ -160,7 +203,7 @@ export default function Managers({ fill = false, showEinsatzquote = false }: { f
               Selektiere mich
             </Button>
             )}
-            {!isMobile && (
+            {!isMobile && !compactActive && (
             <Button
               onClick={exportToExcel}
               size="input"
@@ -219,9 +262,19 @@ export default function Managers({ fill = false, showEinsatzquote = false }: { f
                       {currentSeason?.currentMatchday ? `${currentSeason.currentMatchday}. Spieltag` : 'Spieltag'}<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
                     )}
-                    {!beforeSeason && showEinsatzquote && (
+                    {!beforeSeason && !compactActive && showEinsatzquote && (
                     <ThSortable align="center" onClick={() => handleSort('einsatzquote')}>
                       Einsatzquote<SortIcon column="einsatzquote" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    )}
+                    {!compactActive && showFavoriteColumn && (
+                    <ThSortable align="center" onClick={() => handleSort('favoriteCount')}>
+                      Favoriten<SortIcon column="favoriteCount" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    )}
+                    {!compactActive && showVisitColumn && (
+                    <ThSortable align="center" onClick={() => handleSort('visitCount')}>
+                      Besuche<SortIcon column="visitCount" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
                     )}
                   </tr>
@@ -278,9 +331,19 @@ export default function Managers({ fill = false, showEinsatzquote = false }: { f
                           {manager.pointsLastRound ?? '-'}
                         </td>
                         )}
-                        {!beforeSeason && showEinsatzquote && (
+                        {!beforeSeason && !compactActive && showEinsatzquote && (
                         <td className="px-3 py-2 text-center text-foreground tabular-nums">
                           {manager.einsatzquote != null ? `${manager.einsatzquote} %` : '-'}
+                        </td>
+                        )}
+                        {!compactActive && showFavoriteColumn && (
+                        <td className="px-3 py-2 text-center text-foreground tabular-nums">
+                          {favoriteCounts ? (favoriteCountsMap.get(manager.userId ?? 0) ?? 0) : '-'}
+                        </td>
+                        )}
+                        {!compactActive && showVisitColumn && (
+                        <td className="px-3 py-2 text-center text-foreground tabular-nums">
+                          {manager.visitCount ?? 0}
                         </td>
                         )}
                       </TableRow>
@@ -288,7 +351,7 @@ export default function Managers({ fill = false, showEinsatzquote = false }: { f
                     })
                   ) : (
                     <tr>
-                      <td colSpan={beforeSeason ? 3 : (showEinsatzquote ? 8 : 7)} className="text-center text-subtle py-8">
+                      <td colSpan={(beforeSeason ? 3 : (showEinsatzquote ? 8 : 7)) + (showFavoriteColumn ? 1 : 0) + (showVisitColumn ? 1 : 0) - (compactActive ? ((!beforeSeason && showEinsatzquote) ? 1 : 0) + (showFavoriteColumn ? 1 : 0) + (showVisitColumn ? 1 : 0) : 0)} className="text-center text-subtle py-8">
                         Keine Manager gefunden
                       </td>
                     </tr>

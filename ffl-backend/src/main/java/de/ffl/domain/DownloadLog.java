@@ -27,6 +27,9 @@ public class DownloadLog {
     @Column(name = "document_name", nullable = false)
     private String documentName;
 
+    @Column(name = "client_ip")
+    private String clientIp;
+
     @Column(name = "accessed_at", nullable = false)
     private LocalDateTime accessedAt;
 }

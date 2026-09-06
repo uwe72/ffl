@@ -263,6 +263,29 @@ class FriendTeamServiceTest extends AbstractSeasonTestBase {
         assertThat(friendTeamService.listFavorites(userId, season.getId()).get(0).isStandard()).isFalse();
     }
 
+    @Test
+    void getFavoriteCountsByUser_groupsByOwner() {
+        Manager owner1 = createManager("owner1");
+        Manager owner2 = createManager("owner2");
+        Manager friend1 = createManager("friend1");
+        Manager friend2 = createManager("friend2");
+        Manager friend3 = createManager("friend3");
+        friendTeamService.addFavorite(owner1.getUser().getId(), request(friend1.getId()));
+        friendTeamService.addFavorite(owner1.getUser().getId(), request(friend2.getId()));
+        friendTeamService.addFavorite(owner2.getUser().getId(), request(friend3.getId()));
+
+        var counts = friendTeamService.getFavoriteCountsByUser(season.getId());
+
+        assertThat(counts).hasSize(2);
+        assertThat(counts.get(owner1.getUser().getId())).isEqualTo(2L);
+        assertThat(counts.get(owner2.getUser().getId())).isEqualTo(1L);
+    }
+
+    @Test
+    void getFavoriteCountsByUser_emptySeason_returnsEmptyMap() {
+        assertThat(friendTeamService.getFavoriteCountsByUser(season.getId())).isEmpty();
+    }
+
     private AddFavoriteRequest request(Long friendManagerId) {
         AddFavoriteRequest request = new AddFavoriteRequest();
         request.setSeasonId(season.getId());

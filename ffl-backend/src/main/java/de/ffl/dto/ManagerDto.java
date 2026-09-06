@@ -43,6 +43,7 @@ public class ManagerDto {
     private Integer positionChange;
     private Integer teamChangeCount;
     private Integer einsatzquote;
+    private Integer visitCount;
     private String avatarUrl;
 
     public static ManagerDto fromEntity(Manager manager) {
@@ -57,6 +58,7 @@ public class ManagerDto {
             dto.setEmail(manager.getUser().getEmail());
             dto.setLogin(manager.getUser().getLogin());
             dto.setUserId(manager.getUser().getId());
+            dto.setVisitCount(manager.getUser().getVisitCount() != null ? manager.getUser().getVisitCount() : 0);
             if (manager.getUser().getAvatar() != null && manager.getUser().getAvatar().length > 0) {
                 dto.setAvatarUrl("/api/users/" + manager.getUser().getId() + "/avatar");
             }
@@ -216,6 +218,8 @@ public class ManagerDto {
     public void setTeamChangeCount(Integer teamChangeCount) { this.teamChangeCount = teamChangeCount; }
     public Integer getEinsatzquote() { return einsatzquote; }
     public void setEinsatzquote(Integer einsatzquote) { this.einsatzquote = einsatzquote; }
+    public Integer getVisitCount() { return visitCount; }
+    public void setVisitCount(Integer visitCount) { this.visitCount = visitCount; }
     public String getMailTheme() { return mailTheme; }
     public void setMailTheme(String mailTheme) { this.mailTheme = mailTheme; }
     public String getAvatarUrl() { return avatarUrl; }

@@ -57,60 +57,36 @@ function formatDate(iso: string): string {
   }
 }
 
-function openDocument(doc: Document, isAuthenticated: boolean) {
-  if (!isAuthenticated) {
-    window.open(docShareUrl(doc), '_blank')
-    return
-  }
-  documentApi.download(doc.id)
-    .then(res => {
-      const url = URL.createObjectURL(res.data)
-      const a = document.createElement('a')
-      a.href = url
-      a.target = '_blank'
-      a.rel = 'noopener'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      setTimeout(() => URL.revokeObjectURL(url), 30000)
-    })
-    .catch(() => {
-      window.open(docShareUrl(doc), '_blank')
-    })
-}
-
 function docShareUrl(doc: Document): string {
   return `${window.location.origin}/api/public/documents/${doc.shareToken}`
 }
 
-function downloadDocument(doc: Document) {
-  documentApi.download(doc.id)
-    .then(res => {
-      const url = URL.createObjectURL(res.data)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = doc.filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      setTimeout(() => URL.revokeObjectURL(url), 30000)
-    })
-    .catch(() => {
-      alert('Download fehlgeschlagen')
-    })
-}
+type DocRequestMode = 'open' | 'download'
 
-function DocumentCard({ doc, isAuthenticated }: { doc: Document; isAuthenticated: boolean }) {
+function DocumentCard({ doc, isAnyLoading, isLoadingThis, onRequest }: {
+  doc: Document
+  isAnyLoading: boolean
+  isLoadingThis: boolean
+  onRequest: (doc: Document, mode: DocRequestMode) => void
+}) {
   return (
     <div className="card p-4 bg-surface border border-border">
       <div className="flex gap-4 items-start">
         <div className="flex-1 min-w-0">
-          <button
-            onClick={() => openDocument(doc, isAuthenticated)}
-            className="font-semibold link truncate block w-full text-left"
-          >
-            {doc.filename}
-          </button>
+          {isLoadingThis ? (
+            <span className="inline-flex items-center gap-2 text-muted text-sm">
+              <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
+              Dokument wird geladen...
+            </span>
+          ) : (
+            <button
+              onClick={() => onRequest(doc, 'open')}
+              disabled={isAnyLoading}
+              className="font-semibold link truncate block w-full text-left disabled:cursor-not-allowed"
+            >
+              {doc.filename}
+            </button>
+          )}
           {doc.description && (
             <p className="text-sm text-muted mt-2 line-clamp-2">{doc.description}</p>
           )}
@@ -128,6 +104,7 @@ export default function Documents() {
   const [sortKey, setSortKey] = useState<SortKey>('uploadedAt')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
   const [copiedId, setCopiedId] = useState<number | null>(null)
+  const [loadingDocId, setLoadingDocId] = useState<number | null>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [editingDoc, setEditingDoc] = useState<Document | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -148,6 +125,39 @@ export default function Documents() {
       setSortKey(key)
       setSortOrder('asc')
     }
+  }
+
+  const handleDocRequest = (doc: Document, mode: DocRequestMode) => {
+    if (loadingDocId !== null) return
+    if (!isAuthenticated) {
+      window.open(docShareUrl(doc), '_blank')
+      return
+    }
+    setLoadingDocId(doc.id)
+    documentApi.download(doc.id)
+      .then(res => {
+        const url = URL.createObjectURL(res.data)
+        const a = document.createElement('a')
+        a.href = url
+        if (mode === 'download') {
+          a.download = doc.filename
+        } else {
+          a.target = '_blank'
+          a.rel = 'noopener'
+        }
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        setTimeout(() => URL.revokeObjectURL(url), 30000)
+      })
+      .catch(() => {
+        if (mode === 'open') {
+          window.open(docShareUrl(doc), '_blank')
+        } else {
+          alert('Download fehlgeschlagen')
+        }
+      })
+      .finally(() => setLoadingDocId(null))
   }
 
   const filteredDocs = useMemo(() => {
@@ -343,13 +353,21 @@ export default function Documents() {
                     filteredDocs.map((doc, index) => (
                       <tr key={doc.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                         <td className="px-3 py-2">
-                          <button
-                            onClick={() => openDocument(doc, isAuthenticated)}
-                            className="link font-medium inline-flex items-center gap-2"
-                          >
-                            <i className={`sap-icon ${contentTypeIcon(doc.contentType)} text-[16px] shrink-0`} />
-                            {doc.filename}
-                          </button>
+                          {loadingDocId === doc.id ? (
+                            <span className="inline-flex items-center gap-2 text-muted text-sm">
+                              <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
+                              Dokument wird geladen...
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleDocRequest(doc, 'open')}
+                              disabled={loadingDocId !== null}
+                              className="link font-medium inline-flex items-center gap-2 disabled:cursor-not-allowed"
+                            >
+                              <i className={`sap-icon ${contentTypeIcon(doc.contentType)} text-[16px] shrink-0`} />
+                              {doc.filename}
+                            </button>
+                          )}
                         </td>
                         <td className="px-3 py-2 text-muted">
                           {formatContentType(doc.contentType)}
@@ -377,11 +395,16 @@ export default function Documents() {
                               <i className={`sap-icon ${copiedId === doc.id ? 'sap-icon-status-completed' : 'sap-icon-chain-link'} text-[16px]`} />
                             </button>
                             <button
-                              onClick={() => downloadDocument(doc)}
-                              className="p-1.5 rounded-control text-muted hover:text-primary hover:bg-accent-muted transition-colors"
-                              title="Herunterladen"
+                              onClick={() => handleDocRequest(doc, 'download')}
+                              disabled={loadingDocId !== null}
+                              className="p-1.5 rounded-control text-muted hover:text-primary hover:bg-accent-muted transition-colors disabled:cursor-not-allowed"
+                              title={loadingDocId === doc.id ? 'Dokument wird geladen...' : 'Herunterladen'}
                             >
-                              <i className="sap-icon sap-icon-download text-[16px]" />
+                              {loadingDocId === doc.id ? (
+                                <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin block" />
+                              ) : (
+                                <i className="sap-icon sap-icon-download text-[16px]" />
+                              )}
                             </button>
                             {isAdmin && (
                               <>
@@ -424,7 +447,13 @@ export default function Documents() {
             <div className="grid gap-4">
               {filteredDocs.length > 0 ? (
                 filteredDocs.map((doc) => (
-                  <DocumentCard key={doc.id} doc={doc} isAuthenticated={isAuthenticated} />
+                  <DocumentCard
+                    key={doc.id}
+                    doc={doc}
+                    isAnyLoading={loadingDocId !== null}
+                    isLoadingThis={loadingDocId === doc.id}
+                    onRequest={handleDocRequest}
+                  />
                 ))
               ) : (
                 <div className="text-center text-subtle py-8">

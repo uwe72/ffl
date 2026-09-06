@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -56,23 +57,23 @@ class PublicDocumentControllerTest {
     void getPublicDocumentContent_knownToken_returnsOk() {
         when(documentService.findFileDataByShareToken("abc-123")).thenReturn(Optional.of(sampleEntity("abc-123")));
 
-        ResponseEntity<byte[]> response = controller().getPublicDocumentContent("abc-123");
+        ResponseEntity<byte[]> response = controller().getPublicDocumentContent("abc-123", new MockHttpServletRequest());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(4);
         assertThat(response.getHeaders().getContentType().toString()).isEqualTo("application/pdf");
         assertThat(response.getHeaders().getFirst("Content-Disposition")).contains("inline");
-        verify(downloadStatisticsService).recordDownload(isNull(), eq("regeln.pdf"));
+        verify(downloadStatisticsService).recordDownload(isNull(), eq("regeln.pdf"), eq("127.0.0.1"));
     }
 
     @Test
     void getPublicDocumentContent_unknownToken_returnsNotFound() {
         when(documentService.findFileDataByShareToken("unknown")).thenReturn(Optional.empty());
 
-        ResponseEntity<byte[]> response = controller().getPublicDocumentContent("unknown");
+        ResponseEntity<byte[]> response = controller().getPublicDocumentContent("unknown", new MockHttpServletRequest());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        verify(downloadStatisticsService, never()).recordDownload(isNull(), eq("regeln.pdf"));
+        verify(downloadStatisticsService, never()).recordDownload(isNull(), eq("regeln.pdf"), eq("127.0.0.1"));
     }
 
     @Test

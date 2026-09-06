@@ -9,9 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LoginStatUserDto {
-    private String login;
-    private String firstName;
-    private String lastName;
-    private long logins;
+public class VisitStatisticDto {
+    private java.util.List<VisitStatMonthDto> months;
 }

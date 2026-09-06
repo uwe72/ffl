@@ -7,6 +7,7 @@ import de.ffl.repository.UserRepository;
 import de.ffl.service.DocumentService;
 import de.ffl.service.DownloadStatisticsService;
 import de.ffl.service.SeasonService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -61,13 +62,14 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}/content")
-    public ResponseEntity<byte[]> getDocumentContent(@PathVariable Long id) {
+    public ResponseEntity<byte[]> getDocumentContent(@PathVariable Long id, HttpServletRequest request) {
         if (isDocumentsAccessDenied()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return documentService.findFileData(id)
             .map(doc -> {
-                downloadStatisticsService.recordDownload(getCurrentUser(), doc.getFilename());
+                downloadStatisticsService.recordDownload(getCurrentUser(), doc.getFilename(),
+                        resolveClientIp(request));
                 return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(doc.getContentType()))
                     .header(HttpHeaders.CONTENT_DISPOSITION,
@@ -132,6 +134,15 @@ public class DocumentController {
             return "unknown";
         }
         return auth.getName();
+    }
+
+    private String resolveClientIp(HttpServletRequest request) {
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) {
+            int comma = xff.indexOf(',');
+            return (comma > 0 ? xff.substring(0, comma) : xff).trim();
+        }
+        return request.getRemoteAddr();
     }
 
     private boolean isAnonymous() {

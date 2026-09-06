@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { authApi } from '../api/auth'
+import api from '../api/client'
 import { setMatomoUserId, resetMatomoUserId, setMatomoCustomDimension } from '../hooks/useMatomo'
 import type { LoginRequest, RegisterRequest, RegisterResponse, AuthContextType } from '../types'
 
@@ -8,6 +9,30 @@ const AuthContext = createContext<AuthContextType | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<{ id?: number; login: string; role: string; firstName?: string; lastName?: string; avatarUrl?: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const pingedThisSession = useRef(false)
+
+  const pingVisit = useCallback(() => {
+    if (!user || pingedThisSession.current) return
+    pingedThisSession.current = true
+    api.post('/visits').catch(() => {
+      pingedThisSession.current = false
+    })
+  }, [user])
+
+  useEffect(() => {
+    localStorage.removeItem('lastVisitPing')
+    pingVisit()
+  }, [pingVisit])
+
+  useEffect(() => {
+    const handler = () => pingVisit()
+    document.addEventListener('visibilitychange', handler)
+    window.addEventListener('focus', handler)
+    return () => {
+      document.removeEventListener('visibilitychange', handler)
+      window.removeEventListener('focus', handler)
+    }
+  }, [pingVisit])
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user')

@@ -1,6 +1,7 @@
 package de.ffl.repository;
 
 import de.ffl.domain.FriendTeam;
+import de.ffl.dto.UserIdCount;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,6 +21,10 @@ public interface FriendTeamRepository extends JpaRepository<FriendTeam, Long> {
     Optional<FriendTeam> findByOwnerUserIdAndSeasonIdAndStandardTrue(Long ownerUserId, Long seasonId);
 
     long countByOwnerUserIdAndSeasonId(Long ownerUserId, Long seasonId);
+
+    @Query("SELECT ft.ownerUser.id AS userId, COUNT(ft) AS count FROM FriendTeam ft " +
+           "WHERE ft.season.id = :seasonId GROUP BY ft.ownerUser.id")
+    List<UserIdCount> countBySeasonGroupedByOwner(@Param("seasonId") Long seasonId);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE FriendTeam ft SET ft.standard = false " +

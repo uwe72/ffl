@@ -10,4 +10,6 @@ export const favoritesApi = {
     api.delete(`/favorites/${friendManagerId}`, { params: { seasonId } }),
   setStandard: (seasonId: number, friendManagerId: number | null) =>
     api.put<FriendTeam | null>('/favorites/standard', { seasonId, friendManagerId }).then(r => r.data),
+  getCounts: (seasonId: number) =>
+    api.get<Record<string, number>>('/favorites/counts', { params: { seasonId } }).then(r => r.data),
 }

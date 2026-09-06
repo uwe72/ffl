@@ -129,28 +129,57 @@ class DownloadStatisticsServiceTest {
 
     @Test
     void recordDownload_savesLogWithUserAndDocumentName() {
+        when(downloadLogRepository.existsByClientIpAndDocumentNameAndAccessedAtGreaterThanEqual(
+            ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), any())).thenReturn(false);
         User user = User.builder().id(1L).login("alice").build();
 
-        downloadStatisticsService.recordDownload(user, "regeln.pdf");
+        downloadStatisticsService.recordDownload(user, "regeln.pdf", "1.2.3.4");
 
         org.mockito.Mockito.verify(downloadLogRepository).save(ArgumentMatchers.argThat(log ->
-            log.getUser() == user && "regeln.pdf".equals(log.getDocumentName()) && log.getAccessedAt() != null));
+            log.getUser() == user && "regeln.pdf".equals(log.getDocumentName())
+                && "1.2.3.4".equals(log.getClientIp()) && log.getAccessedAt() != null));
     }
 
     @Test
     void recordDownload_withNullUser_savesAnonymousLog() {
-        downloadStatisticsService.recordDownload(null, "regeln.pdf");
+        when(downloadLogRepository.existsByClientIpAndDocumentNameAndAccessedAtGreaterThanEqual(
+            ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), any())).thenReturn(false);
+
+        downloadStatisticsService.recordDownload(null, "regeln.pdf", "1.2.3.4");
 
         verify(downloadLogRepository).save(ArgumentMatchers.argThat(log ->
             log.getUser() == null && "regeln.pdf".equals(log.getDocumentName())));
     }
 
     @Test
+    void recordDownload_sameIpSameDocumentSameDay_skipsSave() {
+        when(downloadLogRepository.existsByClientIpAndDocumentNameAndAccessedAtGreaterThanEqual(
+            ArgumentMatchers.eq("1.2.3.4"), ArgumentMatchers.eq("regeln.pdf"), any())).thenReturn(true);
+
+        downloadStatisticsService.recordDownload(null, "regeln.pdf", "1.2.3.4");
+
+        verify(downloadLogRepository, org.mockito.Mockito.never()).save(any());
+    }
+
+    @Test
+    void recordDownload_blankIp_savesWithoutDedupeCheck() {
+        downloadStatisticsService.recordDownload(null, "regeln.pdf", null);
+
+        verify(downloadLogRepository, org.mockito.Mockito.never())
+            .existsByClientIpAndDocumentNameAndAccessedAtGreaterThanEqual(
+                ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), any());
+        verify(downloadLogRepository).save(ArgumentMatchers.argThat(log ->
+            log.getClientIp() == null && "regeln.pdf".equals(log.getDocumentName())));
+    }
+
+    @Test
     void recordDownload_onRepositoryFailure_doesNotThrow() {
+        when(downloadLogRepository.existsByClientIpAndDocumentNameAndAccessedAtGreaterThanEqual(
+            ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), any())).thenReturn(false);
         when(downloadLogRepository.save(any())).thenThrow(new RuntimeException("db down"));
 
         assertThatCode(() ->
-            downloadStatisticsService.recordDownload(null, "regeln.pdf")
+            downloadStatisticsService.recordDownload(null, "regeln.pdf", "1.2.3.4")
         ).doesNotThrowAnyException();
     }
 }

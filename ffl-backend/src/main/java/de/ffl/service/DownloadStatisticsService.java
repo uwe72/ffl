@@ -13,8 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -28,6 +30,8 @@ public class DownloadStatisticsService {
 
     public static final String ANONYMOUS_LOGIN = "Anonym";
 
+    private static final ZoneId ZONE_EUROPE_BERLIN = ZoneId.of("Europe/Berlin");
+
     private final DownloadLogRepository downloadLogRepository;
 
     public DownloadStatisticsService(DownloadLogRepository downloadLogRepository) {
@@ -35,11 +39,19 @@ public class DownloadStatisticsService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void recordDownload(User user, String documentName) {
+    public void recordDownload(User user, String documentName, String clientIp) {
         try {
+            if (clientIp != null && !clientIp.isBlank()
+                    && downloadLogRepository.existsByClientIpAndDocumentNameAndAccessedAtGreaterThanEqual(
+                        clientIp, documentName, LocalDate.now(ZONE_EUROPE_BERLIN).atStartOfDay())) {
+                log.debug("Download bereits fuer IP={} und dokument={} heute erfasst, kein neuer Eintrag",
+                    clientIp, documentName);
+                return;
+            }
             downloadLogRepository.save(DownloadLog.builder()
                 .user(user)
                 .documentName(documentName)
+                .clientIp(clientIp)
                 .accessedAt(LocalDateTime.now())
                 .build());
         } catch (Exception e) {

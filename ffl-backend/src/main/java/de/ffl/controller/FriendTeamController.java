@@ -1,5 +1,7 @@
 package de.ffl.controller;
 
+import de.ffl.domain.User;
+import de.ffl.domain.UserRole;
 import de.ffl.dto.AddFavoriteRequest;
 import de.ffl.dto.FriendTeamDto;
 import de.ffl.dto.SetStandardRequest;
@@ -14,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/favorites")
@@ -29,16 +32,32 @@ public class FriendTeamController {
         this.userRepository = userRepository;
     }
 
-    private Long resolveUserId() {
+    private User resolveUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             log.warn("favorites: not authenticated");
             return null;
         }
         String login = auth.getName();
-        return userRepository.findByLogin(login)
-            .map(u -> u.getId())
-            .orElse(null);
+        return userRepository.findByLogin(login).orElse(null);
+    }
+
+    private Long resolveUserId() {
+        User user = resolveUser();
+        return user != null ? user.getId() : null;
+    }
+
+    @GetMapping("/counts")
+    public ResponseEntity<?> getFavoriteCounts(@RequestParam Long seasonId) {
+        User user = resolveUser();
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        if (user.getRole() != UserRole.ADMIN) {
+            return ResponseEntity.status(403).build();
+        }
+        Map<Long, Long> counts = friendTeamService.getFavoriteCountsByUser(seasonId);
+        return ResponseEntity.ok(counts);
     }
 
     @GetMapping("/season/{seasonId}")

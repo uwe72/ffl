@@ -37,6 +37,10 @@ public class User {
     @Builder.Default
     private UserRole role = UserRole.NORMAL;
 
+    @Column(name = "visit_count")
+    @Builder.Default
+    private Integer visitCount = 0;
+
     @Column(columnDefinition = "bytea")
     private byte[] avatar;
 
