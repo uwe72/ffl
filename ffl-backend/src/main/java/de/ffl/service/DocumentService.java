@@ -19,13 +19,14 @@ import java.util.stream.Collectors;
 @Service
 public class DocumentService {
 
-    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
+    public static final long MAX_FILE_SIZE = 100L * 1024 * 1024;
     private static final int MAX_DESCRIPTION_LENGTH = 80;
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
         "application/pdf",
         "text/plain",
         "image/png",
-        "image/jpeg"
+        "image/jpeg",
+        "video/mp4"
     );
 
     private final DocumentRepository documentRepository;
@@ -73,10 +74,10 @@ public class DocumentService {
     public DocumentDto upload(MultipartFile file, String uploaderLogin, String description) throws IOException {
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            throw new IllegalArgumentException("Nur PDF, TXT, PNG und JPG Dateien sind erlaubt");
+            throw new IllegalArgumentException("Nur PDF, TXT, PNG, JPG und MP4 Dateien sind erlaubt");
         }
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("Datei darf maximal 10 MB groß sein");
+            throw new IllegalArgumentException("Datei darf maximal 100 MB groß sein");
         }
         String filename = file.getOriginalFilename();
         if (filename == null || filename.isBlank()) {
@@ -101,10 +102,10 @@ public class DocumentService {
     @Transactional
     public DocumentDto storeGenerated(byte[] data, String filename, String contentType, String uploaderLogin) {
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            throw new IllegalArgumentException("Nur PDF, TXT, PNG und JPG Dateien sind erlaubt");
+            throw new IllegalArgumentException("Nur PDF, TXT, PNG, JPG und MP4 Dateien sind erlaubt");
         }
         if (data.length > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("Datei darf maximal 10 MB groß sein");
+            throw new IllegalArgumentException("Datei darf maximal 100 MB groß sein");
         }
         if (filename == null || filename.isBlank()) {
             throw new IllegalArgumentException("Dateiname darf nicht leer sein");

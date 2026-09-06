@@ -11,11 +11,14 @@ import SortIcon from '../components/SortIcon'
 import DocumentDescriptionDialog from '../components/DocumentDescriptionDialog'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
+import { getApiErrorMessage } from '../utils/apiError'
 
 type SortKey = 'filename' | 'contentType' | 'fileSize' | 'uploadedAt' | 'description'
 type SortOrder = 'asc' | 'desc'
 
-const ACCEPTED_TYPES = '.pdf,.txt,.png,.jpg,.jpeg,application/pdf,text/plain,image/png,image/jpeg'
+const ACCEPTED_TYPES = '.pdf,.txt,.png,.jpg,.jpeg,.mp4,application/pdf,text/plain,image/png,image/jpeg,video/mp4'
+const MAX_FILE_SIZE_MB = 100
+const ALLOWED_EXTENSIONS = ['pdf', 'txt', 'png', 'jpg', 'jpeg', 'mp4']
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -29,6 +32,7 @@ function formatContentType(ct: string): string {
     case 'text/plain': return 'TXT'
     case 'image/png': return 'PNG'
     case 'image/jpeg': return 'JPG'
+    case 'video/mp4': return 'MP4'
     default: return ct
   }
 }
@@ -39,6 +43,7 @@ function contentTypeIcon(ct: string): string {
     case 'text/plain': return 'sap-icon-document-text'
     case 'image/png':
     case 'image/jpeg': return 'sap-icon-attachment-photo'
+    case 'video/mp4': return 'sap-icon-video'
     default: return 'sap-icon-document'
   }
 }
@@ -162,9 +167,18 @@ export default function Documents() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
-    setPendingFile(file)
     if (fileInputRef.current) fileInputRef.current.value = ''
+    if (!file) return
+    const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
+    if (!ALLOWED_EXTENSIONS.includes(extension)) {
+      alert('Nur PDF, TXT, PNG, JPG und MP4 Dateien sind erlaubt')
+      return
+    }
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      alert('Datei darf maximal 100 MB groß sein')
+      return
+    }
+    setPendingFile(file)
   }
 
   const handleUploadConfirm = async (description: string) => {
@@ -174,7 +188,7 @@ export default function Documents() {
       setPendingFile(null)
     } catch (err) {
       console.error('Upload failed:', err)
-      alert('Upload fehlgeschlagen: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'))
+      alert('Upload fehlgeschlagen: ' + getApiErrorMessage(err, 'Unbekannter Fehler'))
     }
   }
 
@@ -184,7 +198,7 @@ export default function Documents() {
       await updateDescriptionMutation.mutateAsync({ id: editingDoc.id, description })
       setEditingDoc(null)
     } catch (err) {
-      alert('Speichern fehlgeschlagen: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'))
+      alert('Speichern fehlgeschlagen: ' + getApiErrorMessage(err, 'Unbekannter Fehler'))
     }
   }
 
@@ -205,7 +219,7 @@ export default function Documents() {
       try {
         await deleteMutation.mutateAsync(id)
       } catch (err) {
-        alert('Löschen fehlgeschlagen: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'))
+        alert('Löschen fehlgeschlagen: ' + getApiErrorMessage(err, 'Unbekannter Fehler'))
       }
     }
   }
