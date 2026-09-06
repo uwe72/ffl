@@ -227,7 +227,7 @@ function PlayerMobileTable({ players, isBeforeSeason, title }: {
   )
 }
 
-function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter, fixedPosition, aktivFilter, setAktivFilter, searchTerm, setSearchTerm, searchInputRef, compact, onCompactChange, hideSearch, hideTeamFilter, hidePriceFilter }: {
+function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelectedPositions, selectedTeamId, setSelectedTeamId, teams, priceMin, setPriceMin, priceMax, setPriceMax, hasFilter, fixedPosition, aktivFilter, setAktivFilter, searchTerm, setSearchTerm, searchInputRef, compact, compactActive, onCompactChange, hideSearch, hideTeamFilter, hidePriceFilter }: {
   variant?: 'bar' | 'card'
   count?: number
   selectedPositions: Set<string>
@@ -247,6 +247,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
   setSearchTerm: (s: string) => void
   searchInputRef: React.RefObject<HTMLInputElement | null>
   compact: boolean
+  compactActive: boolean
   onCompactChange: (v: boolean) => void
   hideSearch?: boolean
   hideTeamFilter?: boolean
@@ -423,7 +424,21 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
       </select>
       )}
 
-      {!hidePriceFilter && (
+      {!hideSearch && (
+      <div className="relative flex-1 min-w-0 md:w-56">
+        <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
+        <input
+          ref={searchInputRef}
+          type="text"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          placeholder="Spieler suchen..."
+          className="input-field control pl-8 pr-3 py-1.5 text-xs text-left w-full"
+        />
+      </div>
+      )}
+
+      {!hidePriceFilter && !compactActive && (
       <div className="flex items-center gap-1.5 w-full md:w-auto">
         <input
           type="text"
@@ -445,20 +460,6 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
           onChange={e => setPriceMax(e.target.value.replace(/[^\d]/g, ''))}
           placeholder="Max €"
           className="input-field control flex-1 min-w-0 md:w-40 px-2 py-1.5 text-xs"
-        />
-      </div>
-      )}
-
-      {!hideSearch && (
-      <div className="relative flex-1 min-w-0 md:w-56">
-        <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
-        <input
-          ref={searchInputRef}
-          type="text"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          placeholder="Spieler suchen..."
-          className="input-field control pl-8 pr-3 py-1.5 text-xs text-left w-full"
         />
       </div>
       )}
@@ -665,26 +666,11 @@ export default function PlayerTable({
         {!hideFilters && (
         <h2 className="hidden md:block text-xl font-semibold text-foreground">Spieler ({filteredPlayers.length})</h2>
         )}
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          {enableCompact && !isMobile && !hideSearch && (
-            <div className="relative flex-1 min-w-0 md:w-56">
-              <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Spieler suchen..."
-                className="input-field control pl-8 pr-3 py-2 text-sm text-left w-full"
-              />
-            </div>
-          )}
-          {enableExport && !isMobile && !compactActive && (
-            <Button onClick={exportToExcel} size="input">
-              Excel Export
-            </Button>
-          )}
-        </div>
+        {enableExport && !compactActive && (
+          <Button onClick={exportToExcel} size="input">
+            Excel Export
+          </Button>
+        )}
       </div>
       )}
 
@@ -710,8 +696,9 @@ export default function PlayerTable({
         setSearchTerm={setSearchTerm}
         searchInputRef={searchInputRef}
         compact={compact}
+        compactActive={compactActive}
         onCompactChange={handleSetCompact}
-        hideSearch={enableCompact || hideSearch}
+        hideSearch={hideSearch}
         hideTeamFilter={hideTeamFilter}
         hidePriceFilter={hidePriceFilter}
       />
