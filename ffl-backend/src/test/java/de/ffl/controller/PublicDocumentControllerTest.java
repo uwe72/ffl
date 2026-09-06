@@ -1,7 +1,6 @@
 package de.ffl.controller;
 
 import de.ffl.domain.Document;
-import de.ffl.service.DocumentDownloadTrackingService;
 import de.ffl.service.DocumentService;
 import de.ffl.service.DownloadStatisticsService;
 import org.junit.jupiter.api.Test;
@@ -10,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -37,11 +35,8 @@ class PublicDocumentControllerTest {
     @Mock
     private DownloadStatisticsService downloadStatisticsService;
 
-    @Mock
-    private DocumentDownloadTrackingService documentDownloadTrackingService;
-
     private PublicDocumentController controller() {
-        return new PublicDocumentController(documentService, downloadStatisticsService, documentDownloadTrackingService);
+        return new PublicDocumentController(documentService, downloadStatisticsService);
     }
 
     private Document sampleEntity(String token) {
@@ -61,7 +56,7 @@ class PublicDocumentControllerTest {
     void getPublicDocumentContent_knownToken_returnsOk() {
         when(documentService.findFileDataByShareToken("abc-123")).thenReturn(Optional.of(sampleEntity("abc-123")));
 
-        ResponseEntity<byte[]> response = controller().getPublicDocumentContent("abc-123", new MockHttpServletRequest());
+        ResponseEntity<byte[]> response = controller().getPublicDocumentContent("abc-123");
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(4);
@@ -74,7 +69,7 @@ class PublicDocumentControllerTest {
     void getPublicDocumentContent_unknownToken_returnsNotFound() {
         when(documentService.findFileDataByShareToken("unknown")).thenReturn(Optional.empty());
 
-        ResponseEntity<byte[]> response = controller().getPublicDocumentContent("unknown", new MockHttpServletRequest());
+        ResponseEntity<byte[]> response = controller().getPublicDocumentContent("unknown");
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         verify(downloadStatisticsService, never()).recordDownload(isNull(), eq("regeln.pdf"));

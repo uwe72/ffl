@@ -4,11 +4,9 @@ import de.ffl.domain.SeasonState;
 import de.ffl.domain.User;
 import de.ffl.dto.DocumentDto;
 import de.ffl.repository.UserRepository;
-import de.ffl.service.DocumentDownloadTrackingService;
 import de.ffl.service.DocumentService;
 import de.ffl.service.DownloadStatisticsService;
 import de.ffl.service.SeasonService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,16 +31,13 @@ public class DocumentController {
     private final SeasonService seasonService;
     private final UserRepository userRepository;
     private final DownloadStatisticsService downloadStatisticsService;
-    private final DocumentDownloadTrackingService documentDownloadTrackingService;
 
     public DocumentController(DocumentService documentService, SeasonService seasonService,
-                              UserRepository userRepository, DownloadStatisticsService downloadStatisticsService,
-                              DocumentDownloadTrackingService documentDownloadTrackingService) {
+                              UserRepository userRepository, DownloadStatisticsService downloadStatisticsService) {
         this.documentService = documentService;
         this.seasonService = seasonService;
         this.userRepository = userRepository;
         this.downloadStatisticsService = downloadStatisticsService;
-        this.documentDownloadTrackingService = documentDownloadTrackingService;
     }
 
     @GetMapping
@@ -66,15 +61,13 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}/content")
-    public ResponseEntity<byte[]> getDocumentContent(@PathVariable Long id, HttpServletRequest request) {
+    public ResponseEntity<byte[]> getDocumentContent(@PathVariable Long id) {
         if (isDocumentsAccessDenied()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return documentService.findFileData(id)
             .map(doc -> {
                 downloadStatisticsService.recordDownload(getCurrentUser(), doc.getFilename());
-                documentDownloadTrackingService.track(getCurrentUser(), getCurrentLogin(), doc.getFilename(),
-                        resolveClientIp(request), request.getHeader("User-Agent"));
                 return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(doc.getContentType()))
                     .header(HttpHeaders.CONTENT_DISPOSITION,
@@ -139,15 +132,6 @@ public class DocumentController {
             return "unknown";
         }
         return auth.getName();
-    }
-
-    private String resolveClientIp(HttpServletRequest request) {
-        String xff = request.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isBlank()) {
-            int comma = xff.indexOf(',');
-            return (comma > 0 ? xff.substring(0, comma) : xff).trim();
-        }
-        return request.getRemoteAddr();
     }
 
     private boolean isAnonymous() {
