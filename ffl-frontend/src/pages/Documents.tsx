@@ -57,8 +57,26 @@ function formatDate(iso: string): string {
   }
 }
 
-function openDocument(doc: Document) {
-  window.open(docShareUrl(doc), '_blank')
+function openDocument(doc: Document, isAuthenticated: boolean) {
+  if (!isAuthenticated) {
+    window.open(docShareUrl(doc), '_blank')
+    return
+  }
+  documentApi.download(doc.id)
+    .then(res => {
+      const url = URL.createObjectURL(res.data)
+      const a = document.createElement('a')
+      a.href = url
+      a.target = '_blank'
+      a.rel = 'noopener'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 30000)
+    })
+    .catch(() => {
+      window.open(docShareUrl(doc), '_blank')
+    })
 }
 
 function docShareUrl(doc: Document): string {
@@ -82,13 +100,13 @@ function downloadDocument(doc: Document) {
     })
 }
 
-function DocumentCard({ doc }: { doc: Document }) {
+function DocumentCard({ doc, isAuthenticated }: { doc: Document; isAuthenticated: boolean }) {
   return (
     <div className="card p-4 bg-surface border border-border">
       <div className="flex gap-4 items-start">
         <div className="flex-1 min-w-0">
           <button
-            onClick={() => openDocument(doc)}
+            onClick={() => openDocument(doc, isAuthenticated)}
             className="font-semibold link truncate block w-full text-left"
           >
             {doc.filename}
@@ -326,7 +344,7 @@ export default function Documents() {
                       <tr key={doc.id} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                         <td className="px-3 py-2">
                           <button
-                            onClick={() => openDocument(doc)}
+                            onClick={() => openDocument(doc, isAuthenticated)}
                             className="link font-medium inline-flex items-center gap-2"
                           >
                             <i className={`sap-icon ${contentTypeIcon(doc.contentType)} text-[16px] shrink-0`} />
@@ -406,7 +424,7 @@ export default function Documents() {
             <div className="grid gap-4">
               {filteredDocs.length > 0 ? (
                 filteredDocs.map((doc) => (
-                  <DocumentCard key={doc.id} doc={doc} />
+                  <DocumentCard key={doc.id} doc={doc} isAuthenticated={isAuthenticated} />
                 ))
               ) : (
                 <div className="text-center text-subtle py-8">

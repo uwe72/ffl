@@ -1,6 +1,9 @@
 package de.ffl.controller;
 
+import de.ffl.service.DocumentDownloadTrackingService;
 import de.ffl.service.DocumentService;
+import de.ffl.service.DownloadStatisticsService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,20 +20,39 @@ import java.nio.charset.StandardCharsets;
 public class PublicDocumentController {
 
     private final DocumentService documentService;
+    private final DownloadStatisticsService downloadStatisticsService;
+    private final DocumentDownloadTrackingService documentDownloadTrackingService;
 
-    public PublicDocumentController(DocumentService documentService) {
+    public PublicDocumentController(DocumentService documentService, DownloadStatisticsService downloadStatisticsService,
+                                    DocumentDownloadTrackingService documentDownloadTrackingService) {
         this.documentService = documentService;
+        this.downloadStatisticsService = downloadStatisticsService;
+        this.documentDownloadTrackingService = documentDownloadTrackingService;
     }
 
     @GetMapping("/documents/{token}")
-    public ResponseEntity<byte[]> getPublicDocumentContent(@PathVariable String token) {
+    public ResponseEntity<byte[]> getPublicDocumentContent(@PathVariable String token, HttpServletRequest request) {
         return documentService.findFileDataByShareToken(token)
-            .map(doc -> ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(doc.getContentType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                    "inline; filename=\"" + URLEncoder.encode(doc.getFilename(), StandardCharsets.UTF_8) + "\"")
-                .header(HttpHeaders.CACHE_CONTROL, "no-cache")
-                .body(doc.getData()))
+            .map(doc -> {
+                downloadStatisticsService.recordDownload(null, doc.getFilename());
+                documentDownloadTrackingService.track(null, null, doc.getFilename(),
+                        resolveClientIp(request), request.getHeader("User-Agent"));
+                return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(doc.getContentType()))
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + URLEncoder.encode(doc.getFilename(), StandardCharsets.UTF_8) + "\"")
+                    .header(HttpHeaders.CACHE_CONTROL, "no-cache")
+                    .body(doc.getData());
+            })
             .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private String resolveClientIp(HttpServletRequest request) {
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) {
+            int comma = xff.indexOf(',');
+            return (comma > 0 ? xff.substring(0, comma) : xff).trim();
+        }
+        return request.getRemoteAddr();
     }
 }

@@ -3,8 +3,12 @@ package de.ffl.controller;
 import de.ffl.domain.Document;
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
+import de.ffl.domain.User;
 import de.ffl.dto.DocumentDto;
+import de.ffl.repository.UserRepository;
+import de.ffl.service.DocumentDownloadTrackingService;
 import de.ffl.service.DocumentService;
+import de.ffl.service.DownloadStatisticsService;
 import de.ffl.service.SeasonService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,7 +31,11 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,6 +46,15 @@ class DocumentControllerTest {
 
     @Mock
     private SeasonService seasonService;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private DownloadStatisticsService downloadStatisticsService;
+
+    @Mock
+    private DocumentDownloadTrackingService documentDownloadTrackingService;
 
     @InjectMocks
     private DocumentController documentController;
@@ -135,10 +153,35 @@ class DocumentControllerTest {
         mockSeasonState(SeasonState.BEFORE_SEASON);
         when(documentService.findFileData(1L)).thenReturn(Optional.of(sampleEntity()));
 
-        ResponseEntity<byte[]> response = documentController.getDocumentContent(1L);
+        ResponseEntity<byte[]> response = documentController.getDocumentContent(1L, new MockHttpServletRequest());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(4);
+        verify(downloadStatisticsService).recordDownload(isNull(), eq("regeln.pdf"));
+    }
+
+    @Test
+    void getDocumentContent_authenticated_runningSeason_recordsDownloadWithUser() {
+        setAuthenticated();
+        when(documentService.findFileData(1L)).thenReturn(Optional.of(sampleEntity()));
+        User user = User.builder().id(7L).login("user").build();
+        when(userRepository.findByLoginIgnoreCase("user")).thenReturn(Optional.of(user));
+
+        ResponseEntity<byte[]> response = documentController.getDocumentContent(1L, new MockHttpServletRequest());
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(downloadStatisticsService).recordDownload(eq(user), eq("regeln.pdf"));
+    }
+
+    @Test
+    void getDocumentContent_unknownDocument_doesNotRecordDownload() {
+        setAuthenticated();
+        when(documentService.findFileData(999L)).thenReturn(Optional.empty());
+
+        ResponseEntity<byte[]> response = documentController.getDocumentContent(999L, new MockHttpServletRequest());
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        verify(downloadStatisticsService, never()).recordDownload(isNull(), eq("regeln.pdf"));
     }
 
     @Test
@@ -146,7 +189,7 @@ class DocumentControllerTest {
         setAnonymous();
         mockSeasonState(SeasonState.RUNNING_RUECKRUNDE);
 
-        ResponseEntity<byte[]> response = documentController.getDocumentContent(1L);
+        ResponseEntity<byte[]> response = documentController.getDocumentContent(1L, new MockHttpServletRequest());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }

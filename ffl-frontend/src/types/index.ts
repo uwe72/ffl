@@ -577,6 +577,30 @@ export interface InstallStatistics {
   months: InstallStatMonth[]
 }
 
+export interface DownloadStatUser {
+  login: string
+  firstName?: string
+  lastName?: string
+  downloads: number
+}
+
+export interface DownloadStatDocument {
+  documentName: string
+  downloads: number
+}
+
+export interface DownloadStatMonth {
+  year: number
+  month: number
+  totalDownloads: number
+  users: DownloadStatUser[]
+  documents: DownloadStatDocument[]
+}
+
+export interface DownloadStatistics {
+  months: DownloadStatMonth[]
+}
+
 export interface Game {
   id: number
   name: string

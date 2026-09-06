@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useLoginStats } from '../hooks/useLoginStats'
 import { useInstallStats } from '../hooks/useInstallStats'
-import type { LoginStatMonth, InstallStatMonth } from '../types'
+import { useDownloadStats } from '../hooks/useDownloadStats'
+import type { LoginStatMonth, InstallStatMonth, DownloadStatMonth } from '../types'
 import BackButton from '../components/BackButton'
 import CardContainer from '../components/CardContainer'
 import Tabs from '../components/Tabs'
@@ -29,6 +30,7 @@ function monthLabel(year: number, month: number): string {
 
 type SortKey = 'month' | 'count'
 type SubSortKey = 'login' | 'count'
+type DocSubSortKey = 'document' | 'count'
 
 interface StatUser {
   login: string
@@ -37,11 +39,17 @@ interface StatUser {
   count: number
 }
 
+interface StatDocument {
+  name: string
+  count: number
+}
+
 interface StatMonth {
   year: number
   month: number
   total: number
   users: StatUser[]
+  documents?: StatDocument[]
 }
 
 type UseStats<T> = (from: string, to: string) => {
@@ -70,7 +78,7 @@ interface MonthlyStatPanelProps<T> {
 }
 
 export default function Statistik() {
-  const [activeTab, setActiveTab] = useState<'logins' | 'install'>('logins')
+  const [activeTab, setActiveTab] = useState<'logins' | 'install' | 'downloads'>('logins')
 
   return (
     <div>
@@ -79,12 +87,14 @@ export default function Statistik() {
         items={[
           { key: 'logins', label: 'Einloggen' },
           { key: 'install', label: 'Installieren' },
+          { key: 'downloads', label: 'Downloads' },
         ]}
         active={activeTab}
-        onChange={(key) => setActiveTab(key as 'logins' | 'install')}
+        onChange={(key) => setActiveTab(key as 'logins' | 'install' | 'downloads')}
       />
       {activeTab === 'logins' && <LoginStatsPanel />}
       {activeTab === 'install' && <InstallStatsPanel />}
+      {activeTab === 'downloads' && <DownloadStatsPanel />}
       <div className="h-10" />
     </div>
   )
@@ -132,12 +142,35 @@ function InstallStatsPanel() {
   )
 }
 
+function DownloadStatsPanel() {
+  return (
+    <MonthlyStatPanel
+      useStats={useDownloadStats}
+      toStatMonths={(months: DownloadStatMonth[]) =>
+        months.map(m => ({
+          year: m.year,
+          month: m.month,
+          total: m.totalDownloads,
+          users: m.users.map(({ downloads, ...rest }) => ({ ...rest, count: downloads })),
+          documents: m.documents.map(({ documentName, downloads }) => ({ name: documentName, count: downloads })),
+        }))
+      }
+      title="Download-Statistik"
+      subtitle="Anzahl Dokument-Abrufe pro Monat (inkl. geteilter Links)"
+      countLabel="Downloads"
+      tooltipLabel="Downloads"
+      emptyText="Keine Downloads in diesem Monat"
+    />
+  )
+}
+
 function MonthlyStatPanel<T>({ useStats, toStatMonths, title, subtitle, countLabel, tooltipLabel, emptyText }: MonthlyStatPanelProps<T>) {
   const [rangeMonths, setRangeMonths] = useState(12)
   const [sortKey, setSortKey] = useState<SortKey>('month')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [subSort, setSubSort] = useState<Record<string, { key: SubSortKey; order: 'asc' | 'desc' }>>({})
+  const [docSubSort, setDocSubSort] = useState<Record<string, { key: DocSubSortKey; order: 'asc' | 'desc' }>>({})
 
   const now = new Date()
   const from = formatDate(new Date(now.getFullYear(), now.getMonth() - (rangeMonths - 1), 1))
@@ -197,6 +230,16 @@ function MonthlyStatPanel<T>({ useStats, toStatMonths, title, subtitle, countLab
     })
   }
 
+  const handleDocSubSort = (key: string, col: DocSubSortKey) => {
+    setDocSubSort(prev => {
+      const current = prev[key] ?? { key: 'count' as DocSubSortKey, order: 'desc' as const }
+      const next = current.key === col
+        ? { key: col, order: current.order === 'asc' ? 'desc' as const : 'asc' as const }
+        : { key: col, order: 'asc' as const }
+      return { ...prev, [key]: next }
+    })
+  }
+
   const sortedUsers = (month: StatMonth): StatUser[] => {
     const sort = subSort[monthKey(month.year, month.month)] ?? { key: 'count' as SubSortKey, order: 'desc' as const }
     const arr = [...month.users]
@@ -208,6 +251,21 @@ function MonthlyStatPanel<T>({ useStats, toStatMonths, title, subtitle, countLab
       const countCmp = a.count - b.count
       if (countCmp !== 0) return sort.order === 'asc' ? countCmp : -countCmp
       return alphanumericCompare(userLabel(a), userLabel(b))
+    })
+    return arr
+  }
+
+  const sortedDocuments = (month: StatMonth): StatDocument[] => {
+    const sort = docSubSort[monthKey(month.year, month.month)] ?? { key: 'count' as DocSubSortKey, order: 'desc' as const }
+    const arr = [...(month.documents ?? [])]
+    arr.sort((a, b) => {
+      if (sort.key === 'document') {
+        const cmp = alphanumericCompare(a.name, b.name)
+        return sort.order === 'asc' ? cmp : -cmp
+      }
+      const countCmp = a.count - b.count
+      if (countCmp !== 0) return sort.order === 'asc' ? countCmp : -countCmp
+      return alphanumericCompare(a.name, b.name)
     })
     return arr
   }
@@ -292,6 +350,9 @@ function MonthlyStatPanel<T>({ useStats, toStatMonths, title, subtitle, countLab
                     subSort={subSort[key]}
                     onSubSort={(col) => handleSubSort(key, col)}
                     sortedUsers={sortedUsers(month)}
+                    docSubSort={docSubSort[key]}
+                    onDocSubSort={(col) => handleDocSubSort(key, col)}
+                    sortedDocuments={sortedDocuments(month)}
                     countLabel={countLabel}
                     emptyText={emptyText}
                   />
@@ -318,12 +379,17 @@ interface MonthRowsProps {
   subSort?: { key: SubSortKey; order: 'asc' | 'desc' }
   onSubSort: (col: SubSortKey) => void
   sortedUsers: StatUser[]
+  docSubSort?: { key: DocSubSortKey; order: 'asc' | 'desc' }
+  onDocSubSort: (col: DocSubSortKey) => void
+  sortedDocuments: StatDocument[]
   countLabel: string
   emptyText: string
 }
 
-function MonthRows({ month, isExpanded, onToggle, subSort, onSubSort, sortedUsers, countLabel, emptyText }: MonthRowsProps) {
+function MonthRows({ month, isExpanded, onToggle, subSort, onSubSort, sortedUsers, docSubSort, onDocSubSort, sortedDocuments, countLabel, emptyText }: MonthRowsProps) {
   const activeSubSort = subSort ?? { key: 'count' as SubSortKey, order: 'desc' as const }
+  const activeDocSubSort = docSubSort ?? { key: 'count' as DocSubSortKey, order: 'desc' as const }
+  const hasDocuments = sortedDocuments.length > 0
   return (
     <>
       <tr
@@ -372,6 +438,34 @@ function MonthRows({ month, isExpanded, onToggle, subSort, onSubSort, sortedUser
               </table>
             ) : (
               <p className="text-sm text-subtle py-2">{emptyText}</p>
+            )}
+            {hasDocuments && (
+              <table className="w-full max-w-md mt-4">
+                <thead>
+                  <tr className="text-[12px] font-semibold uppercase tracking-wide text-muted">
+                    <th
+                      className="px-2 py-2 h-[40px] text-left cursor-pointer hover:text-accent select-none md:px-3"
+                      onClick={() => onDocSubSort('document')}
+                    >
+                      Dokument<SortIcon column="document" activeKey={activeDocSubSort.key} order={activeDocSubSort.order} />
+                    </th>
+                    <th
+                      className="px-2 py-2 h-[40px] text-right cursor-pointer hover:text-accent select-none tabular-nums md:px-3"
+                      onClick={() => onDocSubSort('count')}
+                    >
+                      {countLabel}<SortIcon column="count" activeKey={activeDocSubSort.key} order={activeDocSubSort.order} />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="text-[13px]">
+                  {sortedDocuments.map(doc => (
+                    <tr key={doc.name} className="border-t border-border">
+                      <Td className="pl-3 break-all">{doc.name}</Td>
+                      <Td numeric>{doc.count}</Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </td>
         </tr>

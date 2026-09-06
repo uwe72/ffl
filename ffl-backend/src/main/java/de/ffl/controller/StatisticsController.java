@@ -1,7 +1,9 @@
 package de.ffl.controller;
 
+import de.ffl.dto.DownloadStatisticDto;
 import de.ffl.dto.InstallStatisticDto;
 import de.ffl.dto.LoginStatisticDto;
+import de.ffl.service.DownloadStatisticsService;
 import de.ffl.service.InstallStatisticsService;
 import de.ffl.service.LoginStatisticsService;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -17,11 +19,14 @@ public class StatisticsController {
 
     private final LoginStatisticsService loginStatisticsService;
     private final InstallStatisticsService installStatisticsService;
+    private final DownloadStatisticsService downloadStatisticsService;
 
     public StatisticsController(LoginStatisticsService loginStatisticsService,
-                                InstallStatisticsService installStatisticsService) {
+                                InstallStatisticsService installStatisticsService,
+                                DownloadStatisticsService downloadStatisticsService) {
         this.loginStatisticsService = loginStatisticsService;
         this.installStatisticsService = installStatisticsService;
+        this.downloadStatisticsService = downloadStatisticsService;
     }
 
     @GetMapping("/logins")
@@ -44,5 +49,16 @@ public class StatisticsController {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok(installStatisticsService.getStatistics(from.atStartOfDay(), to.atStartOfDay()));
+    }
+
+    @GetMapping("/downloads")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DownloadStatisticDto> getDownloadStatistics(
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        if (!to.isAfter(from)) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(downloadStatisticsService.getStatistics(from.atStartOfDay(), to.atStartOfDay()));
     }
 }

@@ -1,9 +1,12 @@
 package de.ffl.controller;
 
+import de.ffl.dto.DownloadStatMonthDto;
+import de.ffl.dto.DownloadStatisticDto;
 import de.ffl.dto.InstallStatMonthDto;
 import de.ffl.dto.InstallStatisticDto;
 import de.ffl.dto.LoginStatMonthDto;
 import de.ffl.dto.LoginStatisticDto;
+import de.ffl.service.DownloadStatisticsService;
 import de.ffl.service.InstallStatisticsService;
 import de.ffl.service.LoginStatisticsService;
 import org.junit.jupiter.api.Test;
@@ -30,6 +33,9 @@ class StatisticsControllerTest {
 
     @Mock
     private InstallStatisticsService installStatisticsService;
+
+    @Mock
+    private DownloadStatisticsService downloadStatisticsService;
 
     @InjectMocks
     private StatisticsController statisticsController;
@@ -96,5 +102,37 @@ class StatisticsControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         verify(installStatisticsService, never()).getStatistics(any(), any());
+    }
+
+    @Test
+    void getDownloadStatistics_validRange_returnsStatistics() {
+        DownloadStatisticDto dto = DownloadStatisticDto.builder()
+            .months(java.util.List.of(DownloadStatMonthDto.builder().year(2026).month(1).totalDownloads(5L).build()))
+            .build();
+        when(downloadStatisticsService.getStatistics(any(), any())).thenReturn(dto);
+
+        ResponseEntity<DownloadStatisticDto> response = statisticsController.getDownloadStatistics(
+            LocalDate.of(2026, 1, 1), LocalDate.of(2026, 2, 1));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isSameAs(dto);
+    }
+
+    @Test
+    void getDownloadStatistics_emptyRange_returnsBadRequest() {
+        ResponseEntity<DownloadStatisticDto> response = statisticsController.getDownloadStatistics(
+            LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(downloadStatisticsService, never()).getStatistics(any(), any());
+    }
+
+    @Test
+    void getDownloadStatistics_invertedRange_returnsBadRequest() {
+        ResponseEntity<DownloadStatisticDto> response = statisticsController.getDownloadStatistics(
+            LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 1));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(downloadStatisticsService, never()).getStatistics(any(), any());
     }
 }
