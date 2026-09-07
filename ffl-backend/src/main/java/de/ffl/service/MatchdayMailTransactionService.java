@@ -103,7 +103,7 @@ public class MatchdayMailTransactionService {
 
     public void runMailJob(SseEmitter emitter, Long seasonId, Integer roundNumber,
                            List<Long> managerIds, JavaMailSenderImpl mailSender,
-                           SystemConfig config, String comment, String commentHeading, boolean testMode) {
+                           SystemConfig config, String comment, String commentHeading) {
         SmtpMailTransport.TransportState transportState = new SmtpMailTransport.TransportState();
         try {
             smtpMailTransport.send(emitter, "Lade Spieltags-Daten…");
@@ -333,6 +333,7 @@ public class MatchdayMailTransactionService {
             smtpMailTransport.send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
 
             SurveyPublicDto activeSurvey = surveyService.getActiveSurvey();
+            int activeSurveyResponseCount = activeSurvey != null ? surveyService.getResponseCount(activeSurvey.getId()) : 0;
 
             int sent = 0;
             int failed = 0;
@@ -356,7 +357,7 @@ public class MatchdayMailTransactionService {
                     MimeMessage msg = mailSender.createMimeMessage();
                     MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
                     helper.setFrom(config.getGmailSenderEmail());
-                    helper.setTo(testMode ? config.getGmailSenderEmail() : recipientEmail);
+                    helper.setTo(recipientEmail);
                     String managerName = manager.getName();
                     String fullName = buildManagerDisplayName(manager);
                     String subject = "FFL | " + season.getName() + " | " + roundNumber + ". Spieltag | " + fullName + " (" + (manager.getShortName() != null ? manager.getShortName() : managerName) + ")";
@@ -365,17 +366,15 @@ public class MatchdayMailTransactionService {
                     List<RankingRow> rankingExcerpt = buildRankingExcerpt(dayRanksSorted, managerId);
                     List<ManagerGroup> managerGroups = managerGroupRepository.findByManagerIdWithManagers(managerId);
 
-                    de.ffl.dto.PaymentReminderDto paymentReminder = testMode
-                        ? null
-                        : paymentReminderService.buildReminder(season, managerId,
-                            manager.getUser() != null ? manager.getUser().getLogin() : null);
+                    de.ffl.dto.PaymentReminderDto paymentReminder = paymentReminderService.buildReminder(season, managerId,
+                        manager.getUser() != null ? manager.getUser().getLogin() : null);
 
                     String html = buildHtmlForManager(manager, season, roundNumber, intro,
                         dayRankByManagerId.get(managerId), topScorerName, topScorerPoints,
                         playerRankByPlayerId, teamsByPlayerId, playerById, pointsByPlayerId,
                         prevRankByManagerId, transferRound, config.getWebUrl(),
                         rankingExcerpt, managersById, managerGroups, dayRankByManagerId, comment, commentHeading,
-                        manager.getMailTheme(), paymentReminder, activeSurvey);
+                        manager.getMailTheme(), paymentReminder, activeSurvey, activeSurveyResponseCount);
 
                     helper.setText(html, true);
 
@@ -388,7 +387,7 @@ public class MatchdayMailTransactionService {
                         failed++;
                         continue;
                     }
-                    smtpMailTransport.send(emitter, (testMode ? "[TEST] " : "") + "✓ " + label + " (" + (testMode ? config.getGmailSenderEmail() : recipientEmail) + ")");
+                    smtpMailTransport.send(emitter, "✓ " + label + " (" + recipientEmail + ")");
                     sent++;
 
                     Thread.sleep(PAUSE_BETWEEN_MAILS_MS);
@@ -475,7 +474,8 @@ public class MatchdayMailTransactionService {
                                         String commentHeading,
                                         MailTheme mailTheme,
                                         de.ffl.dto.PaymentReminderDto paymentReminder,
-                                        SurveyPublicDto activeSurvey) {
+                                        SurveyPublicDto activeSurvey,
+                                        int activeSurveyResponseCount) {
         boolean isDark = mailTheme == MailTheme.DARKMODE;
         
         String bodyBg = "#f5f5f7";
@@ -582,7 +582,7 @@ public class MatchdayMailTransactionService {
         });
 
         if (activeSurvey != null) {
-            sb.append(renderSurveyHint(activeSurvey, webUrl, cardBg, textPrimary, textSecondary, linkColor, isDark));
+            sb.append(renderSurveyHint(activeSurvey, webUrl, cardBg, textPrimary, textSecondary, linkColor, isDark, activeSurveyResponseCount));
         }
 
         appendRosterTable(sb, roster, playerRankByPlayerId, teamsByPlayerId, roundNumber, transferRound, isDark, textPrimary, textSecondary, textTertiary);
@@ -1458,7 +1458,7 @@ public class MatchdayMailTransactionService {
 
     static String renderSurveyHint(SurveyPublicDto survey, String webUrl,
                                    String cardBg, String textPrimary, String textSecondary,
-                                   String linkColor, boolean isDark) {
+                                   String linkColor, boolean isDark, int responseCount) {
         if (survey == null) {
             return "";
         }
@@ -1479,6 +1479,9 @@ public class MatchdayMailTransactionService {
               .append(escape(description.trim())).append("</div>");
         }
         String meta = "Anonym, dauert 1 Minute";
+        if (responseCount > 0) {
+            meta += " · bisher " + responseCount + " Teilnahmen";
+        }
         if (survey.getDeadline() != null) {
             long days = ChronoUnit.DAYS.between(LocalDate.now(), survey.getDeadline().toLocalDate());
             if (days <= 0) {

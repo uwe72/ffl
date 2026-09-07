@@ -2,6 +2,7 @@ package de.ffl.config;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenProvider {
 
-    @Value("${app.jwt.secret:mySecretKeyForJwtTokenGenerationThatShouldBeAtLeast256BitsLong}")
+    @Value("${app.jwt.secret:}")
     private String jwtSecret;
 
     @Value("${app.jwt.expiration:3600000}")
@@ -23,6 +24,21 @@ public class JwtTokenProvider {
 
     @Value("${app.jwt.refresh-expiration:2592000000}")
     private long jwtRefreshExpiration;
+
+    @PostConstruct
+    void validateSecret() {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException(
+                "JWT-Secret fehlt: Die Umgebungsvariable APP_JWT_SECRET ist nicht gesetzt. "
+                    + "Sie wird im Compose File als APP_JWT_SECRET gesetzt und muss mindestens "
+                    + "32 Byte Schlüsselmaterial für HS256 liefern.");
+        }
+        if (jwtSecret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                "JWT-Secret zu kurz: APP_JWT_SECRET muss mindestens 32 Byte Schlüsselmaterial "
+                    + "für HS256 liefern. Sie wird im Compose File als APP_JWT_SECRET gesetzt.");
+        }
+    }
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);

@@ -6,7 +6,6 @@ interface Props {
   onClose: () => void
   seasonId: number
   emailIds: number[]
-  testMode?: boolean
   endpoint?: string
   title?: string
   sendMode?: string
@@ -17,7 +16,6 @@ export default function InvitationMailProgressDialog({
   onClose,
   seasonId,
   emailIds,
-  testMode,
   endpoint = '/invitation-mail/stream',
   title = 'Versende Einladungsmails…',
   sendMode,
@@ -40,7 +38,6 @@ export default function InvitationMailProgressDialog({
       emailIds: emailIds.join(','),
     })
     if (token) params.set('token', token)
-    if (testMode) params.set('testMode', 'true')
     if (sendMode) params.set('sendMode', sendMode)
 
     const url = `/api/seasons/${seasonId}${endpoint}?${params.toString()}`

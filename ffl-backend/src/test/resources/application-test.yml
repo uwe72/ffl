@@ -9,4 +9,5 @@ spring:
 
 app:
   jwt:
-    expiration: 31536000000
+    secret: test-only-secret-0123456789abcdef-ffl
+    expiration: 3600000

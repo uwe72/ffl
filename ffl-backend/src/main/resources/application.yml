@@ -19,6 +19,11 @@ server:
   tomcat:
     max-swallow-size: 110MB
 
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:ffl-local-dev-jwt-secret-0123456789abcdef}
+    expiration: 3600000
+
 ---
 spring:
   config:
@@ -46,7 +51,7 @@ spring:
 
 app:
   jwt:
-    expiration: 31536000000
+    secret: ${APP_JWT_SECRET:}
 
 logging:
   pattern:

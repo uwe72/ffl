@@ -11,13 +11,27 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final AntPathMatcher TOKEN_PARAM_PATH_MATCHER = new AntPathMatcher();
+
+    private static final List<String> TOKEN_PARAM_ALLOWED_PATTERNS = List.of(
+        "/api/seasons/*/calculate-stream",
+        "/api/seasons/*/invitation-mail/stream",
+        "/api/seasons/*/reminder-mail/stream",
+        "/api/seasons/*/transparency-mail/stream",
+        "/api/seasons/*/prize-distribution/mail/stream",
+        "/api/seasons/setup/stream-sse",
+        "/api/seasons/setup/update-players/stream-sse"
+    );
 
     private final JwtTokenProvider tokenProvider;
     private final UserDetailsService userDetailsService;
@@ -71,14 +85,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         String tokenParam = request.getParameter("token");
         if (StringUtils.hasText(tokenParam)) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Token from query parameter found for request: " + request.getRequestURI());
+            if (isTokenParamAllowed(request)) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Token from query parameter found for request: " + request.getRequestURI());
+                }
+                return tokenParam;
             }
-            return tokenParam;
+            if (logger.isDebugEnabled()) {
+                logger.debug("Token from query parameter rejected for request: " + request.getRequestURI());
+            }
         }
         if (logger.isDebugEnabled()) {
             logger.debug("No token found for request: " + request.getRequestURI());
         }
         return null;
+    }
+
+    private boolean isTokenParamAllowed(HttpServletRequest request) {
+        String rawPath = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (contextPath != null && !contextPath.isEmpty() && rawPath.startsWith(contextPath)) {
+            rawPath = rawPath.substring(contextPath.length());
+        }
+        if (rawPath.length() > 1 && rawPath.endsWith("/")) {
+            rawPath = rawPath.substring(0, rawPath.length() - 1);
+        }
+        final String path = rawPath;
+        return TOKEN_PARAM_ALLOWED_PATTERNS.stream()
+            .anyMatch(pattern -> TOKEN_PARAM_PATH_MATCHER.match(pattern, path));
     }
 }

@@ -26,7 +26,6 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
   const [searchTerm, setSearchTerm] = useState('')
   const [rangeFromId, setRangeFromId] = useState('')
   const [rangeToId, setRangeToId] = useState('')
-  const [testMode, setTestMode] = useState(false)
 
   const uniqueEmails = useMemo(() => {
     if (!managers) return []
@@ -256,31 +255,14 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
 
         </div>
 
-        <div className="p-4 bg-surface border border-border mb-4">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={testMode}
-              onChange={(e) => setTestMode(e.target.checked)}
-              className="w-5 h-5 accent-accent"
-            />
-            <div>
-              <span className="text-foreground font-medium">Test-Modus</span>
-              <p className="text-sm text-muted">
-                Report geht an die Admin-Email statt als BCC an die Empfänger
-              </p>
-            </div>
-          </label>
-        </div>
-
         <div className="flex items-center gap-4">
           <Button
             onClick={() => setSendDialogOpen(true)}
             disabled={!canSend}
             variant="emphasized"
-            className={`w-full md:w-auto font-semibold ${testMode ? 'bg-success text-background hover:bg-success' : ''}`}
+            className="w-full md:w-auto font-semibold"
           >
-            {testMode ? `Test-Mail senden (${selectedEmails.length})` : `Transparenz-Report als BCC senden (${selectedEmails.length})`}
+            {`Transparenz-Report als BCC senden (${selectedEmails.length})`}
           </Button>
         </div>
 
@@ -289,7 +271,6 @@ export default function TransparencyMailSendDialog({ isOpen, onClose, seasonId, 
           onClose={() => setSendDialogOpen(false)}
           seasonId={seasonId}
           emails={selectedEmails}
-          testMode={testMode}
         />
       </div>
     </div>

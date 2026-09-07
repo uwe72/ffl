@@ -223,6 +223,11 @@ public class SurveyService {
             .orElse(null);
     }
 
+    @Transactional(readOnly = true)
+    public int getResponseCount(Long surveyId) {
+        return (int) surveyResponseRepository.countBySurveyId(surveyId);
+    }
+
     @Transactional
     public int endExpiredSurveys() {
         List<Survey> expired = surveyRepository.findByStatus(SurveyStatus.GESTARTET).stream()

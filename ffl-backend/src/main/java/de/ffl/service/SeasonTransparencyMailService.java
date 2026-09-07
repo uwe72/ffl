@@ -114,7 +114,7 @@ public class SeasonTransparencyMailService {
     }
 
     @Transactional(readOnly = true)
-    public SseEmitter streamTransparencyMail(Long seasonId, List<String> emails, boolean testMode) {
+    public SseEmitter streamTransparencyMail(Long seasonId, List<String> emails) {
         SseEmitter emitter = new SseEmitter(1_200_000L);
         executor.execute(() -> {
             try {
@@ -159,13 +159,9 @@ public class SeasonTransparencyMailService {
 
                 JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
                 smtpMailTransport.send(emitter, "Mail-Server verbunden (" + config.getGmailSmtpServer() + ":" + config.getGmailSmtpPort() + ")");
-                if (testMode) {
-                    smtpMailTransport.send(emitter, "Sende Report als Testmail an die Admin-Adresse...");
-                } else {
-                    smtpMailTransport.send(emitter, "Sende Report als 1 BCC-Mail an " + recipients.size() + " Empfänger...");
-                }
+                smtpMailTransport.send(emitter, "Sende Report als 1 BCC-Mail an " + recipients.size() + " Empfänger...");
 
-                if (!testMode && recipients.isEmpty()) {
+                if (recipients.isEmpty()) {
                     smtpMailTransport.send(emitter, "");
                     smtpMailTransport.send(emitter, "Keine gültigen Empfänger.");
                     emitter.send(SseEmitter.event().name("complete").data(""));
@@ -179,23 +175,17 @@ public class SeasonTransparencyMailService {
                     MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
                     helper.setFrom(config.getGmailSenderEmail());
                     helper.setTo(config.getGmailSenderEmail());
-                    if (!testMode && !recipients.isEmpty()) {
-                        helper.setBcc(recipients.toArray(new String[0]));
-                    }
+                    helper.setBcc(recipients.toArray(new String[0]));
                     helper.setSubject(subject[0]);
                     helper.setText(basePlainText[0], baseHtml[0]);
                     helper.addAttachment(pdfFilename[0], new ByteArrayDataSource(basePdf[0], "application/pdf"));
 
-                    String label = testMode ? "Report (Test)" : "Report (BCC-Mail)";
-                    String recipient = testMode ? config.getGmailSenderEmail() : "BCC an " + recipients.size() + " Empfänger";
+                    String label = "Report (BCC-Mail)";
+                    String recipient = "BCC an " + recipients.size() + " Empfänger";
                     boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
                         label, recipient, emitter);
                     if (gesendet) {
-                        if (testMode) {
-                            smtpMailTransport.send(emitter, "[TEST] ✓ Report an die Admin-Adresse gesendet");
-                        } else {
-                            smtpMailTransport.send(emitter, "✓ Report als eine BCC-Mail an " + recipients.size() + " Empfänger gesendet");
-                        }
+                        smtpMailTransport.send(emitter, "✓ Report als eine BCC-Mail an " + recipients.size() + " Empfänger gesendet");
                     }
                 } catch (Exception e) {
                     smtpMailTransport.send(emitter, "✗ Versand fehlgeschlagen: " + e.getMessage());
@@ -205,7 +195,7 @@ public class SeasonTransparencyMailService {
                 }
 
                 smtpMailTransport.send(emitter, "");
-                smtpMailTransport.send(emitter, "Fertig." + (testMode ? " (TEST-MODUS)" : ""));
+                smtpMailTransport.send(emitter, "Fertig.");
                 emitter.send(SseEmitter.event().name("complete").data(""));
                 emitter.complete();
             } catch (Exception e) {

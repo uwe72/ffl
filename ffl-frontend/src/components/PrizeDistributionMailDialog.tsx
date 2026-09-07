@@ -6,7 +6,6 @@ interface PrizeDistributionMailDialogProps {
   onClose: () => void
   seasonId: number
   managerIds: number[]
-  testMode?: boolean
 }
 
 export default function PrizeDistributionMailDialog({
@@ -14,7 +13,6 @@ export default function PrizeDistributionMailDialog({
   onClose,
   seasonId,
   managerIds,
-  testMode,
 }: PrizeDistributionMailDialogProps) {
   const [logs, setLogs] = useState<string[]>([])
   const [isComplete, setIsComplete] = useState(false)
@@ -35,7 +33,6 @@ export default function PrizeDistributionMailDialog({
       managerIds: managerIds.join(','),
     })
     if (token) params.set('token', token)
-    if (testMode) params.set('testMode', 'true')
 
     const url = `/api/seasons/${seasonId}/prize-distribution/mail/stream?${params.toString()}`
     const eventSource = new EventSource(url)

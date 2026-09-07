@@ -117,7 +117,6 @@ export default function MailingReminder({ variant }: Props) {
         seasonName={season.name}
         title={isDanke ? 'Danke-Mail (Angemeldete)' : 'Erinnerung (Nicht-Angemeldete)'}
         sendLabel={isDanke ? 'Danke-Mail senden' : 'Erinnerung senden'}
-        testSendLabel="Test-Mail senden"
         endpoint="/reminder-mail/stream"
         progressTitle={isDanke ? 'Versende Danke-Mails…' : 'Versende Erinnerungs-Mails…'}
         emails={filteredEmails}

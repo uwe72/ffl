@@ -35,12 +35,17 @@ class MatchdayMailSurveyHintTest {
             .build();
     }
 
+    private String render(SurveyPublicDto survey, int responseCount) {
+        return MatchdayMailTransactionService.renderSurveyHint(
+            survey, "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, responseCount);
+    }
+
     @Test
     void renderSurveyHint_includesTitleAnonymityDeadlineAndLink() {
         LocalDateTime deadline = LocalDate.now().plusDays(5).atTime(20, 0);
         String html = MatchdayMailTransactionService.renderSurveyHint(
             survey("Wer wird Meister?", deadline),
-            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false);
+            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, 0);
 
         assertThat(html).contains("Umfrage: Wer wird Meister?");
         assertThat(html).contains("Anonym, dauert 1 Minute");
@@ -55,14 +60,14 @@ class MatchdayMailSurveyHintTest {
     @Test
     void renderSurveyHint_nullSurvey_returnsEmpty() {
         assertThat(MatchdayMailTransactionService.renderSurveyHint(
-            null, "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false)).isEmpty();
+            null, "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, 0)).isEmpty();
     }
 
     @Test
     void renderSurveyHint_escapesMaliciousTitle() {
         String html = MatchdayMailTransactionService.renderSurveyHint(
             survey("<script>alert('x')</script>", LocalDate.now().atTime(23, 59)),
-            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false);
+            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, 0);
 
         assertThat(html).doesNotContain("<script>");
         assertThat(html).contains("&lt;script&gt;");
@@ -72,7 +77,7 @@ class MatchdayMailSurveyHintTest {
     void renderSurveyHint_nullDeadline_omitsDatePart() {
         String html = MatchdayMailTransactionService.renderSurveyHint(
             survey("Test", null),
-            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false);
+            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, 0);
 
         assertThat(html).contains("Anonym, dauert 1 Minute.");
         assertThat(html).doesNotContain("bis zum");
@@ -83,7 +88,7 @@ class MatchdayMailSurveyHintTest {
         LocalDateTime deadline = LocalDate.now().atTime(23, 59);
         String html = MatchdayMailTransactionService.renderSurveyHint(
             survey("Test", deadline),
-            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false);
+            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, 0);
 
         assertThat(html).contains("endet heute, bis zum " + deadline.format(SURVEY_FMT) + ".");
     }
@@ -93,7 +98,7 @@ class MatchdayMailSurveyHintTest {
         LocalDateTime deadline = LocalDate.now().plusDays(1).atTime(23, 59);
         String html = MatchdayMailTransactionService.renderSurveyHint(
             survey("Test", deadline),
-            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false);
+            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, 0);
 
         assertThat(html).contains("endet morgen, bis zum " + deadline.format(SURVEY_FMT) + ".");
     }
@@ -102,7 +107,7 @@ class MatchdayMailSurveyHintTest {
     void renderSurveyHint_pastDeadline_returnsEmpty() {
         String html = MatchdayMailTransactionService.renderSurveyHint(
             survey("Test", LocalDateTime.now().minusDays(1)),
-            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false);
+            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, 0);
 
         assertThat(html).isEmpty();
     }
@@ -111,7 +116,7 @@ class MatchdayMailSurveyHintTest {
     void renderSurveyHint_noWebUrl_rendersWithoutLink() {
         String html = MatchdayMailTransactionService.renderSurveyHint(
             survey("Test", LocalDate.now().atTime(23, 59)),
-            null, cardBg, textPrimary, textSecondary, linkColor, false);
+            null, cardBg, textPrimary, textSecondary, linkColor, false, 0);
 
         assertThat(html).contains("Umfrage: Test");
         assertThat(html).contains("endet heute");
@@ -122,7 +127,7 @@ class MatchdayMailSurveyHintTest {
     void renderSurveyHint_withDescription_rendersItalicDescriptionLine() {
         String html = MatchdayMailTransactionService.renderSurveyHint(
             survey("Test", LocalDate.now().atTime(23, 59), "Bitte gebt eure Meinung ab."),
-            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false);
+            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, 0);
 
         assertThat(html).contains("Bitte gebt eure Meinung ab.");
         assertThat(html).contains("font-style:italic");
@@ -138,7 +143,7 @@ class MatchdayMailSurveyHintTest {
     void renderSurveyHint_escapesMaliciousDescription() {
         String html = MatchdayMailTransactionService.renderSurveyHint(
             survey("Test", LocalDate.now().atTime(23, 59), "<script>alert('x')</script>"),
-            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false);
+            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, 0);
 
         assertThat(html).doesNotContain("<script>");
         assertThat(html).contains("&lt;script&gt;");
@@ -148,7 +153,7 @@ class MatchdayMailSurveyHintTest {
     void renderSurveyHint_blankDescription_omitsDescriptionLine() {
         String html = MatchdayMailTransactionService.renderSurveyHint(
             survey("Test", LocalDate.now().atTime(23, 59), "   "),
-            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false);
+            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, 0);
 
         assertThat(html).doesNotContain("font-style:italic");
         assertThat(html).contains("Anonym, dauert 1 Minute");
@@ -158,9 +163,38 @@ class MatchdayMailSurveyHintTest {
     void renderSurveyHint_nullDescription_omitsDescriptionLine() {
         String html = MatchdayMailTransactionService.renderSurveyHint(
             survey("Test", LocalDate.now().atTime(23, 59), null),
-            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false);
+            "https://ffl.example.com/", cardBg, textPrimary, textSecondary, linkColor, false, 0);
 
         assertThat(html).doesNotContain("font-style:italic");
         assertThat(html).contains("Anonym, dauert 1 Minute");
+    }
+
+    @Test
+    void renderSurveyHint_withResponseCount_showsTeilnahmen() {
+        String html = render(
+            survey("Test", LocalDate.now().plusDays(3).atTime(23, 59)), 7);
+
+        assertThat(html).contains("bisher 7 Teilnahmen");
+        assertThat(html).contains("Anonym, dauert 1 Minute · bisher 7 Teilnahmen · noch 3 Tage");
+    }
+
+    @Test
+    void renderSurveyHint_zeroResponseCount_omitsTeilnahmen() {
+        String html = render(
+            survey("Test", LocalDate.now().plusDays(3).atTime(23, 59)), 0);
+
+        assertThat(html).doesNotContain("Teilnahmen");
+        assertThat(html).contains("Anonym, dauert 1 Minute · noch 3 Tage");
+    }
+
+    @Test
+    void renderSurveyHint_responseCount_beforeDeadlinePart() {
+        LocalDateTime deadline = LocalDate.now().plusDays(1).atTime(23, 59);
+        String html = render(survey("Test", deadline), 4);
+
+        int countIdx = html.indexOf("bisher 4 Teilnahmen");
+        int deadlineIdx = html.indexOf("endet morgen");
+        assertThat(countIdx).isGreaterThan(html.indexOf("Anonym"));
+        assertThat(countIdx).isLessThan(deadlineIdx);
     }
 }

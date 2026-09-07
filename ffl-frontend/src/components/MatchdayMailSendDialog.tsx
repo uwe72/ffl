@@ -83,7 +83,6 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
   const [commentHeading, setCommentHeading] = useState('')
   const [rangeFrom, setRangeFrom] = useState('')
   const [rangeTo, setRangeTo] = useState('')
-  const [testMode, setTestMode] = useState(false)
 
   useEffect(() => {
     if (config) {
@@ -374,31 +373,14 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           </div>
         </div>
 
-        <div className="p-4 bg-surface border border-border mb-4">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={testMode}
-              onChange={(e) => setTestMode(e.target.checked)}
-              className="w-5 h-5 accent-accent"
-            />
-            <div>
-              <span className="text-foreground font-medium">Test-Modus</span>
-              <p className="text-sm text-muted">
-                Alle Mails gehen an <span className="text-primary">{config?.gmailSenderEmail || 'Admin-Email'}</span> statt an die Manager
-              </p>
-            </div>
-          </label>
-        </div>
-
         <div className="flex items-center gap-4">
           <Button
             onClick={() => setSendDialogOpen(true)}
             disabled={!canSend}
-            variant={testMode ? 'emphasized' : 'emphasized'}
-            className={`w-full md:w-auto font-semibold ${testMode ? 'bg-success text-background hover:bg-success' : ''}`}
+            variant="emphasized"
+            className="w-full md:w-auto font-semibold"
           >
-            {testMode ? `Test-Mail senden (${selectedManagerIds.length})` : `Spieltagsmail senden (${selectedManagerIds.length})`}
+            {`Spieltagsmail senden (${selectedManagerIds.length})`}
           </Button>
         </div>
 
@@ -410,7 +392,6 @@ export default function MatchdayMailSendDialog({ isOpen, onClose, seasonId, roun
           managerIds={selectedManagerIds}
           comment={comment}
           commentHeading={commentHeading}
-          testMode={testMode}
         />
       </div>
 

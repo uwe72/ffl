@@ -49,7 +49,7 @@ public class PrizeDistributionMailService {
         this.smtpMailTransport = smtpMailTransport;
     }
 
-    public SseEmitter streamPrizeDistributionMail(Long seasonId, List<Long> managerIds, boolean testMode) {
+    public SseEmitter streamPrizeDistributionMail(Long seasonId, List<Long> managerIds) {
         SseEmitter emitter = new SseEmitter(1_200_000L);
         executor.execute(() -> {
             try {
@@ -64,7 +64,7 @@ public class PrizeDistributionMailService {
                 }
 
                 JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
-                transactionService.runMailJob(emitter, seasonId, managerIds, mailSender, config, testMode);
+                transactionService.runMailJob(emitter, seasonId, managerIds, mailSender, config);
             } catch (Exception e) {
                 try {
                     emitter.send(SseEmitter.event().name("error").data("FEHLER: " + e.getMessage()));

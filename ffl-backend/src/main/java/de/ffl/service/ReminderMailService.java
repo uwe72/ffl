@@ -115,11 +115,7 @@ public class ReminderMailService {
         return managerRepository.findDistinctUserEmailsBySeasonId(seasonId);
     }
 
-    public SseEmitter streamReminderMail(Long seasonId, List<Long> emailIds, boolean testMode) {
-        return streamReminderMail(seasonId, emailIds, testMode, null);
-    }
-
-    public SseEmitter streamReminderMail(Long seasonId, List<Long> emailIds, boolean testMode, String sendMode) {
+    public SseEmitter streamReminderMail(Long seasonId, List<Long> emailIds, String sendMode) {
         SseEmitter emitter = new SseEmitter(1_200_000L);
         executor.execute(() -> {
             SmtpMailTransport.TransportState transportState = new SmtpMailTransport.TransportState();
@@ -183,7 +179,12 @@ public class ReminderMailService {
                 }
 
                 if (!registeredList.isEmpty()) {
-                    if (testMode) {
+                    for (int start = 0; start < registeredList.size(); start += BCC_CHUNK_SIZE) {
+                        List<EmailAddress> chunk = registeredList.subList(start,
+                            Math.min(start + BCC_CHUNK_SIZE, registeredList.size()));
+                        List<String> recipients = chunk.stream()
+                            .map(EmailAddress::getEmail)
+                            .collect(Collectors.toList());
                         try {
                             String html = buildHtml(season, true, anzahlManager, webUrl, null);
                             String plainText = buildPlainText(season, true, anzahlManager, webUrl, null);
@@ -192,56 +193,23 @@ public class ReminderMailService {
                             MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
                             helper.setFrom(config.getGmailSenderEmail());
                             helper.setTo(config.getGmailSenderEmail());
+                            helper.setBcc(recipients.toArray(new String[0]));
                             helper.setSubject(buildSubject(season, true));
                             helper.setText(plainText, html);
 
                             boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
-                                "Danke-Testmail", config.getGmailSenderEmail(), emitter);
+                                "BCC-Mail (Danke)", config.getGmailSenderEmail(), emitter);
                             if (!gesendet) {
-                                throw new RuntimeException("Danke-Testmail fehlgeschlagen");
+                                throw new RuntimeException("BCC-Mail (Danke) fehlgeschlagen");
                             }
                             bccMails++;
-                            bccRecipients += registeredList.size();
-                            sent += registeredList.size();
-                            smtpMailTransport.send(emitter, "[TEST] ✓ Danke-Mail an Admin (stellvertretend für " + registeredList.size() + " registrierte Empfänger)");
+                            bccRecipients += recipients.size();
+                            sent += recipients.size();
+                            smtpMailTransport.send(emitter, "✓ BCC-Mail (Danke) an " + recipients.size() + " Empfänger");
                         } catch (Exception e) {
-                            failed += registeredList.size();
-                            smtpMailTransport.send(emitter, "✗ Danke-Testmail fehlgeschlagen: " + e.getMessage());
-                            log.error("Fehler beim Senden der Danke-Testmail", e);
-                        }
-                    } else {
-                        for (int start = 0; start < registeredList.size(); start += BCC_CHUNK_SIZE) {
-                            List<EmailAddress> chunk = registeredList.subList(start,
-                                Math.min(start + BCC_CHUNK_SIZE, registeredList.size()));
-                            List<String> recipients = chunk.stream()
-                                .map(EmailAddress::getEmail)
-                                .collect(Collectors.toList());
-                            try {
-                                String html = buildHtml(season, true, anzahlManager, webUrl, null);
-                                String plainText = buildPlainText(season, true, anzahlManager, webUrl, null);
-
-                                MimeMessage msg = mailSender.createMimeMessage();
-                                MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-                                helper.setFrom(config.getGmailSenderEmail());
-                                helper.setTo(config.getGmailSenderEmail());
-                                helper.setBcc(recipients.toArray(new String[0]));
-                                helper.setSubject(buildSubject(season, true));
-                                helper.setText(plainText, html);
-
-                                boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
-                                    "BCC-Mail (Danke)", config.getGmailSenderEmail(), emitter);
-                                if (!gesendet) {
-                                    throw new RuntimeException("BCC-Mail (Danke) fehlgeschlagen");
-                                }
-                                bccMails++;
-                                bccRecipients += recipients.size();
-                                sent += recipients.size();
-                                smtpMailTransport.send(emitter, "✓ BCC-Mail (Danke) an " + recipients.size() + " Empfänger");
-                            } catch (Exception e) {
-                                failed += recipients.size();
-                                smtpMailTransport.send(emitter, "✗ BCC-Mail (Danke) fehlgeschlagen: " + e.getMessage());
-                                log.error("Fehler beim Senden der Danke-BCC-Mail", e);
-                            }
+                            failed += recipients.size();
+                            smtpMailTransport.send(emitter, "✗ BCC-Mail (Danke) fehlgeschlagen: " + e.getMessage());
+                            log.error("Fehler beim Senden der Danke-BCC-Mail", e);
                         }
                     }
                 }
@@ -261,19 +229,19 @@ public class ReminderMailService {
                         MimeMessage msg = mailSender.createMimeMessage();
                         MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
                         helper.setFrom(config.getGmailSenderEmail());
-                        helper.setTo(testMode ? config.getGmailSenderEmail() : recipientEmail);
+                        helper.setTo(recipientEmail);
                         helper.setSubject(buildSubject(season, false));
                         helper.setText(plainText, html);
 
                         String label = "[" + emailAddress.getId() + "] " + recipientEmail + " (Erinnerung)";
                         boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
-                            label, testMode ? config.getGmailSenderEmail() : recipientEmail, emitter);
+                            label, recipientEmail, emitter);
                         if (!gesendet) {
                             failed++;
                             continue;
                         }
 
-                        smtpMailTransport.send(emitter, (testMode ? "[TEST] " : "") + "✓ " + label);
+                        smtpMailTransport.send(emitter, "✓ " + label);
                         individualSent++;
                         sent++;
 
@@ -307,8 +275,7 @@ public class ReminderMailService {
 
                 smtpMailTransport.send(emitter, "");
                 smtpMailTransport.send(emitter, "Fertig: " + bccMails + " Danke-BCC-Mail(s) an " + bccRecipients + " Empfänger, "
-                    + individualSent + " einzeln versendet, " + skipped + " übersprungen, " + failed + " fehlgeschlagen."
-                    + (testMode ? " (TEST-MODUS)" : ""));
+                    + individualSent + " einzeln versendet, " + skipped + " übersprungen, " + failed + " fehlgeschlagen.");
                 emitter.send(SseEmitter.event().name("complete").data(""));
                 emitter.complete();
             } catch (Exception e) {

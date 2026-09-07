@@ -16,5 +16,4 @@ public class MatchdayMailRequestDto {
     private List<Long> managerIds;
     private String comment;
     private String commentHeading;
-    private boolean testMode;
 }

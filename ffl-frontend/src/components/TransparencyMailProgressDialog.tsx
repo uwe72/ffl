@@ -6,7 +6,6 @@ interface TransparencyMailProgressDialogProps {
   onClose: () => void
   seasonId: number
   emails: string[]
-  testMode?: boolean
 }
 
 export default function TransparencyMailProgressDialog({
@@ -14,7 +13,6 @@ export default function TransparencyMailProgressDialog({
   onClose,
   seasonId,
   emails,
-  testMode,
 }: TransparencyMailProgressDialogProps) {
   const [logs, setLogs] = useState<string[]>([])
   const [isComplete, setIsComplete] = useState(false)
@@ -34,7 +32,6 @@ export default function TransparencyMailProgressDialog({
       emails: emails.join(','),
     })
     if (token) params.set('token', token)
-    if (testMode) params.set('testMode', 'true')
 
     const url = `/api/seasons/${seasonId}/transparency-mail/stream?${params.toString()}`
     const eventSource = new EventSource(url)

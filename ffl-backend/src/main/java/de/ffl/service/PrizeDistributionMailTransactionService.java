@@ -52,7 +52,7 @@ public class PrizeDistributionMailTransactionService {
     }
 
     public void runMailJob(SseEmitter emitter, Long seasonId, List<Long> managerIds,
-                           JavaMailSenderImpl mailSender, SystemConfig config, boolean testMode) {
+                            JavaMailSenderImpl mailSender, SystemConfig config) {
         SmtpMailTransport.TransportState transportState = new SmtpMailTransport.TransportState();
         try {
             smtpMailTransport.send(emitter, "Lade Saisonabschluss-Daten…");
@@ -110,16 +110,14 @@ public class PrizeDistributionMailTransactionService {
                     helper.setText(html, true);
 
                     String label = "[" + manager.getId() + "] " + buildManagerDisplayName(manager);
-                    if (!testMode) {
-                        boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
-                            label, recipientEmail, emitter);
-                        if (!gesendet) {
-                            failed++;
-                            continue;
-                        }
+                    boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
+                        label, recipientEmail, emitter);
+                    if (!gesendet) {
+                        failed++;
+                        continue;
                     }
 
-                    smtpMailTransport.send(emitter, (testMode ? "[TEST] " : "") + "✓ " + label + " (" + recipientEmail + ")");
+                    smtpMailTransport.send(emitter, "✓ " + label + " (" + recipientEmail + ")");
                     sent++;
 
                     Thread.sleep(1000);

@@ -96,7 +96,7 @@ public class InvitationMailService {
         }
     }
 
-    public SseEmitter streamInvitationMail(Long seasonId, List<Long> emailIds, boolean testMode) {
+    public SseEmitter streamInvitationMail(Long seasonId, List<Long> emailIds) {
         SseEmitter emitter = new SseEmitter(1_200_000L);
         executor.execute(() -> {
             SmtpMailTransport.TransportState transportState = new SmtpMailTransport.TransportState();
@@ -149,19 +149,19 @@ public class InvitationMailService {
                         MimeMessage msg = mailSender.createMimeMessage();
                         MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
                         helper.setFrom(config.getGmailSenderEmail());
-                        helper.setTo(testMode ? config.getGmailSenderEmail() : recipientEmail);
+                        helper.setTo(recipientEmail);
                         helper.setSubject(subject);
                         helper.setText(textContent, htmlContent);
 
                         String label = "[" + emailAddress.getId() + "] " + recipientEmail;
                         boolean gesendet = smtpMailTransport.sendWithRetry(transportState, mailSender, msg,
-                            label, testMode ? config.getGmailSenderEmail() : recipientEmail, emitter);
+                            label, recipientEmail, emitter);
                         if (!gesendet) {
                             failed++;
                             continue;
                         }
 
-                        smtpMailTransport.send(emitter, (testMode ? "[TEST] " : "") + "✓ " + label);
+                        smtpMailTransport.send(emitter, "✓ " + label);
                         sent++;
 
                         Thread.sleep(1000);
@@ -193,7 +193,7 @@ public class InvitationMailService {
                 }
 
                 smtpMailTransport.send(emitter, "");
-                smtpMailTransport.send(emitter, "Fertig: " + sent + " versendet, " + failed + " fehlgeschlagen." + (testMode ? " (TEST-MODUS)" : ""));
+                smtpMailTransport.send(emitter, "Fertig: " + sent + " versendet, " + failed + " fehlgeschlagen.");
                 emitter.send(SseEmitter.event().name("complete").data(""));
                 emitter.complete();
             } catch (Exception e) {
