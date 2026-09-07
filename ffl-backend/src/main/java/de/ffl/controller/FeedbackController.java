@@ -4,6 +4,8 @@ import de.ffl.dto.FeedbackRequest;
 import de.ffl.service.FeedbackService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +18,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/feedback")
 public class FeedbackController {
+
+    private static final Logger log = LoggerFactory.getLogger(FeedbackController.class);
 
     private final FeedbackService feedbackService;
 
@@ -33,12 +37,13 @@ public class FeedbackController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(Map.of("error", "Zu viele Anfragen, bitte später erneut versuchen."));
         } catch (IllegalStateException e) {
+            log.error("Feedback-Versand wegen Konfigurationsfehler nicht moeglich", e);
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(Map.of("error", e.getMessage()));
+                .body(Map.of("error", "Feedback kann derzeit nicht verarbeitet werden. Bitte später erneut versuchen."));
         } catch (RuntimeException e) {
-            String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            log.error("Unerwarteter Fehler beim Feedback-Versand", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Feedback konnte nicht versendet werden: " + msg));
+                .body(Map.of("error", "Feedback konnte nicht versendet werden. Bitte später erneut versuchen."));
         }
     }
 

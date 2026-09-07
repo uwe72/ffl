@@ -6,9 +6,11 @@ export interface EmailAddress {
 export interface SystemConfig {
   gmailSenderEmail?: string
   gmailAppPassword?: string
+  gmailAppPasswordSet?: boolean
   gmailSmtpServer?: string
   gmailSmtpPort?: number
   llmApiKey?: string
+  llmApiKeySet?: boolean
   llmModel?: string
   llmBaseUrl?: string
   matchdayMailPrompt?: string
@@ -25,7 +27,7 @@ export interface TestMailResult {
   success: boolean
   message: string
   usedEmail: string
-  usedPassword: string
+  usedPassword: boolean
   usedSmtpServer: string
   usedSmtpPort: number
 }

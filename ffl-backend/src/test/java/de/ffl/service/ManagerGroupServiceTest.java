@@ -456,4 +456,50 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
         assertEquals(7, uwe.getVisitCount());
         assertEquals(uweUser.getId(), uwe.getUserId());
     }
+
+    private User createAdminUser() {
+        User admin = User.builder()
+            .login("admin")
+            .password("$2a$10$test")
+            .email("admin@test.de")
+            .firstName("Admin")
+            .lastName("Test")
+            .role(UserRole.ADMIN)
+            .build();
+        return userRepository.save(admin);
+    }
+
+    @Test
+    void getGroupsWithStatsForViewer_ownManagerReturnsAllGroups() {
+        setupFixture();
+
+        authenticateAs("referenced");
+        List<ManagerGroupRoundStatsDto> groups =
+            managerGroupService.getGroupsWithStatsForViewer(referencedManager.getId());
+
+        assertTrue(groups.stream()
+            .anyMatch(g -> g.getGroupId().equals(groupIdByName("ReferenzierteGruppe"))));
+    }
+
+    @Test
+    void getGroupsWithStatsForViewer_foreignManagerThrowsForNonAdmin() {
+        setupFixture();
+
+        authenticateAs("other");
+        assertThrows(IllegalArgumentException.class,
+            () -> managerGroupService.getGroupsWithStatsForViewer(referencedManager.getId()));
+    }
+
+    @Test
+    void getGroupsWithStatsForViewer_adminSeesForeignGroups() {
+        setupFixture();
+        createAdminUser();
+
+        authenticateAs("admin");
+        List<ManagerGroupRoundStatsDto> groups =
+            managerGroupService.getGroupsWithStatsForViewer(referencedManager.getId());
+
+        assertTrue(groups.stream()
+            .anyMatch(g -> g.getGroupId().equals(groupIdByName("ReferenzierteGruppe"))));
+    }
 }

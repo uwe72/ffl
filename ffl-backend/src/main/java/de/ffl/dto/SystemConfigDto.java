@@ -8,9 +8,11 @@ import java.time.LocalDateTime;
 public class SystemConfigDto {
     private String gmailSenderEmail;
     private String gmailAppPassword;
+    private Boolean gmailAppPasswordSet;
     private String gmailSmtpServer;
     private Integer gmailSmtpPort;
     private String llmApiKey;
+    private Boolean llmApiKeySet;
     private String llmModel;
     private String llmBaseUrl;
     private String matchdayMailPrompt;
@@ -27,10 +29,10 @@ public class SystemConfigDto {
     public static SystemConfigDto fromEntity(SystemConfig config) {
         SystemConfigDto dto = new SystemConfigDto();
         dto.setGmailSenderEmail(config.getGmailSenderEmail());
-        dto.setGmailAppPassword(config.getGmailAppPassword());
+        dto.setGmailAppPasswordSet(config.getGmailAppPassword() != null && !config.getGmailAppPassword().isBlank());
         dto.setGmailSmtpServer(config.getGmailSmtpServer());
         dto.setGmailSmtpPort(config.getGmailSmtpPort());
-        dto.setLlmApiKey(config.getLlmApiKey());
+        dto.setLlmApiKeySet(config.getLlmApiKey() != null && !config.getLlmApiKey().isBlank());
         dto.setLlmModel(config.getLlmModel());
         dto.setLlmBaseUrl(config.getLlmBaseUrl());
         dto.setMatchdayMailPrompt(config.getMatchdayMailPrompt());
@@ -48,12 +50,16 @@ public class SystemConfigDto {
     public void setGmailSenderEmail(String gmailSenderEmail) { this.gmailSenderEmail = gmailSenderEmail; }
     public String getGmailAppPassword() { return gmailAppPassword; }
     public void setGmailAppPassword(String gmailAppPassword) { this.gmailAppPassword = gmailAppPassword; }
+    public Boolean getGmailAppPasswordSet() { return gmailAppPasswordSet; }
+    public void setGmailAppPasswordSet(Boolean gmailAppPasswordSet) { this.gmailAppPasswordSet = gmailAppPasswordSet; }
     public String getGmailSmtpServer() { return gmailSmtpServer; }
     public void setGmailSmtpServer(String gmailSmtpServer) { this.gmailSmtpServer = gmailSmtpServer; }
     public Integer getGmailSmtpPort() { return gmailSmtpPort; }
     public void setGmailSmtpPort(Integer gmailSmtpPort) { this.gmailSmtpPort = gmailSmtpPort; }
     public String getLlmApiKey() { return llmApiKey; }
     public void setLlmApiKey(String llmApiKey) { this.llmApiKey = llmApiKey; }
+    public Boolean getLlmApiKeySet() { return llmApiKeySet; }
+    public void setLlmApiKeySet(Boolean llmApiKeySet) { this.llmApiKeySet = llmApiKeySet; }
     public String getLlmModel() { return llmModel; }
     public void setLlmModel(String llmModel) { this.llmModel = llmModel; }
     public String getLlmBaseUrl() { return llmBaseUrl; }

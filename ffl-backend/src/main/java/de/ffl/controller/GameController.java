@@ -8,6 +8,7 @@ import de.ffl.dto.FormationValidationResult;
 import de.ffl.service.FormationConverterService;
 import de.ffl.service.GameImportService;
 import de.ffl.service.GameService;
+import de.ffl.service.ViewerAccessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/games")
@@ -25,30 +27,38 @@ public class GameController {
 
     private final GameService gameService;
     private final GameImportService gameImportService;
+    private final ViewerAccessService viewerAccessService;
 
-    public GameController(GameService gameService, GameImportService gameImportService) {
+    public GameController(GameService gameService, GameImportService gameImportService, ViewerAccessService viewerAccessService) {
         this.gameService = gameService;
         this.gameImportService = gameImportService;
+        this.viewerAccessService = viewerAccessService;
     }
 
     @GetMapping
     public List<GameDto> getAllGames() {
-        return gameService.findAll();
+        return gameService.findAll().stream()
+            .map(this::hideFormationForViewer)
+            .collect(Collectors.toList());
     }
 
     @GetMapping("/season/{seasonId}")
     public List<GameDto> getGamesBySeason(@PathVariable Long seasonId) {
-        return gameService.findBySeasonId(seasonId);
+        return gameService.findBySeasonId(seasonId).stream()
+            .map(this::hideFormationForViewer)
+            .collect(Collectors.toList());
     }
 
     @GetMapping("/round/{roundId}")
     public List<GameDto> getGamesByRound(@PathVariable Long roundId) {
-        return gameService.findByRoundId(roundId);
+        return gameService.findByRoundId(roundId).stream()
+            .map(this::hideFormationForViewer)
+            .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<GameDto> getGameById(@PathVariable Long id) {
-        GameDto game = gameService.findById(id);
+        GameDto game = hideFormationForViewer(gameService.findById(id));
         if (game == null) {
             return ResponseEntity.notFound().build();
         }
@@ -154,11 +164,21 @@ public class GameController {
             @PathVariable Long id,
             @RequestBody GameImportRequest.CreatePlayerRequest request) {
         GameImportResult result = gameImportService.createNewPlayer(
-            id, 
-            request.getPlayerName(), 
-            request.getTeamId(), 
+            id,
+            request.getPlayerName(),
+            request.getTeamId(),
             request.getPosition()
         );
         return ResponseEntity.ok(result);
+    }
+
+    private GameDto hideFormationForViewer(GameDto game) {
+        if (game == null || viewerAccessService.isAdmin()) {
+            return game;
+        }
+        game.setFormation(null);
+        game.setFormationExtern(null);
+        game.setFormationIntern(null);
+        return game;
     }
 }

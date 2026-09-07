@@ -23,6 +23,28 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void genericException_returnsInternalServerErrorWithoutInternalDetails() {
+        ResponseEntity<String> response = handler.handleGenericException(
+            new RuntimeException("org.postgresql.util.PSQLException: SELECT * FROM ffl_user failed")
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).isEqualTo("Interner Serverfehler");
+        assertThat(response.getBody()).doesNotContain("PSQLException");
+        assertThat(response.getBody()).doesNotContain("SELECT");
+    }
+
+    @Test
+    void illegalArgument_returnsBadRequestWithBusinessMessage() {
+        ResponseEntity<String> response = handler.handleIllegalArgumentException(
+            new IllegalArgumentException("Team value exceeds budget")
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isEqualTo("Team value exceeds budget");
+    }
+
+    @Test
     void clientAbort_handledWithoutException() {
         handler.handleClientAbortException(new ClientAbortException("Connection reset by peer"));
     }

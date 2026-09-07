@@ -26,6 +26,8 @@ import de.ffl.service.SeasonReportMailService;
 import de.ffl.service.SeasonTransparencyMailService;
 import de.ffl.service.ReminderMailService;
 import de.ffl.service.SeasonService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,6 +43,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/seasons")
 public class SeasonController {
+
+    private static final Logger log = LoggerFactory.getLogger(SeasonController.class);
 
     private final SeasonRepository seasonRepository;
     private final SeasonService seasonService;
@@ -510,7 +514,8 @@ public class SeasonController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
         } catch (RuntimeException e) {
-            return ResponseEntity.internalServerError().body(new ErrorResponse(e.getMessage()));
+            log.error("Unerwarteter Fehler bei der Spieler-PDF-Erzeugung fuer Saison {}", id, e);
+            return ResponseEntity.internalServerError().body(new ErrorResponse("Interner Serverfehler"));
         }
     }
 

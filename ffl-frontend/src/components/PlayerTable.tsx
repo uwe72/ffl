@@ -73,7 +73,7 @@ function fullName(player: Player): string {
   return player.nameKicker
 }
 
-function PlayerCard({ player, hideManager, hideStats, onSelect }: { player: Player; hideManager?: boolean; hideStats?: boolean; onSelect?: (player: Player) => void }) {
+function PlayerCard({ player, hideManager, hideStats, hideVerein, onSelect }: { player: Player; hideManager?: boolean; hideStats?: boolean; hideVerein?: boolean; onSelect?: (player: Player) => void }) {
   return (
     <div className={`relative overflow-hidden p-4 pl-5 bg-surface border border-border rounded-card ${onSelect ? 'cursor-pointer hover:border-border-hover' : ''}`} onClick={onSelect ? () => onSelect(player) : undefined}>
       <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${positionBarColor[player.position]}`} />
@@ -100,7 +100,7 @@ function PlayerCard({ player, hideManager, hideStats, onSelect }: { player: Play
             </span>
           </div>
         </div>
-        {player.teams.length > 0 && player.teams[0].logoSUrl && (
+        {!hideVerein && player.teams.length > 0 && player.teams[0].logoSUrl && (
           <img
             src={player.teams[0].logoSUrl}
             alt={player.teams[0].name}
@@ -151,10 +151,11 @@ function PlayerCard({ player, hideManager, hideStats, onSelect }: { player: Play
   )
 }
 
-function PlayerMobileTable({ players, isBeforeSeason, title }: {
+function PlayerMobileTable({ players, isBeforeSeason, title, hideVerein }: {
   players: Player[]
   isBeforeSeason: boolean
   title: string
+  hideVerein?: boolean
 }) {
   const navigate = useNavigate()
   const th = 'px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap'
@@ -193,10 +194,10 @@ function PlayerMobileTable({ players, isBeforeSeason, title }: {
                     {fullName(p)}
                   </div>
                 </RouterLink>
-                {p.teams.length > 0 && (
+                {(!hideVerein && p.teams.length > 0 || p.einsatzquote != null) && (
                   <div className="truncate text-xs text-muted">
-                    {p.teams[0].shortName ?? p.teams[0].name}
-                    {p.einsatzquote != null && <span> · {p.einsatzquote} %</span>}
+                    {!hideVerein && p.teams.length > 0 && <span>{p.teams[0].shortName ?? p.teams[0].name}</span>}
+                    {p.einsatzquote != null && <span>{!hideVerein && p.teams.length > 0 ? ' · ' : ''}{p.einsatzquote} %</span>}
                     <span> · {formatPrice(p.prize)}</span>
                   </div>
                 )}
@@ -289,6 +290,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-base font-semibold text-foreground">Spieler ({count ?? 0})</h3>
           </div>
+          {!hideSearch && (
           <div className="relative">
             <i className="sap-icon sap-icon-search text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
             <input
@@ -300,6 +302,7 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
               className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
             />
           </div>
+          )}
           <div className="flex items-center gap-1.5 flex-wrap">
             {visiblePositions.map(pos => {
               const active = selectedPositions.has(pos)
@@ -498,6 +501,7 @@ export default function PlayerTable({
   hideSearch = false,
   hideTeamFilter = false,
   hidePriceFilter = false,
+  hideVerein = false,
 }: {
   players: Player[]
   fixedPosition?: Position
@@ -516,6 +520,7 @@ export default function PlayerTable({
   hideSearch?: boolean
   hideTeamFilter?: boolean
   hidePriceFilter?: boolean
+  hideVerein?: boolean
 }) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
@@ -757,7 +762,9 @@ export default function PlayerTable({
                     Position<SortIcon column="position" activeKey={sortKey} order={sortOrder} />
                   </ThSortable>
                   )}
+                  {!hideVerein && (
                   <Th align="left">Verein</Th>
+                  )}
                   {!compactActive && (
                   <Th align="center">
                     <span className="cursor-help" title="Aktiv: aktueller Bundesliga-Spieler · Inaktiv: Spieler hat die Bundesliga verlassen">
@@ -859,6 +866,7 @@ export default function PlayerTable({
                         </span>
                       </td>
                       )}
+                      {!hideVerein && (
                       <td className="px-3 py-2 text-muted">
                         {player.teams.length > 0 ? (
                           <span className="flex items-center gap-2">
@@ -873,6 +881,7 @@ export default function PlayerTable({
                           </span>
                         ) : '-'}
                       </td>
+                      )}
                       {!compactActive && (
                       <td className="px-3 py-2 text-center">
                         {player.aktiv === false ? (
@@ -886,7 +895,7 @@ export default function PlayerTable({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={11 - (isBeforeSeason ? 5 : 0) - (isBeforeSeasonNonAdmin ? 1 : 0) - (fixedPosition ? 1 : 0) - (compactActive ? (!isBeforeSeasonNonAdmin ? 1 : 0) + (!isBeforeSeason ? 1 : 0) + 2 : 0)} className="text-center text-subtle py-8">
+                    <td colSpan={11 - (isBeforeSeason ? 5 : 0) - (isBeforeSeasonNonAdmin ? 1 : 0) - (fixedPosition ? 1 : 0) - (hideVerein ? 1 : 0) - (compactActive ? (!isBeforeSeasonNonAdmin ? 1 : 0) + (!isBeforeSeason ? 1 : 0) + 2 : 0)} className="text-center text-subtle py-8">
                       Keine Spieler gefunden
                     </td>
                   </tr>
@@ -899,7 +908,7 @@ export default function PlayerTable({
 
       {isMobile && mobileDashboardLayout && (
         <div className="p-2 bg-surface border border-border rounded-card">
-          <PlayerMobileTable players={filteredPlayers} isBeforeSeason={isBeforeSeason} title={tableTitle} />
+          <PlayerMobileTable players={filteredPlayers} isBeforeSeason={isBeforeSeason} title={tableTitle} hideVerein={hideVerein} />
         </div>
       )}
 
@@ -908,7 +917,7 @@ export default function PlayerTable({
           <div className="grid gap-4">
             {filteredPlayers.length > 0 ? (
               filteredPlayers.map((player) => (
-                <PlayerCard key={player.id} player={player} hideManager={isBeforeSeasonNonAdmin} hideStats={isBeforeSeason} onSelect={onSelect} />
+                <PlayerCard key={player.id} player={player} hideManager={isBeforeSeasonNonAdmin} hideStats={isBeforeSeason} hideVerein={hideVerein} onSelect={onSelect} />
               ))
             ) : (
               <div className="text-center text-subtle py-8">

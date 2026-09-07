@@ -48,13 +48,13 @@ public class MatchdayMailService {
 
             log.info("Test-Mail Konfiguration:");
             log.info("  Email: {}", email);
-            log.info("  Passwort: {}", password);
+            log.info("  Passwort: {}", password != null && !password.isBlank() ? "***gesetzt***" : "nicht gesetzt");
             log.info("  Server: {}", server);
             log.info("  Port: {}", port);
             log.info("  Empfänger: {}", toEmail);
 
             if (email == null || email.isBlank() || password == null || password.isBlank()) {
-                return new TestMailResultDto(false, "Gmail-Zugangsdaten sind nicht vollständig konfiguriert", email, password, server, port);
+                return new TestMailResultDto(false, "Gmail-Zugangsdaten sind nicht vollständig konfiguriert", email, password != null && !password.isBlank(), server, port);
             }
 
             JavaMailSenderImpl mailSender = smtpMailTransport.buildSender(config);
@@ -78,7 +78,7 @@ public class MatchdayMailService {
             mailSender.send(msg);
 
             log.info("Test-Mail erfolgreich gesendet an: {}", toEmail);
-            return new TestMailResultDto(true, "Test-Mail erfolgreich an " + toEmail + " gesendet", email, password, server, port);
+            return new TestMailResultDto(true, "Test-Mail erfolgreich an " + toEmail + " gesendet", email, password != null && !password.isBlank(), server, port);
 
         } catch (Exception e) {
             log.error("Fehler beim Senden der Test-Mail: {}", e.getMessage(), e);
@@ -87,7 +87,7 @@ public class MatchdayMailService {
             String password = config != null ? config.getGmailAppPassword() : null;
             String server = config != null && config.getGmailSmtpServer() != null ? config.getGmailSmtpServer() : "smtp.gmail.com";
             Integer port = config != null && config.getGmailSmtpPort() != null ? config.getGmailSmtpPort() : 587;
-            return new TestMailResultDto(false, "Fehler: " + e.getMessage(), email, password, server, port);
+            return new TestMailResultDto(false, "Fehler: " + e.getMessage(), email, password != null && !password.isBlank(), server, port);
         }
     }
 

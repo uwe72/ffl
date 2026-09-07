@@ -158,7 +158,7 @@ export default function TeamDetail() {
       )}
 
       <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6 md:mb-0 w-full md:w-fit max-w-full md:flex-1 md:min-h-0 md:flex md:flex-col">
-        <PlayerTable players={players ?? []} enableCompact defaultAktivFilter="aktiv" defaultSortKey="positionTotal" defaultSortOrder="asc" scroll hideSearch hideTeamFilter hidePriceFilter />
+        <PlayerTable players={players ?? []} enableCompact defaultAktivFilter="aktiv" defaultSortKey="positionTotal" defaultSortOrder="asc" scroll mobileDashboardLayout hideSearch hideTeamFilter hidePriceFilter hideVerein />
       </div>
       </div>
 

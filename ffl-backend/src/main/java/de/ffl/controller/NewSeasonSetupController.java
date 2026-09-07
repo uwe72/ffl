@@ -3,6 +3,8 @@ package de.ffl.controller;
 import de.ffl.migration.NewSeasonSetupRequest;
 import de.ffl.migration.NewSeasonSetupService;
 import de.ffl.migration.SetupPreviewDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,8 @@ import java.util.concurrent.Executors;
 @RequestMapping("/api/seasons/setup")
 @PreAuthorize("hasRole('ADMIN')")
 public class NewSeasonSetupController {
+
+    private static final Logger log = LoggerFactory.getLogger(NewSeasonSetupController.class);
 
     private final NewSeasonSetupService setupService;
     private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -50,6 +54,7 @@ public class NewSeasonSetupController {
                 emitter.send(SseEmitter.event().name("complete").data("Setup abgeschlossen"));
                 emitter.complete();
             } catch (Exception e) {
+                log.error("Unerwarteter Fehler beim Saison-Setup", e);
                 try {
                     emitter.send(SseEmitter.event()
                             .name("failure")
@@ -77,6 +82,7 @@ public class NewSeasonSetupController {
                 emitter.send(SseEmitter.event().name("complete").data("Spieler-Update abgeschlossen"));
                 emitter.complete();
             } catch (Exception e) {
+                log.error("Unerwarteter Fehler beim Spieler-Update", e);
                 try {
                     emitter.send(SseEmitter.event()
                             .name("failure")
@@ -90,13 +96,6 @@ public class NewSeasonSetupController {
     }
 
     private String buildErrorMessage(Exception e) {
-        StringBuilder sb = new StringBuilder("FEHLER: ").append(e.getMessage());
-        Throwable cause = e.getCause();
-        while (cause != null) {
-            sb.append("\n  Ursache: ").append(cause.getClass().getSimpleName())
-              .append(": ").append(cause.getMessage());
-            cause = cause.getCause();
-        }
-        return sb.toString();
+        return "FEHLER: " + e.getMessage();
     }
 }

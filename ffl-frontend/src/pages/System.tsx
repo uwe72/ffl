@@ -22,12 +22,12 @@ export default function System() {
     if (config) {
       setFormData({
         gmailSenderEmail: config.gmailSenderEmail || '',
-        gmailAppPassword: config.gmailAppPassword || '',
+        gmailAppPassword: '',
         gmailSmtpServer: config.gmailSmtpServer || 'smtp.gmail.com',
         gmailSmtpPort: config.gmailSmtpPort || 587,
         webUrl: config.webUrl || '',
         llmBaseUrl: config.llmBaseUrl || '',
-        llmApiKey: config.llmApiKey || '',
+        llmApiKey: '',
         llmModel: config.llmModel || 'openai/gpt-4o-mini',
       })
       setTestMailTo(config.gmailSenderEmail || '')
@@ -47,12 +47,12 @@ export default function System() {
       const result = await updateConfig.mutateAsync(formData)
       setFormData({
         gmailSenderEmail: result.gmailSenderEmail || '',
-        gmailAppPassword: result.gmailAppPassword || '',
+        gmailAppPassword: '',
         gmailSmtpServer: result.gmailSmtpServer || 'smtp.gmail.com',
         gmailSmtpPort: result.gmailSmtpPort || 587,
         webUrl: result.webUrl || '',
         llmBaseUrl: result.llmBaseUrl || '',
-        llmApiKey: result.llmApiKey || '',
+        llmApiKey: '',
         llmModel: result.llmModel || 'openai/gpt-4o-mini',
       })
       setHasChanges(false)
@@ -74,7 +74,7 @@ export default function System() {
         success: false,
         message: 'Fehler beim Senden der Test-Mail',
         usedEmail: '',
-        usedPassword: '',
+        usedPassword: false,
         usedSmtpServer: '',
         usedSmtpPort: 0,
       })
@@ -129,11 +129,18 @@ export default function System() {
               </div>
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2 mt-4">
                 <div>
-                  <label className="block text-sm text-muted mb-1">API-Key</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm text-muted">API-Key</label>
+                    {config?.llmApiKeySet && (
+                      <span className="text-xs text-success">gesetzt</span>
+                    )}
+                  </div>
                   <input
-                    type="text"
+                    type="password"
                     value={formData.llmApiKey || ''}
                     onChange={(e) => handleChange('llmApiKey', e.target.value)}
+                    placeholder={config?.llmApiKeySet ? 'Neuer Key (leer = beibehalten)' : 'API-Key'}
+                    autoComplete="new-password"
                     className="input-field w-full px-3 py-2 rounded-badge focus:outline-none font-mono"
                   />
                 </div>
@@ -190,11 +197,18 @@ export default function System() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-muted mb-1">App-Passwort</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm text-muted">App-Passwort</label>
+                    {config?.gmailAppPasswordSet && (
+                      <span className="text-xs text-success">gesetzt</span>
+                    )}
+                  </div>
                   <input
+                    type="password"
                     value={formData.gmailAppPassword || ''}
                     onChange={(e) => handleChange('gmailAppPassword', e.target.value)}
-                    placeholder="16-stellig"
+                    placeholder={config?.gmailAppPasswordSet ? 'Neues Passwort (leer = beibehalten)' : '16-stellig'}
+                    autoComplete="new-password"
                     className="input-field w-full px-3 py-2 rounded-badge focus:outline-none"
                   />
                 </div>
@@ -272,7 +286,7 @@ export default function System() {
                 </div>
                 <div className="text-sm text-muted space-y-1">
                   <p><span className="text-subtle">Verwendete Email:</span> {testMailResult.usedEmail || '-'}</p>
-                  <p><span className="text-subtle">Verwendetes Passwort:</span> {testMailResult.usedPassword || '-'}</p>
+                  <p><span className="text-subtle">Verwendetes Passwort:</span> {testMailResult.usedPassword ? 'gesetzt' : 'nicht gesetzt'}</p>
                   <p><span className="text-subtle">SMTP Server:</span> {testMailResult.usedSmtpServer || '-'}</p>
                   <p><span className="text-subtle">SMTP Port:</span> {testMailResult.usedSmtpPort || '-'}</p>
                 </div>

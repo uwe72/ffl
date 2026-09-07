@@ -21,7 +21,7 @@ server:
 
 app:
   jwt:
-    secret: ${APP_JWT_SECRET:ffl-local-dev-jwt-secret-0123456789abcdef}
+    secret: ${APP_JWT_SECRET:}
     expiration: 3600000
 
 ---

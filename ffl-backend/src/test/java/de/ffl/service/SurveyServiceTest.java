@@ -650,7 +650,21 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         req.setDeadline(LocalDateTime.now().plusDays(10));
         SurveyAdminDto dto = surveyService.createSurvey(req);
         assertThat(dto.getDeadline()).isEqualTo(req.getDeadline());
-        assertThat(surveyService.getPublicSurvey(dto.getId()).getDeadline()).isEqualTo(req.getDeadline());
+        assertThat(surveyService.getAdminSurvey(dto.getId()).getDeadline()).isEqualTo(req.getDeadline());
+    }
+
+    @Test
+    void getPublicSurvey_blocksAngelegt() {
+        SurveyAdminDto dto = surveyService.createSurvey(fullSurveyRequest());
+        assertThat(surveyService.getPublicSurvey(dto.getId())).isNull();
+    }
+
+    @Test
+    void getPublicSurvey_allowsGestartetAndBeendet() {
+        SurveyAdminDto dto = createStartedSurvey();
+        assertThat(surveyService.getPublicSurvey(dto.getId()).getId()).isEqualTo(dto.getId());
+        surveyService.endSurvey(dto.getId());
+        assertThat(surveyService.getPublicSurvey(dto.getId()).getId()).isEqualTo(dto.getId());
     }
 
     @Test

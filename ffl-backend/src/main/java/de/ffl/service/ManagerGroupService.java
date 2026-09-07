@@ -629,6 +629,19 @@ public class ManagerGroupService {
     }
 
     @Transactional(readOnly = true)
+    public List<ManagerGroupRoundStatsDto> getGroupsWithStatsForViewer(Long managerId) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null || !currentUser.getRole().name().equals("ADMIN")) {
+            Manager manager = managerId == null ? null : managerRepository.findById(managerId).orElse(null);
+            if (manager == null || manager.getUser() == null || currentUser == null
+                    || !manager.getUser().getId().equals(currentUser.getId())) {
+                throw new IllegalArgumentException("Kein Zugriff auf die Gruppen dieses Managers");
+            }
+        }
+        return getGroupsWithStatsByManagerId(managerId);
+    }
+
+    @Transactional(readOnly = true)
     public List<ManagerGroupRoundStatsDto> getGroupsWithStatsByManagerId(Long managerId) {
         if (managerId == null) {
             return Collections.emptyList();

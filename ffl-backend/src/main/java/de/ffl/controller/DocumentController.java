@@ -8,6 +8,8 @@ import de.ffl.service.DocumentService;
 import de.ffl.service.DownloadStatisticsService;
 import de.ffl.service.SeasonService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,6 +29,8 @@ import java.util.NoSuchElementException;
 @RestController
 @RequestMapping("/api/documents")
 public class DocumentController {
+
+    private static final Logger log = LoggerFactory.getLogger(DocumentController.class);
 
     private final DocumentService documentService;
     private final SeasonService seasonService;
@@ -91,7 +95,8 @@ public class DocumentController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Fehler beim Hochladen: " + e.getMessage());
+            log.error("Fehler beim Hochladen des Dokuments", e);
+            return ResponseEntity.internalServerError().body("Interner Serverfehler");
         }
     }
 

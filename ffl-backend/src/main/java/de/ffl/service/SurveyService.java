@@ -213,6 +213,9 @@ public class SurveyService {
     @Transactional(readOnly = true)
     public SurveyPublicDto getPublicSurvey(Long id) {
         Survey survey = requireSurvey(id);
+        if (survey.getStatus() != SurveyStatus.GESTARTET && survey.getStatus() != SurveyStatus.BEENDET) {
+            return null;
+        }
         return toPublicDto(survey);
     }
 

@@ -51,8 +51,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/users/*/avatar").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/manager-groups/*/logo").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/api/feedback/**").permitAll()

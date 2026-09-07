@@ -48,6 +48,11 @@ ffl-opencode/
 
 ### Backend starten
 
+Einmaliges Setup: `ffl-backend/.env.example` nach `ffl-backend/.env` kopieren und
+`APP_JWT_SECRET` setzen (mind. 32 Byte). Die Datei ist gitignored und liefert das
+JWT-Secret für den lokalen Start; in Docker/Prod setzt das Compose File
+`APP_JWT_SECRET` als Umgebungsvariable und hat Vorrang.
+
 ```bash
 cd ffl-backend
 ./mvnw spring-boot:run

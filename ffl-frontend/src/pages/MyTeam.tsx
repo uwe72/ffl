@@ -155,7 +155,7 @@ export default function MyTeam() {
   const [transferSuccess, setTransferSuccess] = useState('')
 
   const avatarInputRef = useRef<HTMLInputElement>(null)
-  const { data: avatarUrl } = useAvatar(isAdmin ? null : user?.id ?? null)
+  const { data: avatarUrl } = useAvatar(isAdmin ? manager?.userId ?? null : user?.id ?? null)
   const uploadAvatar = useUploadAvatar()
   const deleteAvatar = useDeleteAvatar()
 
@@ -818,8 +818,8 @@ export default function MyTeam() {
             <div className="relative group w-12 h-12 shrink-0">
               {isAdmin ? (
                 <div className="w-12 h-12 rounded-full overflow-hidden">
-                  {manager?.avatarUrl ? (
-                    <img src={manager.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-accent-muted text-accent flex items-center justify-center text-base font-bold">
                       {avatarInitials}

@@ -107,6 +107,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleGenericException(Exception ex) {
         log.error("Unbehandelte Ausnahme: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body("Interner Serverfehler: " + ex.getMessage());
+            .body("Interner Serverfehler");
     }
 }

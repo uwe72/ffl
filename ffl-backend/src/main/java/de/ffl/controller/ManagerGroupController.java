@@ -53,9 +53,13 @@ public class ManagerGroupController {
     }
 
     @GetMapping("/manager/{managerId}/with-stats")
-    public ResponseEntity<List<ManagerGroupRoundStatsDto>> getGroupsWithStatsByManagerId(@PathVariable Long managerId) {
-        List<ManagerGroupRoundStatsDto> groups = managerGroupService.getGroupsWithStatsByManagerId(managerId);
-        return ResponseEntity.ok(groups);
+    public ResponseEntity<?> getGroupsWithStatsByManagerId(@PathVariable Long managerId) {
+        try {
+            List<ManagerGroupRoundStatsDto> groups = managerGroupService.getGroupsWithStatsForViewer(managerId);
+            return ResponseEntity.ok(groups);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
@@ -141,7 +145,7 @@ public class ManagerGroupController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             log.error("uploadLogo: unexpected error for id={}", id, e);
-            return ResponseEntity.internalServerError().body("Fehler beim Hochladen des Bildes: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Interner Serverfehler");
         }
     }
 

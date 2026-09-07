@@ -3,7 +3,6 @@ package de.ffl.controller;
 import de.ffl.domain.Manager;
 import de.ffl.domain.ManagerRank;
 import de.ffl.domain.Season;
-import de.ffl.domain.SeasonState;
 import de.ffl.domain.User;
 import de.ffl.domain.UserRole;
 import de.ffl.dto.ManagerDto;
@@ -23,6 +22,7 @@ import de.ffl.service.ManagerGroupService;
 import de.ffl.service.ManagerService;
 import de.ffl.service.ManagerRoundService;
 import de.ffl.service.SeasonService;
+import de.ffl.service.ViewerAccessService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +50,9 @@ public class ManagerController {
     private final JdbcTemplate jdbcTemplate;
     private final UserRepository userRepository;
     private final SeasonService seasonService;
+    private final ViewerAccessService viewerAccessService;
 
-    public ManagerController(ManagerService managerService, ManagerRankRepository managerRankRepository, ManagerRoundService managerRoundService, PointsRepository pointsRepository, ManagerGroupService managerGroupService, JdbcTemplate jdbcTemplate, UserRepository userRepository, SeasonService seasonService) {
+    public ManagerController(ManagerService managerService, ManagerRankRepository managerRankRepository, ManagerRoundService managerRoundService, PointsRepository pointsRepository, ManagerGroupService managerGroupService, JdbcTemplate jdbcTemplate, UserRepository userRepository, SeasonService seasonService, ViewerAccessService viewerAccessService) {
         this.managerService = managerService;
         this.managerRankRepository = managerRankRepository;
         this.managerRoundService = managerRoundService;
@@ -60,22 +61,23 @@ public class ManagerController {
         this.jdbcTemplate = jdbcTemplate;
         this.userRepository = userRepository;
         this.seasonService = seasonService;
+        this.viewerAccessService = viewerAccessService;
     }
 
     @GetMapping
     public List<ManagerDto> getAllManagers() {
-        return managerService.findAll().stream()
+        return hideSquadsForBeforeSeason(managerService.findAll().stream()
             .map(this::filterWinterTransfersForViewer)
             .map(this::sanitizeForViewer)
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()));
     }
 
     @GetMapping("/season/{seasonId}")
     public List<ManagerDto> getManagersBySeason(@PathVariable Long seasonId) {
-        return managerService.findBySeasonId(seasonId).stream()
+        return hideSquadsForBeforeSeason(managerService.findBySeasonId(seasonId).stream()
             .map(this::filterWinterTransfersForViewer)
             .map(this::sanitizeForViewer)
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()));
     }
 
     @GetMapping("/{id}")
@@ -100,14 +102,26 @@ public class ManagerController {
     }
 
     @GetMapping("/{id}/round-details")
-    public ResponseEntity<List<RoundDetailDto>> getManagerRoundDetails(@PathVariable Long id) {
+    public ResponseEntity<?> getManagerRoundDetails(@PathVariable Long id) {
+        if (isForeignDetailBlocked(id)) {
+            return ResponseEntity.status(403).body("Zugriff verweigert: Fremde Kaderdaten sind vor Saisonstart nicht sichtbar");
+        }
         List<RoundDetailDto> details = managerRoundService.getRoundDetailsForManager(id);
+        if (hideManagerCountsForViewer()) {
+            details.forEach(detail -> detail.getPlayerPoints().forEach(pp -> pp.setManagerCount(null)));
+        }
         return ResponseEntity.ok(details);
     }
 
     @GetMapping("/{id}/current-players")
-    public ResponseEntity<List<RoundDetailDto.PlayerPointDto>> getCurrentPlayers(@PathVariable Long id) {
+    public ResponseEntity<?> getCurrentPlayers(@PathVariable Long id) {
+        if (isForeignDetailBlocked(id)) {
+            return ResponseEntity.status(403).body("Zugriff verweigert: Fremde Kaderdaten sind vor Saisonstart nicht sichtbar");
+        }
         List<RoundDetailDto.PlayerPointDto> players = managerRoundService.getCurrentPlayersForManager(id);
+        if (hideManagerCountsForViewer()) {
+            players.forEach(pp -> pp.setManagerCount(null));
+        }
         return ResponseEntity.ok(players);
     }
 
@@ -149,7 +163,7 @@ public class ManagerController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createManager(@Valid @RequestBody Manager manager) {
         try {
-            return ResponseEntity.ok(managerService.createManager(manager));
+            return ResponseEntity.ok(ManagerDto.fromEntity(managerService.createManager(manager)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -160,7 +174,7 @@ public class ManagerController {
     public ResponseEntity<?> updateManager(@PathVariable Long id, @Valid @RequestBody Manager manager) {
         manager.setId(id);
         try {
-            return ResponseEntity.ok(managerService.updateManager(manager));
+            return ResponseEntity.ok(ManagerDto.fromEntity(managerService.updateManager(manager)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -214,7 +228,7 @@ public class ManagerController {
             return ResponseEntity.ok(manager);
         } catch (Exception e) {
             log.error("getCurrentManager: error for userId={}, login={}", userId, login, e);
-            return ResponseEntity.internalServerError().body("Fehler beim Laden des Managers: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Interner Serverfehler");
         }
     }
 
@@ -267,8 +281,7 @@ public class ManagerController {
     }
 
     private boolean isCurrentUserAdmin() {
-        User user = getCurrentUser();
-        return user != null && user.getRole() == UserRole.ADMIN;
+        return viewerAccessService.isAdmin();
     }
 
     private User getCurrentUser() {
@@ -299,20 +312,50 @@ public class ManagerController {
         if (manager == null) {
             return null;
         }
-        Season season = seasonService.findCurrentSeason().orElse(null);
-        if (season == null || season.getSeasonState() != SeasonState.RUNNING_HINRUNDE) {
-            return manager;
-        }
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User effective = null;
-        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-            User user = userRepository.findByLogin(auth.getName()).orElse(null);
-            effective = user != null ? resolveEffectiveUser(user) : null;
-        }
-        if (effective == null || manager.getUserId() == null || !manager.getUserId().equals(effective.getId())) {
+        if (!viewerAccessService.canSeeWinterTransfersForManagerId(manager.getId())) {
             clearWinterTransfers(manager);
         }
         return manager;
+    }
+
+    private boolean isForeignDetailBlocked(Long managerId) {
+        if (viewerAccessService.isAdmin() || viewerAccessService.ownsManagerId(managerId)) {
+            return false;
+        }
+        return BeforeSeasonAccess.isDetailBlocked(seasonService);
+    }
+
+    private boolean hideManagerCountsForViewer() {
+        return !viewerAccessService.isAdmin() && viewerAccessService.isBeforeSeason();
+    }
+
+    private List<ManagerDto> hideSquadsForBeforeSeason(List<ManagerDto> managers) {
+        if (viewerAccessService.isAdmin() || !viewerAccessService.isBeforeSeason()) {
+            return managers;
+        }
+        managers.forEach(this::clearSquad);
+        return managers;
+    }
+
+    private void clearSquad(ManagerDto manager) {
+        manager.setPlayerGoalkeeper(null);
+        manager.setPlayerDefender1(null);
+        manager.setPlayerDefender2(null);
+        manager.setPlayerDefender3(null);
+        manager.setPlayerMidfield1(null);
+        manager.setPlayerMidfield2(null);
+        manager.setPlayerMidfield3(null);
+        manager.setPlayerStriker1(null);
+        manager.setPlayerStriker2(null);
+        manager.setPlayerStriker3(null);
+        manager.setPlayerFreeChoice(null);
+        manager.setPlayerExchangedOld1(null);
+        manager.setPlayerExchangedOld2(null);
+        manager.setPlayerExchangedOld3(null);
+        manager.setPlayerExchangedNew1(null);
+        manager.setPlayerExchangedNew2(null);
+        manager.setPlayerExchangedNew3(null);
+        manager.setTeamValue(null);
     }
 
     private void clearWinterTransfers(ManagerDto manager) {
@@ -338,7 +381,10 @@ public class ManagerController {
     }
 
     @GetMapping("/{id}/position-stats")
-    public ResponseEntity<PositionStatsDto> getManagerPositionStats(@PathVariable Long id) {
+    public ResponseEntity<?> getManagerPositionStats(@PathVariable Long id) {
+        if (isForeignDetailBlocked(id)) {
+            return ResponseEntity.status(403).body("Zugriff verweigert: Fremde Kaderdaten sind vor Saisonstart nicht sichtbar");
+        }
         PositionStatsDto stats = managerService.getPositionStatsForManager(id);
         if (stats == null) {
             return ResponseEntity.notFound().build();

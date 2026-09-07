@@ -11,7 +11,7 @@ public class TestMailResultDto {
     private boolean success;
     private String message;
     private String usedEmail;
-    private String usedPassword;
+    private boolean usedPassword;
     private String usedSmtpServer;
     private Integer usedSmtpPort;
 }

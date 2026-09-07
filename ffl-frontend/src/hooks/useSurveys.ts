@@ -30,6 +30,7 @@ export const usePublicSurvey = (id: number) => {
     queryKey: ['survey', 'public', id],
     queryFn: () => surveyPublicApi.get(id).then(res => res.data),
     enabled: !!id,
+    retry: false,
   })
 }
 

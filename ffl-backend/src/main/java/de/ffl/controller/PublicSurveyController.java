@@ -27,7 +27,8 @@ public class PublicSurveyController {
 
     @GetMapping("/{id}")
     public ResponseEntity<SurveyPublicDto> get(@PathVariable Long id) {
-        return ResponseEntity.ok(surveyService.getPublicSurvey(id));
+        SurveyPublicDto survey = surveyService.getPublicSurvey(id);
+        return survey == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(survey);
     }
 
     @PostMapping("/{id}/submit")

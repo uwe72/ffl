@@ -12,6 +12,8 @@ FFL (Fantasy Football League) is a full-stack application with:
 
 ### Backend (from `ffl-backend/`)
 
+One-time local setup: copy `.env.example` to `.env` (gitignored) and set `APP_JWT_SECRET` (min. 32 bytes) — required for local `spring-boot:run` starts. The startup check in `JwtTokenProvider` fails without it; in Docker/prod the Compose File sets `APP_JWT_SECRET` as env var, which takes precedence over `.env` (spring-dotenv).
+
 ```bash
 # Start backend server
 mvnw.cmd spring-boot:run

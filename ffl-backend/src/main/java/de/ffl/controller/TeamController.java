@@ -4,6 +4,7 @@ import de.ffl.domain.Team;
 import de.ffl.dto.PlayerDto;
 import de.ffl.repository.TeamRepository;
 import de.ffl.service.PlayerService;
+import de.ffl.service.ViewerAccessService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,10 +18,12 @@ public class TeamController {
 
     private final TeamRepository teamRepository;
     private final PlayerService playerService;
+    private final ViewerAccessService viewerAccessService;
 
-    public TeamController(TeamRepository teamRepository, PlayerService playerService) {
+    public TeamController(TeamRepository teamRepository, PlayerService playerService, ViewerAccessService viewerAccessService) {
         this.teamRepository = teamRepository;
         this.playerService = playerService;
+        this.viewerAccessService = viewerAccessService;
     }
 
     @GetMapping
@@ -45,7 +48,11 @@ public class TeamController {
         if (!teamRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(playerService.findByTeamId(id));
+        List<PlayerDto> players = playerService.findByTeamId(id);
+        if (!viewerAccessService.isAdmin() && viewerAccessService.isBeforeSeason()) {
+            players.forEach(player -> player.setManagerCount(null));
+        }
+        return ResponseEntity.ok(players);
     }
 
     @PostMapping

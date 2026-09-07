@@ -8,6 +8,7 @@ import de.ffl.dto.PlayerSearchDto;
 import de.ffl.service.BeforeSeasonAccess;
 import de.ffl.service.PlayerService;
 import de.ffl.service.SeasonService;
+import de.ffl.service.ViewerAccessService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,26 +22,28 @@ public class PlayerController {
 
     private final PlayerService playerService;
     private final SeasonService seasonService;
+    private final ViewerAccessService viewerAccessService;
 
-    public PlayerController(PlayerService playerService, SeasonService seasonService) {
+    public PlayerController(PlayerService playerService, SeasonService seasonService, ViewerAccessService viewerAccessService) {
         this.playerService = playerService;
         this.seasonService = seasonService;
+        this.viewerAccessService = viewerAccessService;
     }
 
     @GetMapping
     public List<PlayerDto> getAllPlayers() {
-        return playerService.findAll();
+        return hideManagerCountsForViewer(playerService.findAll());
     }
 
     @GetMapping("/season/{seasonId}")
     public List<PlayerDto> getPlayersBySeason(@PathVariable Long seasonId) {
-        return playerService.findBySeasonId(seasonId);
+        return hideManagerCountsForViewer(playerService.findBySeasonId(seasonId));
     }
 
     @GetMapping("/season/{seasonId}/position/{position}")
-    public List<PlayerDto> getPlayersByPosition(@PathVariable Long seasonId, 
+    public List<PlayerDto> getPlayersByPosition(@PathVariable Long seasonId,
                                               @PathVariable Position position) {
-        return playerService.findBySeasonAndPosition(seasonId, position);
+        return hideManagerCountsForViewer(playerService.findBySeasonAndPosition(seasonId, position));
     }
 
     @GetMapping("/{id}")
@@ -107,5 +110,13 @@ public class PlayerController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(ranks);
+    }
+
+    private List<PlayerDto> hideManagerCountsForViewer(List<PlayerDto> players) {
+        if (viewerAccessService.isAdmin() || !viewerAccessService.isBeforeSeason()) {
+            return players;
+        }
+        players.forEach(player -> player.setManagerCount(null));
+        return players;
     }
 }

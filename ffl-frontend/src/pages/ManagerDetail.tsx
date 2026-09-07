@@ -16,6 +16,7 @@ import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import { buildManagerGamePointsRows } from '../utils/managerGamePoints'
 import type { ManagerGamePointsRow } from '../utils/managerGamePoints'
+import { DEFAULT_START_ROUND_RUECKRUNDE } from '../utils/season'
 import { shortRuleLabel, splitGameName } from '../utils/gamePoints'
 import type { Player } from '../types'
 
@@ -355,10 +356,12 @@ export default function ManagerDetail() {
 
   const isAdmin = user?.role === 'ADMIN'
   const isOwnManager = !!(user && manager && manager.login === user.login)
-  const isHinrunde = season?.seasonState === 'RUNNING_HINRUNDE'
   const isOwnManagerForWinter = isOwnManager ||
     (isAdmin && !!manager?.login && manager.login === season?.adminFallbackUser)
-  const showWinterSections = !isHinrunde || isOwnManagerForWinter
+  const winterTransfersEffective =
+    season?.seasonState === 'RUNNING_RUECKRUNDE' ||
+    (season?.currentMatchday ?? 0) >= (season?.startRoundRueckrunde ?? DEFAULT_START_ROUND_RUECKRUNDE)
+  const showWinterSections = winterTransfersEffective || isOwnManagerForWinter
 
   const [stammdatenOpen, setStammdatenOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -902,24 +905,54 @@ export default function ManagerDetail() {
             <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
               <table className="w-full border-collapse text-sm table-fixed">
                 <colgroup>
-                  <col className="w-9" />
+                  {gameGroups.length === 0 && <col className="w-9" />}
                   <col className="w-auto" />
                   <col className="w-auto" />
                   <col className="w-9" />
                 </colgroup>
                 <thead className="bg-elevated sticky top-0">
                   <tr>
-                    <th colSpan={4} align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Punkte</th>
+                    <th colSpan={gameGroups.length > 0 ? 3 : 4} align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Punkte</th>
                   </tr>
-                  <tr>
-                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">SP.</th>
-                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">Spieler</th>
-                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">Regel</th>
-                    <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">PKT.</th>
-                  </tr>
+                  {gameGroups.length === 0 && (
+                    <tr>
+                      <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">SP.</th>
+                      <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">Spieler</th>
+                      <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">Regel</th>
+                      <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap overflow-hidden">PKT.</th>
+                    </tr>
+                  )}
                 </thead>
                 <tbody className="bg-surface">
-                  {gamePointsRows.map((row, index) => (
+                  {gameGroups.length > 0 ? gameGroups.map((group, groupIndex) => (
+                    <Fragment key={`mobile-group-${group.roundNumber}`}>
+                      <tr>
+                        <td colSpan={3} className="px-2 py-1.5 bg-elevated text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border">
+                          <span className="flex justify-between">
+                            <span>Spieltag {group.roundNumber}</span>
+                            {group.pointsRound != null && <span className="normal-case">{group.pointsRound} Punkte</span>}
+                          </span>
+                        </td>
+                      </tr>
+                      {group.rows.map((row, index) => (
+                        <tr key={`${row.roundNumber}-${row.playerId}-${row.rule}-${index}`} className={`hover:bg-card-hover border-b border-border ${groupIndex % 2 === 1 ? 'bg-zebra' : ''}`}>
+                          <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums min-w-0">
+                            <RouterLink to={`/players/${row.playerId}`} className="font-medium truncate block min-w-0 text-link">
+                              {row.playerName}
+                            </RouterLink>
+                          </td>
+                          <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums min-w-0 text-muted">
+                            <span className="truncate block min-w-0" title={`${shortRuleLabel(row.rule)}${row.count > 1 ? ` (${row.count}x)` : ''}`}>
+                              {shortRuleLabel(row.rule)}{row.count > 1 ? ` (${row.count}x)` : ''}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center font-bold text-foreground">
+                            {row.points}
+                          </td>
+                        </tr>
+                      ))}
+                    </Fragment>
+                  )) : gamePointsRows.map((row, index) => (
                     <tr key={`${row.roundNumber}-${row.playerId}-${row.rule}-${index}`} className={`hover:bg-card-hover border-b border-border ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
                       <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center font-medium text-foreground">
                         {row.roundNumber}
