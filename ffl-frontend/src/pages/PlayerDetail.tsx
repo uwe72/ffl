@@ -311,6 +311,9 @@ export default function PlayerDetail() {
     )
   }
 
+  const showSeasonColumns = player.season?.seasonState === 'RUNNING_RUECKRUNDE'
+  const managerColumnCount = showSeasonColumns ? 9 : 7
+
   return (
     <div className="max-w-6xl">
       <BackButton to="/players" className="mb-4" />
@@ -756,12 +759,16 @@ export default function PlayerDetail() {
                     <ThSortable align="center" onClick={() => handleSort('pointsLastRound')}>
                       {player?.season?.currentMatchday ? `${player.season.currentMatchday}. Spieltag` : 'Spieltag'}<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
-                    <ThSortable align="center" onClick={() => handleSort('hinrunde')}>
-                      Hinrunde<SortIcon column="hinrunde" activeKey={sortKey} order={sortOrder} />
-                    </ThSortable>
-                    <ThSortable align="center" onClick={() => handleSort('rueckrunde')}>
-                      Rückrunde<SortIcon column="rueckrunde" activeKey={sortKey} order={sortOrder} />
-                    </ThSortable>
+                    {showSeasonColumns && (
+                      <>
+                        <ThSortable align="center" onClick={() => handleSort('hinrunde')}>
+                          Hinrunde<SortIcon column="hinrunde" activeKey={sortKey} order={sortOrder} />
+                        </ThSortable>
+                        <ThSortable align="center" onClick={() => handleSort('rueckrunde')}>
+                          Rückrunde<SortIcon column="rueckrunde" activeKey={sortKey} order={sortOrder} />
+                        </ThSortable>
+                      </>
+                    )}
                   </tr>
                 </TableHead>
                 <TableBody>
@@ -797,25 +804,29 @@ export default function PlayerDetail() {
                         <td className="px-3 py-2 text-center text-muted">
                           {manager.pointsLastRound ?? '-'}
                         </td>
-                        <td className="px-3 py-2 text-center">
-                          {manager.hinrunde ? (
-                            <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-accent">Hin</span>
-                          ) : (
-                            <span className="text-subtle">-</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          {manager.rueckrunde ? (
-                            <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-success">Rück</span>
-                          ) : (
-                            <span className="text-subtle">-</span>
-                          )}
-                        </td>
+                        {showSeasonColumns && (
+                          <>
+                            <td className="px-3 py-2 text-center">
+                              {manager.hinrunde ? (
+                                <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-accent">Hin</span>
+                              ) : (
+                                <span className="text-subtle">-</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              {manager.rueckrunde ? (
+                                <span className="text-xs font-medium px-2 py-0.5 rounded-badge chip-success">Rück</span>
+                              ) : (
+                                <span className="text-subtle">-</span>
+                              )}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={9} className="text-center text-subtle py-8">
+                      <td colSpan={managerColumnCount} className="text-center text-subtle py-8">
                         Keine Manager gefunden
                       </td>
                     </tr>
