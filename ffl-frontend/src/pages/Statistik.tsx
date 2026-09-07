@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { ComposedChart, LineChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useVisitStats } from '../hooks/useVisitStats'
+import { useVisitTimeline } from '../hooks/useVisitTimeline'
 import { useInstallStats } from '../hooks/useInstallStats'
 import { useDownloadStats } from '../hooks/useDownloadStats'
-import type { VisitStatMonth, InstallStatMonth, DownloadStatMonth } from '../types'
+import type { VisitStatMonth, InstallStatMonth, DownloadStatMonth, VisitTimelineGranularity } from '../types'
 import BackButton from '../components/BackButton'
 import CardContainer from '../components/CardContainer'
 import Tabs from '../components/Tabs'
@@ -102,22 +103,252 @@ export default function Statistik() {
 
 function VisitsStatsPanel() {
   return (
-    <MonthlyStatPanel
-      useStats={useVisitStats}
-      toStatMonths={(months: VisitStatMonth[]) =>
-        months.map(m => ({
-          year: m.year,
-          month: m.month,
-          total: m.totalVisits,
-          users: m.users.map(({ visits, ...rest }) => ({ ...rest, count: visits })),
-        }))
+    <>
+      <MonthlyStatPanel
+        useStats={useVisitStats}
+        toStatMonths={(months: VisitStatMonth[]) =>
+          months.map(m => ({
+            year: m.year,
+            month: m.month,
+            total: m.totalVisits,
+            users: m.users.map(({ visits, ...rest }) => ({ ...rest, count: visits })),
+          }))
+        }
+        title="Besuchs-Statistik"
+        subtitle="Anzahl der Besuchtage pro Monat (jeder Benutzer zählt maximal einmal pro Kalendertag)"
+        countLabel="Besuche"
+        tooltipLabel="Besuche"
+        emptyText="Keine Besuche in diesem Monat"
+      />
+      <div className="mt-6">
+        <VisitTimelinePanel />
+      </div>
+    </>
+  )
+}
+
+const timelineOptions: { key: VisitTimelineGranularity; label: string }[] = [
+  { key: 'DAY', label: 'Tag' },
+  { key: 'WEEK', label: 'Woche' },
+  { key: 'MONTH', label: 'Monat' },
+  { key: 'QUARTER', label: 'Quartal' },
+  { key: 'YEAR', label: 'Jahr' },
+]
+
+type TimelineSortKey = 'period' | 'visits' | 'managers' | 'avg'
+
+function parsePeriodStart(value: string): Date {
+  const [y, m, d] = value.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+function isoWeekOf(d: Date): { week: number; year: number } {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+  const day = date.getUTCDay() || 7
+  date.setUTCDate(date.getUTCDate() + 4 - day)
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
+  const week = Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+  return { week, year: date.getUTCFullYear() }
+}
+
+function timelinePeriodLabel(periodStart: string, granularity: VisitTimelineGranularity): string {
+  const d = parsePeriodStart(periodStart)
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const yyyy = String(d.getFullYear())
+  switch (granularity) {
+    case 'DAY':
+      return `${dd}.${mm}.${yyyy}`
+    case 'WEEK': {
+      const w = isoWeekOf(d)
+      return `KW ${w.week}/${w.year}`
+    }
+    case 'MONTH':
+      return `${mm}/${yyyy}`
+    case 'QUARTER':
+      return `Q${Math.floor(d.getMonth() / 3) + 1}/${yyyy}`
+    case 'YEAR':
+      return yyyy
+  }
+}
+
+function timelineAxisLabel(periodStart: string, granularity: VisitTimelineGranularity): string {
+  if (granularity === 'DAY') {
+    const d = parsePeriodStart(periodStart)
+    const dd = String(d.getDate()).padStart(2, '0')
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    return `${dd}.${mm}.`
+  }
+  if (granularity === 'WEEK') {
+    return `KW ${isoWeekOf(parsePeriodStart(periodStart)).week}`
+  }
+  return timelinePeriodLabel(periodStart, granularity)
+}
+
+interface TimelineRow {
+  periodStart: string
+  visits: number
+  distinctManagers: number
+  avg: number
+  label: string
+  axis: string
+}
+
+function VisitTimelinePanel() {
+  const [granularity, setGranularity] = useState<VisitTimelineGranularity>('MONTH')
+  const [sortKey, setSortKey] = useState<TimelineSortKey>('period')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  const { data, isLoading, error } = useVisitTimeline(granularity)
+
+  const chartColors = useMemo(() => getChartColors(), [])
+
+  const rows = useMemo<TimelineRow[]>(() => {
+    return (data?.buckets ?? []).map(b => ({
+      periodStart: b.periodStart,
+      visits: b.visits,
+      distinctManagers: b.distinctManagers,
+      avg: b.distinctManagers > 0 ? b.visits / b.distinctManagers : 0,
+      label: timelinePeriodLabel(b.periodStart, granularity),
+      axis: timelineAxisLabel(b.periodStart, granularity),
+    }))
+  }, [data, granularity])
+
+  const chartData = useMemo(
+    () => rows.map(({ axis, visits, distinctManagers }) => ({ axis, visits, managers: distinctManagers })),
+    [rows]
+  )
+
+  const sortedRows = useMemo(() => {
+    const arr = [...rows]
+    arr.sort((a, b) => {
+      let cmp: number
+      if (sortKey === 'period') cmp = a.periodStart.localeCompare(b.periodStart)
+      else if (sortKey === 'visits') cmp = a.visits - b.visits
+      else if (sortKey === 'managers') cmp = a.distinctManagers - b.distinctManagers
+      else cmp = a.avg - b.avg
+      return sortOrder === 'asc' ? cmp : -cmp
+    })
+    return arr
+  }, [rows, sortKey, sortOrder])
+
+  const handleSort = (key: TimelineSortKey) => {
+    if (sortKey === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortKey(key)
+      setSortOrder('asc')
+    }
+  }
+
+  if (isLoading) return <div className="text-center py-8 text-muted">Laden...</div>
+  if (error) return <div className="text-center py-8 text-danger">Fehler beim Laden</div>
+
+  const totalManagers = data?.totalManagers ?? 0
+
+  const managersText = (row: TimelineRow): string => {
+    const percent = totalManagers > 0 ? Math.round((row.distinctManagers / totalManagers) * 100) : 0
+    return `${row.distinctManagers} von ${totalManagers} (${percent} %)`
+  }
+
+  const avgText = (row: TimelineRow): string =>
+    row.avg.toLocaleString('de-DE', { maximumFractionDigits: 1 })
+
+  return (
+    <CardContainer
+      title="Besuche im Zeitverlauf"
+      subtitle="Balken: alle Besuche im Zeitraum – Linie: verschiedene Manager im Zeitraum (jeder Manager zählt pro Zeitraum einmal, nicht aus Tageswerten aufsummiert)"
+      headerRight={
+        <label className="flex items-center gap-1.5 text-xs text-muted">
+          Granularität:
+          <select
+            value={granularity}
+            onChange={(e) => setGranularity(e.target.value as VisitTimelineGranularity)}
+            className="input-field py-1.5 pl-2 pr-6 text-xs"
+          >
+            {timelineOptions.map(option => (
+              <option key={option.key} value={option.key}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
       }
-      title="Besuchs-Statistik"
-      subtitle="Anzahl der Besuchtage pro Monat (jeder Benutzer zählt maximal einmal pro Kalendertag)"
-      countLabel="Besuche"
-      tooltipLabel="Besuche"
-      emptyText="Keine Besuche in diesem Monat"
-    />
+    >
+      <div className="px-6 pt-6 space-y-4">
+        <div className="bg-card p-4 rounded-card border border-border">
+          <ResponsiveContainer width="100%" height={300}>
+            <ComposedChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+              <XAxis dataKey="axis" stroke={chartColors.axis} />
+              <YAxis stroke={chartColors.axis} domain={[0, 'auto']} tickCount={10} allowDecimals={false} />
+              <Tooltip
+                cursor={{ fill: 'transparent' }}
+                wrapperStyle={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-surface border border-border rounded-card p-3 shadow-lg">
+                        <p className="text-foreground font-semibold">
+                          {timelinePeriodLabel(payload[0].payload.periodStart, granularity)}
+                        </p>
+                        {payload.map((entry, i) => (
+                          <p key={i} style={{ color: entry.color }}>
+                            {entry.name}: {entry.value}
+                          </p>
+                        ))}
+                      </div>
+                    )
+                  }
+                  return null
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: '12px', color: chartColors.axis }} iconType="circle" />
+              <Bar dataKey="visits" name="Besuche" fill={chartColors.accent} radius={[2, 2, 0, 0]} />
+              <Line
+                type="monotone"
+                dataKey="managers"
+                name="Verschiedene Manager"
+                stroke={chartColors.success}
+                strokeWidth={2}
+                dot={{ fill: chartColors.success, strokeWidth: 2 }}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <TableContent>
+        <table className="w-full">
+          <TableHead>
+            <tr>
+              <ThSortable onClick={() => handleSort('period')}>
+                Zeitraum<SortIcon column="period" activeKey={sortKey} order={sortOrder} />
+              </ThSortable>
+              <ThSortable numeric onClick={() => handleSort('visits')}>
+                Besuche<SortIcon column="visits" activeKey={sortKey} order={sortOrder} />
+              </ThSortable>
+              <ThSortable numeric onClick={() => handleSort('managers')}>
+                Verschiedene Manager<SortIcon column="managers" activeKey={sortKey} order={sortOrder} />
+              </ThSortable>
+              <ThSortable numeric onClick={() => handleSort('avg')}>
+                Ø Besuche je Manager<SortIcon column="avg" activeKey={sortKey} order={sortOrder} />
+              </ThSortable>
+            </tr>
+          </TableHead>
+          <TableBody>
+            {sortedRows.map(row => (
+              <tr key={row.periodStart} className="border-b border-border">
+                <Td>{row.label}</Td>
+                <Td numeric>{row.visits}</Td>
+                <Td numeric>{managersText(row)}</Td>
+                <Td numeric>{avgText(row)}</Td>
+              </tr>
+            ))}
+          </TableBody>
+        </table>
+      </TableContent>
+    </CardContainer>
   )
 }
 

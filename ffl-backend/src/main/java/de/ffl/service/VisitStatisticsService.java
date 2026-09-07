@@ -1,9 +1,13 @@
 package de.ffl.service;
 
 import de.ffl.domain.User;
+import de.ffl.domain.UserRole;
+import de.ffl.domain.VisitTimelineGranularity;
 import de.ffl.dto.VisitStatMonthDto;
 import de.ffl.dto.VisitStatUserDto;
 import de.ffl.dto.VisitStatisticDto;
+import de.ffl.dto.VisitTimelineBucketDto;
+import de.ffl.dto.VisitTimelineDto;
 import de.ffl.repository.UserRepository;
 import de.ffl.repository.VisitLogRepository;
 import org.slf4j.Logger;
@@ -12,10 +16,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,5 +92,67 @@ public class VisitStatisticsService {
         }
 
         return VisitStatisticDto.builder().months(months).build();
+    }
+
+    public VisitTimelineDto getTimeline(VisitTimelineGranularity granularity) {
+        LocalDate today = LocalDate.now();
+        LocalDate currentStart = switch (granularity) {
+            case DAY -> today;
+            case WEEK -> today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+            case MONTH -> today.withDayOfMonth(1);
+            case QUARTER -> today.withMonth(((today.getMonthValue() - 1) / 3) * 3 + 1).withDayOfMonth(1);
+            case YEAR -> today.withDayOfYear(1);
+        };
+        LocalDate from = switch (granularity) {
+            case DAY -> currentStart.minusDays(59);
+            case WEEK -> currentStart.minusWeeks(25);
+            case MONTH -> currentStart.minusMonths(23);
+            case QUARTER -> currentStart.minusMonths(21);
+            case YEAR -> currentStart.minusYears(4);
+        };
+        LocalDate to = switch (granularity) {
+            case DAY -> currentStart.plusDays(1);
+            case WEEK -> currentStart.plusWeeks(1);
+            case MONTH -> currentStart.plusMonths(1);
+            case QUARTER -> currentStart.plusMonths(3);
+            case YEAR -> currentStart.plusYears(1);
+        };
+
+        Map<LocalDate, long[]> countsByPeriod = new HashMap<>();
+        for (Object[] row : visitLogRepository.countVisitsByPeriod(granularity.name().toLowerCase(), from, to)) {
+            countsByPeriod.put(toLocalDate(row[0]), new long[]{
+                ((Number) row[1]).longValue(), ((Number) row[2]).longValue()});
+        }
+
+        List<VisitTimelineBucketDto> buckets = new ArrayList<>();
+        LocalDate cursor = from;
+        while (cursor.isBefore(to)) {
+            long[] counts = countsByPeriod.getOrDefault(cursor, new long[]{0L, 0L});
+            buckets.add(VisitTimelineBucketDto.builder()
+                .periodStart(cursor)
+                .visits(counts[0])
+                .distinctManagers(counts[1])
+                .build());
+            cursor = switch (granularity) {
+                case DAY -> cursor.plusDays(1);
+                case WEEK -> cursor.plusWeeks(1);
+                case MONTH -> cursor.plusMonths(1);
+                case QUARTER -> cursor.plusMonths(3);
+                case YEAR -> cursor.plusYears(1);
+            };
+        }
+
+        return VisitTimelineDto.builder()
+            .granularity(granularity.name())
+            .totalManagers(userRepository.countByRole(UserRole.NORMAL))
+            .buckets(buckets)
+            .build();
+    }
+
+    private LocalDate toLocalDate(Object value) {
+        if (value instanceof java.sql.Date date) return date.toLocalDate();
+        if (value instanceof LocalDate localDate) return localDate;
+        if (value instanceof java.sql.Timestamp timestamp) return timestamp.toLocalDateTime().toLocalDate();
+        throw new IllegalStateException("Unerwarteter Typ für Periodenstart: " + value.getClass());
     }
 }

@@ -22,4 +22,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying
     @Query("DELETE FROM User u WHERE u.role <> :role")
     void deleteByRoleNot(@Param("role") UserRole role);
+
+    long countByRole(UserRole role);
 }

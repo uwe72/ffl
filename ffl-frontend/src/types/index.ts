@@ -562,6 +562,20 @@ export interface VisitStatistics {
   months: VisitStatMonth[]
 }
 
+export type VisitTimelineGranularity = 'DAY' | 'WEEK' | 'MONTH' | 'QUARTER' | 'YEAR'
+
+export interface VisitTimelineBucket {
+  periodStart: string
+  visits: number
+  distinctManagers: number
+}
+
+export interface VisitTimeline {
+  granularity: VisitTimelineGranularity
+  totalManagers: number
+  buckets: VisitTimelineBucket[]
+}
+
 export interface InstallStatUser {
   login: string
   firstName?: string
