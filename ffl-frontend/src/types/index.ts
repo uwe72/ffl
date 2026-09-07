@@ -527,6 +527,8 @@ export interface ManagerGroupRoundStats {
   standard?: boolean
   managers: {
     managerId: number
+    userId?: number
+    visitCount?: number
     managerName: string
     shortName?: string
     firstName?: string

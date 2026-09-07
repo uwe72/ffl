@@ -333,6 +333,7 @@ import BackButton from '../components/BackButton'
 
 ## Important Notes
 
+- **Admin-only = backend security, not UI logic** - Whenever the user says something "darf nur für Admin angezeigt werden" (visible only for admins), this is **NOT just UI logic**! These are critical pieces of information that only an admin may see and they **MUST be secured on the backend**. Hiding a column/section in React is not protection: any authenticated non-admin can see the raw API response (e.g. via browser DevTools → Network). The backend must enforce it itself - e.g. `@PreAuthorize("hasRole('ADMIN')")` on admin-only endpoints, or nulling/removing the sensitive fields in the returned DTOs for non-admin viewers (see `sanitizeVisitCountForViewer` in `ManagerController.java` for the DTO-sanitizing pattern and `FriendTeamController.java` `/counts` for the 403 pattern). New admin-only data must be accompanied by backend tests proving non-admins do not receive the field.
 - **No comments in code** unless explicitly requested
 - **Tests exist** in `ffl-backend/src/test/java/de/ffl/` and run automatically in the CI pipeline (GitHub Actions) on every push to `main`
 - **Port 8080** is the default backend port

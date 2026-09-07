@@ -507,7 +507,7 @@ export default function ManagerDetail() {
   if (isLoading) {
     return (
       <div className="max-w-7xl" aria-busy="true">
-        <BackButton to="/managers" className="mb-4" />
+        <BackButton to="/?tab=manager" className="mb-4" />
         <div className="p-4 bg-elevated border border-border rounded-card mb-6">
           <div className="flex items-stretch gap-6">
             <div className="aspect-square rounded-full bg-card-muted animate-pulse motion-reduce:animate-none shrink-0" />
@@ -530,7 +530,7 @@ export default function ManagerDetail() {
   if (error) {
     return (
       <div className="max-w-7xl">
-        <BackButton to="/managers" className="mb-4" />
+        <BackButton to="/?tab=manager" className="mb-4" />
         <div className="flex items-center gap-3 p-3 bg-danger-bg border border-danger/30 rounded-card">
           <i className="sap-icon sap-icon-alert text-[18px] text-danger shrink-0" />
           <p className="text-danger text-sm">Fehler beim Laden des Managers.</p>
@@ -541,7 +541,7 @@ export default function ManagerDetail() {
   if (!manager) {
     return (
       <div className="max-w-7xl">
-        <BackButton to="/managers" className="mb-4" />
+        <BackButton to="/?tab=manager" className="mb-4" />
         <div className="flex items-center gap-3 p-3 bg-info-bg border border-info/30 rounded-card">
           <i className="sap-icon sap-icon-information text-[18px] text-info shrink-0" />
           <p className="text-sm text-foreground">Manager nicht gefunden.</p>
@@ -579,7 +579,7 @@ export default function ManagerDetail() {
 
   return (
     <div className="max-w-7xl">
-      <BackButton to="/managers" className="mb-4" />
+      <BackButton to="/?tab=manager" className="mb-4" />
 
       <div className={`${isMobile ? 'p-2 bg-surface mb-1' : 'p-4 bg-elevated mb-6'} border border-border rounded-card`}>
         <div className="flex items-center gap-4">

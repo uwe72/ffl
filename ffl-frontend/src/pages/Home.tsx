@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-d
 import { useCurrentManager, useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useDashboardAufstellung } from '../hooks/useDashboard'
-import { useFavorites, useAddFavorite, useRemoveFavorite, useSetStandard } from '../hooks/useFavorites'
+import { useFavorites, useFavoriteCounts, useAddFavorite, useRemoveFavorite, useSetStandard } from '../hooks/useFavorites'
 import { useMyGroupsWithStats, useGroupLogo, useSetStandardGroup } from '../hooks/useManagerGroups'
 import { useAuth } from '../context/AuthContext'
 import useIsMobile from '../hooks/useIsMobile'
@@ -188,6 +188,15 @@ function GroupsHelpOptions() {
       <HelpRow icon={<i className="sap-icon sap-icon-accept text-accent text-[14px]" />}>
         <span className="font-semibold">Als Standard</span> – Die als Standard gesetzte Gruppe wird beim Öffnen des Dashboards vorausgewählt. Über den „..."-Button als Standard setzen; ist die Gruppe bereits Standard, wird dies dort angezeigt.
       </HelpRow>
+      <HelpRow icon={<i className="sap-icon sap-icon-filter text-accent text-[14px]" />}>
+        <span className="font-semibold">Kompakt / Detail</span> – Kompakte Ansicht (weniger Spalten) oder Detail-Ansicht umschalten; die Auswahl bleibt erhalten.
+      </HelpRow>
+      <HelpRow icon={<i className="sap-icon sap-icon-favorite text-accent text-[14px]" />}>
+        <span className="font-semibold">Favoriten</span> – Anzahl der Manager, die dieses Team als Favorit gesetzt haben (nur für Admins in der Detail-Ansicht).
+      </HelpRow>
+      <HelpRow icon={<i className="sap-icon sap-icon-employee-lookup text-accent text-[14px]" />}>
+        <span className="font-semibold">Besuche</span> – Anzahl der Besuche des Users auf der Seite (nur für Admins in der Detail-Ansicht).
+      </HelpRow>
     </div>
   )
 }
@@ -235,7 +244,7 @@ function ManagersHelpOptions() {
   )
 }
 
-type GroupManagerSortKey = 'shortName' | 'firstName' | 'lastName' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound' | 'einsatzquote'
+type GroupManagerSortKey = 'shortName' | 'firstName' | 'lastName' | 'positionTotal' | 'positionChange' | 'pointsTotal' | 'pointsLastRound' | 'einsatzquote' | 'favoriteCount' | 'visitCount'
 
 function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLabel, showCarouselNav, carouselPosition, onPrev, onNext }: {
   group: ManagerGroupRoundStats
@@ -248,6 +257,27 @@ function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLa
   onNext: () => void
 }) {
   const { data: logoUrl } = useGroupLogo(group.hasLogo ? group.groupId : null)
+  const { user } = useAuth()
+  const { data: currentSeason } = useCurrentSeason()
+  const isAdmin = user?.role === 'ADMIN'
+  const [compact, setCompact] = useState(() => {
+    const stored = localStorage.getItem('ffl-group-compact')
+    return stored !== 'false'
+  })
+  const handleSetCompact = (next: boolean) => {
+    setCompact(next)
+    localStorage.setItem('ffl-group-compact', String(next))
+  }
+  const showFavoriteColumn = isAdmin
+  const showVisitColumn = isAdmin
+  const { data: favoriteCounts } = useFavoriteCounts(currentSeason?.id ?? 0, showFavoriteColumn)
+  const favoriteCountsMap = useMemo(() => {
+    const map = new Map<number, number>()
+    if (favoriteCounts) {
+      Object.entries(favoriteCounts).forEach(([key, value]) => map.set(Number(key), value))
+    }
+    return map
+  }, [favoriteCounts])
   const creatorName =
     group.createdByFirstName && group.createdByLastName
       ? `${group.createdByFirstName} ${group.createdByLastName} (${group.createdByLogin})`
@@ -293,10 +323,16 @@ function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLa
         case 'einsatzquote':
           comparison = (a.einsatzquote ?? 0) - (b.einsatzquote ?? 0)
           break
+        case 'favoriteCount':
+          comparison = (favoriteCountsMap.get(b.userId ?? 0) ?? 0) - (favoriteCountsMap.get(a.userId ?? 0) ?? 0)
+          break
+        case 'visitCount':
+          comparison = (a.visitCount ?? 0) - (b.visitCount ?? 0)
+          break
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-  }, [group.managers, sortKey, sortOrder])
+  }, [group.managers, sortKey, sortOrder, favoriteCountsMap])
 
   return (
     <div className="p-6 bg-surface border border-border rounded-card w-fit max-w-full flex-1 min-h-0 flex flex-col">
@@ -347,6 +383,16 @@ function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLa
           )}
         </h3>
       </div>
+      <div className="flex items-center gap-3 mb-4 shrink-0">
+        <button
+          onClick={() => handleSetCompact(!compact)}
+          title="Kompakte Ansicht (weniger Spalten) oder Detail-Ansicht"
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${compact ? 'bg-info-bg text-info border-info' : 'bg-elevated text-muted border-border'} cursor-pointer`}
+        >
+          <i className="sap-icon sap-icon-filter text-[12px]" />
+          {compact ? 'Kompakt' : 'Detail'}
+        </button>
+      </div>
         <div className="flex-1 min-h-0 overflow-auto rounded-card border border-border w-fit max-w-full">
         <table className="w-full max-w-[1100px]">
           <TableHead>
@@ -380,9 +426,19 @@ function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLa
                   {matchdayLabel}<SortIcon column="pointsLastRound" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
               )}
-              {!isBeforeSeason && (
+              {!isBeforeSeason && !compact && (
                 <ThSortable align="center" onClick={() => handleSort('einsatzquote')}>
                   Einsatzquote<SortIcon column="einsatzquote" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+              )}
+              {!compact && showFavoriteColumn && (
+                <ThSortable align="center" onClick={() => handleSort('favoriteCount')}>
+                  Favoriten<SortIcon column="favoriteCount" activeKey={sortKey} order={sortOrder} />
+                </ThSortable>
+              )}
+              {!compact && showVisitColumn && (
+                <ThSortable align="center" onClick={() => handleSort('visitCount')}>
+                  Besuche<SortIcon column="visitCount" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
               )}
             </tr>
@@ -439,9 +495,19 @@ function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLa
                     {m.pointsLastRound ?? '-'}
                   </td>
                 )}
-                {!isBeforeSeason && (
+                {!isBeforeSeason && !compact && (
                   <td className="px-3 py-2 text-center text-foreground tabular-nums">
                     {m.einsatzquote != null ? `${m.einsatzquote} %` : '-'}
+                  </td>
+                )}
+                {!compact && showFavoriteColumn && (
+                  <td className="px-3 py-2 text-center text-foreground tabular-nums">
+                    {favoriteCounts ? (favoriteCountsMap.get(m.userId ?? 0) ?? 0) : '-'}
+                  </td>
+                )}
+                {!compact && showVisitColumn && (
+                  <td className="px-3 py-2 text-center text-foreground tabular-nums">
+                    {m.visitCount ?? 0}
                   </td>
                 )}
               </tr>
@@ -449,7 +515,7 @@ function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLa
             })}
             {sortedManagers.length === 0 && (
               <tr>
-                <td colSpan={isBeforeSeason ? 3 : 8} className="text-center text-subtle py-8">
+                <td colSpan={(isBeforeSeason ? 3 : 8) + (showFavoriteColumn ? 1 : 0) + (showVisitColumn ? 1 : 0) - (compact ? ((!isBeforeSeason ? 1 : 0) + (showFavoriteColumn ? 1 : 0) + (showVisitColumn ? 1 : 0)) : 0)} className="text-center text-subtle py-8">
                   Keine Manager in dieser Gruppe
                 </td>
               </tr>

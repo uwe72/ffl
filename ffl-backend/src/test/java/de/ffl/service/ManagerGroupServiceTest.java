@@ -397,4 +397,63 @@ class ManagerGroupServiceTest extends AbstractSeasonTestBase {
         assertEquals(-1, creator.getPositionChange());
         assertEquals(2, referenced.getPositionChange());
     }
+
+    @Test
+    void myGroupsWithStats_nonAdmin_visitCountHidden() {
+        creatorUser = createUser("creator");
+        creatorUser.setVisitCount(7);
+        userRepository.save(creatorUser);
+        Manager creatorManager = createManager(creatorUser, season);
+
+        authenticateAs("creator");
+        Long groupId = createGroup("MitUserDaten", season.getId(), List.of());
+
+        authenticateAs("creator");
+        List<ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
+        ManagerGroupRoundStatsDto own = groups.stream()
+            .filter(g -> g.getGroupId().equals(groupId))
+            .findFirst()
+            .orElseThrow();
+
+        ManagerGroupRoundStatsDto.ManagerRoundDataDto creator = own.getManagers().stream()
+            .filter(m -> m.getManagerId().equals(creatorManager.getId()))
+            .findFirst().orElseThrow();
+
+        assertNull(creator.getUserId());
+        assertNull(creator.getVisitCount());
+    }
+    @Test
+    void myGroupsWithStats_admin_visitCountVisible() {
+        season.setAdminFallbackUser("uwe72");
+        User uweUser = managerUwe72.getUser();
+        uweUser.setVisitCount(7);
+        userRepository.save(uweUser);
+
+        User admin = User.builder()
+            .login("admin")
+            .password("$2a$10$test")
+            .email("admin@test.de")
+            .firstName("Admin")
+            .lastName("Test")
+            .role(UserRole.ADMIN)
+            .build();
+        userRepository.save(admin);
+
+        authenticateAs("uwe72");
+        Long groupId = createGroup("AdminStatsGruppe", season.getId(), List.of());
+
+        authenticateAs("admin");
+        List<ManagerGroupRoundStatsDto> groups = managerGroupService.getMyGroupsWithStats();
+        ManagerGroupRoundStatsDto own = groups.stream()
+            .filter(g -> g.getGroupId().equals(groupId))
+            .findFirst()
+            .orElseThrow();
+
+        ManagerGroupRoundStatsDto.ManagerRoundDataDto uwe = own.getManagers().stream()
+            .filter(m -> m.getManagerId().equals(managerUwe72.getId()))
+            .findFirst().orElseThrow();
+
+        assertEquals(7, uwe.getVisitCount());
+        assertEquals(uweUser.getId(), uwe.getUserId());
+    }
 }

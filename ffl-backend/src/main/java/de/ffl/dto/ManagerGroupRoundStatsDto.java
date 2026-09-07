@@ -40,6 +40,8 @@ public class ManagerGroupRoundStatsDto {
 
     public static class ManagerRoundDataDto {
         private Long managerId;
+        private Long userId;
+        private Integer visitCount;
         private String managerName;
         private String shortName;
         private String firstName;
@@ -55,6 +57,10 @@ public class ManagerGroupRoundStatsDto {
 
         public Long getManagerId() { return managerId; }
         public void setManagerId(Long managerId) { this.managerId = managerId; }
+        public Long getUserId() { return userId; }
+        public void setUserId(Long userId) { this.userId = userId; }
+        public Integer getVisitCount() { return visitCount; }
+        public void setVisitCount(Integer visitCount) { this.visitCount = visitCount; }
         public String getManagerName() { return managerName; }
         public void setManagerName(String managerName) { this.managerName = managerName; }
         public String getShortName() { return shortName; }

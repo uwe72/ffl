@@ -19,7 +19,7 @@ export default function ManagerGalleryRoute({ children }: ManagerGalleryRoutePro
   const canAccess = user?.role === 'ADMIN' || !!user?.avatarUrl
 
   if (!canAccess) {
-    return <Navigate to="/managers" replace />
+    return <Navigate to="/?tab=manager" replace />
   }
 
   return <>{children}</>

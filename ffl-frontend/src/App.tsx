@@ -10,7 +10,6 @@ import Teams from './pages/Teams'
 import TeamDetail from './pages/TeamDetail'
 import Players from './pages/Players'
 import PlayerDetail from './pages/PlayerDetail'
-import Managers from './pages/Managers'
 import ManagerDetail from './pages/ManagerDetail'
 import ManagerGallery from './pages/ManagerGallery'
 import ManagerGroups from './pages/ManagerGroups'
@@ -109,14 +108,9 @@ function App() {
                 <SurveyAdmin />
               </ProtectedRoute>
             } />
-            <Route path="managers" element={
-              <ProtectedRoute>
-                <Managers />
-              </ProtectedRoute>
-            } />
             <Route path="managers/:id" element={
               <ProtectedRoute>
-                <BeforeSeasonDetailRoute redirectTo="/managers"><ManagerDetail /></BeforeSeasonDetailRoute>
+                <BeforeSeasonDetailRoute redirectTo="/?tab=manager"><ManagerDetail /></BeforeSeasonDetailRoute>
               </ProtectedRoute>
             } />
             <Route path="manager-galerie" element={

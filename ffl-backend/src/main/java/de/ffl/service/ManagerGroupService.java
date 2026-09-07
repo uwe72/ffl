@@ -642,6 +642,7 @@ public class ManagerGroupService {
     }
 
     private ManagerGroupRoundStatsDto convertToRoundStatsDto(ManagerGroup group, Long currentManagerId) {
+        User viewer = getCurrentUser();
         ManagerGroupRoundStatsDto dto = new ManagerGroupRoundStatsDto();
         dto.setGroupId(group.getId());
         dto.setGroupName(group.getName());
@@ -655,7 +656,7 @@ public class ManagerGroupService {
             dto.setCreatedByFirstName(group.getCreatedBy().getFirstName());
             dto.setCreatedByLastName(group.getCreatedBy().getLastName());
         }
-        dto.setEditable(canEditGroup(group, getCurrentUser()));
+        dto.setEditable(canEditGroup(group, viewer));
 
         Hibernate.initialize(group.getManagers());
         
@@ -671,6 +672,10 @@ public class ManagerGroupService {
                 
                 if (manager.getUser() != null) {
                     Hibernate.initialize(manager.getUser());
+                    if (viewer != null && viewer.getRole() != null && "ADMIN".equals(viewer.getRole().name())) {
+                        mDto.setUserId(manager.getUser().getId());
+                        mDto.setVisitCount(manager.getUser().getVisitCount() != null ? manager.getUser().getVisitCount() : 0);
+                    }
                     mDto.setFirstName(manager.getUser().getFirstName());
                     mDto.setLastName(manager.getUser().getLastName());
                     mDto.setLogin(manager.getUser().getLogin());

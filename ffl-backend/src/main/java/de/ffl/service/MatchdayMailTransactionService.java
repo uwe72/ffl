@@ -592,7 +592,7 @@ public class MatchdayMailTransactionService {
             if (webUrl != null && !webUrl.isBlank()) {
                 String base = webUrl.endsWith("/") ? webUrl.substring(0, webUrl.length() - 1) : webUrl;
                 sb.append("<div style=\"margin-top:8px;text-align:right;font-size:12px;\">")
-                  .append("<a href=\"").append(escape(base)).append("/managers\" style=\"color:").append(linkColor).append(";text-decoration:none;\">")
+                  .append("<a href=\"").append(escape(base)).append("/?tab=manager\" style=\"color:").append(linkColor).append(";text-decoration:none;\">")
                   .append("Gesamtrangliste</a></div>");
             }
         }
