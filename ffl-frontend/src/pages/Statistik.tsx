@@ -215,7 +215,7 @@ function VisitTimelinePanel() {
   }, [data, granularity])
 
   const chartData = useMemo(
-    () => rows.map(({ axis, visits, distinctManagers }) => ({ axis, visits, managers: distinctManagers })),
+    () => rows.map(({ periodStart, axis, visits, distinctManagers }) => ({ periodStart, axis, visits, managers: distinctManagers })),
     [rows]
   )
 
