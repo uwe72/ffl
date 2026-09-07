@@ -401,14 +401,6 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
             </button>
           )
         })}
-        <button
-          onClick={cycleAktiv}
-          title="Aktiv: aktueller Bundesliga-Spieler · Inaktiv: Spieler hat die Bundesliga verlassen (z.B. Transfer ins Ausland, Karriereende) · Alle: beide Gruppen anzeigen"
-          className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${aktivClass} cursor-pointer`}
-        >
-          <i className="sap-icon sap-icon-check-availability text-[12px]" />
-          {aktivLabel}
-        </button>
       </div>
 
       {!hideTeamFilter && (
@@ -436,6 +428,17 @@ function PlayerFilterBar({ variant = 'bar', count, selectedPositions, setSelecte
           className="input-field control pl-8 pr-3 py-1.5 text-xs text-left w-full"
         />
       </div>
+      )}
+
+      {!compactActive && (
+      <button
+        onClick={cycleAktiv}
+        title="Aktiv: aktueller Bundesliga-Spieler · Inaktiv: Spieler hat die Bundesliga verlassen (z.B. Transfer ins Ausland, Karriereende) · Alle: beide Gruppen anzeigen"
+        className={`inline-flex items-center gap-1 px-2 py-1 rounded-badge text-xs font-medium border transition-colors ${aktivClass} cursor-pointer`}
+      >
+        <i className="sap-icon sap-icon-check-availability text-[12px]" />
+        {aktivLabel}
+      </button>
       )}
 
       {!hidePriceFilter && !compactActive && (

@@ -44,10 +44,6 @@ function managerLogin(m: { shortName?: string; name?: string }): string {
   return m.shortName ?? m.name ?? '-'
 }
 
-function managerFullName(m: { firstName?: string; lastName?: string; name?: string }): string {
-  return [m.firstName, m.lastName].filter(Boolean).join(' ') || m.name || '-'
-}
-
 function GameNameCell({ row }: { row: { gameName: string; homeAway?: string; goalHost?: number; goalVisitor?: number } }) {
   return (
     <td className="px-3 py-2 text-foreground whitespace-nowrap">
@@ -837,12 +833,13 @@ export default function PlayerDetail() {
                   <col className="w-9" />
                   <col className="w-auto" />
                   <col className="w-auto" />
+                  <col className="w-auto" />
                   <col className="w-9" />
                   <col className="w-9" />
                 </colgroup>
                 <thead className="bg-elevated sticky top-0">
                   <tr>
-                    <th colSpan={3} align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">
+                    <th colSpan={4} align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">
                       Manager
                     </th>
                     <th colSpan={2} align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">
@@ -851,8 +848,9 @@ export default function PlayerDetail() {
                   </tr>
                   <tr>
                     <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">POS</th>
-                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Manager</th>
-                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Name</th>
+                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Kurzname</th>
+                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Vorname</th>
+                    <th align="left" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Nachname</th>
                     <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">GES.</th>
                     <th align="center" className="px-2 py-2 text-[12px] font-semibold uppercase tracking-wider text-muted border-b border-border whitespace-nowrap">Sp.</th>
                   </tr>
@@ -869,8 +867,13 @@ export default function PlayerDetail() {
                         </RouterLink>
                       </td>
                       <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums min-w-0">
-                        <span className="text-foreground truncate block min-w-0" title={managerFullName(m)}>
-                          {managerFullName(m)}
+                        <span className="text-foreground truncate block min-w-0" title={m.firstName || '-'}>
+                          {m.firstName || '-'}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums min-w-0">
+                        <span className="text-foreground truncate block min-w-0" title={m.lastName || '-'}>
+                          {m.lastName || '-'}
                         </span>
                       </td>
                       <td className="px-2 py-2 border-b border-border overflow-hidden tabular-nums text-center font-bold text-foreground">
@@ -883,7 +886,7 @@ export default function PlayerDetail() {
                   ))}
                   {mobileManagers.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="text-center text-subtle py-8">Keine Manager gefunden</td>
+                      <td colSpan={6} className="text-center text-subtle py-8">Keine Manager gefunden</td>
                     </tr>
                   )}
                 </tbody>

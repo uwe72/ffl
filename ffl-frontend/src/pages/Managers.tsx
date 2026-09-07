@@ -212,7 +212,7 @@ export default function Managers({ fill = false, showEinsatzquote = false, showF
               type="text"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Manager suchen..."
+              placeholder="Suchen über Kurzname, Vorname oder Nachname"
               className="input-field control pl-8 pr-3 py-1.5 text-xs text-left w-full"
             />
           </div>
@@ -247,7 +247,7 @@ export default function Managers({ fill = false, showEinsatzquote = false, showF
                     </ThSortable>
                     )}
                     <ThSortable align="left" onClick={() => handleSort('shortName')}>
-                      Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
+                      Kurzname<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
                     <ThSortable align="left" onClick={() => handleSort('firstName')}>
                       Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />

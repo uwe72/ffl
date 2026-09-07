@@ -61,10 +61,6 @@ function managerLogin(m: { login?: string; managerName?: string; shortName?: str
   return m.login ?? m.managerName ?? m.shortName ?? '-'
 }
 
-function managerFullName(m: { firstName?: string; lastName?: string; managerName?: string }): string {
-  return [m.firstName, m.lastName].filter(Boolean).join(' ') || m.managerName || '-'
-}
-
 function HelpRow({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
     <div className="flex items-start gap-2.5">
@@ -224,7 +220,7 @@ function GroupsHelpTable() {
         <span className="font-semibold">Punkte</span> – „GES." = Gesamtpunkte · „Sp." = Punkte des aktuellen Spieltags
       </HelpRow>
       <HelpRow icon={<i className="sap-icon sap-icon-employee text-accent text-[14px]" />}>
-        <span className="font-semibold">Manager</span> – Über den Login-Namen gelangst du zur Manager-Detailseite; die eigene Zeile ist hervorgehoben.
+        <span className="font-semibold">Kurzname</span> – Über den Login-Namen gelangst du zur Manager-Detailseite; die eigene Zeile ist hervorgehoben.
       </HelpRow>
     </div>
   )
@@ -408,7 +404,7 @@ function GroupHomeCard({ group, canNavigateToManager, isBeforeSeason, matchdayLa
                 </ThSortable>
               )}
               <ThSortable align="left" onClick={() => handleSort('shortName')}>
-                Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
+                Kurzname<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
               </ThSortable>
               <ThSortable align="left" onClick={() => handleSort('firstName')}>
                 Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
@@ -537,12 +533,13 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
           <col className="w-9" />
           <col className="w-auto" />
           <col className="w-auto" />
+          <col className="w-auto" />
           <col className="w-9" />
           <col className="w-9" />
         </colgroup>
         <thead className="bg-elevated sticky top-0">
           <tr>
-            <th colSpan={3} align="left" className={th}>
+            <th colSpan={4} align="left" className={th}>
               {headerTitle}
             </th>
             <th colSpan={2} align="center" className={th}>
@@ -551,8 +548,9 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
           </tr>
           <tr>
             <th align="center" className={th}>POS</th>
-            <th align="left" className={th}>Manager</th>
-            <th align="left" className={th}>Name</th>
+            <th align="left" className={th}>Kurzname</th>
+            <th align="left" className={th}>Vorname</th>
+            <th align="left" className={th}>Nachname</th>
             <th align="center" className={th}>GES.</th>
             <th align="center" className={th}>Sp.</th>
           </tr>
@@ -583,8 +581,13 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
                   )}
                 </td>
                 <td className={`${td} min-w-0`}>
-                  <span className="text-foreground truncate block min-w-0" title={managerLabel(m)}>
-                    {managerFullName(m)}
+                  <span className="text-foreground truncate block min-w-0" title={m.firstName || '-'}>
+                    {m.firstName || '-'}
+                  </span>
+                </td>
+                <td className={`${td} min-w-0`}>
+                  <span className="text-foreground truncate block min-w-0" title={m.lastName || '-'}>
+                    {m.lastName || '-'}
                   </span>
                 </td>
                 <td className={`${td} text-center font-bold text-foreground`}>
@@ -598,7 +601,7 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
             })}
           {group.managers.length === 0 && (
             <tr>
-              <td colSpan={5} className="text-center text-subtle py-8">
+              <td colSpan={6} className="text-center text-subtle py-8">
                 Keine Manager in dieser Gruppe
               </td>
             </tr>
@@ -649,12 +652,13 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
           <col className="w-9" />
           <col className="w-auto" />
           <col className="w-auto" />
+          <col className="w-auto" />
           <col className="w-9" />
           <col className="w-9" />
         </colgroup>
         <thead className="bg-elevated sticky top-0">
           <tr>
-            <th colSpan={3} align="left" className={th}>
+            <th colSpan={4} align="left" className={th}>
               {headerTitle}
             </th>
             <th colSpan={2} align="center" className={th}>
@@ -663,8 +667,9 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
           </tr>
           <tr>
             <th align="center" className={th}>POS</th>
-            <th align="left" className={th}>Manager</th>
-            <th align="left" className={th}>Name</th>
+            <th align="left" className={th}>Kurzname</th>
+            <th align="left" className={th}>Vorname</th>
+            <th align="left" className={th}>Nachname</th>
             <th align="center" className={th}>GES.</th>
             <th align="center" className={th}>Sp.</th>
           </tr>
@@ -697,8 +702,13 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
                 )}
               </td>
               <td className={`${td} min-w-0`}>
-                <span className="text-foreground truncate block min-w-0" title={managerLabel(m)}>
-                  {managerFullName(m)}
+                <span className="text-foreground truncate block min-w-0" title={m.firstName || '-'}>
+                  {m.firstName || '-'}
+                </span>
+              </td>
+              <td className={`${td} min-w-0`}>
+                <span className="text-foreground truncate block min-w-0" title={m.lastName || '-'}>
+                  {m.lastName || '-'}
                 </span>
               </td>
               <td className={`${td} text-center font-bold text-foreground`}>
@@ -712,7 +722,7 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
           })}
           {sorted.length === 0 && (
             <tr>
-              <td colSpan={5} className="text-center text-subtle py-8">
+              <td colSpan={6} className="text-center text-subtle py-8">
                 Keine Manager gefunden
               </td>
             </tr>
@@ -791,7 +801,7 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
                 type="text"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Manager suchen..."
+                placeholder="Suchen"
                 className="input-field control pl-8 pr-3 py-2 rounded-control text-sm w-full"
               />
             </div>
