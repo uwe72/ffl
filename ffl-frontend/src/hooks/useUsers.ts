@@ -2,10 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { userApi } from '../api/users'
 import type { User } from '../types'
 
-export const useUsers = () => {
+export const useUsers = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['users'],
     queryFn: () => userApi.getAll().then(res => res.data),
+    enabled: options?.enabled ?? true,
   })
 }
 

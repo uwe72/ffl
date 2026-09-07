@@ -305,4 +305,147 @@ class ManagerControllerTest {
 
         assertThat(response.getStatusCode().value()).isEqualTo(404);
     }
+
+    @Test
+    void getAllManagers_nonAdmin_visitCountIsCleared() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_RUECKRUNDE)));
+        authAs("ROLE_USER");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));
+        ManagerDto dto = new ManagerDto();
+        dto.setId(1L);
+        dto.setVisitCount(5);
+        when(managerService.findAll()).thenReturn(List.of(dto));
+
+        List<ManagerDto> result = managerController.getAllManagers();
+
+        assertThat(result.get(0).getVisitCount()).isNull();
+    }
+
+    @Test
+    void getAllManagers_admin_visitCountIsKept() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_RUECKRUNDE)));
+        authAs("ROLE_ADMIN");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(1L, "user", UserRole.ADMIN)));
+        ManagerDto dto = new ManagerDto();
+        dto.setId(1L);
+        dto.setVisitCount(5);
+        when(managerService.findAll()).thenReturn(List.of(dto));
+
+        List<ManagerDto> result = managerController.getAllManagers();
+
+        assertThat(result.get(0).getVisitCount()).isEqualTo(5);
+    }
+
+    @Test
+    void getManagerById_nonAdmin_visitCountIsCleared() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_RUECKRUNDE)));
+        authAs("ROLE_USER");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));
+        ManagerDto dto = new ManagerDto();
+        dto.setId(7L);
+        dto.setVisitCount(5);
+        when(managerService.findById(7L)).thenReturn(dto);
+
+        ResponseEntity<ManagerDto> response = managerController.getManagerById(7L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().getVisitCount()).isNull();
+    }
+
+    @Test
+    void getCurrentManager_normalUser_visitCountIsCleared() {
+        authAs("ROLE_USER");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));
+        ManagerDto dto = new ManagerDto();
+        dto.setId(7L);
+        dto.setVisitCount(5);
+        when(managerService.findByUserId(7L)).thenReturn(dto);
+
+        ResponseEntity<?> response = managerController.getCurrentManager();
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(((ManagerDto) response.getBody()).getVisitCount()).isNull();
+    }
+
+    @Test
+    void getAllManagers_nonAdmin_otherManagerEmailIsCleared() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_RUECKRUNDE)));
+        authAs("ROLE_USER");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));
+        ManagerDto dto = new ManagerDto();
+        dto.setId(1L);
+        dto.setUserId(99L);
+        dto.setEmail("other@example.com");
+        when(managerService.findAll()).thenReturn(List.of(dto));
+
+        List<ManagerDto> result = managerController.getAllManagers();
+
+        assertThat(result.get(0).getEmail()).isNull();
+    }
+
+    @Test
+    void getAllManagers_nonAdmin_ownManagerEmailIsKept() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_RUECKRUNDE)));
+        authAs("ROLE_USER");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));
+        ManagerDto dto = new ManagerDto();
+        dto.setId(1L);
+        dto.setUserId(7L);
+        dto.setEmail("own@example.com");
+        when(managerService.findAll()).thenReturn(List.of(dto));
+
+        List<ManagerDto> result = managerController.getAllManagers();
+
+        assertThat(result.get(0).getEmail()).isEqualTo("own@example.com");
+    }
+
+    @Test
+    void getAllManagers_admin_emailIsKept() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_RUECKRUNDE)));
+        authAs("ROLE_ADMIN");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(1L, "user", UserRole.ADMIN)));
+        ManagerDto dto = new ManagerDto();
+        dto.setId(1L);
+        dto.setUserId(99L);
+        dto.setEmail("other@example.com");
+        when(managerService.findAll()).thenReturn(List.of(dto));
+
+        List<ManagerDto> result = managerController.getAllManagers();
+
+        assertThat(result.get(0).getEmail()).isEqualTo("other@example.com");
+    }
+
+    @Test
+    void getManagerById_nonAdmin_otherManagerEmailIsCleared() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_RUECKRUNDE)));
+        authAs("ROLE_USER");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));
+        ManagerDto dto = new ManagerDto();
+        dto.setId(7L);
+        dto.setUserId(99L);
+        dto.setEmail("other@example.com");
+        when(managerService.findById(7L)).thenReturn(dto);
+
+        ResponseEntity<ManagerDto> response = managerController.getManagerById(7L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().getEmail()).isNull();
+    }
+
+    @Test
+    void getManagerById_nonAdmin_ownManagerEmailIsKept() {
+        when(seasonService.findCurrentSeason()).thenReturn(Optional.of(season(SeasonState.RUNNING_RUECKRUNDE)));
+        authAs("ROLE_USER");
+        when(userRepository.findByLogin("user")).thenReturn(Optional.of(user(7L, "user", UserRole.NORMAL)));
+        ManagerDto dto = new ManagerDto();
+        dto.setId(7L);
+        dto.setUserId(7L);
+        dto.setEmail("own@example.com");
+        when(managerService.findById(7L)).thenReturn(dto);
+
+        ResponseEntity<ManagerDto> response = managerController.getManagerById(7L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().getEmail()).isEqualTo("own@example.com");
+    }
 }

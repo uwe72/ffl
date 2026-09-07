@@ -2,6 +2,8 @@ package de.ffl.controller;
 
 import de.ffl.domain.Season;
 import de.ffl.domain.SeasonState;
+import de.ffl.domain.User;
+import de.ffl.domain.UserRole;
 import de.ffl.dto.BestTeamResult;
 import de.ffl.dto.DepositDto;
 import de.ffl.dto.DepositSyncResult;
@@ -12,6 +14,7 @@ import de.ffl.dto.SetSpielleiterRequest;
 import de.ffl.dto.UpdateDepositRequest;
 import de.ffl.dto.UpdatePayoutRequest;
 import de.ffl.repository.SeasonRepository;
+import de.ffl.repository.UserRepository;
 import de.ffl.service.BestTeamService;
 import de.ffl.service.DepositService;
 import de.ffl.service.DocumentService;
@@ -32,6 +35,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/seasons")
@@ -49,8 +54,9 @@ public class SeasonController {
     private final DocumentService documentService;
     private final PlayerPdfService playerPdfService;
     private final DepositService depositService;
+    private final UserRepository userRepository;
 
-    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, BestTeamService bestTeamService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, ReminderMailService reminderMailService, SeasonReportMailService seasonReportMailService, SeasonTransparencyMailService seasonTransparencyMailService, DocumentService documentService, PlayerPdfService playerPdfService, DepositService depositService) {
+    public SeasonController(SeasonRepository seasonRepository, SeasonService seasonService, BestTeamService bestTeamService, PrizeDistributionService prizeDistributionService, PrizeDistributionMailService prizeDistributionMailService, InvitationMailService invitationMailService, ReminderMailService reminderMailService, SeasonReportMailService seasonReportMailService, SeasonTransparencyMailService seasonTransparencyMailService, DocumentService documentService, PlayerPdfService playerPdfService, DepositService depositService, UserRepository userRepository) {
         this.seasonRepository = seasonRepository;
         this.seasonService = seasonService;
         this.bestTeamService = bestTeamService;
@@ -63,16 +69,20 @@ public class SeasonController {
         this.documentService = documentService;
         this.playerPdfService = playerPdfService;
         this.depositService = depositService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
     public List<Season> getAllSeasons() {
-        return seasonRepository.findAll();
+        return seasonRepository.findAll().stream()
+            .map(this::sanitizeForViewer)
+            .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Season> getSeasonById(@PathVariable Long id) {
         return seasonRepository.findById(id)
+            .map(this::sanitizeForViewer)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
@@ -81,8 +91,41 @@ public class SeasonController {
     public ResponseEntity<Season> getCurrentSeason() {
         return seasonRepository.findAll().stream()
             .findFirst()
+            .map(this::sanitizeForViewer)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    private Season sanitizeForViewer(Season season) {
+        if (season == null || isCurrentUserAdmin()) {
+            return season;
+        }
+        Season sanitized = new Season();
+        sanitized.setId(season.getId());
+        sanitized.setName(season.getName());
+        sanitized.setBudget(season.getBudget());
+        sanitized.setSeasonState(season.getSeasonState());
+        sanitized.setFinalRegistrationDate(season.getFinalRegistrationDate());
+        sanitized.setSeasonStartDate(season.getSeasonStartDate());
+        sanitized.setSeasonStartTime(season.getSeasonStartTime());
+        sanitized.setStartRoundRueckrunde(season.getStartRoundRueckrunde());
+        sanitized.setCurrentMatchday(season.getCurrentMatchday());
+        sanitized.setSpieleinsatzEuro(season.getSpieleinsatzEuro());
+        sanitized.setServerkostenEuro(season.getServerkostenEuro());
+        sanitized.setAnzahlSpielleiter(season.getAnzahlSpielleiter());
+        sanitized.setGewinnErsterPlatzProzent(season.getGewinnErsterPlatzProzent());
+        sanitized.setGewinnLetzterPlatzEuro(season.getGewinnLetzterPlatzEuro());
+        sanitized.setTeams(season.getTeams());
+        return sanitized;
+    }
+
+    private boolean isCurrentUserAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return false;
+        }
+        User user = userRepository.findByLogin(auth.getName()).orElse(null);
+        return user != null && user.getRole() == UserRole.ADMIN;
     }
 
     @PostMapping

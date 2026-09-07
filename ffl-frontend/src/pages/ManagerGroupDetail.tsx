@@ -32,7 +32,8 @@ export default function ManagerGroupDetail() {
   const { data: group, isLoading, error } = useManagerGroup(groupId)
   const { data: currentSeason } = useCurrentSeason()
   const { data: allManagers } = useManagersBySeason(currentSeason?.id || 0)
-  const { data: allUsers } = useUsers()
+  const isAdmin = user?.role === 'ADMIN'
+  const { data: allUsers } = useUsers({ enabled: isAdmin })
   
   const createMutation = useCreateManagerGroup()
   const addManagerMutation = useAddManagerToGroup(groupId)
@@ -60,7 +61,6 @@ export default function ManagerGroupDetail() {
   const deleteGroupLogo = useDeleteGroupLogo(isNewMode ? 0 : groupId)
   const { data: groupLogoUrl } = useGroupLogo(group?.hasLogo ? groupId : null)
 
-  const isAdmin = user?.role === 'ADMIN'
   const canNavigateToManager = isAdmin || currentSeason?.seasonState !== 'BEFORE_SEASON'
 
   const creatorManager = useMemo(() => {

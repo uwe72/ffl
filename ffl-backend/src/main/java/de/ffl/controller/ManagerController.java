@@ -66,6 +66,7 @@ public class ManagerController {
     public List<ManagerDto> getAllManagers() {
         return managerService.findAll().stream()
             .map(this::filterWinterTransfersForViewer)
+            .map(this::sanitizeForViewer)
             .collect(Collectors.toList());
     }
 
@@ -73,6 +74,7 @@ public class ManagerController {
     public List<ManagerDto> getManagersBySeason(@PathVariable Long seasonId) {
         return managerService.findBySeasonId(seasonId).stream()
             .map(this::filterWinterTransfersForViewer)
+            .map(this::sanitizeForViewer)
             .collect(Collectors.toList());
     }
 
@@ -81,7 +83,7 @@ public class ManagerController {
         if (BeforeSeasonAccess.isDetailBlocked(seasonService)) {
             return ResponseEntity.notFound().build();
         }
-        ManagerDto manager = filterWinterTransfersForViewer(managerService.findById(id));
+        ManagerDto manager = sanitizeForViewer(filterWinterTransfersForViewer(managerService.findById(id)));
         if (manager == null) {
             return ResponseEntity.notFound().build();
         }
@@ -204,7 +206,7 @@ public class ManagerController {
         }
         Long userId = effective.getId();
         try {
-            ManagerDto manager = managerService.findByUserId(userId);
+            ManagerDto manager = sanitizeForViewer(managerService.findByUserId(userId));
             if (manager == null) {
                 log.debug("getCurrentManager: no manager for userId={}", userId);
                 return ResponseEntity.notFound().build();
@@ -233,7 +235,7 @@ public class ManagerController {
         }
         try {
             managerService.updateLineup(effective.getId(), request);
-            ManagerDto updated = managerService.findByUserId(effective.getId());
+            ManagerDto updated = sanitizeForViewer(managerService.findByUserId(effective.getId()));
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -257,11 +259,40 @@ public class ManagerController {
         }
         try {
             managerService.updateWinterTransfers(effective.getId(), request);
-            ManagerDto updated = managerService.findByUserId(effective.getId());
+            ManagerDto updated = sanitizeForViewer(managerService.findByUserId(effective.getId()));
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    private boolean isCurrentUserAdmin() {
+        User user = getCurrentUser();
+        return user != null && user.getRole() == UserRole.ADMIN;
+    }
+
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+        return userRepository.findByLogin(auth.getName()).orElse(null);
+    }
+
+    private ManagerDto sanitizeForViewer(ManagerDto manager) {
+        if (manager == null) {
+            return null;
+        }
+        if (isCurrentUserAdmin()) {
+            return manager;
+        }
+        manager.setVisitCount(null);
+        User user = getCurrentUser();
+        boolean ownManager = user != null && manager.getUserId() != null && manager.getUserId().equals(user.getId());
+        if (!ownManager) {
+            manager.setEmail(null);
+        }
+        return manager;
     }
 
     private ManagerDto filterWinterTransfersForViewer(ManagerDto manager) {
