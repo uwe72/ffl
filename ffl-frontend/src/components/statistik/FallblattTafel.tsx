@@ -12,14 +12,17 @@ function pad(value: number | null | undefined, size: number): string[] {
   return String(Math.max(0, Math.round(value))).padStart(size, '0').split('')
 }
 
-function Platten({ digits, markZeros = false }: { digits: string[]; markZeros?: boolean }) {
+function Platten({ digits, markZeros = false, dot = false }: { digits: string[]; markZeros?: boolean; dot?: boolean }) {
   const firstNonZero = digits.findIndex(d => d !== '0')
   return (
     <>
       {digits.map((d, i) => {
         const isLeadingZero = markZeros && d === '0' && (firstNonZero === -1 || i < firstNonZero)
         return (
-          <span key={i} className={`ffl-board__plate${isLeadingZero ? ' ffl-board__plate--zero' : ''}`}>
+          <span
+            key={i}
+            className={`ffl-board__plate${isLeadingZero ? ' ffl-board__plate--zero' : ''}${dot && i === digits.length - 1 ? ' ffl-board__plate--dot' : ''}`}
+          >
             {d}
           </span>
         )
@@ -53,12 +56,12 @@ function PunkteBadge({ punkte }: { punkte: number | null | undefined }) {
   )
 }
 
-function Col({ head, label, digits, secondary = false }: { head?: string; label?: string; digits: string[]; secondary?: boolean }) {
+function Col({ head, label, digits, secondary = false, dot = false }: { head?: string; label?: string; digits: string[]; secondary?: boolean; dot?: boolean }) {
   return (
     <div className="ffl-board__col">
       {head != null ? <div className="ffl-board__colhead">{head}</div> : <div className="ffl-board__unit">{label}</div>}
       <div className={`ffl-board__digits${secondary ? ' ffl-board__digits--secondary' : ''}`}>
-        <Platten digits={digits} markZeros />
+        <Platten digits={digits} markZeros dot={dot} />
       </div>
     </div>
   )
@@ -71,16 +74,18 @@ interface SectionProps {
   rightDigits?: string[]
   leftSecondary?: boolean
   rightSecondary?: boolean
+  leftDot?: boolean
+  rightDot?: boolean
   children?: ReactNode
 }
 
-function Section({ headLabel, rightLabel, leftDigits, rightDigits, leftSecondary = false, rightSecondary = false, children }: SectionProps) {
+function Section({ headLabel, rightLabel, leftDigits, rightDigits, leftSecondary = false, rightSecondary = false, leftDot = false, rightDot = false, children }: SectionProps) {
   return (
     <div className="ffl-board__block">
       <div className="ffl-board__row">
         {children && <div className="ffl-board__picslot">{children}</div>}
-        {rightDigits && <Col label={rightLabel} digits={rightDigits} secondary={rightSecondary} />}
-        <Col head={headLabel} digits={leftDigits} secondary={leftSecondary} />
+        {rightDigits && <Col label={rightLabel} digits={rightDigits} secondary={rightSecondary} dot={rightDot} />}
+        <Col head={headLabel} digits={leftDigits} secondary={leftSecondary} dot={leftDot} />
       </div>
     </div>
   )
@@ -170,6 +175,8 @@ export default function FallblattTafel({ aufstellung, manager, editable = false 
         leftDigits={pad(positionGesamt, DIGITS)}
         rightDigits={pad(positionSpieltag, DIGITS)}
         leftSecondary
+        leftDot
+        rightDot
       />
       <div className="ffl-board__sep" />
       <Section
