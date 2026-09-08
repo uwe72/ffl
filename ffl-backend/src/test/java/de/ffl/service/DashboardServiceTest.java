@@ -273,6 +273,89 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
     }
 
     @Test
+    void aufstellung_einsatzquoteSpieltag_entsprichtAnteilGespielterAktiver() {
+        int matchday = season.getCurrentMatchday();
+        AufstellungDto dto = dashboardService.getAufstellung(managerUwe72.getId());
+
+        long aktiv = dto.getSpieler().stream().filter(SpielerAufstellungDto::getAktiv).count();
+        long gespielt = dto.getSpieler().stream()
+            .filter(SpielerAufstellungDto::getAktiv)
+            .filter(SpielerAufstellungDto::getGespielt)
+            .count();
+
+        assertThat(aktiv).isEqualTo(11);
+        assertThat(dto.getEinsatzquoteSpieltagNummer()).isEqualTo(matchday);
+        assertThat(dto.getEinsatzquoteSpieltag()).isEqualTo(Math.round(gespielt * 100.0f / aktiv));
+
+        long expectedOffen = aktiveOffeneSpiele(dto.getSpieler(), matchday);
+        assertThat(dto.getEinsatzquoteSpieltagOffen()).isEqualTo((int) expectedOffen);
+    }
+
+    @Test
+    void aufstellung_einsatzquoteSpieltag_zaehltOffeneSpieleBeiTeiloffenerRunde() {
+        int matchday = season.getCurrentMatchday();
+        Round round = roundRepository.findBySeasonIdAndNumber(season.getId(), matchday).orElseThrow();
+        List<Game> games = gameRepository.findByRoundId(round.getId());
+
+        AufstellungDto before = dashboardService.getAufstellung(managerUwe72.getId());
+        long offenVorher = aktiveOffeneSpiele(before.getSpieler(), matchday);
+
+        Game target = games.stream()
+            .filter(g -> g.getFormation() != null && !g.getFormation().isEmpty())
+            .filter(g -> gehoertZuAktivemTeam(before.getSpieler(), g))
+            .findFirst()
+            .orElseThrow();
+        target.setFormation(null);
+        target.setFormationExtern(null);
+        gameRepository.save(target);
+
+        AufstellungDto dto = dashboardService.getAufstellung(managerUwe72.getId());
+
+        long gespielt = dto.getSpieler().stream()
+            .filter(SpielerAufstellungDto::getAktiv)
+            .filter(SpielerAufstellungDto::getGespielt)
+            .count();
+
+        assertThat(dto.getEinsatzquoteSpieltagNummer()).isEqualTo(matchday);
+        assertThat(dto.getEinsatzquoteSpieltag()).isEqualTo(Math.round(gespielt * 100.0f / 11));
+        assertThat(dto.getEinsatzquoteSpieltagOffen()).isEqualTo((int) offenVorher + 1);
+    }
+
+    private long aktiveOffeneSpiele(List<SpielerAufstellungDto> spieler, int matchday) {
+        Round round = roundRepository.findBySeasonIdAndNumber(season.getId(), matchday).orElseThrow();
+        List<Game> games = gameRepository.findByRoundId(round.getId());
+        Set<Long> offenGameIds = new java.util.HashSet<>();
+        for (SpielerAufstellungDto s : spieler) {
+            if (!Boolean.TRUE.equals(s.getAktiv())) continue;
+            Player p = playerRepository.findById(s.getId()).orElseThrow();
+            if (p.getTeams().isEmpty()) continue;
+            Team team = p.getTeams().get(p.getTeams().size() - 1);
+            for (Game g : games) {
+                boolean betrifftTeam = (g.getHost() != null && g.getHost().getId().equals(team.getId()))
+                    || (g.getVisitor() != null && g.getVisitor().getId().equals(team.getId()));
+                if (betrifftTeam && (g.getFormation() == null || g.getFormation().isEmpty())) {
+                    offenGameIds.add(g.getId());
+                }
+            }
+        }
+        return offenGameIds.size();
+    }
+
+    private boolean gehoertZuAktivemTeam(List<SpielerAufstellungDto> spieler, Game g) {
+        for (SpielerAufstellungDto s : spieler) {
+            if (!Boolean.TRUE.equals(s.getAktiv())) continue;
+            Player p = playerRepository.findById(s.getId()).orElseThrow();
+            if (p.getTeams().isEmpty()) continue;
+            Team team = p.getTeams().get(p.getTeams().size() - 1);
+            if ((g.getHost() != null && g.getHost().getId().equals(team.getId()))
+                || (g.getVisitor() != null && g.getVisitor().getId().equals(team.getId()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Test
     void vorsaison_aufstellung_liefertMarktwerteUndKeinePunkte() {
         Season vsSeason = Season.builder()
             .name("Vorsaison Test")
@@ -317,6 +400,10 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
         assertThat(dto.getSpieler()).hasSize(11);
         assertThat(dto.getSpieler()).allMatch(s -> s.getPunkteGesamt() == 0);
         assertThat(dto.getSpieler()).allMatch(s -> s.getPunkteSpieltag() == 0);
+        assertThat(dto.getEinsatzquoteSpieltag()).isNull();
+        assertThat(dto.getEinsatzquoteSpieltagNummer()).isNull();
+        assertThat(dto.getEinsatzquoteSpieltagOffen()).isNull();
+        assertThat(dto.getEinsatzquoteGesamt()).isNull();
         assertThat(dto.getKaderwert()).isEqualTo(
             dto.getSpieler().stream().mapToInt(SpielerAufstellungDto::getMarktwert).sum());
 

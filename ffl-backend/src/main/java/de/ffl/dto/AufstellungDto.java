@@ -26,6 +26,10 @@ public class AufstellungDto {
     private Integer punkteSpieltagVorher;
     private Integer kaderwert;
     private Integer budget;
+    private Integer einsatzquoteSpieltag;
+    private Integer einsatzquoteSpieltagNummer;
+    private Integer einsatzquoteSpieltagOffen;
+    private Integer einsatzquoteGesamt;
     private Boolean rueckrunde;
     private List<SpielerAufstellungDto> spieler;
 }

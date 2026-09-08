@@ -38,6 +38,10 @@ const EMPTY_AUFSTELLUNG: Aufstellung = {
   punkteSpieltagVorher: null,
   kaderwert: 0,
   budget: 0,
+  einsatzquoteSpieltag: null,
+  einsatzquoteSpieltagNummer: null,
+  einsatzquoteSpieltagOffen: null,
+  einsatzquoteGesamt: null,
   spieler: [],
 }
 
@@ -100,7 +104,7 @@ function HomeHelpContent() {
             </span>
           }
         >
-          Punkte gesamt
+          Punkte gesamt (erscheint ab 1 Punkt)
         </HelpRow>
         <HelpRow
           icon={
@@ -113,6 +117,9 @@ function HomeHelpContent() {
           }
         >
           Punkte am aktuellen Spieltag
+        </HelpRow>
+        <HelpRow icon={<i className="sap-icon sap-icon-time-entry text-accent text-[14px]" />}>
+          <span className="font-semibold">Einsatzquote</span> – unten links: „Spieltag" = Anteil eingesetzter Spieler am aktuellen Spieltag (steigt im Laufe des Spieltags; „· N offen" = ausstehende Spiele) · „Gesamt" = Saisonquote
         </HelpRow>
         <p className="text-muted">Karte anklicken zum Umdrehen</p>
       </div>

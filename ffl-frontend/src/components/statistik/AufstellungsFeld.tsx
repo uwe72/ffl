@@ -311,22 +311,24 @@ export function StatPlayerCard({ player, modus, width, height, compact, pictureS
 
       {!compact && (
         <>
-          <div
-            className="stat-card-badge absolute z-20 flex items-center justify-center leading-none"
-            style={{
-              top: 'calc(var(--badge-offset, 12px) * -1)',
-              right: 'calc(var(--badge-offset, 12px) * -1)',
-              minWidth: 37,
-              borderRadius: 8,
-              backgroundColor: 'var(--color-accent)',
-              boxShadow: `${BADGE_RING}, ${BADGE_SHADOW}`,
-              padding: '6px 6px',
-            }}
-          >
-            <span className="text-white font-bold tabular-nums" style={{ fontSize: 12 }}>
-              {formatPoints(player.punkteGesamt)}
-            </span>
-          </div>
+          {player.punkteGesamt > 0 && (
+            <div
+              className="stat-card-badge absolute z-20 flex items-center justify-center leading-none"
+              style={{
+                top: 'calc(var(--badge-offset, 12px) * -1)',
+                right: 'calc(var(--badge-offset, 12px) * -1)',
+                minWidth: 37,
+                borderRadius: 8,
+                backgroundColor: 'var(--color-accent)',
+                boxShadow: `${BADGE_RING}, ${BADGE_SHADOW}`,
+                padding: '6px 6px',
+              }}
+            >
+              <span className="text-white font-bold tabular-nums" style={{ fontSize: 12 }}>
+                {formatPoints(player.punkteGesamt)}
+              </span>
+            </div>
+          )}
 
           {player.punkteSpieltag > 0 && (
             <div
@@ -480,6 +482,87 @@ export default function AufstellungsFeld({
           )
         })}
       </div>
+
+      {!compact && (aufstellung.einsatzquoteSpieltag != null || aufstellung.einsatzquoteGesamt != null) && (
+        <div
+          className="absolute text-left"
+          style={{
+            bottom: 12 * scale,
+            left: 12 * scale,
+            padding: 12 * scale,
+            borderRadius: 6,
+            backgroundColor: 'var(--color-pitch-block)',
+            pointerEvents: 'none',
+          }}
+          aria-hidden="true"
+        >
+          <div
+            className="font-semibold uppercase"
+            style={{
+              color: 'var(--color-pitch-block-label)',
+              letterSpacing: '0.12em',
+              fontSize: 10 * scale,
+              marginBottom: 6 * scale,
+            }}
+          >
+            Einsatzquote
+          </div>
+          {aufstellung.einsatzquoteSpieltag != null && (
+            <div
+              className="flex items-baseline justify-between gap-3"
+              style={{ marginTop: 4 * scale }}
+            >
+              <span
+                className="font-semibold uppercase"
+                style={{
+                  color: 'var(--color-pitch-block-label)',
+                  letterSpacing: '0.12em',
+                  fontSize: 10 * scale,
+                }}
+              >
+                Spieltag {aufstellung.einsatzquoteSpieltagNummer ?? ''}
+              </span>
+              <span
+                className="font-bold tabular-nums leading-none"
+                style={{ color: '#fafaf9', fontSize: 16 * scale }}
+              >
+                {aufstellung.einsatzquoteSpieltag} %
+                {(aufstellung.einsatzquoteSpieltagOffen ?? 0) > 0 && (
+                  <span
+                    className="font-semibold"
+                    style={{ color: 'var(--color-pitch-block-label)', fontSize: 11 * scale, marginLeft: 6 * scale }}
+                  >
+                    · {aufstellung.einsatzquoteSpieltagOffen} offen
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+          {aufstellung.einsatzquoteGesamt != null && (
+            <div
+              className="flex items-baseline justify-between gap-3"
+              style={{ marginTop: 6 * scale }}
+            >
+              <span
+                className="font-semibold uppercase"
+                style={{
+                  color: 'var(--color-pitch-block-label)',
+                  letterSpacing: '0.12em',
+                  fontSize: 10 * scale,
+                }}
+              >
+                Gesamt
+              </span>
+              <span
+                className="font-bold tabular-nums leading-none"
+                style={{ color: '#fafaf9', fontSize: 16 * scale }}
+              >
+                {aufstellung.einsatzquoteGesamt} %
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       {!compact && !hideSum && (
         <div

@@ -42,6 +42,10 @@ export interface Aufstellung {
   punkteSpieltagVorher: number | null
   kaderwert: number
   budget: number
+  einsatzquoteSpieltag?: number | null
+  einsatzquoteSpieltagNummer?: number | null
+  einsatzquoteSpieltagOffen?: number | null
+  einsatzquoteGesamt?: number | null
   rueckrunde?: boolean
   spieler: SpielerAufstellung[]
 }

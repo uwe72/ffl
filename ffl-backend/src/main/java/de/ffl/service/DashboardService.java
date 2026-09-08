@@ -91,6 +91,29 @@ public class DashboardService {
             if (p != null) kaderwert += p.getPrize();
         }
 
+        Integer einsatzquoteSpieltag = null;
+        Integer einsatzquoteSpieltagOffen = null;
+        if (currentMatchday > 0) {
+            int slots = lineup.size();
+            if (slots > 0) {
+                int eingesetzte = 0;
+                for (Player p : lineup) {
+                    PlayerRank pr = rankByPlayer.get(p.getId());
+                    if (pr != null && Boolean.TRUE.equals(pr.getPlayed())) eingesetzte++;
+                }
+                einsatzquoteSpieltag = Math.round(eingesetzte * 100.0f / slots);
+            }
+            Set<Long> offenGameIds = new HashSet<>();
+            for (Player p : lineup) {
+                Team team = letztesTeam(p);
+                Game game = team != null ? gameByTeamId.get(team.getId()) : null;
+                if (game != null && (game.getFormation() == null || game.getFormation().isEmpty())) {
+                    offenGameIds.add(game.getId());
+                }
+            }
+            einsatzquoteSpieltagOffen = offenGameIds.size();
+        }
+
         List<SpielerAufstellungDto> spieler = new ArrayList<>();
         for (RosterPlayer rp : roster) {
             Player p = rp.player;
@@ -142,6 +165,10 @@ public class DashboardService {
             .punkteSpieltagVorher(prevRank != null ? prevRank.getPointsRound() : null)
             .kaderwert(kaderwert)
             .budget(season.getBudget() != null ? season.getBudget() : 0)
+            .einsatzquoteSpieltag(einsatzquoteSpieltag)
+            .einsatzquoteSpieltagNummer(currentMatchday > 0 ? currentMatchday : null)
+            .einsatzquoteSpieltagOffen(einsatzquoteSpieltagOffen)
+            .einsatzquoteGesamt(manager.getEinsatzquote())
             .rueckrunde(isRueckrunde)
             .spieler(spieler)
             .build();
