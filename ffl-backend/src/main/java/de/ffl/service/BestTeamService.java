@@ -451,7 +451,8 @@ public class BestTeamService {
         String teamLogoUrl = null;
         if (player.getTeams() != null && !player.getTeams().isEmpty()) {
             Team team = player.getTeams().get(player.getTeams().size() - 1);
-            teamName = team.getName();
+            teamName = team.getShortName() != null && !team.getShortName().isBlank()
+                ? team.getShortName() : team.getName();
             teamLogoUrl = team.getLogoSUrl();
         }
         return new BestTeamPlayer(
