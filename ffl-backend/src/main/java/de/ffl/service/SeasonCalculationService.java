@@ -27,6 +27,7 @@ public class SeasonCalculationService {
     private final ManagerRankRepository managerRankRepository;
     private final ManagerRepository managerRepository;
     private final BestTeamService bestTeamService;
+    private final FormationConverterService formationConverterService;
 
     public SeasonCalculationService(
             SeasonRepository seasonRepository,
@@ -37,7 +38,8 @@ public class SeasonCalculationService {
             PlayerRankRepository playerRankRepository,
             ManagerRankRepository managerRankRepository,
             ManagerRepository managerRepository,
-            BestTeamService bestTeamService) {
+            BestTeamService bestTeamService,
+            FormationConverterService formationConverterService) {
         this.seasonRepository = seasonRepository;
         this.roundRepository = roundRepository;
         this.gameRepository = gameRepository;
@@ -47,6 +49,7 @@ public class SeasonCalculationService {
         this.managerRankRepository = managerRankRepository;
         this.managerRepository = managerRepository;
         this.bestTeamService = bestTeamService;
+        this.formationConverterService = formationConverterService;
     }
 
     @Transactional
@@ -181,8 +184,11 @@ public class SeasonCalculationService {
         Team host = game.getHost();
         Team visitor = game.getVisitor();
 
-        Set<Player> playersHost = findPlayers(game, host, true, formation);
-        Set<Player> playersVisitor = findPlayers(game, visitor, false, formation);
+        Set<String> hostRosterNames = FormationConverterService.toRosterNameSet(host.getPlayers());
+        Set<String> visitorRosterNames = FormationConverterService.toRosterNameSet(visitor.getPlayers());
+
+        Set<Player> playersHost = findPlayers(game, host, true, formation, hostRosterNames, visitorRosterNames);
+        Set<Player> playersVisitor = findPlayers(game, visitor, false, formation, hostRosterNames, visitorRosterNames);
 
         game.setPlayersHost(playersHost);
         game.setPlayersVisitor(playersVisitor);
@@ -207,7 +213,8 @@ public class SeasonCalculationService {
         createPointsForPlayers(game, playersVisitor, false);
     }
 
-    private Set<Player> findPlayers(Game game, Team team, boolean isHost, String formation) {
+    private Set<Player> findPlayers(Game game, Team team, boolean isHost, String formation,
+                                    Set<String> hostRosterNames, Set<String> visitorRosterNames) {
         Set<Player> result = new HashSet<>();
         
         String aufstellung = extractAufstellung(formation);
@@ -238,8 +245,7 @@ public class SeasonCalculationService {
             }
         }
 
-        List<String> startingPlayers = playerList.subList(startIdx, endIdx);
-        List<String> exchangePlayers = findExchangePlayers(formation, startingPlayers);
+        List<String> exchangePlayers = formationConverterService.findExchangePlayersForTeam(formation, playerList, isHost, hostRosterNames, visitorRosterNames);
         for (String name : exchangePlayers) {
             Player foundPlayer = findPlayerByName(team.getPlayers(), name);
             if (foundPlayer != null) {
@@ -260,39 +266,6 @@ public class SeasonCalculationService {
             aufstellung = aufstellung.substring(0, end);
         }
         return aufstellung;
-    }
-
-    private List<String> findExchangePlayers(String formation, List<String> startingPlayers) {
-        List<String> result = new ArrayList<>();
-        
-        int wechselStart = formation.indexOf("Wechsel");
-        if (wechselStart < 0) return result;
-
-        String wechsel = formation.substring(wechselStart + 7);
-        String[] lines = wechsel.split(FFL_LINE_BREAK);
-
-        Set<String> activePlayers = new HashSet<>(startingPlayers);
-        List<String> allPlayers = new ArrayList<>();
-        
-        for (String line : lines) {
-            if (line == null || line.trim().isEmpty()) continue;
-            if (Character.isDigit(line.charAt(0))) continue;
-            String cleaned = replaceKickerNote(line).trim();
-            allPlayers.add(cleaned);
-        }
-
-        for (int i = 0; i < allPlayers.size() - 1; i += 2) {
-            String eingewechselt = allPlayers.get(i);
-            String ausgewechselt = allPlayers.get(i + 1);
-            
-            if (activePlayers.contains(ausgewechselt)) {
-                activePlayers.remove(ausgewechselt);
-                activePlayers.add(eingewechselt);
-                result.add(eingewechselt);
-            }
-        }
-
-        return result;
     }
 
     public int countGoals(Set<Player> players, String formation, boolean isHost) {

@@ -81,8 +81,10 @@ public class GameImportService {
             .filter(p -> p.getTeams() != null && p.getTeams().stream().anyMatch(t -> t.getId().equals(visitor.getId())))
             .collect(Collectors.toList());
 
-        Set<String> hostPlayerNames = extractPlayerNames(game.getFormation(), true);
-        Set<String> visitorPlayerNames = extractPlayerNames(game.getFormation(), false);
+        Set<String> hostPlayerNames = extractPlayerNames(game.getFormation(), true,
+            FormationConverterService.toRosterNameSet(hostPlayers), FormationConverterService.toRosterNameSet(visitorPlayers));
+        Set<String> visitorPlayerNames = extractPlayerNames(game.getFormation(), false,
+            FormationConverterService.toRosterNameSet(hostPlayers), FormationConverterService.toRosterNameSet(visitorPlayers));
 
         if (hostPlayerNames.isEmpty()) {
             return GameImportResult.builder()
@@ -220,8 +222,11 @@ public class GameImportService {
     private GameImportResult processGameImport(Game game, List<Player> hostPlayers, List<Player> visitorPlayers) {
         pointsRepository.deleteByGameId(game.getId());
 
-        Set<Player> playersHost = findPlayersFromFormation(game.getFormation(), hostPlayers, true);
-        Set<Player> playersVisitor = findPlayersFromFormation(game.getFormation(), visitorPlayers, false);
+        Set<String> hostRosterNames = FormationConverterService.toRosterNameSet(hostPlayers);
+        Set<String> visitorRosterNames = FormationConverterService.toRosterNameSet(visitorPlayers);
+
+        Set<Player> playersHost = findPlayersFromFormation(game.getFormation(), hostPlayers, true, hostRosterNames, visitorRosterNames);
+        Set<Player> playersVisitor = findPlayersFromFormation(game.getFormation(), visitorPlayers, false, hostRosterNames, visitorRosterNames);
 
         game.setPlayersHost(playersHost);
         game.setPlayersVisitor(playersVisitor);
@@ -249,7 +254,7 @@ public class GameImportService {
             .build();
     }
 
-    private Set<String> extractPlayerNames(String formation, boolean isHost) {
+    private Set<String> extractPlayerNames(String formation, boolean isHost, Set<String> hostRosterNames, Set<String> visitorRosterNames) {
         Set<String> names = new HashSet<>();
         
         String aufstellung = extractAufstellung(formation);
@@ -274,13 +279,14 @@ public class GameImportService {
             names.add(playerList.get(i));
         }
 
-        List<String> exchangePlayers = findExchangePlayers(formation, playerList.subList(startIdx, Math.min(endIdx, playerList.size())));
+        List<String> exchangePlayers = formationConverterService.findExchangePlayersForTeam(formation, playerList, isHost, hostRosterNames, visitorRosterNames);
         names.addAll(exchangePlayers);
 
         return names;
     }
 
-    private Set<Player> findPlayersFromFormation(String formation, List<Player> teamPlayers, boolean isHost) {
+    private Set<Player> findPlayersFromFormation(String formation, List<Player> teamPlayers, boolean isHost,
+                                                 Set<String> hostRosterNames, Set<String> visitorRosterNames) {
         Set<Player> result = new HashSet<>();
         
         String aufstellung = extractAufstellung(formation);
@@ -309,7 +315,7 @@ public class GameImportService {
             }
         }
 
-        List<String> exchangePlayers = findExchangePlayers(formation, playerList.subList(startIdx, Math.min(endIdx, playerList.size())));
+        List<String> exchangePlayers = formationConverterService.findExchangePlayersForTeam(formation, playerList, isHost, hostRosterNames, visitorRosterNames);
         for (String name : exchangePlayers) {
             Player foundPlayer = findPlayerByName(teamPlayers, name);
             if (foundPlayer != null) {
@@ -330,39 +336,6 @@ public class GameImportService {
             aufstellung = aufstellung.substring(0, end);
         }
         return aufstellung;
-    }
-
-    private List<String> findExchangePlayers(String formation, List<String> startingPlayers) {
-        List<String> result = new ArrayList<>();
-        
-        int wechselStart = formation.indexOf("Wechsel");
-        if (wechselStart < 0) return result;
-
-        String wechsel = formation.substring(wechselStart + 7);
-        String[] lines = wechsel.split(FFL_LINE_BREAK);
-
-        Set<String> activePlayers = new HashSet<>(startingPlayers);
-        List<String> allPlayers = new ArrayList<>();
-        
-        for (String line : lines) {
-            if (line == null || line.trim().isEmpty()) continue;
-            if (Character.isDigit(line.charAt(0))) continue;
-            String cleaned = replaceKickerNote(line).trim();
-            allPlayers.add(cleaned);
-        }
-
-        for (int i = 0; i < allPlayers.size() - 1; i += 2) {
-            String eingewechselt = allPlayers.get(i);
-            String ausgewechselt = allPlayers.get(i + 1);
-            
-            if (activePlayers.contains(ausgewechselt)) {
-                activePlayers.remove(ausgewechselt);
-                activePlayers.add(eingewechselt);
-                result.add(eingewechselt);
-            }
-        }
-
-        return result;
     }
 
     private String replaceKickerNote(String input) {

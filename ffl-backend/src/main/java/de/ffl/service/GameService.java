@@ -8,6 +8,7 @@ import de.ffl.dto.GameDto;
 import de.ffl.dto.PlayerPointsDto;
 import de.ffl.dto.FormationValidationResult;
 import de.ffl.repository.GameRepository;
+import de.ffl.repository.PlayerRepository;
 import de.ffl.repository.PointsRepository;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +20,14 @@ public class GameService {
 
     private final GameRepository gameRepository;
     private final PointsRepository pointsRepository;
+    private final PlayerRepository playerRepository;
     private final FormationConverterService formationConverterService;
     private final GameImportService gameImportService;
 
-    public GameService(GameRepository gameRepository, PointsRepository pointsRepository, FormationConverterService formationConverterService, GameImportService gameImportService) {
+    public GameService(GameRepository gameRepository, PointsRepository pointsRepository, PlayerRepository playerRepository, FormationConverterService formationConverterService, GameImportService gameImportService) {
         this.gameRepository = gameRepository;
         this.pointsRepository = pointsRepository;
+        this.playerRepository = playerRepository;
         this.formationConverterService = formationConverterService;
         this.gameImportService = gameImportService;
     }
@@ -76,7 +79,9 @@ public class GameService {
         }
         
         String formationIntern = formationConverterService.convertToIntern(formationExtern);
-        FormationConverterService.ValidationResult validation = formationConverterService.validateFormation(formationIntern);
+        FormationConverterService.ValidationResult validation = formationConverterService.validateFormation(formationIntern,
+            FormationConverterService.toRosterNameSet(playerRepository.findByTeamId(game.getHost().getId())),
+            FormationConverterService.toRosterNameSet(playerRepository.findByTeamId(game.getVisitor().getId())));
         
         if (!validation.isValid()) {
             throw new IllegalArgumentException(String.join("; ", validation.getErrors()));

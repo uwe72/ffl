@@ -21,6 +21,7 @@ public class FormationConverterService {
 
     private static final Logger log = LoggerFactory.getLogger(FormationConverterService.class);
     private static final String FFL_LINE_BREAK = "_LB_";
+    private static final int MAX_SUBSTITUTIONS = 5;
     
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
@@ -79,6 +80,10 @@ public class FormationConverterService {
     }
 
     public ValidationResult validateFormation(String formationIntern) {
+        return validateFormation(formationIntern, null, null);
+    }
+
+    public ValidationResult validateFormation(String formationIntern, Set<String> hostRosterNames, Set<String> visitorRosterNames) {
         ValidationResult result = new ValidationResult();
         
         if (formationIntern == null || formationIntern.isEmpty()) {
@@ -113,19 +118,18 @@ public class FormationConverterService {
         List<String> hostPlayers = new ArrayList<>(playerList.subList(0, 11));
         List<String> visitorPlayers = new ArrayList<>(playerList.subList(11, 22));
         
-        List<String> hostExchangePlayers = findExchangePlayers(formationIntern, hostPlayers);
-        List<String> visitorExchangePlayers = findExchangePlayers(formationIntern, visitorPlayers);
-        
-        if (hostExchangePlayers.size() > 5) {
-            result.addError("Heim-Mannschaft hat " + hostExchangePlayers.size() + " statt max. 5 Auswechselspieler");
+        ExchangeSubstitutions substitutions = findExchangePlayers(formationIntern, hostPlayers, visitorPlayers, hostRosterNames, visitorRosterNames);
+
+        if (substitutions.getHostPlayers().size() > 5) {
+            result.addError("Heim-Mannschaft hat " + substitutions.getHostPlayers().size() + " statt max. 5 Auswechselspieler");
+        }
+
+        if (substitutions.getVisitorPlayers().size() > 5) {
+            result.addError("Gast-Mannschaft hat " + substitutions.getVisitorPlayers().size() + " statt max. 5 Auswechselspieler");
         }
         
-        if (visitorExchangePlayers.size() > 5) {
-            result.addError("Gast-Mannschaft hat " + visitorExchangePlayers.size() + " statt max. 5 Auswechselspieler");
-        }
-        
-        result.setHostPlayerCount(hostPlayers.size() + hostExchangePlayers.size());
-        result.setVisitorPlayerCount(visitorPlayers.size() + visitorExchangePlayers.size());
+        result.setHostPlayerCount(hostPlayers.size() + substitutions.getHostPlayers().size());
+        result.setVisitorPlayerCount(visitorPlayers.size() + substitutions.getVisitorPlayers().size());
         
         return result;
     }
@@ -140,8 +144,13 @@ public class FormationConverterService {
         }
         
         String formationIntern = convertToIntern(formationExtern);
-        
-        ValidationResult basicValidation = validateFormation(formationIntern);
+
+        List<Player> hostTeamPlayers = playerRepository.findByTeamId(game.getHost().getId());
+        List<Player> visitorTeamPlayers = playerRepository.findByTeamId(game.getVisitor().getId());
+        Set<String> hostRosterNames = toRosterNameSet(hostTeamPlayers);
+        Set<String> visitorRosterNames = toRosterNameSet(visitorTeamPlayers);
+
+        ValidationResult basicValidation = validateFormation(formationIntern, hostRosterNames, visitorRosterNames);
         if (!basicValidation.isValid()) {
             return basicValidation;
         }
@@ -161,16 +170,14 @@ public class FormationConverterService {
         
         List<String> hostPlayerNames = new ArrayList<>(playerList.subList(0, 11));
         List<String> visitorPlayerNames = new ArrayList<>(playerList.subList(11, 22));
-        
-        List<String> hostExchangeNames = findExchangePlayers(formationIntern, hostPlayerNames);
-        List<String> visitorExchangeNames = findExchangePlayers(formationIntern, visitorPlayerNames);
-        
+
+        ExchangeSubstitutions exchangeSubstitutions = findExchangePlayers(formationIntern, hostPlayerNames, visitorPlayerNames, hostRosterNames, visitorRosterNames);
+        List<String> hostExchangeNames = exchangeSubstitutions.getHostPlayers();
+        List<String> visitorExchangeNames = exchangeSubstitutions.getVisitorPlayers();
+
         hostPlayerNames.addAll(hostExchangeNames);
         visitorPlayerNames.addAll(visitorExchangeNames);
-        
-        List<Player> hostTeamPlayers = playerRepository.findByTeamId(game.getHost().getId());
-        List<Player> visitorTeamPlayers = playerRepository.findByTeamId(game.getVisitor().getId());
-        
+
         for (String playerName : hostPlayerNames) {
             Player found = findPlayerByName(hostTeamPlayers, playerName);
             if (found == null) {
@@ -268,34 +275,175 @@ public class FormationConverterService {
         return aufstellung;
     }
 
-    private List<String> findExchangePlayers(String formation, List<String> startingPlayers) {
-        List<String> result = new ArrayList<>();
-        
+    public ExchangeSubstitutions findExchangePlayers(String formation, List<String> fallbackHostStarters, List<String> fallbackVisitorStarters) {
+        return findExchangePlayers(formation, fallbackHostStarters, fallbackVisitorStarters, null, null);
+    }
+
+    public ExchangeSubstitutions findExchangePlayers(String formation, List<String> fallbackHostStarters, List<String> fallbackVisitorStarters,
+                                                     Set<String> hostRosterNames, Set<String> visitorRosterNames) {
+        List<List<String>> startingXIs = extractStartingXIs(formation);
+        List<String> hostStarters = startingXIs != null ? startingXIs.get(0) : fallbackHostStarters;
+        List<String> visitorStarters = startingXIs != null ? startingXIs.get(1) : fallbackVisitorStarters;
+
+        List<String> names = extractWechselNames(formation);
+        if (names.isEmpty()) {
+            return new ExchangeSubstitutions(new ArrayList<>(), new ArrayList<>());
+        }
+
+        return selectSubstitutions(names, hostStarters, visitorStarters, hostRosterNames, visitorRosterNames);
+    }
+
+    public List<String> findExchangePlayersForTeam(String formation, List<String> parsedPlayerList, boolean isHost) {
+        return findExchangePlayersForTeam(formation, parsedPlayerList, isHost, null, null);
+    }
+
+    public List<String> findExchangePlayersForTeam(String formation, List<String> parsedPlayerList, boolean isHost,
+                                                   Set<String> hostRosterNames, Set<String> visitorRosterNames) {
+        List<String> hostStarters = new ArrayList<>(parsedPlayerList.subList(0, Math.min(11, parsedPlayerList.size())));
+        List<String> visitorStarters = parsedPlayerList.size() > 11
+            ? new ArrayList<>(parsedPlayerList.subList(11, Math.min(22, parsedPlayerList.size())))
+            : new ArrayList<>();
+        ExchangeSubstitutions substitutions = findExchangePlayers(formation, hostStarters, visitorStarters, hostRosterNames, visitorRosterNames);
+        return isHost ? substitutions.getHostPlayers() : substitutions.getVisitorPlayers();
+    }
+
+    private ExchangeSubstitutions selectSubstitutions(List<String> names, List<String> hostStarters, List<String> visitorStarters,
+                                                      Set<String> hostRosterNames, Set<String> visitorRosterNames) {
+        List<List<String>> hostCandidates = new ArrayList<>();
+        List<List<String>> visitorCandidates = new ArrayList<>();
+        for (int shift = 0; shift <= 2; shift++) {
+            hostCandidates.add(pairSubstitutions(names, shift, new HashSet<>(hostStarters)));
+            visitorCandidates.add(pairSubstitutions(names, shift, new HashSet<>(visitorStarters)));
+        }
+
+        boolean hasRosters = hostRosterNames != null && visitorRosterNames != null
+            && !hostRosterNames.isEmpty() && !visitorRosterNames.isEmpty();
+
+        if (hasRosters) {
+            int bestShift = 0;
+            int bestLimitPenalty = Integer.MAX_VALUE;
+            int bestViolations = Integer.MAX_VALUE;
+            int bestTotal = Integer.MIN_VALUE;
+            for (int shift = 0; shift <= 2; shift++) {
+                int limitPenalty = (hostCandidates.get(shift).size() > MAX_SUBSTITUTIONS ? 1 : 0)
+                    + (visitorCandidates.get(shift).size() > MAX_SUBSTITUTIONS ? 1 : 0);
+                int violations = countRosterViolations(hostCandidates.get(shift), hostRosterNames)
+                    + countRosterViolations(visitorCandidates.get(shift), visitorRosterNames);
+                int total = hostCandidates.get(shift).size() + visitorCandidates.get(shift).size();
+                if (limitPenalty < bestLimitPenalty
+                    || (limitPenalty == bestLimitPenalty && violations < bestViolations)
+                    || (limitPenalty == bestLimitPenalty && violations == bestViolations && total > bestTotal)) {
+                    bestShift = shift;
+                    bestLimitPenalty = limitPenalty;
+                    bestViolations = violations;
+                    bestTotal = total;
+                }
+            }
+            return new ExchangeSubstitutions(hostCandidates.get(bestShift), visitorCandidates.get(bestShift));
+        }
+
+        for (int shift = 0; shift <= 2; shift++) {
+            if (hostCandidates.get(shift).size() <= MAX_SUBSTITUTIONS && visitorCandidates.get(shift).size() <= MAX_SUBSTITUTIONS) {
+                return new ExchangeSubstitutions(hostCandidates.get(shift), visitorCandidates.get(shift));
+            }
+        }
+        return new ExchangeSubstitutions(hostCandidates.get(0), visitorCandidates.get(0));
+    }
+
+    private int countRosterViolations(List<String> substitutions, Set<String> rosterNames) {
+        int violations = 0;
+        for (String name : substitutions) {
+            if (!rosterNames.contains(name)) {
+                violations++;
+            }
+        }
+        return violations;
+    }
+
+    public static Set<String> toRosterNameSet(List<Player> players) {
+        Set<String> names = new HashSet<>();
+        for (Player player : players) {
+            if (player.getNameKicker() != null) names.add(player.getNameKicker());
+            if (player.getNameKickerAlt1() != null) names.add(player.getNameKickerAlt1());
+            if (player.getNameKickerAlt2() != null) names.add(player.getNameKickerAlt2());
+            if (player.getNameKickerAlt3() != null) names.add(player.getNameKickerAlt3());
+        }
+        return names;
+    }
+
+    private List<List<String>> extractStartingXIs(String formation) {
+        String aufstellung = extractAufstellung(formation);
+        if (aufstellung.isEmpty()) {
+            return null;
+        }
+        List<String> playerList = new ArrayList<>();
+        for (String line : aufstellung.split(FFL_LINE_BREAK)) {
+            String trimmed = line.trim();
+            if (!trimmed.isEmpty()) {
+                String cleaned = replaceKickerNote(trimmed);
+                if (!cleaned.isEmpty()) {
+                    playerList.add(cleaned);
+                }
+            }
+        }
+        if (playerList.size() < 22) {
+            return null;
+        }
+        List<List<String>> result = new ArrayList<>();
+        result.add(new ArrayList<>(playerList.subList(0, 11)));
+        result.add(new ArrayList<>(playerList.subList(11, Math.min(22, playerList.size()))));
+        return result;
+    }
+
+    private List<String> extractWechselNames(String formation) {
+        List<String> names = new ArrayList<>();
+
         int wechselStart = formation.indexOf("Wechsel");
-        if (wechselStart < 0) return result;
+        if (wechselStart < 0) return names;
 
         String wechsel = formation.substring(wechselStart + 7);
-        String[] lines = wechsel.split(FFL_LINE_BREAK);
-
-        Set<String> activePlayers = new HashSet<>(startingPlayers);
-        List<String> allPlayers = new ArrayList<>();
-        for (String line : lines) {
-            if (line == null || line.trim().isEmpty()) continue;
-            if (Character.isDigit(line.charAt(0))) continue;
-            String cleaned = replaceKickerNote(line);
-            if (!cleaned.isEmpty()) {
-                allPlayers.add(cleaned);
+        for (String marker : new String[]{"Trainer", "Aufstellung", "Besondere Vorkommnisse", "Tore"}) {
+            int markerIndex = wechsel.indexOf(marker);
+            if (markerIndex >= 0) {
+                wechsel = wechsel.substring(0, markerIndex);
             }
         }
 
-        for (int i = 0; i < allPlayers.size() - 1; i += 2) {
-            String eingewechselt = allPlayers.get(i);
-            String ausgewechselt = allPlayers.get(i + 1);
-            
-            if (activePlayers.contains(ausgewechselt)) {
-                activePlayers.remove(ausgewechselt);
-                activePlayers.add(eingewechselt);
-                result.add(eingewechselt);
+        for (String line : wechsel.split(FFL_LINE_BREAK)) {
+            if (line == null || line.trim().isEmpty()) continue;
+            char first = line.trim().charAt(0);
+            if (Character.isDigit(first) || first == '+' || first == ':') continue;
+            String cleaned = replaceKickerNote(line);
+            if (!cleaned.isEmpty()) {
+                names.add(cleaned);
+            }
+        }
+
+        return names;
+    }
+
+    private List<String> pairSubstitutions(List<String> names, int shift, Set<String> activePlayers) {
+        List<String> result = new ArrayList<>();
+
+        int i = shift;
+        while (i < names.size() - 1) {
+            String first = names.get(i);
+            String second = names.get(i + 1);
+            boolean firstActive = activePlayers.contains(first);
+            boolean secondActive = activePlayers.contains(second);
+
+            if (firstActive && !secondActive) {
+                activePlayers.remove(first);
+                activePlayers.add(second);
+                result.add(second);
+                i += 2;
+            } else if (!firstActive && secondActive) {
+                activePlayers.remove(second);
+                activePlayers.add(first);
+                result.add(first);
+                i += 2;
+            } else {
+                i += 2;
             }
         }
 
@@ -326,6 +474,24 @@ public class FormationConverterService {
         result = result.replaceAll(",", " ");
         result = result.replaceAll("\\s+", " ");
         return result.trim();
+    }
+
+    public static class ExchangeSubstitutions {
+        private final List<String> hostPlayers;
+        private final List<String> visitorPlayers;
+
+        public ExchangeSubstitutions(List<String> hostPlayers, List<String> visitorPlayers) {
+            this.hostPlayers = hostPlayers;
+            this.visitorPlayers = visitorPlayers;
+        }
+
+        public List<String> getHostPlayers() {
+            return hostPlayers;
+        }
+
+        public List<String> getVisitorPlayers() {
+            return visitorPlayers;
+        }
     }
 
     public static class ValidationResult {
@@ -412,10 +578,17 @@ public class FormationConverterService {
             return result;
         }
 
-        ValidationResult basicValidation = validateFormation(formationIntern);
+        List<Player> hostTeamPlayers = playerRepository.findByTeamId(game.getHost().getId());
+        List<Player> visitorTeamPlayers = playerRepository.findByTeamId(game.getVisitor().getId());
+        Set<String> hostRosterNames = toRosterNameSet(hostTeamPlayers);
+        Set<String> visitorRosterNames = toRosterNameSet(visitorTeamPlayers);
+
+        ValidationResult basicValidation = validateFormation(formationIntern, hostRosterNames, visitorRosterNames);
         if (!basicValidation.isValid()) {
             result.setValid(false);
             result.setErrors(basicValidation.getErrors());
+            result.setHostPlayerCount(basicValidation.getHostPlayerCount());
+            result.setVisitorPlayerCount(basicValidation.getVisitorPlayerCount());
             return result;
         }
 
@@ -441,8 +614,9 @@ public class FormationConverterService {
         List<String> hostPlayerNames = new ArrayList<>(playerList.subList(0, 11));
         List<String> visitorPlayerNames = new ArrayList<>(playerList.subList(11, 22));
 
-        List<String> hostExchangeNames = findExchangePlayers(formationIntern, hostPlayerNames);
-        List<String> visitorExchangeNames = findExchangePlayers(formationIntern, visitorPlayerNames);
+        ExchangeSubstitutions exchangeSubstitutions = findExchangePlayers(formationIntern, hostPlayerNames, visitorPlayerNames, hostRosterNames, visitorRosterNames);
+        List<String> hostExchangeNames = exchangeSubstitutions.getHostPlayers();
+        List<String> visitorExchangeNames = exchangeSubstitutions.getVisitorPlayers();
 
         hostPlayerNames.addAll(hostExchangeNames);
         visitorPlayerNames.addAll(visitorExchangeNames);
@@ -453,9 +627,6 @@ public class FormationConverterService {
         if (visitorPlayerNames.size() > 16) {
             result.getErrors().add("Gast-Mannschaft hat " + visitorPlayerNames.size() + " statt max. 16 Spieler");
         }
-
-        List<Player> hostTeamPlayers = playerRepository.findByTeamId(game.getHost().getId());
-        List<Player> visitorTeamPlayers = playerRepository.findByTeamId(game.getVisitor().getId());
 
         for (String playerName : hostPlayerNames) {
             Player found = findPlayerByName(hostTeamPlayers, playerName);
