@@ -1757,7 +1757,7 @@ export default function Home() {
       <div className="pb-6 min-h-full flex flex-col gap-0">
         <SegmentedTabs
           items={[
-            { key: 'spieler', label: 'Spieler' },
+            { key: 'spieler', label: 'Favoriten' },
             { key: 'gruppen', label: 'Gruppen' },
             { key: 'manager', label: 'Manager' },
             { key: 'bestof', label: 'Best-of' },
