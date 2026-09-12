@@ -287,27 +287,42 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
         assertThat(dto.getEinsatzquoteSpieltagNummer()).isEqualTo(matchday);
         assertThat(dto.getEinsatzquoteSpieltag()).isEqualTo(Math.round(gespielt * 100.0f / aktiv));
 
-        long expectedOffen = aktiveOffeneSpiele(dto.getSpieler(), matchday);
+        long expectedOffen = aktiveOffeneSpieler(dto.getSpieler());
         assertThat(dto.getEinsatzquoteSpieltagOffen()).isEqualTo((int) expectedOffen);
     }
 
     @Test
-    void aufstellung_einsatzquoteSpieltag_zaehltOffeneSpieleBeiTeiloffenerRunde() {
+    void aufstellung_einsatzquoteSpieltag_zaehltOffeneSpielerBeiTeiloffenerRunde() {
         int matchday = season.getCurrentMatchday();
         Round round = roundRepository.findBySeasonIdAndNumber(season.getId(), matchday).orElseThrow();
         List<Game> games = gameRepository.findByRoundId(round.getId());
 
         AufstellungDto before = dashboardService.getAufstellung(managerUwe72.getId());
-        long offenVorher = aktiveOffeneSpiele(before.getSpieler(), matchday);
+        long offenVorher = aktiveOffeneSpieler(before.getSpieler());
 
         Game target = games.stream()
             .filter(g -> g.getFormation() != null && !g.getFormation().isEmpty())
             .filter(g -> gehoertZuAktivemTeam(before.getSpieler(), g))
             .findFirst()
             .orElseThrow();
+        long betroffeneAktive = aktiveSpielerDesSpiels(before.getSpieler(), target);
         target.setFormation(null);
         target.setFormationExtern(null);
         gameRepository.save(target);
+        for (SpielerAufstellungDto s : before.getSpieler()) {
+            if (!Boolean.TRUE.equals(s.getAktiv())) continue;
+            Player p = playerRepository.findById(s.getId()).orElseThrow();
+            if (p.getTeams().isEmpty()) continue;
+            Team team = p.getTeams().get(p.getTeams().size() - 1);
+            boolean betrifftTeam = (target.getHost() != null && target.getHost().getId().equals(team.getId()))
+                || (target.getVisitor() != null && target.getVisitor().getId().equals(team.getId()));
+            if (!betrifftTeam) continue;
+            playerRankRepository.findByPlayerIdAndRoundId(p.getId(), round.getId())
+                .ifPresent(pr -> {
+                    pr.setPlayed(false);
+                    playerRankRepository.save(pr);
+                });
+        }
 
         AufstellungDto dto = dashboardService.getAufstellung(managerUwe72.getId());
 
@@ -318,27 +333,29 @@ class DashboardServiceTest extends AbstractSeasonTestBase {
 
         assertThat(dto.getEinsatzquoteSpieltagNummer()).isEqualTo(matchday);
         assertThat(dto.getEinsatzquoteSpieltag()).isEqualTo(Math.round(gespielt * 100.0f / 11));
-        assertThat(dto.getEinsatzquoteSpieltagOffen()).isEqualTo((int) offenVorher + 1);
+        assertThat(dto.getEinsatzquoteSpieltagOffen()).isEqualTo((int) offenVorher + (int) betroffeneAktive);
     }
 
-    private long aktiveOffeneSpiele(List<SpielerAufstellungDto> spieler, int matchday) {
-        Round round = roundRepository.findBySeasonIdAndNumber(season.getId(), matchday).orElseThrow();
-        List<Game> games = gameRepository.findByRoundId(round.getId());
-        Set<Long> offenGameIds = new java.util.HashSet<>();
+    private long aktiveOffeneSpieler(List<SpielerAufstellungDto> spieler) {
+        return spieler.stream()
+            .filter(s -> Boolean.TRUE.equals(s.getAktiv()))
+            .filter(s -> "OFFEN".equals(s.getEinsatzstatus()))
+            .count();
+    }
+
+    private long aktiveSpielerDesSpiels(List<SpielerAufstellungDto> spieler, Game g) {
+        long count = 0;
         for (SpielerAufstellungDto s : spieler) {
             if (!Boolean.TRUE.equals(s.getAktiv())) continue;
             Player p = playerRepository.findById(s.getId()).orElseThrow();
             if (p.getTeams().isEmpty()) continue;
             Team team = p.getTeams().get(p.getTeams().size() - 1);
-            for (Game g : games) {
-                boolean betrifftTeam = (g.getHost() != null && g.getHost().getId().equals(team.getId()))
-                    || (g.getVisitor() != null && g.getVisitor().getId().equals(team.getId()));
-                if (betrifftTeam && (g.getFormation() == null || g.getFormation().isEmpty())) {
-                    offenGameIds.add(g.getId());
-                }
+            if ((g.getHost() != null && g.getHost().getId().equals(team.getId()))
+                || (g.getVisitor() != null && g.getVisitor().getId().equals(team.getId()))) {
+                count++;
             }
         }
-        return offenGameIds.size();
+        return count;
     }
 
     private boolean gehoertZuAktivemTeam(List<SpielerAufstellungDto> spieler, Game g) {

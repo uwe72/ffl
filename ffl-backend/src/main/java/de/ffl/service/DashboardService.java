@@ -14,11 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -103,15 +101,17 @@ public class DashboardService {
                 }
                 einsatzquoteSpieltag = Math.round(eingesetzte * 100.0f / slots);
             }
-            Set<Long> offenGameIds = new HashSet<>();
+            int offen = 0;
             for (Player p : lineup) {
                 Team team = letztesTeam(p);
                 Game game = team != null ? gameByTeamId.get(team.getId()) : null;
-                if (game != null && (game.getFormation() == null || game.getFormation().isEmpty())) {
-                    offenGameIds.add(game.getId());
+                PlayerRank pr = rankByPlayer.get(p.getId());
+                boolean gespielt = pr != null && Boolean.TRUE.equals(pr.getPlayed());
+                if (!gespielt && (game == null || game.getFormation() == null || game.getFormation().isEmpty())) {
+                    offen++;
                 }
             }
-            einsatzquoteSpieltagOffen = offenGameIds.size();
+            einsatzquoteSpieltagOffen = offen;
         }
 
         List<SpielerAufstellungDto> spieler = new ArrayList<>();

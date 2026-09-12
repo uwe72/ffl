@@ -119,7 +119,7 @@ function HomeHelpContent() {
           Punkte am aktuellen Spieltag
         </HelpRow>
         <HelpRow icon={<i className="sap-icon sap-icon-time-entry text-accent text-[14px]" />}>
-          <span className="font-semibold">Einsatzquote</span> – unten links: „Spieltag" = Anteil eingesetzter Spieler am aktuellen Spieltag (steigt im Laufe des Spieltags; „· N offen" = ausstehende Spiele) · „Gesamt" = Saisonquote
+          <span className="font-semibold">Einsatzquote</span> – unten links: „Spieltag" = Anteil eingesetzter Spieler am aktuellen Spieltag (steigt im Laufe des Spieltags; „· N offen" = Spieler, deren Spiel noch nicht stattgefunden hat) · „Gesamt" = Saisonquote
         </HelpRow>
         <p className="text-muted">Karte anklicken zum Umdrehen</p>
       </div>
