@@ -292,7 +292,7 @@ function ManagersHelpOptions() {
   )
 }
 
-function BestOfHelpContent() {
+function BestOfHelpContent({ mobile = false }: { mobile?: boolean }) {
   return (
     <div className="flex flex-col gap-3 text-xs">
       <div className="flex flex-col gap-2">
@@ -309,30 +309,45 @@ function BestOfHelpContent() {
         <HelpRow icon={<i className="sap-icon sap-icon-swap text-accent text-[14px]" />}>
           <span className="font-semibold">Freier Spieler</span> – Sieht die Formation vier Spieler auf einer Position vor, ist der vierte Slot ein „Freislot": Dort wären statt des gezeigten auch andere Spieler dieser Position denkbar.
         </HelpRow>
-        <HelpRow icon={<i className="sap-icon sap-icon-board text-accent text-[14px]" />}>
-          <span className="font-semibold">Anzeigetafel</span> – Oben links: „Punkte gesamt" = Summe der besten Saison-Punktzahlen aller 11 Spieler · rechts „Spieltag N" = deren Punkte am aktuellen Spieltag · darunter „Kosten [M€]" = Kaderkosten in Millionen Euro.
-        </HelpRow>
-        <HelpRow icon={<i className="sap-icon sap-icon-time-entry text-accent text-[14px]" />}>
-          <span className="font-semibold">Einsatzquote</span> – unten links: „Spieltag N" = Anteil der Best-of-Spieler, die am aktuellen Spieltag gespielt haben („· N offen" = Spiele stehen noch aus) · „Gesamt" = Durchschnitt der Saison-Einsatzquoten der 11 Spieler.
-        </HelpRow>
-        <p className="text-muted">Karte anklicken zum Umdrehen</p>
+        {!mobile && (
+          <>
+            <HelpRow icon={<i className="sap-icon sap-icon-board text-accent text-[14px]" />}>
+              <span className="font-semibold">Anzeigetafel</span> – Oben links: „Punkte gesamt" = Summe der besten Saison-Punktzahlen aller 11 Spieler · rechts „Spieltag N" = deren Punkte am aktuellen Spieltag · darunter „Kosten [M€]" = Kaderkosten in Millionen Euro.
+            </HelpRow>
+            <HelpRow icon={<i className="sap-icon sap-icon-time-entry text-accent text-[14px]" />}>
+              <span className="font-semibold">Einsatzquote</span> – unten links: „Spieltag N" = Anteil der Best-of-Spieler, die am aktuellen Spieltag gespielt haben („· N offen" = Spiele stehen noch aus) · „Gesamt" = Durchschnitt der Saison-Einsatzquoten der 11 Spieler.
+            </HelpRow>
+            <p className="text-muted">Karte anklicken zum Umdrehen</p>
+          </>
+        )}
+        {mobile && (
+          <>
+            <HelpRow icon={<i className="sap-icon sap-icon-board text-accent text-[14px]" />}>
+              <span className="font-semibold">Kopfzeile</span> – Punkte = Summe der besten Saison-Punktzahlen aller 11 Spieler (in Klammern deren Punkte am aktuellen Spieltag) · Kosten = Kaderkosten in Millionen Euro.
+            </HelpRow>
+            <HelpRow icon={<i className="sap-icon sap-icon-table-view text-accent text-[14px]" />}>
+              <span className="font-semibold">Tabelle</span> – Punkte gesamt/spieltag, Einsätze und Einsatzstatus je Spieler; antippen öffnet den Spieler.
+            </HelpRow>
+          </>
+        )}
       </div>
     </div>
   )
 }
 
-function BestOfPanel({ bestTeam, isLoading, isError, maxWidth, title = 'Best-of' }: {
+function BestOfPanel({ bestTeam, isLoading, isError, maxWidth, title = 'Best-of', mobile = false }: {
   bestTeam: Aufstellung | null
   isLoading: boolean
   isError: boolean
   maxWidth?: number
   title?: string
+  mobile?: boolean
 }) {
   const [helpOpen, setHelpOpen] = useState(false)
   const helpRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!helpOpen) return
+    if (!helpOpen || mobile) return
     const handler = (e: MouseEvent) => {
       if (helpRef.current && !helpRef.current.contains(e.target as Node)) setHelpOpen(false)
     }
@@ -345,7 +360,88 @@ function BestOfPanel({ bestTeam, isLoading, isError, maxWidth, title = 'Best-of'
       document.removeEventListener('mousedown', handler)
       document.removeEventListener('keydown', keyHandler)
     }
-  }, [helpOpen])
+  }, [helpOpen, mobile])
+
+  const body = isLoading ? (
+    <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+  ) : isError || !bestTeam ? (
+    <p className="text-sm text-muted py-10 text-center">Best-of-Team wurde noch nicht berechnet.</p>
+  ) : mobile ? (
+    <AufstellungVertikal aufstellung={bestTeam} modus="gesamt" />
+  ) : (
+    <AufstellungsFeld
+      aufstellung={bestTeam}
+      modus="gesamt"
+      overlayLegend
+      hideSum
+      bestOf
+      maxWidth={maxWidth}
+    />
+  )
+
+  if (mobile) {
+    return (
+      <>
+        <div className="p-6 bg-surface border border-border rounded-card px-3 py-0.5 mb-1">
+          <div className="relative z-20 shrink-0 mb-1">
+            <div className="flex items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="text-base font-semibold text-foreground truncate">{title}</div>
+                {bestTeam && (
+                  <div className="mt-0.5 text-xs text-muted leading-relaxed">
+                    <span className="text-foreground">
+                      Punkte: {bestTeam.punkteGesamt}
+                      {bestTeam.punkteSpieltag != null && (
+                        <span className={`font-semibold tabular-nums ${bestTeam.punkteSpieltag > 0 ? 'text-success' : bestTeam.punkteSpieltag < 0 ? 'text-danger' : 'text-foreground'}`}>
+                          ({bestTeam.punkteSpieltag > 0 ? `+${bestTeam.punkteSpieltag}` : bestTeam.punkteSpieltag < 0 ? `\u2212${Math.abs(bestTeam.punkteSpieltag)}` : '+0'})
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-muted"> · </span>
+                    <span className="text-foreground">Kosten: {Math.round(bestTeam.kaderwert / 1_000_000)} M€</span>
+                  </div>
+                )}
+              </div>
+              <div className="relative shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setHelpOpen(o => !o)}
+                  aria-expanded={helpOpen}
+                  aria-label="Hilfe"
+                  title="Hilfe"
+                  className={`w-8 h-8 rounded-control border border-border-strong flex items-center justify-center transition-colors ${helpOpen ? 'text-accent bg-accent-soft' : 'bg-secondary text-secondary-foreground hover:bg-card-hover'}`}
+                >
+                  <i className="sap-icon sap-icon-question-mark text-sm" />
+                </button>
+                {helpOpen && (
+                  <div
+                    className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+                    onClick={() => setHelpOpen(false)}
+                  >
+                    <div
+                      role="dialog"
+                      aria-modal="true"
+                      className="bg-surface border border-border rounded-card shadow-2xl w-full max-w-sm p-4"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <BestOfHelpContent mobile />
+                      <div className="border-t border-border pt-3 mt-3">
+                        <Button variant="ghost" size="input" className="w-full" onClick={() => setHelpOpen(false)}>
+                          <i className="sap-icon sap-icon-decline text-sm" />
+                          Fenster schließen
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="p-2 bg-surface border border-border rounded-card">{body}</div>
+      </>
+    )
+  }
 
   return (
     <div className="p-6 bg-surface border border-border rounded-card h-full w-fit self-start flex flex-col min-h-0 max-w-[1300px] overflow-y-auto">
@@ -373,22 +469,7 @@ function BestOfPanel({ bestTeam, isLoading, isError, maxWidth, title = 'Best-of'
           </div>
         </div>
       </div>
-      <div className="relative z-0 isolate flex-1 min-h-0 flex flex-col">
-        {isLoading ? (
-          <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
-        ) : isError || !bestTeam ? (
-          <p className="text-sm text-muted py-10 text-center">Best-of-Team wurde noch nicht berechnet.</p>
-        ) : (
-          <AufstellungsFeld
-            aufstellung={bestTeam}
-            modus="gesamt"
-            overlayLegend
-            hideSum
-            bestOf
-            maxWidth={maxWidth}
-          />
-        )}
-      </div>
+      <div className="relative z-0 isolate flex-1 min-h-0 flex flex-col">{body}</div>
     </div>
   )
 }
@@ -1694,18 +1775,13 @@ export default function Home() {
             headerTitle={groupHeaderTitle}
           />
         ) : activeTab === 'bestof' ? (
-          <div className="p-2 bg-surface border border-border rounded-card">
-            {bestTeamQuery.isPending ? (
-              <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
-            ) : bestTeamQuery.isError || !bestTeamAufstellung ? (
-              <p className="text-sm text-muted py-10 text-center">Best-of-Team wurde noch nicht berechnet.</p>
-            ) : (
-              <AufstellungVertikal
-                aufstellung={bestTeamAufstellung}
-                modus="gesamt"
-              />
-            )}
-          </div>
+          <BestOfPanel
+            mobile
+            bestTeam={bestTeamAufstellung}
+            isLoading={bestTeamQuery.isPending}
+            isError={bestTeamQuery.isError}
+            title={season?.name ?? 'Best-of'}
+          />
         ) : (
           <div
             {...swipe}
