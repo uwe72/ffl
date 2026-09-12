@@ -159,11 +159,12 @@ export function useTransparencyMailPreview(seasonId: number) {
   })
 }
 
-export function useBestTeam(seasonId: number) {
+export function useBestTeam(seasonId: number, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['seasons', seasonId, 'best-team'],
     queryFn: () => seasonApi.getBestTeam(seasonId).then(res => res.data),
-    enabled: !!seasonId,
+    enabled: !!seasonId && (options?.enabled ?? true),
+    retry: false,
   })
 }
 

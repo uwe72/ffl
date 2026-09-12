@@ -116,4 +116,32 @@ class BestTeamServiceTest extends AbstractSeasonTestBase {
         BestTeamResult result = bestTeamService.getBestTeam(season.getId());
         assertThat(result).isNull();
     }
+
+    @Test
+    void bestTeam_shouldEnrichWithCurrentRound() {
+        assertThat(bestTeam.getCurrentMatchday()).isNotNull().isGreaterThan(0);
+        assertThat(bestTeam.getSpieltagPoints()).isNotNull();
+        assertThat(bestTeam.getEinsatzquoteSpieltag()).isBetween(0, 100);
+        assertThat(bestTeam.getEinsatzquoteSpieltagOffen()).isGreaterThanOrEqualTo(0);
+        assertThat(bestTeam.getEinsatzquoteGesamt()).isBetween(0, 100);
+    }
+
+    @Test
+    void bestTeam_spieltagPointsShouldEqualSumOfPlayerPointsRound() {
+        int sum = bestTeam.getPlayers().stream()
+            .mapToInt(BestTeamPlayer::getPointsRound)
+            .sum();
+        assertThat(bestTeam.getSpieltagPoints()).isEqualTo(sum);
+    }
+
+    @Test
+    void bestTeam_playersShouldHaveRoundData() {
+        for (BestTeamPlayer player : bestTeam.getPlayers()) {
+            assertThat(player.getPointsRound()).isNotNull();
+            assertThat(player.getEinsaetze()).isGreaterThanOrEqualTo(0);
+            assertThat(player.getGespielt()).isNotNull();
+            assertThat(player.getEinsatzstatus()).isIn("GESPIELT", "NICHT_GESPIELT", "OFFEN");
+            assertThat(player.getEinsatzquote()).isGreaterThanOrEqualTo(0);
+        }
+    }
 }

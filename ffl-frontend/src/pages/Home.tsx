@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom'
 import { useCurrentManager, useManagersBySeason } from '../hooks/useManagers'
-import { useCurrentSeason } from '../hooks/useSeasons'
+import { useCurrentSeason, useBestTeam } from '../hooks/useSeasons'
 import { useDashboardAufstellung } from '../hooks/useDashboard'
 import { useFavorites, useFavoriteCounts, useAddFavorite, useRemoveFavorite, useSetStandard } from '../hooks/useFavorites'
 import { useMyGroupsWithStats, useGroupLogo, useSetStandardGroup } from '../hooks/useManagerGroups'
@@ -19,8 +19,8 @@ import SortIcon from '../components/SortIcon'
 import AufstellungsFeld from '../components/statistik/AufstellungsFeld'
 import AufstellungVertikal from '../components/statistik/AufstellungVertikal'
 import ScoreLine from '../components/statistik/ScoreLine'
-import type { Aufstellung } from '../types/dashboard'
-import type { ManagerGroupRoundStats, Manager } from '../types'
+import type { Aufstellung, SpielerAufstellung } from '../types/dashboard'
+import type { ManagerGroupRoundStats, Manager, BestTeamResult, Position } from '../types'
 import Managers from './Managers'
 
 const EMPTY_AUFSTELLUNG: Aufstellung = {
@@ -43,6 +43,51 @@ const EMPTY_AUFSTELLUNG: Aufstellung = {
   einsatzquoteSpieltagOffen: null,
   einsatzquoteGesamt: null,
   spieler: [],
+}
+
+function bestTeamToAufstellung(result: BestTeamResult): Aufstellung {
+  const sorted = [...result.players].sort((a, b) => b.points - a.points)
+  const spieler: SpielerAufstellung[] = sorted.map((p, index) => ({
+    id: p.id,
+    name: p.name,
+    vereinKuerzel: p.teamName,
+    vereinLogoUrl: p.teamLogoUrl,
+    pictureUrl: p.pictureUrl,
+    position: p.position as Position,
+    joker: false,
+    punkteGesamt: p.points,
+    punkteSpieltag: p.pointsRound ?? 0,
+    positionTotal: index + 1,
+    positionRound: index + 1,
+    marktwert: p.prize,
+    tore: 0,
+    zuNull: 0,
+    gespielt: p.gespielt ?? false,
+    einsatzstatus: p.einsatzstatus,
+    einsaetze: p.einsaetze ?? 0,
+    einsatzquote: p.einsatzquote,
+  }))
+  return {
+    phase: 'SAISON',
+    spieltag: result.currentMatchday ?? 0,
+    teamname: 'Best-of',
+    punkteGesamt: result.totalPoints,
+    punkteSpieltag: result.spieltagPoints ?? null,
+    positionGesamt: null,
+    positionSpieltag: null,
+    teilnehmer: null,
+    positionGesamtVorher: null,
+    positionSpieltagVorher: null,
+    punkteGesamtVorher: null,
+    punkteSpieltagVorher: null,
+    kaderwert: result.totalCost,
+    budget: result.budget,
+    einsatzquoteSpieltag: result.einsatzquoteSpieltag ?? null,
+    einsatzquoteSpieltagNummer: result.currentMatchday ?? null,
+    einsatzquoteSpieltagOffen: result.einsatzquoteSpieltagOffen ?? null,
+    einsatzquoteGesamt: result.einsatzquoteGesamt ?? null,
+    spieler,
+  }
 }
 
 function managerLabel(m?: { firstName?: string; lastName?: string; login?: string; shortName?: string; managerName?: string }): string {
@@ -243,6 +288,107 @@ function ManagersHelpOptions() {
       <HelpRow icon={<i className="sap-icon sap-icon-sort text-accent text-[14px]" />}>
         <span className="font-semibold">Sortierung</span> – Zwischen „Position" (Ranglistenplatz) und „Spieltagspunkte" wechseln.
       </HelpRow>
+    </div>
+  )
+}
+
+function BestOfHelpContent() {
+  return (
+    <div className="flex flex-col gap-3 text-xs">
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted">Spielerkacheln</p>
+        <HelpRow icon={<i className="sap-icon sap-icon-star text-accent text-[14px]" />}>
+          <span className="font-semibold">Best-of</span> – Die 11 Punkte-besten Spieler, die man in der aktuellen Saison hätte kaufen können: das beste Team zum Saison-Budget.
+        </HelpRow>
+        <HelpRow icon={<i className="sap-icon sap-icon-soccer-ball text-accent text-[14px]" />}>
+          <span className="font-semibold">Formation</span> – Vom System vorgegeben (z. B. 1-4-3-3, 1-3-4-3 oder 1-3-3-4); die Kacheln stehen auf ihren Positionsspalten (TW · AB · MF · ST).
+        </HelpRow>
+        <HelpRow icon={<i className="sap-icon sap-icon-coins text-accent text-[14px]" />}>
+          <span className="font-semibold">Budget</span> – Der Marktwert-Badge zeigt den Spielerpreis; die Kaderkosten überschreiten das Saison-Budget nie.
+        </HelpRow>
+        <HelpRow icon={<i className="sap-icon sap-icon-swap text-accent text-[14px]" />}>
+          <span className="font-semibold">Freier Spieler</span> – Sieht die Formation vier Spieler auf einer Position vor, ist der vierte Slot ein „Freislot": Dort wären statt des gezeigten auch andere Spieler dieser Position denkbar.
+        </HelpRow>
+        <HelpRow icon={<i className="sap-icon sap-icon-board text-accent text-[14px]" />}>
+          <span className="font-semibold">Anzeigetafel</span> – Oben links: „Punkte gesamt" = Summe der besten Saison-Punktzahlen aller 11 Spieler · rechts „Spieltag N" = deren Punkte am aktuellen Spieltag · darunter „Kosten [M€]" = Kaderkosten in Millionen Euro.
+        </HelpRow>
+        <HelpRow icon={<i className="sap-icon sap-icon-time-entry text-accent text-[14px]" />}>
+          <span className="font-semibold">Einsatzquote</span> – unten links: „Spieltag N" = Anteil der Best-of-Spieler, die am aktuellen Spieltag gespielt haben („· N offen" = Spiele stehen noch aus) · „Gesamt" = Durchschnitt der Saison-Einsatzquoten der 11 Spieler.
+        </HelpRow>
+        <p className="text-muted">Karte anklicken zum Umdrehen</p>
+      </div>
+    </div>
+  )
+}
+
+function BestOfPanel({ bestTeam, isLoading, isError, maxWidth, title = 'Best-of' }: {
+  bestTeam: Aufstellung | null
+  isLoading: boolean
+  isError: boolean
+  maxWidth?: number
+  title?: string
+}) {
+  const [helpOpen, setHelpOpen] = useState(false)
+  const helpRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!helpOpen) return
+    const handler = (e: MouseEvent) => {
+      if (helpRef.current && !helpRef.current.contains(e.target as Node)) setHelpOpen(false)
+    }
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setHelpOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    document.addEventListener('keydown', keyHandler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('keydown', keyHandler)
+    }
+  }, [helpOpen])
+
+  return (
+    <div className="p-6 bg-surface border border-border rounded-card h-full w-fit self-start flex flex-col min-h-0 max-w-[1300px] overflow-y-auto">
+      <div className="relative z-20 shrink-0 mb-4">
+        <div className="flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-foreground min-w-0">{title}</h2>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="relative flex items-center gap-2" ref={helpRef}>
+              {helpOpen && (
+                <div className="absolute right-0 top-full mt-2 z-50 w-[400px] bg-surface border border-border rounded-card shadow-xl p-4">
+                  <BestOfHelpContent />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setHelpOpen(o => !o)}
+                aria-expanded={helpOpen}
+                aria-label="Hilfe"
+                title="Hilfe"
+                className={`w-8 h-8 rounded-control border border-border-strong flex items-center justify-center transition-colors ${helpOpen ? 'text-accent bg-accent-soft' : 'bg-secondary text-secondary-foreground hover:bg-card-hover'}`}
+              >
+                <i className="sap-icon sap-icon-question-mark text-sm" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="relative z-0 isolate flex-1 min-h-0 flex flex-col">
+        {isLoading ? (
+          <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+        ) : isError || !bestTeam ? (
+          <p className="text-sm text-muted py-10 text-center">Best-of-Team wurde noch nicht berechnet.</p>
+        ) : (
+          <AufstellungsFeld
+            aufstellung={bestTeam}
+            modus="gesamt"
+            overlayLegend
+            hideSum
+            bestOf
+            maxWidth={maxWidth}
+          />
+        )}
+      </div>
     </div>
   )
 }
@@ -948,16 +1094,26 @@ export default function Home() {
   }, [])
 
   const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab: 'spieler' | 'gruppen' | 'manager' =
-    searchParams.get('tab') === 'gruppen' ? 'gruppen' : searchParams.get('tab') === 'manager' ? 'manager' : 'spieler'
+  const activeTab: 'spieler' | 'gruppen' | 'manager' | 'bestof' =
+    searchParams.get('tab') === 'gruppen' ? 'gruppen'
+      : searchParams.get('tab') === 'manager' ? 'manager'
+        : searchParams.get('tab') === 'bestof' ? 'bestof'
+          : 'spieler'
   const { data: myGroups, isLoading: groupsLoading } = useMyGroupsWithStats(activeTab === 'gruppen')
   const setStandardGroup = useSetStandardGroup()
 
   const handleTabChange = (key: string) => {
     if (key === 'gruppen') setSearchParams({ tab: 'gruppen' }, { replace: false })
     else if (key === 'manager') setSearchParams({ tab: 'manager' }, { replace: false })
+    else if (key === 'bestof') setSearchParams({ tab: 'bestof' }, { replace: false })
     else setSearchParams({}, { replace: false })
   }
+
+  const bestTeamQuery = useBestTeam(season?.id ?? 0, { enabled: activeTab === 'bestof' })
+  const bestTeamAufstellung = useMemo(
+    () => (bestTeamQuery.data ? bestTeamToAufstellung(bestTeamQuery.data) : null),
+    [bestTeamQuery.data]
+  )
 
   useEffect(() => {
     if (!isAuthenticated) navigate('/login')
@@ -1523,6 +1679,7 @@ export default function Home() {
             { key: 'spieler', label: 'Spieler' },
             { key: 'gruppen', label: 'Gruppen' },
             { key: 'manager', label: 'Manager' },
+            { key: 'bestof', label: 'Best-of' },
           ]}
           active={activeTab}
           onChange={handleTabChange}
@@ -1536,6 +1693,19 @@ export default function Home() {
             canNavigateToManager={canNavigateToManager}
             headerTitle={groupHeaderTitle}
           />
+        ) : activeTab === 'bestof' ? (
+          <div className="p-2 bg-surface border border-border rounded-card">
+            {bestTeamQuery.isPending ? (
+              <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+            ) : bestTeamQuery.isError || !bestTeamAufstellung ? (
+              <p className="text-sm text-muted py-10 text-center">Best-of-Team wurde noch nicht berechnet.</p>
+            ) : (
+              <AufstellungVertikal
+                aufstellung={bestTeamAufstellung}
+                modus="gesamt"
+              />
+            )}
+          </div>
         ) : (
           <div
             {...swipe}
@@ -1569,9 +1739,10 @@ export default function Home() {
     <div className="pb-6 h-[103%] flex flex-col min-h-0">
       <Tabs
         items={[
-          { key: 'spieler', label: 'Spieler' },
+          { key: 'spieler', label: 'Favoriten' },
           { key: 'gruppen', label: 'Gruppen' },
           { key: 'manager', label: 'Manager' },
+          { key: 'bestof', label: 'Best-of' },
         ]}
         active={activeTab}
         onChange={handleTabChange}
@@ -1601,6 +1772,16 @@ export default function Home() {
               </div>,
               true
             )}
+          </div>
+        ) : activeTab === 'bestof' ? (
+          <div className="flex-1 min-h-0 overflow-x-auto">
+            <BestOfPanel
+              bestTeam={bestTeamAufstellung}
+              isLoading={bestTeamQuery.isPending}
+              isError={bestTeamQuery.isError}
+              maxWidth={spielerMaxWidth}
+              title={season?.name ?? 'Best-of'}
+            />
           </div>
         ) : activeTab === 'manager' ? (
           <Managers fill enableCompact showEinsatzquote showFavorites showVisits />

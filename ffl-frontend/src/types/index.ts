@@ -719,6 +719,11 @@ export interface BestTeamPlayer {
   teamLogoUrl?: string
   pictureUrl?: string
   freeChoice: boolean
+  pointsRound?: number
+  einsaetze?: number
+  gespielt?: boolean
+  einsatzstatus?: 'GESPIELT' | 'NICHT_GESPIELT' | 'OFFEN'
+  einsatzquote?: number
 }
 
 export interface BestTeamResult {
@@ -727,6 +732,11 @@ export interface BestTeamResult {
   totalCost: number
   formation: string
   budget: number
+  currentMatchday?: number
+  spieltagPoints?: number
+  einsatzquoteSpieltag?: number
+  einsatzquoteSpieltagOffen?: number
+  einsatzquoteGesamt?: number
 }
 
 export interface Document {

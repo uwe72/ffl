@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.ffl.domain.*;
 import de.ffl.dto.BestTeamResult;
 import de.ffl.dto.BestTeamResult.BestTeamPlayer;
+import de.ffl.repository.GameRepository;
 import de.ffl.repository.PlayerRankRepository;
 import de.ffl.repository.PlayerRepository;
+import de.ffl.repository.RoundRepository;
 import de.ffl.repository.SeasonRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,15 +26,21 @@ public class BestTeamService {
 
     private final PlayerRepository playerRepository;
     private final PlayerRankRepository playerRankRepository;
+    private final RoundRepository roundRepository;
+    private final GameRepository gameRepository;
     private final SeasonRepository seasonRepository;
     private final ObjectMapper objectMapper;
 
     public BestTeamService(PlayerRepository playerRepository,
                            PlayerRankRepository playerRankRepository,
+                           RoundRepository roundRepository,
+                           GameRepository gameRepository,
                            SeasonRepository seasonRepository,
                            ObjectMapper objectMapper) {
         this.playerRepository = playerRepository;
         this.playerRankRepository = playerRankRepository;
+        this.roundRepository = roundRepository;
+        this.gameRepository = gameRepository;
         this.seasonRepository = seasonRepository;
         this.objectMapper = objectMapper;
     }
@@ -53,17 +61,95 @@ public class BestTeamService {
         }
     }
 
+    @Transactional(readOnly = true)
     public BestTeamResult getBestTeam(Long seasonId) {
         Season season = seasonRepository.findById(seasonId).orElse(null);
         if (season == null || season.getBestTeamJson() == null) {
             return null;
         }
         try {
-            return objectMapper.readValue(season.getBestTeamJson(), BestTeamResult.class);
+            BestTeamResult result = objectMapper.readValue(season.getBestTeamJson(), BestTeamResult.class);
+            enrichWithCurrentRound(result, season);
+            return result;
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize best team result", e);
             return null;
         }
+    }
+
+    private void enrichWithCurrentRound(BestTeamResult result, Season season) {
+        int currentMatchday = season.getCurrentMatchday() != null ? season.getCurrentMatchday() : 0;
+        result.setCurrentMatchday(currentMatchday);
+        if (currentMatchday <= 0) {
+            return;
+        }
+        Round round = roundRepository.findBySeasonIdAndNumber(season.getId(), currentMatchday).orElse(null);
+        if (round == null) {
+            return;
+        }
+
+        List<Long> playerIds = result.getPlayers().stream()
+            .map(BestTeamPlayer::getId)
+            .collect(Collectors.toList());
+        Map<Long, Player> playerById = playerRepository.findAllById(playerIds).stream()
+            .collect(Collectors.toMap(Player::getId, p -> p));
+
+        Map<Long, PlayerRank> rankByPlayer = new HashMap<>();
+        for (PlayerRank pr : playerRankRepository.findByPlayerIdInAndRoundId(playerIds, round.getId())) {
+            rankByPlayer.put(pr.getPlayer().getId(), pr);
+        }
+        Map<Long, Game> gameByTeamId = new HashMap<>();
+        for (Game g : gameRepository.findByRoundId(round.getId())) {
+            if (g.getHost() != null) gameByTeamId.put(g.getHost().getId(), g);
+            if (g.getVisitor() != null) gameByTeamId.put(g.getVisitor().getId(), g);
+        }
+
+        int spieltagPoints = 0;
+        int gespieltCount = 0;
+        int offen = 0;
+        int quoteSum = 0;
+        int quoteCount = 0;
+
+        for (BestTeamPlayer p : result.getPlayers()) {
+            PlayerRank pr = rankByPlayer.get(p.getId());
+            boolean played = pr != null && Boolean.TRUE.equals(pr.getPlayed());
+            p.setPointsRound(pr != null && pr.getPointsRound() != null ? pr.getPointsRound() : 0);
+            p.setEinsaetze(pr != null && pr.getNumberMatches() != null ? pr.getNumberMatches() : 0);
+            p.setGespielt(played);
+            spieltagPoints += p.getPointsRound();
+            if (played) gespieltCount++;
+
+            Player player = playerById.get(p.getId());
+            Team team = player != null && player.getTeams() != null && !player.getTeams().isEmpty()
+                ? player.getTeams().get(player.getTeams().size() - 1)
+                : null;
+            Game game = team != null ? gameByTeamId.get(team.getId()) : null;
+            if (!played && (game == null || game.getFormation() == null || game.getFormation().isEmpty())) {
+                offen++;
+            }
+            p.setEinsatzstatus(einsatzstatus(played, game));
+
+            if (player != null && player.getEinsatzquote() != null) {
+                p.setEinsatzquote(player.getEinsatzquote());
+                quoteSum += player.getEinsatzquote();
+                quoteCount++;
+            }
+        }
+
+        result.setSpieltagPoints(spieltagPoints);
+        if (!result.getPlayers().isEmpty()) {
+            result.setEinsatzquoteSpieltag(Math.round(gespieltCount * 100.0f / result.getPlayers().size()));
+        }
+        result.setEinsatzquoteSpieltagOffen(offen);
+        if (quoteCount > 0) {
+            result.setEinsatzquoteGesamt(Math.round((float) quoteSum / quoteCount));
+        }
+    }
+
+    private String einsatzstatus(boolean gespielt, Game game) {
+        if (gespielt) return "GESPIELT";
+        if (game != null && game.getFormation() != null && !game.getFormation().isEmpty()) return "NICHT_GESPIELT";
+        return "OFFEN";
     }
 
     BestTeamResult calculate(Season season, Consumer<String> logCallback) {

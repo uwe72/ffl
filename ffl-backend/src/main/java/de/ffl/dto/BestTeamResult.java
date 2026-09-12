@@ -8,6 +8,11 @@ public class BestTeamResult {
     private long totalCost;
     private String formation;
     private long budget;
+    private Integer currentMatchday;
+    private Integer spieltagPoints;
+    private Integer einsatzquoteSpieltag;
+    private Integer einsatzquoteSpieltagOffen;
+    private Integer einsatzquoteGesamt;
 
     public BestTeamResult() {}
 
@@ -29,6 +34,16 @@ public class BestTeamResult {
     public void setFormation(String formation) { this.formation = formation; }
     public long getBudget() { return budget; }
     public void setBudget(long budget) { this.budget = budget; }
+    public Integer getCurrentMatchday() { return currentMatchday; }
+    public void setCurrentMatchday(Integer currentMatchday) { this.currentMatchday = currentMatchday; }
+    public Integer getSpieltagPoints() { return spieltagPoints; }
+    public void setSpieltagPoints(Integer spieltagPoints) { this.spieltagPoints = spieltagPoints; }
+    public Integer getEinsatzquoteSpieltag() { return einsatzquoteSpieltag; }
+    public void setEinsatzquoteSpieltag(Integer einsatzquoteSpieltag) { this.einsatzquoteSpieltag = einsatzquoteSpieltag; }
+    public Integer getEinsatzquoteSpieltagOffen() { return einsatzquoteSpieltagOffen; }
+    public void setEinsatzquoteSpieltagOffen(Integer einsatzquoteSpieltagOffen) { this.einsatzquoteSpieltagOffen = einsatzquoteSpieltagOffen; }
+    public Integer getEinsatzquoteGesamt() { return einsatzquoteGesamt; }
+    public void setEinsatzquoteGesamt(Integer einsatzquoteGesamt) { this.einsatzquoteGesamt = einsatzquoteGesamt; }
 
     public static class BestTeamPlayer {
         private Long id;
@@ -40,6 +55,11 @@ public class BestTeamResult {
         private String teamLogoUrl;
         private String pictureUrl;
         private boolean freeChoice;
+        private Integer pointsRound;
+        private Integer einsaetze;
+        private Boolean gespielt;
+        private String einsatzstatus;
+        private Integer einsatzquote;
 
         public BestTeamPlayer() {}
 
@@ -74,5 +94,15 @@ public class BestTeamResult {
         public void setPictureUrl(String pictureUrl) { this.pictureUrl = pictureUrl; }
         public boolean isFreeChoice() { return freeChoice; }
         public void setFreeChoice(boolean freeChoice) { this.freeChoice = freeChoice; }
+        public Integer getPointsRound() { return pointsRound; }
+        public void setPointsRound(Integer pointsRound) { this.pointsRound = pointsRound; }
+        public Integer getEinsaetze() { return einsaetze; }
+        public void setEinsaetze(Integer einsaetze) { this.einsaetze = einsaetze; }
+        public Boolean getGespielt() { return gespielt; }
+        public void setGespielt(Boolean gespielt) { this.gespielt = gespielt; }
+        public String getEinsatzstatus() { return einsatzstatus; }
+        public void setEinsatzstatus(String einsatzstatus) { this.einsatzstatus = einsatzstatus; }
+        public Integer getEinsatzquote() { return einsatzquote; }
+        public void setEinsatzquote(Integer einsatzquote) { this.einsatzquote = einsatzquote; }
     }
 }

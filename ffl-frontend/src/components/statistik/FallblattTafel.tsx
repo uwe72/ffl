@@ -161,7 +161,35 @@ function Avatar({ manager, editable = false }: { manager: Manager; editable?: bo
   )
 }
 
-export default function FallblattTafel({ aufstellung, manager, editable = false }: { aufstellung: Aufstellung; manager?: Manager; editable?: boolean }) {
+export default function FallblattTafel({ aufstellung, manager, editable = false, bestOf = false }: { aufstellung: Aufstellung; manager?: Manager; editable?: boolean; bestOf?: boolean }) {
+  if (bestOf) {
+    const spieltagLabel = aufstellung.spieltag > 0 ? `Spieltag ${aufstellung.spieltag}` : 'Spieltag'
+    const kostenMio = Math.round(aufstellung.kaderwert / 1_000_000)
+    const moneyDigits = Math.max(3, String(kostenMio).length)
+    return (
+      <div className="ffl-board ffl-board--score">
+        <PunkteBadge punkte={aufstellung.punkteSpieltag} />
+        <Section
+          headLabel="Punkte gesamt"
+          rightLabel={spieltagLabel}
+          leftDigits={pad(aufstellung.punkteGesamt, DIGITS)}
+          rightDigits={pad(aufstellung.punkteSpieltag, DIGITS)}
+          leftSecondary
+        />
+        <div className="ffl-board__sep" />
+        <Section
+          headLabel="Kosten [M€]"
+          leftDigits={pad(kostenMio, moneyDigits)}
+          leftSecondary
+        >
+          <span className="ffl-board__pic">
+            <span className="ffl-board__pic--initials">BO</span>
+          </span>
+        </Section>
+      </div>
+    )
+  }
+
   const { spieltag, positionGesamt, punkteGesamt, positionSpieltag, punkteSpieltag, positionGesamtVorher } = aufstellung
   const spieltagLabel = spieltag > 0 ? `Spieltag ${spieltag}` : 'Spieltag'
 

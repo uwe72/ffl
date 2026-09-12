@@ -363,6 +363,7 @@ interface AufstellungsFeldProps {
   overlayLegend?: boolean
   overlay?: ReactNode
   hideSum?: boolean
+  bestOf?: boolean
   maxWidth?: number
   manager?: Manager
   editable?: boolean
@@ -376,6 +377,7 @@ export default function AufstellungsFeld({
   overlayLegend = false,
   overlay,
   hideSum = false,
+  bestOf = false,
   maxWidth,
   manager,
   editable = false,
@@ -439,7 +441,7 @@ export default function AufstellungsFeld({
       }}
     >
       <div className="img-overlay" />
-      <FallblattTafel aufstellung={aufstellung} manager={manager} editable={editable} />
+      <FallblattTafel aufstellung={aufstellung} manager={manager} editable={editable} bestOf={bestOf} />
       {overlay}
       <div
         className="absolute inset-0 flex"
