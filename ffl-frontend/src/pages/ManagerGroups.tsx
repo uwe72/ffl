@@ -7,7 +7,7 @@ import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 
-type SortKey = 'name' | 'managerCount' | 'createdByLogin'
+type SortKey = 'name' | 'managerCount' | 'createdByLogin' | 'emailTo'
 type SortOrder = 'asc' | 'desc'
 
 function ManagerGroupCard({ group }: { group: any }) {
@@ -104,6 +104,9 @@ export default function ManagerGroups() {
         case 'createdByLogin':
           comparison = (a.createdByLogin || '').localeCompare(b.createdByLogin || '')
           break
+        case 'emailTo':
+          comparison = (a.emailTo || '').localeCompare(b.emailTo || '')
+          break
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
@@ -174,6 +177,12 @@ export default function ManagerGroups() {
                     >
                       Erstellt von<SortIcon column="createdByLogin" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
+                    <ThSortable
+                      align="center"
+                      onClick={() => handleSort('emailTo')}
+                    >
+                      E-Mail an<SortIcon column="emailTo" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
                   </tr>
                 </TableHead>
                 <TableBody>
@@ -199,11 +208,14 @@ export default function ManagerGroups() {
                             ? `${group.createdByFirstName} ${group.createdByLastName} (${group.createdByLogin})`
                             : group.createdByLogin || '-'}
                         </td>
+                        <td className="px-3 py-2 text-center text-foreground">
+                          {group.emailTo === 'CREATOR_ONLY' ? 'Nur Ersteller' : 'Alle Manager'}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="py-8 text-center text-muted">
+                      <td colSpan={5} className="py-8 text-center text-muted">
                         Keine Gruppen vorhanden
                       </td>
                     </tr>
