@@ -260,7 +260,7 @@ function GroupsHelpTable() {
           </span>
         }
       >
-        <span className="font-semibold">POS</span> – Position in der Liga-Rangliste
+        <span className="font-semibold">POS</span> – Position in der Liga-Rangliste; Pfeil dahinter zeigt die Veränderung zum vorherigen Spieltag (↑ verbessert / ↓ verschlechtert)
       </HelpRow>
       <HelpRow
         icon={
@@ -287,6 +287,23 @@ function ManagersHelpOptions() {
       </HelpRow>
       <HelpRow icon={<i className="sap-icon sap-icon-sort text-accent text-[14px]" />}>
         <span className="font-semibold">Sortierung</span> – Zwischen „Position" (Ranglistenplatz) und „Spieltagspunkte" wechseln.
+      </HelpRow>
+    </div>
+  )
+}
+
+function ManagersHelpTable() {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted">Tabelle</p>
+      <HelpRow
+        icon={
+          <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-badge bg-accent text-white text-[10px] font-bold leading-none">
+            1.
+          </span>
+        }
+      >
+        <span className="font-semibold">POS</span> – Position in der Liga-Rangliste; Pfeil dahinter zeigt die Veränderung zum vorherigen Spieltag (↑ verbessert / ↓ verschlechtert)
       </HelpRow>
     </div>
   )
@@ -764,12 +781,12 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
     <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
       <table className="w-full border-collapse text-sm table-fixed">
         <colgroup>
-          <col className="w-9" />
+          <col className="w-[72px]" />
           <col className="w-auto" />
           <col className="w-auto" />
           <col className="w-auto" />
-          <col className="w-9" />
-          <col className="w-9" />
+          <col className="w-12" />
+          <col className="w-10" />
         </colgroup>
         <thead className="bg-elevated sticky top-0">
           <tr>
@@ -796,8 +813,21 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
               const isMe = m.isCurrentUser
               return (
               <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-on-dark row-selected font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                <td className={`${td} text-center font-medium text-foreground`}>
-                  {m.positionTotal ? `${m.positionTotal}.` : '-'}
+                <td className={`${td} text-center font-medium text-foreground whitespace-nowrap`}>
+                  {m.positionTotal ? (
+                    <>
+                      {m.positionTotal}.
+                      {m.positionChange != null && m.positionChange !== 0 ? (
+                        <span className={`ml-0.5 text-[11px] font-semibold ${m.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                          {m.positionChange > 0 ? `↑${m.positionChange}` : `↓${Math.abs(m.positionChange)}`}
+                        </span>
+                      ) : (
+                        <span className="ml-0.5 text-[11px] text-subtle">-</span>
+                      )}
+                    </>
+                  ) : (
+                    <span>-</span>
+                  )}
                 </td>
                 <td className={`${td} min-w-0`}>
                   {canNavigateToManager ? (
@@ -824,10 +854,10 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
                     {m.lastName || '-'}
                   </span>
                 </td>
-                <td className={`${td} text-center font-bold text-foreground`}>
+                <td className={`${td} text-center font-bold text-foreground whitespace-nowrap`}>
                   {m.pointsTotal ?? '-'}
                 </td>
-                <td className={`${td} text-center text-muted`}>
+                <td className={`${td} text-center text-muted whitespace-nowrap`}>
                   {m.pointsLastRound ?? '-'}
                 </td>
               </tr>
@@ -883,12 +913,12 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
     <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
       <table className="w-full border-collapse text-sm table-fixed">
         <colgroup>
-          <col className="w-9" />
+          <col className="w-[72px]" />
           <col className="w-auto" />
           <col className="w-auto" />
           <col className="w-auto" />
-          <col className="w-9" />
-          <col className="w-9" />
+          <col className="w-12" />
+          <col className="w-10" />
         </colgroup>
         <thead className="bg-elevated sticky top-0">
           <tr>
@@ -917,8 +947,21 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
               ref={isMe ? rowRef : undefined}
               className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-on-dark row-selected font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
             >
-              <td className={`${td} text-center font-medium text-foreground`}>
-                {m.positionTotal ? `${m.positionTotal}.` : '-'}
+              <td className={`${td} text-center font-medium text-foreground whitespace-nowrap`}>
+                {m.positionTotal ? (
+                  <>
+                    {m.positionTotal}.
+                    {m.positionChange != null && m.positionChange !== 0 ? (
+                      <span className={`ml-0.5 text-[11px] font-semibold ${m.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
+                        {m.positionChange > 0 ? `↑${m.positionChange}` : `↓${Math.abs(m.positionChange)}`}
+                      </span>
+                    ) : (
+                      <span className="ml-0.5 text-[11px] text-subtle">-</span>
+                    )}
+                  </>
+                ) : (
+                  <span>-</span>
+                )}
               </td>
               <td className={`${td} min-w-0`}>
                 {canNavigateToManager ? (
@@ -945,10 +988,10 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
                   {m.lastName || '-'}
                 </span>
               </td>
-              <td className={`${td} text-center font-bold text-foreground`}>
+              <td className={`${td} text-center font-bold text-foreground whitespace-nowrap`}>
                 {m.pointsTotal ?? '-'}
               </td>
-              <td className={`${td} text-center text-muted`}>
+              <td className={`${td} text-center text-muted whitespace-nowrap`}>
                 {m.pointsLastRound ?? '-'}
               </td>
             </tr>
@@ -1096,6 +1139,9 @@ function ManagersMobilePanel({ managers, canNavigateToManager, headerTitle }: {
           >
             <div className="flex flex-col gap-3 text-xs">
               <ManagersHelpOptions />
+              <div className="border-t border-border pt-3">
+                <ManagersHelpTable />
+              </div>
             </div>
             <div className="border-t border-border pt-3 mt-3">
               <Button variant="ghost" size="input" className="w-full" onClick={() => setHelpOpen(false)}>
