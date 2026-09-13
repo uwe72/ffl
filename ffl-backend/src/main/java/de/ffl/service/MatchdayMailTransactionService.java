@@ -275,6 +275,8 @@ public class MatchdayMailTransactionService {
                 tp.put("team", teamName);
                 tp.put("points", pts);
                 tp.put("ownerCount", ownerCountByPlayerId.getOrDefault(e.getKey(), 0));
+                tp.put("ownerShareText", buildOwnerShareText(
+                    ownerCountByPlayerId.getOrDefault(e.getKey(), 0), allManagersInSeason.size()));
                 List<String> owners = ownersByPlayerId.getOrDefault(e.getKey(), List.of());
                 tp.put("owners", owners.size() <= 5 ? owners : owners.subList(0, 5));
                 allScorers.add(tp);
@@ -300,6 +302,7 @@ public class MatchdayMailTransactionService {
 
             Map<String, Object> summary = new HashMap<>();
             summary.put("avgPointsRound", (int) Math.round(avgPointsRound));
+            summary.put("totalManagers", allManagersInSeason.size());
             summary.put("saison", season.getName());
             summary.put("spieltag", roundNumber);
             summary.put("topScorer", topScorerName);
@@ -431,6 +434,14 @@ public class MatchdayMailTransactionService {
         } finally {
             smtpMailTransport.closeQuietly(transportState.transport);
         }
+    }
+
+    static String buildOwnerShareText(int ownerCount, int totalManagers) {
+        if (totalManagers <= 0 || ownerCount <= 0) {
+            return "in 0 von " + Math.max(totalManagers, 0) + " Kadern (0 %)";
+        }
+        int percent = (int) Math.round(ownerCount * 100.0 / totalManagers);
+        return "in " + ownerCount + " von " + totalManagers + " Kadern (" + percent + " %)";
     }
 
     private String buildManagerDisplayName(Manager m) {

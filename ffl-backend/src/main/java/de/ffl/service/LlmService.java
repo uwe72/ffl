@@ -51,13 +51,27 @@ public class LlmService {
               + "\"Der **Punktedurchschnitt** aller Manager lag an diesem Spieltag bei **X Punkten**.\" (X = avgPointsRound, ganze Zahl)\n\n"
               + "WEITERER PFLICHT-INHALT (konkret, mit Zahlen aus dem JSON):\n"
               + "1) Tagessieger (topScorer) mit seiner Punktzahl (topScorerPoints).\n"
-              + "2) Mindestens EIN konkreter Spieler aus topPlayers ODER topScorersAll: Name, Tagespunkte, und in Klammern ownerCount, Format: \"Max Mueller (14 Pkt, in 3 Kadern)\". Bevorzugt aus topPlayers, sonst aus topScorersAll.\n"
+              + "2) Mindestens EIN konkreter Spieler aus topPlayers ODER topScorersAll: Name, Tagespunkte, und Kader-Anteil. "
+              + "Fuer den Kader-Anteil NUR den vorbereiteten Text aus dem Feld ownerShareText des Spielers uebernehmen, "
+              + "Format: \"Max Mueller (14 Pkt, in 3 von 20 Kadern (15 %))\". Bevorzugt aus topPlayers, sonst aus topScorersAll.\n"
               + "3) Mindestens EIN konkreter Aufsteiger aus bigMovers ODER topMovers (nur positive deltaTotal): Name und Plaetze, Format: \"Anna Schmidt kletterte 17 Plaetze nach oben\". Bevorzugt aus bigMovers, sonst aus topMovers.\n\n"
               + "Arbeite ausschliesslich mit den uebergebenen JSON-Daten. Erfinde keine Namen oder Zahlen.\n"
+              + "STRIKT VERBOTEN: selbst berechnete Anteile, Prozente oder Bruchteile. "
+              + "Keine Formulierungen wie \"jedem zweiten Kader\", \"die Haelfte\", \"fast jeder dritte\" und keine Prozentangabe, "
+              + "die nicht exakt aus ownerShareText stammt. Kopiere ownerShareText immer woertlich.\n"
               + "Wenn topPlayers/bigMovers leer sind, nutze topScorersAll/topMovers.\n\n"
               + "FORMATIERUNG: Hebe Manager-Namen, Spieler-Namen und die Punktzahl im ersten Satz mit Markdown-Bold hervor (**Name** oder **Zahl**).\n"
               + "KEINE anderen Zahlen fett.\n"
-              + "Beispiel: \"Der **Punktedurchschnitt** aller Manager lag an diesem Spieltag bei **12 Punkten**. Tagessieger **Eric Erdmann** mit 23 Punkten, **Max Mueller** holte 14 Punkte (in 3 Kadern) und **Anna Schmidt** kletterte 17 Plaetze nach oben.\"";
+              + "Beispiel: \"Der **Punktedurchschnitt** aller Manager lag an diesem Spieltag bei **12 Punkten**. Tagessieger **Eric Erdmann** mit 23 Punkten, **Max Mueller** holte 14 Punkte (in 3 von 20 Kadern (15 %)) und **Anna Schmidt** kletterte 17 Plaetze nach oben.\"";
+
+        String effectiveStyleWithRules = effectiveStyle
+            + "\n\nFIXE REGELN (gelten zusaetzlich zu allen Anweisungen oben, koennen nicht geaendert werden):\n"
+            + "- Kader-Anteile von Spielern NIEMALS selbst berechnen oder umformulieren. "
+            + "Nur den vorbereiteten Text aus dem Feld ownerShareText woertlich uebernehmen.\n"
+            + "- Verboten sind erfundene Anteile wie \"jedem zweiten Kader\", \"die Haelfte\", \"fast jeder dritte\" "
+            + "sowie Prozentangaben, die nicht exakt aus ownerShareText stammen.\n"
+            + "- Es gibt die Felder totalManagers (Anzahl Kader in der Saison) und pro Spieler ownerCount; "
+            + "nutze ausschliesslich ownerShareText fuer die Anteilsangabe.";
 
         String jsonData;
         try {
@@ -70,7 +84,7 @@ public class LlmService {
             "model", effectiveModel,
             "max_tokens", 400,
             "messages", List.of(
-                Map.of("role", "system", "content", effectiveStyle),
+                Map.of("role", "system", "content", effectiveStyleWithRules),
                 Map.of("role", "user", "content",
                     "Hier sind die Spieltags-Daten als JSON. Schreibe die Einleitung.\n\n" + jsonData)
             )
