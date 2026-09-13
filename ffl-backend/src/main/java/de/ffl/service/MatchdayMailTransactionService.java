@@ -364,7 +364,8 @@ public class MatchdayMailTransactionService {
                     helper.setSubject(subject);
 
                     List<RankingRow> rankingExcerpt = buildRankingExcerpt(dayRanksSorted, managerId);
-                    List<ManagerGroup> managerGroups = managerGroupRepository.findByManagerIdWithManagers(managerId);
+                    List<ManagerGroup> managerGroups = managerGroupRepository.findGroupsForMatchdayMail(
+                        seasonId, managerId, manager.getUser().getId());
 
                     de.ffl.dto.PaymentReminderDto paymentReminder = paymentReminderService.buildReminder(season, managerId,
                         manager.getUser() != null ? manager.getUser().getLogin() : null);
