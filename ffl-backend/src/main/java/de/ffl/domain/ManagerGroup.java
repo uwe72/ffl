@@ -56,6 +56,20 @@ public class ManagerGroup {
     @JsonIgnore
     private Set<Manager> managers = new HashSet<>();
 
+    @ManyToMany
+    @JoinTable(
+        name = "manager_group_2_recipient",
+        joinColumns = @JoinColumn(name = "manager_group_id"),
+        inverseJoinColumns = @JoinColumn(name = "manager_id")
+    )
+    @Builder.Default
+    @JsonIgnore
+    private Set<Manager> recipients = new HashSet<>();
+
+    @Column(name = "recipients_initialized")
+    @Builder.Default
+    private Boolean recipientsInitialized = false;
+
     public enum EmailToOption {
         ALL_MANAGERS,
         CREATOR_ONLY

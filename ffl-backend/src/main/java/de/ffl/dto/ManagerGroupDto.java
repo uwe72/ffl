@@ -16,6 +16,7 @@ public class ManagerGroupDto {
     private String createdByFirstName;
     private String createdByLastName;
     private String emailTo;
+    private List<ManagerInGroupDto> recipients;
     private boolean editable;
     private boolean hasLogo;
 
@@ -65,6 +66,8 @@ public class ManagerGroupDto {
     public void setCreatedByLastName(String createdByLastName) { this.createdByLastName = createdByLastName; }
     public String getEmailTo() { return emailTo; }
     public void setEmailTo(String emailTo) { this.emailTo = emailTo; }
+    public List<ManagerInGroupDto> getRecipients() { return recipients; }
+    public void setRecipients(List<ManagerInGroupDto> recipients) { this.recipients = recipients; }
     public boolean isEditable() { return editable; }
     public void setEditable(boolean editable) { this.editable = editable; }
     public boolean isHasLogo() { return hasLogo; }

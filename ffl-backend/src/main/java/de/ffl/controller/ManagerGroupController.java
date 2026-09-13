@@ -5,7 +5,9 @@ import de.ffl.dto.CreateManagerGroupDto;
 import de.ffl.dto.ManagerGroupDto;
 import de.ffl.dto.ManagerGroupListDto;
 import de.ffl.dto.ManagerGroupRoundStatsDto;
+import de.ffl.dto.RecipientSourceDto;
 import de.ffl.dto.SetStandardGroupRequest;
+import de.ffl.dto.UpdateRecipientsDto;
 import de.ffl.service.ManagerGroupService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -97,6 +99,24 @@ public class ManagerGroupController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/recipients")
+    public ResponseEntity<?> updateRecipients(@PathVariable Long id, @RequestBody UpdateRecipientsDto request) {
+        try {
+            ManagerGroupDto updated = managerGroupService.updateRecipients(id, request.getRecipientIds());
+            if (updated == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/recipient-sources")
+    public ResponseEntity<List<RecipientSourceDto>> getRecipientSources(@RequestParam Long seasonId) {
+        return ResponseEntity.ok(managerGroupService.getRecipientSources(seasonId));
     }
 
     @PostMapping("/{id}/managers/{managerId}")

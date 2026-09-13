@@ -73,16 +73,37 @@ export const useDeleteGroupLogo = (groupId: number) => {
 export const useCreateManagerGroup = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { 
+    mutationFn: (data: {
       name: string
       description?: string
       seasonId: number
       emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY'
       managerIds?: number[]
+      recipientIds?: number[]
     }) => managerGroupApi.create(data).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manager-groups'] })
     },
+  })
+}
+
+export const useUpdateRecipients = (groupId: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (recipientIds: number[]) =>
+      managerGroupApi.updateRecipients(groupId, recipientIds).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['manager-groups'] })
+      queryClient.invalidateQueries({ queryKey: ['manager-group', groupId] })
+    },
+  })
+}
+
+export const useRecipientSources = (seasonId: number, enabled = true) => {
+  return useQuery({
+    queryKey: ['manager-groups', 'recipient-sources', seasonId],
+    queryFn: () => managerGroupApi.getRecipientSources(seasonId).then(res => res.data),
+    enabled: enabled && !!seasonId,
   })
 }
 

@@ -474,6 +474,7 @@ export interface ManagerGroup {
   description?: string
   seasonId: number
   managers: ManagerInGroup[]
+  recipients?: ManagerInGroup[]
   createdById?: number
   createdByLogin?: string
   createdByFirstName?: string
@@ -481,6 +482,12 @@ export interface ManagerGroup {
   emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY'
   editable?: boolean
   hasLogo?: boolean
+}
+
+export interface RecipientSource {
+  groupId: number
+  groupName: string
+  managers: ManagerInGroup[]
 }
 
 export interface ManagerGroupListDto {

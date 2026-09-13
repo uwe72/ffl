@@ -10,6 +10,7 @@ import de.ffl.dto.CreateManagerGroupDto;
 import de.ffl.dto.ManagerGroupDto;
 import de.ffl.dto.ManagerGroupListDto;
 import de.ffl.dto.ManagerGroupRoundStatsDto;
+import de.ffl.dto.RecipientSourceDto;
 import de.ffl.repository.ManagerGroupRepository;
 import de.ffl.repository.ManagerGroupStandardRepository;
 import de.ffl.repository.ManagerRankRepository;
@@ -132,6 +133,18 @@ public class ManagerGroupService {
             }
         }
 
+        group.setRecipients(new HashSet<>());
+        group.setRecipientsInitialized(true);
+        if (dto.getRecipientIds() != null) {
+            for (Long managerId : dto.getRecipientIds()) {
+                Manager manager = managerRepository.findById(managerId).orElse(null);
+                if (manager == null || !manager.getSeason().getId().equals(season.getId())) {
+                    throw new IllegalArgumentException("Empfänger muss zur Saison der Gruppe gehören");
+                }
+                group.getRecipients().add(manager);
+            }
+        }
+
         ManagerGroup saved = managerGroupRepository.save(group);
         ManagerGroupDto resultDto = toDtoWithRankData(saved);
         resultDto.setEditable(true);
@@ -168,6 +181,92 @@ public class ManagerGroupService {
         ManagerGroupDto dto = toDtoWithRankData(saved);
         dto.setEditable(true);
         return dto;
+    }
+
+    @Transactional
+    public ManagerGroupDto updateRecipients(Long id, List<Long> recipientIds) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return null;
+        }
+
+        Optional<ManagerGroup> existingOpt = managerGroupRepository.findById(id);
+        if (existingOpt.isEmpty()) {
+            return null;
+        }
+
+        ManagerGroup existing = existingOpt.get();
+        if (!canEditGroup(existing, currentUser)) {
+            return null;
+        }
+
+        Set<Manager> recipients = new HashSet<>();
+        if (recipientIds != null) {
+            for (Long managerId : recipientIds) {
+                Manager manager = managerRepository.findById(managerId).orElse(null);
+                if (manager == null || !manager.getSeason().getId().equals(existing.getSeason().getId())) {
+                    throw new IllegalArgumentException("Empfänger muss zur Saison der Gruppe gehören");
+                }
+                recipients.add(manager);
+            }
+        }
+
+        existing.getRecipients().clear();
+        existing.getRecipients().addAll(recipients);
+        existing.setRecipientsInitialized(true);
+        ManagerGroup saved = managerGroupRepository.save(existing);
+        ManagerGroupDto dto = toDtoWithRankData(saved);
+        dto.setEditable(true);
+        return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public List<RecipientSourceDto> getRecipientSources(Long seasonId) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null || seasonId == null) {
+            return Collections.emptyList();
+        }
+
+        boolean isAdmin = currentUser.getRole().name().equals("ADMIN");
+        if (!isAdmin && managerGroupRepository.findCreatedGroupsForUser(seasonId, currentUser.getId()).isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return managerGroupRepository.findBySeasonIdFiltered(seasonId).stream()
+            .map(group -> {
+                Hibernate.initialize(group.getManagers());
+                return RecipientSourceDto.fromEntity(group);
+            })
+            .sorted(Comparator.comparing(RecipientSourceDto::getGroupName,
+                Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+            .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void backfillRecipients() {
+        List<ManagerGroup> groups = managerGroupRepository.findGroupsForRecipientBackfill();
+        for (ManagerGroup group : groups) {
+            Hibernate.initialize(group.getManagers());
+            Hibernate.initialize(group.getSeason());
+            Hibernate.initialize(group.getCreatedBy());
+
+            Set<Manager> recipients = new HashSet<>();
+            if (group.getEmailTo() == ManagerGroup.EmailToOption.ALL_MANAGERS) {
+                recipients.addAll(group.getManagers());
+            }
+            if (group.getCreatedBy() != null) {
+                managerRepository.findByUserIdAndSeasonId(group.getCreatedBy().getId(), group.getSeason().getId())
+                    .ifPresent(recipients::add);
+            }
+
+            group.getRecipients().clear();
+            group.getRecipients().addAll(recipients);
+            group.setRecipientsInitialized(true);
+            managerGroupRepository.save(group);
+        }
+        if (!groups.isEmpty()) {
+            log.info("Recipient backfill initialized {} manager groups", groups.size());
+        }
     }
 
     @Transactional
@@ -501,7 +600,22 @@ public class ManagerGroupService {
                 .collect(Collectors.toList());
         }
         dto.setManagers(managerDtos);
-        
+
+        User viewer = getCurrentUser();
+        if (viewer != null && canEditGroup(group, viewer)) {
+            Hibernate.initialize(group.getRecipients());
+            List<ManagerGroupDto.ManagerInGroupDto> recipientDtos = new ArrayList<>();
+            if (group.getRecipients() != null) {
+                for (Manager recipient : group.getRecipients()) {
+                    Hibernate.initialize(recipient.getUser());
+                    recipientDtos.add(ManagerGroupDto.ManagerInGroupDto.fromEntity(recipient));
+                }
+                recipientDtos.sort(Comparator.comparing(ManagerGroupDto.ManagerInGroupDto::getName,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
+            }
+            dto.setRecipients(recipientDtos);
+        }
+
         return dto;
     }
 

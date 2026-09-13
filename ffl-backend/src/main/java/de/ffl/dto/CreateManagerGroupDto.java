@@ -19,6 +19,8 @@ public class CreateManagerGroupDto {
     
     private List<Long> managerIds;
 
+    private List<Long> recipientIds;
+
     public String getName() {
         return name;
     }
@@ -57,5 +59,13 @@ public class CreateManagerGroupDto {
 
     public void setManagerIds(List<Long> managerIds) {
         this.managerIds = managerIds;
+    }
+
+    public List<Long> getRecipientIds() {
+        return recipientIds;
+    }
+
+    public void setRecipientIds(List<Long> recipientIds) {
+        this.recipientIds = recipientIds;
     }
 }

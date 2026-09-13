@@ -1,6 +1,6 @@
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator, useCreateManagerGroup, useGroupLogo, useUploadGroupLogo, useDeleteGroupLogo, useDeleteManagerGroup } from '../hooks/useManagerGroups'
+import { useManagerGroup, useAddManagerToGroup, useRemoveManagerFromGroup, useUpdateManagerGroup, useChangeCreator, useCreateManagerGroup, useGroupLogo, useUploadGroupLogo, useDeleteGroupLogo, useDeleteManagerGroup, useUpdateRecipients, useRecipientSources } from '../hooks/useManagerGroups'
 import { useManagersBySeason } from '../hooks/useManagers'
 import { useCurrentSeason } from '../hooks/useSeasons'
 import { useUsers } from '../hooks/useUsers'
@@ -34,18 +34,16 @@ export default function ManagerGroupDetail() {
   const { data: allManagers } = useManagersBySeason(currentSeason?.id || 0)
   const isAdmin = user?.role === 'ADMIN'
   const { data: allUsers } = useUsers({ enabled: isAdmin })
-  
-  const createMutation = useCreateManagerGroup()
-  const addManagerMutation = useAddManagerToGroup(groupId)
-  const removeManagerMutation = useRemoveManagerFromGroup(groupId)
-  const updateMutation = useUpdateManagerGroup(groupId)
-  const changeCreatorMutation = useChangeCreator(groupId)
-  const deleteMutation = useDeleteManagerGroup()
-  
+
   const [sortKey, setSortKey] = useState<SortKey>('positionTotal')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false)
+  const [isRecipientsModalOpen, setIsRecipientsModalOpen] = useState(false)
+  const [draftRecipientIds, setDraftRecipientIds] = useState<number[]>([])
+  const [recipientIds, setRecipientIds] = useState<number[]>([])
+  const [recipientSearch, setRecipientSearch] = useState('')
+  const [sourceGroupId, setSourceGroupId] = useState<number | ''>('')
   const [creatorSearch, setCreatorSearch] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [editName, setEditName] = useState('')
@@ -56,6 +54,15 @@ export default function ManagerGroupDetail() {
   const [errorMessage, setErrorMessage] = useState('')
   const [stammdatenOpen, setStammdatenOpen] = useState(false)
 
+  const createMutation = useCreateManagerGroup()
+  const addManagerMutation = useAddManagerToGroup(groupId)
+  const removeManagerMutation = useRemoveManagerFromGroup(groupId)
+  const updateMutation = useUpdateManagerGroup(groupId)
+  const changeCreatorMutation = useChangeCreator(groupId)
+  const deleteMutation = useDeleteManagerGroup()
+  const updateRecipientsMutation = useUpdateRecipients(groupId)
+  const { data: recipientSources } = useRecipientSources(currentSeason?.id || 0, isRecipientsModalOpen)
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadGroupLogo = useUploadGroupLogo(isNewMode ? 0 : groupId)
   const deleteGroupLogo = useDeleteGroupLogo(isNewMode ? 0 : groupId)
@@ -64,9 +71,11 @@ export default function ManagerGroupDetail() {
   const canNavigateToManager = isAdmin || currentSeason?.seasonState !== 'BEFORE_SEASON'
 
   const creatorManager = useMemo(() => {
-    if (!isNewMode || !allManagers || !user?.id) return null
-    return allManagers.find(m => m.userId === user.id) ?? null
-  }, [isNewMode, allManagers, user])
+    if (!allManagers) return null
+    const creatorUserId = isNewMode ? user?.id : group?.createdById
+    if (!creatorUserId) return null
+    return allManagers.find(m => m.userId === creatorUserId) ?? null
+  }, [allManagers, isNewMode, user, group])
 
   useEffect(() => {
     if (isNewMode) {
@@ -74,6 +83,7 @@ export default function ManagerGroupDetail() {
       setEditDescription('')
       setEditEmailTo('ALL_MANAGERS')
       setSelectedManagerIds(creatorManager ? [creatorManager.id] : [])
+      setRecipientIds([])
       setHasChanges(false)
     } else if (group) {
       setEditName(group.name)
@@ -164,12 +174,34 @@ export default function ManagerGroupDetail() {
 
   const filteredUsers = useMemo(() => {
     if (!allUsers) return []
-    return allUsers.filter(u => 
+    return allUsers.filter(u =>
       u.login.toLowerCase().includes(creatorSearch.toLowerCase()) ||
       u.firstName?.toLowerCase().includes(creatorSearch.toLowerCase()) ||
       u.lastName?.toLowerCase().includes(creatorSearch.toLowerCase())
     )
   }, [allUsers, creatorSearch])
+
+  const draftRecipients = useMemo(() => {
+    if (!allManagers) return []
+    return draftRecipientIds
+      .map(id => allManagers.find(m => m.id === id))
+      .filter((m): m is ManagerInGroup => m !== undefined)
+  }, [allManagers, draftRecipientIds])
+
+  const availableRecipientManagers = useMemo(() => {
+    if (!allManagers) return []
+    return allManagers.filter(m =>
+      !draftRecipientIds.includes(m.id) &&
+      (m.name.toLowerCase().includes(recipientSearch.toLowerCase()) ||
+       m.shortName?.toLowerCase().includes(recipientSearch.toLowerCase()) ||
+       m.firstName?.toLowerCase().includes(recipientSearch.toLowerCase()) ||
+       m.lastName?.toLowerCase().includes(recipientSearch.toLowerCase()))
+    )
+  }, [allManagers, draftRecipientIds, recipientSearch])
+
+  const sourceGroupOptions = useMemo(() =>
+    (recipientSources || []).filter(s => isNewMode || s.groupId !== groupId),
+  [recipientSources, isNewMode, groupId])
 
   const handleAddManager = async (managerId: number) => {
     if (isNewMode) {
@@ -197,6 +229,53 @@ export default function ManagerGroupDetail() {
     setCreatorSearch('')
   }
 
+  const openRecipientsModal = () => {
+    const initial = isNewMode ? recipientIds : (group?.recipients || []).map(r => r.id)
+    setDraftRecipientIds(initial)
+    setRecipientSearch('')
+    setSourceGroupId('')
+    setIsRecipientsModalOpen(true)
+  }
+
+  const addDraftRecipient = (managerId: number) => {
+    setDraftRecipientIds(prev => prev.includes(managerId) ? prev : [...prev, managerId])
+  }
+
+  const removeDraftRecipient = (managerId: number) => {
+    setDraftRecipientIds(prev => prev.filter(id => id !== managerId))
+  }
+
+  const addAllGroupMembersToRecipients = () => {
+    const memberIds = isNewMode ? selectedManagerIds : (group?.managers || []).map(m => m.id)
+    setDraftRecipientIds(prev => Array.from(new Set([...prev, ...memberIds])))
+  }
+
+  const addCreatorToRecipients = () => {
+    if (creatorManager) {
+      addDraftRecipient(creatorManager.id)
+    }
+  }
+
+  const addSourceGroupToRecipients = () => {
+    const source = (recipientSources || []).find(s => s.groupId === sourceGroupId)
+    if (!source) return
+    setDraftRecipientIds(prev => Array.from(new Set([...prev, ...source.managers.map(m => m.id)])))
+  }
+
+  const handleRecipientsConfirm = async () => {
+    if (isNewMode) {
+      setRecipientIds(draftRecipientIds)
+      setIsRecipientsModalOpen(false)
+      return
+    }
+    try {
+      await updateRecipientsMutation.mutateAsync(draftRecipientIds)
+      setIsRecipientsModalOpen(false)
+    } catch {
+      setErrorMessage('Fehler beim Speichern der Empfänger.')
+    }
+  }
+
   const handleCreate = async () => {
     if (!editName.trim() || !editDescription.trim() || !currentSeason) {
       setErrorMessage('Bitte füllen Sie alle Pflichtfelder aus.')
@@ -210,7 +289,8 @@ export default function ManagerGroupDetail() {
         description: editDescription.trim(),
         seasonId: currentSeason.id,
         emailTo: editEmailTo as 'ALL_MANAGERS' | 'CREATOR_ONLY',
-        managerIds: selectedManagerIds
+        managerIds: selectedManagerIds,
+        recipientIds
       })
       navigate(`/manager-groups/${created.id}`, { replace: true })
     } catch {
@@ -472,6 +552,16 @@ export default function ManagerGroupDetail() {
                         {group?.emailTo === 'CREATOR_ONLY' ? 'Nur an Ersteller' : 'An alle Manager'}
                       </p>
                     </div>
+                    {group?.recipients && (
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-subtle">Empfänger:</p>
+                        <p className="text-sm font-semibold text-foreground">
+                          {group.recipients.length > 0
+                            ? group.recipients.map(r => r.shortName || r.name).join(', ')
+                            : 'Keine'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   {group?.description && (
                     <>
@@ -483,6 +573,17 @@ export default function ManagerGroupDetail() {
               )}
             </div>
 
+            {canEdit && !isNewMode && (
+              <button
+                type="button"
+                onClick={openRecipientsModal}
+                aria-label="E-Mail-Empfänger bearbeiten"
+                title="E-Mail-Empfänger bearbeiten"
+                className="md:hidden shrink-0 w-9 h-9 rounded-full bg-accent-muted text-accent hover:bg-accent hover:text-accent-foreground flex items-center justify-center transition-colors shadow-sm"
+              >
+                <i className="sap-icon sap-icon-email text-sm" />
+              </button>
+            )}
             {canEdit && !isNewMode && (
               <button
                 type="button"
@@ -500,6 +601,14 @@ export default function ManagerGroupDetail() {
 
           {canEdit && !isNewMode && (
             <div className="hidden md:flex gap-2 shrink-0 self-start md:ml-auto">
+              <Button
+                variant="secondary"
+                size={isMobile ? 'sm' : 'input'}
+                onClick={openRecipientsModal}
+              >
+                <i className="sap-icon sap-icon-email text-xs mr-1" />
+                Empfänger ({group?.recipients?.length ?? 0})
+              </Button>
               <Button
                 variant={stammdatenOpen ? 'ghost' : 'emphasized'}
                 size={isMobile ? 'sm' : 'input'}
@@ -568,6 +677,19 @@ export default function ManagerGroupDetail() {
                       Ändern
                     </Button>
                   )}
+                </div>
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs text-muted">Empfänger</span>
+                <div className="mt-1">
+                  <Button
+                    variant="secondary"
+                    size={isMobile ? 'sm' : 'input'}
+                    onClick={openRecipientsModal}
+                  >
+                    <i className="sap-icon sap-icon-email text-xs mr-1" />
+                    Empfänger ({recipientIds.length})
+                  </Button>
                 </div>
               </div>
               <div className="col-span-1 sm:col-span-3 min-w-0">
@@ -920,6 +1042,154 @@ export default function ManagerGroupDetail() {
                 }}
               >
                 Abbrechen
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isRecipientsModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="p-0 bg-surface border border-border w-full max-w-lg overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="bg-elevated px-6 py-4 border-b border-border">
+              <h2 className="text-xl font-bold text-foreground">E-Mail-Empfänger</h2>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <div className="flex items-start gap-2 p-2 mb-4 bg-info-bg border border-info/30 rounded-card">
+                <i className="sap-icon sap-icon-information text-[16px] text-info shrink-0 mt-0.5" />
+                <p className="text-xs text-foreground">
+                  Die Empfängerliste wird derzeit noch nicht ausgewertet – der Versand der Spieltagsmail folgt weiterhin der bisherigen Logik.
+                </p>
+              </div>
+
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Komfortfunktionen</p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Button
+                  variant="secondary"
+                  size="input"
+                  onClick={addAllGroupMembersToRecipients}
+                >
+                  <i className="sap-icon sap-icon-group-2 text-xs mr-1" />
+                  Alle Gruppenmitglieder
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="input"
+                  onClick={addCreatorToRecipients}
+                  disabled={!creatorManager}
+                  title={creatorManager ? undefined : 'Der Ersteller hat keinen Manager-Eintrag in dieser Saison'}
+                >
+                  <i className="sap-icon sap-icon-user-editor text-xs mr-1" />
+                  Nur Ersteller
+                </Button>
+              </div>
+              <div className="flex gap-2 items-center mb-5">
+                <select
+                  value={sourceGroupId}
+                  onChange={(e) => setSourceGroupId(e.target.value ? Number(e.target.value) : '')}
+                  className="input-field control flex-1 min-w-0 px-3 py-2 rounded-control text-sm cursor-pointer"
+                >
+                  <option value="">Gruppenmitglieder anderer Gruppe...</option>
+                  {sourceGroupOptions.map(source => (
+                    <option key={source.groupId} value={source.groupId}>{source.groupName}</option>
+                  ))}
+                </select>
+                <Button
+                  variant="secondary"
+                  size="input"
+                  onClick={addSourceGroupToRecipients}
+                  disabled={!sourceGroupId}
+                >
+                  Hinzufügen
+                </Button>
+              </div>
+
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Einzelauswahl</p>
+              <input
+                type="text"
+                placeholder="Manager suchen..."
+                value={recipientSearch}
+                onChange={(e) => setRecipientSearch(e.target.value)}
+                className="input-field control w-full px-3 py-2 rounded-control text-sm focus:outline-none mb-3"
+              />
+              <div className="max-h-48 overflow-y-auto rounded-card border border-border mb-5">
+                {availableRecipientManagers.length > 0 ? (
+                  <div className="divide-y divide-border">
+                    {availableRecipientManagers.map(manager => (
+                      <div
+                        key={manager.id}
+                        onClick={() => addDraftRecipient(manager.id)}
+                        className="p-3 hover:bg-elevated cursor-pointer transition-colors flex items-center justify-between group"
+                      >
+                        <div>
+                          <div className="text-foreground font-medium text-sm">
+                            {manager.shortName || manager.name}
+                          </div>
+                          <div className="text-subtle text-xs">
+                            {manager.firstName} {manager.lastName}
+                          </div>
+                        </div>
+                        <div className="text-accent opacity-0 group-hover:opacity-100 transition-opacity text-sm">
+                          + Hinzufügen
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-subtle py-6 text-sm">
+                    Keine Manager gefunden
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">
+                Empfänger ({draftRecipients.length})
+              </p>
+              {draftRecipients.length > 0 ? (
+                <div className="rounded-card border border-border divide-y divide-border">
+                  {draftRecipients.map(manager => (
+                    <div key={manager.id} className="p-3 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="text-foreground font-medium text-sm truncate">
+                          {manager.shortName || manager.name}
+                        </div>
+                        <div className="text-subtle text-xs truncate">
+                          {manager.firstName} {manager.lastName}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeDraftRecipient(manager.id)}
+                        aria-label={`${manager.shortName || manager.name} entfernen`}
+                        title="Entfernen"
+                        className="w-7 h-7 shrink-0 rounded-control border border-border-strong bg-secondary text-secondary-foreground hover:bg-card-hover flex items-center justify-center transition-colors"
+                      >
+                        <i className="sap-icon sap-icon-decline text-xs" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-subtle py-6 text-sm rounded-card border border-border">
+                  Keine Empfänger ausgewählt
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 bg-elevated border-t border-border flex justify-end gap-2">
+              <Button
+                variant="transparent"
+                size={isMobile ? 'sm' : 'input'}
+                onClick={() => setIsRecipientsModalOpen(false)}
+              >
+                Abbrechen
+              </Button>
+              <Button
+                variant="emphasized"
+                size={isMobile ? 'sm' : 'input'}
+                onClick={handleRecipientsConfirm}
+                disabled={updateRecipientsMutation.isPending}
+              >
+                {updateRecipientsMutation.isPending ? 'Wird gespeichert...' : 'Übernehmen'}
               </Button>
             </div>
           </div>

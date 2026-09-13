@@ -45,4 +45,8 @@ public interface ManagerGroupRepository extends JpaRepository<ManagerGroup, Long
     @org.springframework.data.jpa.repository.Modifying
     @Query("UPDATE ManagerGroup mg SET mg.createdBy = null WHERE mg.createdBy.id = :userId")
     void clearCreatedByForUser(@Param("userId") Long userId);
+
+    @Query("SELECT DISTINCT mg FROM ManagerGroup mg LEFT JOIN FETCH mg.managers " +
+           "WHERE mg.recipientsInitialized IS NULL OR mg.recipientsInitialized = false")
+    List<ManagerGroup> findGroupsForRecipientBackfill();
 }
