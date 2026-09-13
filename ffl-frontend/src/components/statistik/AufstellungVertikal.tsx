@@ -3,6 +3,7 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import type { Aufstellung } from '../../types/dashboard'
 import { positionBadgeVariant } from '../../utils/positions'
 import { quoteBadgeClasses } from '../../utils/quote'
+import { formatMillionsShort } from '../../utils/format'
 
 type FeldModus = 'gesamt' | 'spieltag' | 'wert'
 
@@ -16,10 +17,12 @@ const POS_BADGE: Record<string, string> = {
 export default function AufstellungVertikal({
   aufstellung,
   hinrundeFilter = false,
+  bestOf = false,
 }: {
   aufstellung: Aufstellung
   modus: FeldModus
   hinrundeFilter?: boolean
+  bestOf?: boolean
 }) {
   const navigate = useNavigate()
   const isVorsaison = aufstellung.phase === 'VORSAISON'
@@ -70,19 +73,30 @@ export default function AufstellungVertikal({
                   <RouterLink to={`/players/${p.id}`} className="link" onClick={(e) => e.stopPropagation()}>
                     <div className="truncate font-semibold text-link">{p.name.length > 12 ? `${p.name.slice(0, 12)}...` : p.name}</div>
                   </RouterLink>
-                  {(p.vereinKuerzel || p.einsatzquote != null) && (
+                  {bestOf ? (
                     <div className="flex items-center gap-1.5 min-w-0">
-                      {p.einsatzquote != null && (
-                        <span
-                          className={`inline-flex items-center justify-center h-4 w-9 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge shrink-0 ${quoteBadgeClasses(p.einsatzquote)}`}
-                        >
-                          {p.einsatzquote} %
-                        </span>
-                      )}
+                      <span className="inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge shrink-0 bg-card-muted text-muted">
+                        {formatMillionsShort(p.marktwert)}
+                      </span>
                       {p.vereinKuerzel && (
                         <span className="truncate text-xs text-muted">{p.vereinKuerzel}</span>
                       )}
                     </div>
+                  ) : (
+                    (p.vereinKuerzel || p.einsatzquote != null) && (
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {p.einsatzquote != null && (
+                          <span
+                            className={`inline-flex items-center justify-center h-4 w-9 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge shrink-0 ${quoteBadgeClasses(p.einsatzquote)}`}
+                          >
+                            {p.einsatzquote} %
+                          </span>
+                        )}
+                        {p.vereinKuerzel && (
+                          <span className="truncate text-xs text-muted">{p.vereinKuerzel}</span>
+                        )}
+                      </div>
+                    )
                   )}
                 </td>
                 <td className={`${td} text-center`}>

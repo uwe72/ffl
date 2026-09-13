@@ -367,7 +367,7 @@ function BestOfPanel({ bestTeam, isLoading, isError, maxWidth, title = 'Best-of'
   ) : isError || !bestTeam ? (
     <p className="text-sm text-muted py-10 text-center">Best-of-Team wurde noch nicht berechnet.</p>
   ) : mobile ? (
-    <AufstellungVertikal aufstellung={bestTeam} modus="gesamt" />
+    <AufstellungVertikal aufstellung={bestTeam} modus="gesamt" bestOf />
   ) : (
     <AufstellungsFeld
       aufstellung={bestTeam}
