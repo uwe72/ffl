@@ -36,11 +36,6 @@ public class ManagerGroup {
     @JsonIgnore
     private User createdBy;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "email_to")
-    @Builder.Default
-    private EmailToOption emailTo = EmailToOption.ALL_MANAGERS;
-
     @Column(columnDefinition = "bytea")
     private byte[] logo;
 
@@ -65,13 +60,4 @@ public class ManagerGroup {
     @Builder.Default
     @JsonIgnore
     private Set<Manager> recipients = new HashSet<>();
-
-    @Column(name = "recipients_initialized")
-    @Builder.Default
-    private Boolean recipientsInitialized = false;
-
-    public enum EmailToOption {
-        ALL_MANAGERS,
-        CREATOR_ONLY
-    }
 }

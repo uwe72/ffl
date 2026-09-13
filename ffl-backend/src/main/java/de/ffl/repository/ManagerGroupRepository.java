@@ -23,12 +23,9 @@ public interface ManagerGroupRepository extends JpaRepository<ManagerGroup, Long
 
     @Query("SELECT DISTINCT mg FROM ManagerGroup mg LEFT JOIN FETCH mg.managers " +
            "WHERE mg.season.id = :seasonId AND mg.name <> 'Alle' " +
-           "AND (mg.createdBy.id = :userId " +
-           "OR (mg.emailTo = de.ffl.domain.ManagerGroup$EmailToOption.ALL_MANAGERS " +
-           "AND mg.id IN (SELECT mg2.id FROM ManagerGroup mg2 JOIN mg2.managers m WHERE m.id = :managerId)))")
+           "AND mg.id IN (SELECT mg2.id FROM ManagerGroup mg2 JOIN mg2.recipients r WHERE r.id = :managerId)")
     List<ManagerGroup> findGroupsForMatchdayMail(@Param("seasonId") Long seasonId,
-                                                 @Param("managerId") Long managerId,
-                                                 @Param("userId") Long userId);
+                                                 @Param("managerId") Long managerId);
 
     List<ManagerGroup> findByCreatedById(Long userId);
 
@@ -45,8 +42,4 @@ public interface ManagerGroupRepository extends JpaRepository<ManagerGroup, Long
     @org.springframework.data.jpa.repository.Modifying
     @Query("UPDATE ManagerGroup mg SET mg.createdBy = null WHERE mg.createdBy.id = :userId")
     void clearCreatedByForUser(@Param("userId") Long userId);
-
-    @Query("SELECT DISTINCT mg FROM ManagerGroup mg LEFT JOIN FETCH mg.managers " +
-           "WHERE mg.recipientsInitialized IS NULL OR mg.recipientsInitialized = false")
-    List<ManagerGroup> findGroupsForRecipientBackfill();
 }

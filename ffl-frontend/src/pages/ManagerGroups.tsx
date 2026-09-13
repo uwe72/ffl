@@ -7,7 +7,7 @@ import SortIcon from '../components/SortIcon'
 import { TableHead, ThSortable, Th, TableBody } from '../components/Table'
 import useIsMobile from '../hooks/useIsMobile'
 
-type SortKey = 'name' | 'managerCount' | 'createdByLogin' | 'emailTo'
+type SortKey = 'name' | 'managerCount' | 'createdByLogin' | 'recipientCount'
 type SortOrder = 'asc' | 'desc'
 
 function ManagerGroupCard({ group }: { group: any }) {
@@ -34,7 +34,7 @@ function ManagerGroupCard({ group }: { group: any }) {
       </div>
       <div className="flex flex-col gap-1 mt-4 text-sm">
         <div>
-          <span className="text-subtle">Manager: </span>
+          <span className="text-subtle">#Manager: </span>
           <span className="font-medium text-foreground">{group.managerCount}</span>
         </div>
         <div>
@@ -46,9 +46,9 @@ function ManagerGroupCard({ group }: { group: any }) {
           </span>
         </div>
         <div>
-          <span className="text-subtle">E-Mail an: </span>
+          <span className="text-subtle">#Empfänger: </span>
           <span className="font-medium text-foreground">
-            {group.emailTo === 'CREATOR_ONLY' ? 'Nur Ersteller' : 'Alle Manager'}
+            {group.recipientCount ?? 0}
           </span>
         </div>
       </div>
@@ -104,8 +104,8 @@ export default function ManagerGroups() {
         case 'createdByLogin':
           comparison = (a.createdByLogin || '').localeCompare(b.createdByLogin || '')
           break
-        case 'emailTo':
-          comparison = (a.emailTo || '').localeCompare(b.emailTo || '')
+        case 'recipientCount':
+          comparison = (a.recipientCount || 0) - (b.recipientCount || 0)
           break
       }
       return sortOrder === 'asc' ? comparison : -comparison
@@ -170,18 +170,18 @@ export default function ManagerGroups() {
                       align="center"
                       onClick={() => handleSort('managerCount')}
                     >
-                      Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
+                      #Manager<SortIcon column="managerCount" activeKey={sortKey} order={sortOrder} />
+                    </ThSortable>
+                    <ThSortable
+                      align="center"
+                      onClick={() => handleSort('recipientCount')}
+                    >
+                      #Empfänger<SortIcon column="recipientCount" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
                     <ThSortable
                       onClick={() => handleSort('createdByLogin')}
                     >
                       Erstellt von<SortIcon column="createdByLogin" activeKey={sortKey} order={sortOrder} />
-                    </ThSortable>
-                    <ThSortable
-                      align="center"
-                      onClick={() => handleSort('emailTo')}
-                    >
-                      E-Mail an<SortIcon column="emailTo" activeKey={sortKey} order={sortOrder} />
                     </ThSortable>
                   </tr>
                 </TableHead>
@@ -203,13 +203,13 @@ export default function ManagerGroups() {
                         <td className="px-3 py-2 text-center text-foreground">
                           {group.managerCount}
                         </td>
+                        <td className="px-3 py-2 text-center text-foreground">
+                          {group.recipientCount ?? 0}
+                        </td>
                         <td className="px-3 py-2 text-muted">
                           {group.createdByFirstName && group.createdByLastName
                             ? `${group.createdByFirstName} ${group.createdByLastName} (${group.createdByLogin})`
                             : group.createdByLogin || '-'}
-                        </td>
-                        <td className="px-3 py-2 text-center text-foreground">
-                          {group.emailTo === 'CREATOR_ONLY' ? 'Nur Ersteller' : 'Alle Manager'}
                         </td>
                       </tr>
                     ))

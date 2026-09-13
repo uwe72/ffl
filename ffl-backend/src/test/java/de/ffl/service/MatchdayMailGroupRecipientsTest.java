@@ -35,96 +35,44 @@ class MatchdayMailGroupRecipientsTest extends AbstractSeasonTestBase {
     private SeasonRepository seasonRepository;
 
     private ManagerGroup createGroup(String name, Season groupSeason, User creator,
-                                     ManagerGroup.EmailToOption emailTo, Manager... members) {
+                                     Manager... members) {
+        return createGroup(name, groupSeason, creator, Set.of(members), Set.of());
+    }
+
+    private ManagerGroup createGroup(String name, Season groupSeason, User creator,
+                                     Set<Manager> members, Set<Manager> recipients) {
         ManagerGroup group = ManagerGroup.builder()
             .name(name)
             .description("Testbeschreibung")
             .season(groupSeason)
             .createdBy(creator)
-            .emailTo(emailTo)
-            .managers(new HashSet<>(Set.of(members)))
+            .managers(members.isEmpty() ? new HashSet<>() : new HashSet<>(members))
+            .recipients(recipients.isEmpty() ? new HashSet<>() : new HashSet<>(recipients))
             .build();
         return managerGroupRepository.save(group);
     }
 
-    private List<ManagerGroup> groupsFor(Season mailSeason, Manager recipientManager, User recipientUser) {
+    private List<ManagerGroup> groupsFor(Season mailSeason, Manager recipientManager) {
         return managerGroupRepository.findGroupsForMatchdayMail(
-            mailSeason.getId(), recipientManager.getId(), recipientUser.getId());
+            mailSeason.getId(), recipientManager.getId());
     }
 
     @Test
-    void alleManagers_memberReceivesGroup() {
+    void recipientOnListReceivesGroup() {
         User creatorUser = createUser("creator");
         User memberUser = createUser("member");
         Manager creatorManager = createManager(creatorUser);
         Manager memberManager = createManager(memberUser);
 
-        createGroup("AlleGruppe", season, creatorUser, ManagerGroup.EmailToOption.ALL_MANAGERS,
-            creatorManager, memberManager);
+        createGroup("Gruppe", season, creatorUser,
+            Set.of(creatorManager, memberManager), Set.of(memberManager));
 
-        assertTrue(groupsFor(season, memberManager, memberUser).stream()
-            .anyMatch(g -> "AlleGruppe".equals(g.getName())));
+        assertTrue(groupsFor(season, memberManager).stream()
+            .anyMatch(g -> "Gruppe".equals(g.getName())));
     }
 
     @Test
-    void alleManagers_nonMemberNonCreatorDoesNotReceiveGroup() {
-        User creatorUser = createUser("creator");
-        User outsiderUser = createUser("outsider");
-        Manager creatorManager = createManager(creatorUser);
-        Manager outsiderManager = createManager(outsiderUser);
-
-        createGroup("AlleGruppe", season, creatorUser, ManagerGroup.EmailToOption.ALL_MANAGERS,
-            creatorManager);
-
-        assertTrue(groupsFor(season, outsiderManager, outsiderUser).stream()
-            .noneMatch(g -> "AlleGruppe".equals(g.getName())));
-    }
-
-    @Test
-    void alleManagers_creatorReceivesGroupEvenWithoutMembership() {
-        User creatorUser = createUser("creator");
-        User memberUser = createUser("member");
-        Manager creatorManager = createManager(creatorUser);
-        Manager memberManager = createManager(memberUser);
-
-        createGroup("AlleGruppeOhneErsteller", season, creatorUser, ManagerGroup.EmailToOption.ALL_MANAGERS,
-            memberManager);
-
-        assertTrue(groupsFor(season, creatorManager, creatorUser).stream()
-            .anyMatch(g -> "AlleGruppeOhneErsteller".equals(g.getName())));
-    }
-
-    @Test
-    void creatorOnly_creatorMemberReceivesGroup() {
-        User creatorUser = createUser("creator");
-        User memberUser = createUser("member");
-        Manager creatorManager = createManager(creatorUser);
-        Manager memberManager = createManager(memberUser);
-
-        createGroup("NurErstellerGruppe", season, creatorUser, ManagerGroup.EmailToOption.CREATOR_ONLY,
-            creatorManager, memberManager);
-
-        assertTrue(groupsFor(season, creatorManager, creatorUser).stream()
-            .anyMatch(g -> "NurErstellerGruppe".equals(g.getName())));
-    }
-
-    @Test
-    void creatorOnly_creatorWithoutMembershipReceivesGroup() {
-        User creatorUser = createUser("creator");
-        User memberUser = createUser("member");
-        Manager creatorManager = createManager(creatorUser);
-        Manager memberManager = createManager(memberUser);
-
-        ManagerGroup group = createGroup("NurErstellerOhneMitgliedschaft", season, creatorUser,
-            ManagerGroup.EmailToOption.CREATOR_ONLY, memberManager);
-
-        assertTrue(groupsFor(season, creatorManager, creatorUser).stream()
-            .anyMatch(g -> "NurErstellerOhneMitgliedschaft".equals(g.getName())));
-        assertTrue(group.getManagers().stream().noneMatch(m -> m.getId().equals(creatorManager.getId())));
-    }
-
-    @Test
-    void creatorOnly_memberNonCreatorDoesNotReceiveGroup() {
+    void nonRecipientDoesNotReceiveGroup() {
         User creatorUser = createUser("creator");
         User memberUser = createUser("member");
         User outsiderUser = createUser("outsider");
@@ -132,13 +80,54 @@ class MatchdayMailGroupRecipientsTest extends AbstractSeasonTestBase {
         Manager memberManager = createManager(memberUser);
         Manager outsiderManager = createManager(outsiderUser);
 
-        createGroup("NurErstellerGruppe", season, creatorUser, ManagerGroup.EmailToOption.CREATOR_ONLY,
-            creatorManager, memberManager);
+        createGroup("Gruppe", season, creatorUser,
+            Set.of(creatorManager, memberManager), Set.of(memberManager));
 
-        assertTrue(groupsFor(season, memberManager, memberUser).stream()
-            .noneMatch(g -> "NurErstellerGruppe".equals(g.getName())));
-        assertTrue(groupsFor(season, outsiderManager, outsiderUser).stream()
-            .noneMatch(g -> "NurErstellerGruppe".equals(g.getName())));
+        assertTrue(groupsFor(season, outsiderManager).stream()
+            .noneMatch(g -> "Gruppe".equals(g.getName())));
+    }
+
+    @Test
+    void creatorWithoutListEntryDoesNotReceiveGroup() {
+        User creatorUser = createUser("creator");
+        User memberUser = createUser("member");
+        Manager creatorManager = createManager(creatorUser);
+        Manager memberManager = createManager(memberUser);
+
+        createGroup("Gruppe", season, creatorUser,
+            Set.of(memberManager), Set.of(memberManager));
+
+        assertTrue(groupsFor(season, creatorManager).stream()
+            .noneMatch(g -> "Gruppe".equals(g.getName())));
+    }
+
+    @Test
+    void creatorOnListReceivesGroupEvenWithoutMembership() {
+        User creatorUser = createUser("creator");
+        Manager creatorManager = createManager(creatorUser);
+
+        ManagerGroup group = createGroup("Gruppe", season, creatorUser,
+            Set.of(), Set.of(creatorManager));
+
+        assertTrue(groupsFor(season, creatorManager).stream()
+            .anyMatch(g -> "Gruppe".equals(g.getName())));
+        assertTrue(group.getManagers().isEmpty());
+    }
+
+    @Test
+    void emptyRecipientsMeansGroupIsInNoMail() {
+        User creatorUser = createUser("creator");
+        User memberUser = createUser("member");
+        Manager creatorManager = createManager(creatorUser);
+        Manager memberManager = createManager(memberUser);
+
+        createGroup("Gruppe", season, creatorUser,
+            Set.of(creatorManager, memberManager), Set.of());
+
+        assertTrue(groupsFor(season, creatorManager).stream()
+            .noneMatch(g -> "Gruppe".equals(g.getName())));
+        assertTrue(groupsFor(season, memberManager).stream()
+            .noneMatch(g -> "Gruppe".equals(g.getName())));
     }
 
     @Test
@@ -153,17 +142,13 @@ class MatchdayMailGroupRecipientsTest extends AbstractSeasonTestBase {
             .startRoundRueckrunde(TRANSFER_ROUND)
             .build());
 
-        createGroup("AlteSaisonGruppe", oldSeason, creatorUser, ManagerGroup.EmailToOption.ALL_MANAGERS,
-            creatorManager);
-        createGroup("AlteSaisonGruppeCreatorOnly", oldSeason, creatorUser,
-            ManagerGroup.EmailToOption.CREATOR_ONLY, creatorManager);
+        createGroup("AlteSaisonGruppe", oldSeason, creatorUser,
+            Set.of(creatorManager), Set.of(creatorManager));
 
-        assertTrue(groupsFor(season, creatorManager, creatorUser).stream()
-            .noneMatch(g -> g.getName().startsWith("AlteSaison")));
-        assertTrue(groupsFor(oldSeason, creatorManager, creatorUser).stream()
+        assertTrue(groupsFor(season, creatorManager).stream()
+            .noneMatch(g -> "AlteSaisonGruppe".equals(g.getName())));
+        assertTrue(groupsFor(oldSeason, creatorManager).stream()
             .anyMatch(g -> "AlteSaisonGruppe".equals(g.getName())));
-        assertTrue(groupsFor(oldSeason, creatorManager, creatorUser).stream()
-            .anyMatch(g -> "AlteSaisonGruppeCreatorOnly".equals(g.getName())));
     }
 
     private User createUser(String login) {

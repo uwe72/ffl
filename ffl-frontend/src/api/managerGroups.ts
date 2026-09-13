@@ -8,11 +8,10 @@ export const managerGroupApi = {
     name: string
     description?: string
     seasonId: number
-    emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY'
     managerIds?: number[]
     recipientIds?: number[]
   }) => api.post<ManagerGroup>('/manager-groups', data),
-  update: (id: number, data: { name: string; description?: string; emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY' }) =>
+  update: (id: number, data: { name: string; description?: string }) =>
     api.put<ManagerGroup>(`/manager-groups/${id}`, data),
   updateRecipients: (groupId: number, recipientIds: number[]) =>
     api.put<ManagerGroup>(`/manager-groups/${groupId}/recipients`, { recipientIds }),

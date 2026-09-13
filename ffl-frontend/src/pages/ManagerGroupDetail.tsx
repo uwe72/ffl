@@ -15,11 +15,6 @@ import type { ManagerInGroup } from '../types'
 type SortKey = 'positionTotal' | 'shortName' | 'firstName' | 'lastName' | 'pointsTotal' | 'pointsLastRound'
 type SortOrder = 'asc' | 'desc'
 
-const emailToOptions = [
-  { value: 'ALL_MANAGERS', label: 'Alle Manager' },
-  { value: 'CREATOR_ONLY', label: 'Nur Ersteller' }
-]
-
 export default function ManagerGroupDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -48,7 +43,6 @@ export default function ManagerGroupDetail() {
   const [searchTerm, setSearchTerm] = useState('')
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
-  const [editEmailTo, setEditEmailTo] = useState<string>('ALL_MANAGERS')
   const [hasChanges, setHasChanges] = useState(false)
   const [selectedManagerIds, setSelectedManagerIds] = useState<number[]>([])
   const [errorMessage, setErrorMessage] = useState('')
@@ -81,14 +75,12 @@ export default function ManagerGroupDetail() {
     if (isNewMode) {
       setEditName('')
       setEditDescription('')
-      setEditEmailTo('ALL_MANAGERS')
       setSelectedManagerIds(creatorManager ? [creatorManager.id] : [])
       setRecipientIds([])
       setHasChanges(false)
     } else if (group) {
       setEditName(group.name)
       setEditDescription(group.description || '')
-      setEditEmailTo(group.emailTo || 'ALL_MANAGERS')
       setHasChanges(false)
     }
   }, [group, isNewMode, creatorManager])
@@ -263,6 +255,10 @@ export default function ManagerGroupDetail() {
   }
 
   const handleRecipientsConfirm = async () => {
+    if (draftRecipientIds.length === 0) {
+      const confirmed = window.confirm('Die Empfängerliste ist leer. Die Gruppentabelle erscheint dann in keiner Spieltagsmail. Fortfahren?')
+      if (!confirmed) return
+    }
     if (isNewMode) {
       setRecipientIds(draftRecipientIds)
       setIsRecipientsModalOpen(false)
@@ -281,6 +277,10 @@ export default function ManagerGroupDetail() {
       setErrorMessage('Bitte füllen Sie alle Pflichtfelder aus.')
       return
     }
+    if (recipientIds.length === 0) {
+      const confirmed = window.confirm('Die Empfängerliste ist leer. Die Gruppentabelle erscheint dann in keiner Spieltagsmail. Fortfahren?')
+      if (!confirmed) return
+    }
 
     setErrorMessage('')
     try {
@@ -288,7 +288,6 @@ export default function ManagerGroupDetail() {
         name: editName.trim(),
         description: editDescription.trim(),
         seasonId: currentSeason.id,
-        emailTo: editEmailTo as 'ALL_MANAGERS' | 'CREATOR_ONLY',
         managerIds: selectedManagerIds,
         recipientIds
       })
@@ -302,8 +301,7 @@ export default function ManagerGroupDetail() {
     if (!group || !hasChanges || !editDescription.trim()) return
     await updateMutation.mutateAsync({
       name: editName,
-      description: editDescription.trim(),
-      emailTo: editEmailTo as 'ALL_MANAGERS' | 'CREATOR_ONLY'
+      description: editDescription.trim()
     })
     setHasChanges(false)
   }
@@ -312,11 +310,9 @@ export default function ManagerGroupDetail() {
     if (isNewMode) {
       setEditName('')
       setEditDescription('')
-      setEditEmailTo('ALL_MANAGERS')
     } else if (group) {
       setEditName(group.name)
       setEditDescription(group.description || '')
-      setEditEmailTo(group.emailTo || 'ALL_MANAGERS')
     }
     setHasChanges(false)
     setErrorMessage('')
@@ -367,10 +363,9 @@ export default function ManagerGroupDetail() {
     }
   }
 
-  const handleChange = (field: 'name' | 'description' | 'emailTo', value: string) => {
+  const handleChange = (field: 'name' | 'description', value: string) => {
     if (field === 'name') setEditName(value)
     else if (field === 'description') setEditDescription(value)
-    else if (field === 'emailTo') setEditEmailTo(value)
     setHasChanges(true)
   }
 
@@ -546,12 +541,6 @@ export default function ManagerGroupDetail() {
                       <p className="text-xs uppercase tracking-wide text-subtle">Erstellt von:</p>
                       <p className="text-sm font-semibold text-foreground">{getCreatorDisplayName()}</p>
                     </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-subtle">E-Mail:</p>
-                      <p className="text-sm font-semibold text-foreground">
-                        {group?.emailTo === 'CREATOR_ONLY' ? 'Nur an Ersteller' : 'An alle Manager'}
-                      </p>
-                    </div>
                     {group?.recipients && (
                       <div>
                         <p className="text-xs uppercase tracking-wide text-subtle">Empfänger:</p>
@@ -645,19 +634,6 @@ export default function ManagerGroupDetail() {
                   disabled={!canEdit}
                   className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1"
                 />
-              </div>
-              <div className="min-w-0">
-                <span className="text-xs text-muted">Email an <span className="text-danger">*</span></span>
-                <select
-                  value={editEmailTo}
-                  onChange={canEdit ? (e) => handleChange('emailTo', e.target.value) : undefined}
-                  disabled={!canEdit}
-                  className="input-field control w-full px-2 py-1 rounded-control text-sm mt-1 cursor-pointer"
-                >
-                  {emailToOptions.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
               </div>
               <div className="min-w-0">
                 <span className="text-xs text-muted">Ersteller</span>
@@ -776,7 +752,7 @@ export default function ManagerGroupDetail() {
                   Pos<SortIcon column="positionTotal" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 <ThSortable onClick={() => handleSort('shortName')}>
-                  Manager<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
+                  Kurzname<SortIcon column="shortName" activeKey={sortKey} order={sortOrder} />
                 </ThSortable>
                 <ThSortable onClick={() => handleSort('firstName')}>
                   Vorname<SortIcon column="firstName" activeKey={sortKey} order={sortOrder} />
@@ -1058,7 +1034,7 @@ export default function ManagerGroupDetail() {
               <div className="flex items-start gap-2 p-2 mb-4 bg-info-bg border border-info/30 rounded-card">
                 <i className="sap-icon sap-icon-information text-[16px] text-info shrink-0 mt-0.5" />
                 <p className="text-xs text-foreground">
-                  Die Empfängerliste wird derzeit noch nicht ausgewertet – der Versand der Spieltagsmail folgt weiterhin der bisherigen Logik.
+                  Die Gruppentabelle erscheint in der Spieltagsmail genau der hier gelisteten Empfänger.
                 </p>
               </div>
 

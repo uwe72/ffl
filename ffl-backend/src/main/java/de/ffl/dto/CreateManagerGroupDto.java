@@ -14,9 +14,7 @@ public class CreateManagerGroupDto {
     
     @NotNull(message = "Season ist erforderlich")
     private Long seasonId;
-    
-    private String emailTo;
-    
+
     private List<Long> managerIds;
 
     private List<Long> recipientIds;
@@ -43,14 +41,6 @@ public class CreateManagerGroupDto {
 
     public void setSeasonId(Long seasonId) {
         this.seasonId = seasonId;
-    }
-
-    public String getEmailTo() {
-        return emailTo;
-    }
-
-    public void setEmailTo(String emailTo) {
-        this.emailTo = emailTo;
     }
 
     public List<Long> getManagerIds() {

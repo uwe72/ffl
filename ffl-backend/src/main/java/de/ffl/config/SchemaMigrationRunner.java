@@ -37,6 +37,9 @@ public class SchemaMigrationRunner implements CommandLineRunner {
 
             migrations.add("ALTER TABLE ffl_survey_question DROP CONSTRAINT IF EXISTS ffl_survey_question_type_check");
 
+            migrations.add("ALTER TABLE ffl_manager_group DROP COLUMN IF EXISTS email_to");
+            migrations.add("ALTER TABLE ffl_manager_group DROP COLUMN IF EXISTS recipients_initialized");
+
             if (columnExists(conn, "ffl_manager", "name")) {
                 migrations.add("ALTER TABLE ffl_manager DROP COLUMN IF EXISTS name");
             }

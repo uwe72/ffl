@@ -116,13 +116,7 @@ public class ManagerGroupService {
         
         managerRepository.findByUserIdAndSeasonId(currentUser.getId(), season.getId())
             .ifPresent(creatorManager -> group.getManagers().add(creatorManager));
-        
-        if (dto.getEmailTo() != null) {
-            group.setEmailTo(ManagerGroup.EmailToOption.valueOf(dto.getEmailTo()));
-        } else {
-            group.setEmailTo(ManagerGroup.EmailToOption.ALL_MANAGERS);
-        }
-        
+
         if (dto.getManagerIds() != null && !dto.getManagerIds().isEmpty()) {
             for (Long managerId : dto.getManagerIds()) {
                 managerRepository.findById(managerId).ifPresent(manager -> {
@@ -134,7 +128,6 @@ public class ManagerGroupService {
         }
 
         group.setRecipients(new HashSet<>());
-        group.setRecipientsInitialized(true);
         if (dto.getRecipientIds() != null) {
             for (Long managerId : dto.getRecipientIds()) {
                 Manager manager = managerRepository.findById(managerId).orElse(null);
@@ -174,9 +167,6 @@ public class ManagerGroupService {
 
         existing.setName(updatedGroup.getName());
         existing.setDescription(updatedGroup.getDescription());
-        if (updatedGroup.getEmailTo() != null) {
-            existing.setEmailTo(updatedGroup.getEmailTo());
-        }
         ManagerGroup saved = managerGroupRepository.save(existing);
         ManagerGroupDto dto = toDtoWithRankData(saved);
         dto.setEditable(true);
@@ -213,7 +203,6 @@ public class ManagerGroupService {
 
         existing.getRecipients().clear();
         existing.getRecipients().addAll(recipients);
-        existing.setRecipientsInitialized(true);
         ManagerGroup saved = managerGroupRepository.save(existing);
         ManagerGroupDto dto = toDtoWithRankData(saved);
         dto.setEditable(true);
@@ -240,33 +229,6 @@ public class ManagerGroupService {
             .sorted(Comparator.comparing(RecipientSourceDto::getGroupName,
                 Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
             .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public void backfillRecipients() {
-        List<ManagerGroup> groups = managerGroupRepository.findGroupsForRecipientBackfill();
-        for (ManagerGroup group : groups) {
-            Hibernate.initialize(group.getManagers());
-            Hibernate.initialize(group.getSeason());
-            Hibernate.initialize(group.getCreatedBy());
-
-            Set<Manager> recipients = new HashSet<>();
-            if (group.getEmailTo() == ManagerGroup.EmailToOption.ALL_MANAGERS) {
-                recipients.addAll(group.getManagers());
-            }
-            if (group.getCreatedBy() != null) {
-                managerRepository.findByUserIdAndSeasonId(group.getCreatedBy().getId(), group.getSeason().getId())
-                    .ifPresent(recipients::add);
-            }
-
-            group.getRecipients().clear();
-            group.getRecipients().addAll(recipients);
-            group.setRecipientsInitialized(true);
-            managerGroupRepository.save(group);
-        }
-        if (!groups.isEmpty()) {
-            log.info("Recipient backfill initialized {} manager groups", groups.size());
-        }
     }
 
     @Transactional
@@ -543,7 +505,7 @@ public class ManagerGroupService {
         }
         dto.setManagerCount(group.getManagers() != null ? group.getManagers().size() : 0);
         dto.setHasLogo(group.getLogo() != null && group.getLogo().length > 0);
-        dto.setEmailTo(group.getEmailTo() != null ? group.getEmailTo().name() : null);
+        dto.setRecipientCount(group.getRecipients() != null ? group.getRecipients().size() : 0);
         if (group.getCreatedBy() != null) {
             dto.setCreatedById(group.getCreatedBy().getId());
             dto.setCreatedByLogin(group.getCreatedBy().getLogin());
@@ -571,11 +533,8 @@ public class ManagerGroupService {
             dto.setCreatedByFirstName(group.getCreatedBy().getFirstName());
             dto.setCreatedByLastName(group.getCreatedBy().getLastName());
         }
-        if (group.getEmailTo() != null) {
-            dto.setEmailTo(group.getEmailTo().name());
-        }
         dto.setHasLogo(group.getLogo() != null && group.getLogo().length > 0);
-        
+
         Hibernate.initialize(group.getManagers());
         
         List<ManagerGroupDto.ManagerInGroupDto> managerDtos = new ArrayList<>();

@@ -479,7 +479,6 @@ export interface ManagerGroup {
   createdByLogin?: string
   createdByFirstName?: string
   createdByLastName?: string
-  emailTo?: 'ALL_MANAGERS' | 'CREATOR_ONLY'
   editable?: boolean
   hasLogo?: boolean
 }
@@ -501,7 +500,7 @@ export interface ManagerGroupListDto {
   createdByFirstName?: string
   createdByLastName?: string
   hasLogo?: boolean
-  emailTo?: string
+  recipientCount?: number
 }
 
 export interface PositionStats {
