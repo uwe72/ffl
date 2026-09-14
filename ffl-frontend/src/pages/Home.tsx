@@ -813,12 +813,12 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
                     <span className="font-medium text-foreground whitespace-nowrap">
                       {m.positionTotal ? `${m.positionTotal}.` : '-'}
                     </span>
-                    <span className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge ${
+                    <span className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap ${
                       m.positionChange == null || m.positionChange === 0
-                        ? 'bg-elevated text-muted'
+                        ? 'bg-elevated text-muted rounded-badge pos-change-neutral'
                         : m.positionChange > 0
-                          ? 'bg-success/15 text-success'
-                          : 'bg-danger/15 text-danger'
+                          ? 'chip-success'
+                          : 'chip-danger'
                     }`}>
                       {m.positionChange == null || m.positionChange === 0
                         ? '±0'
@@ -831,13 +831,13 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
                     {canNavigateToManager ? (
                       <RouterLink
                         to={`/managers/${m.managerId}`}
-                        className="link text-base font-semibold truncate block min-w-0"
+                        className="link font-semibold truncate block min-w-0"
                         title={m.login ?? m.shortName ?? m.managerName}
                       >
                         {displayName}
                       </RouterLink>
                     ) : (
-                      <span className="text-base font-semibold text-foreground truncate block min-w-0" title={m.login ?? m.shortName ?? m.managerName}>
+                      <span className="font-semibold text-foreground truncate block min-w-0" title={m.login ?? m.shortName ?? m.managerName}>
                         {displayName}
                       </span>
                     )}
@@ -943,12 +943,12 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
                   <span className="font-medium text-foreground whitespace-nowrap">
                     {m.positionTotal ? `${m.positionTotal}.` : '-'}
                   </span>
-                  <span className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge ${
+                  <span className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap ${
                     m.positionChange == null || m.positionChange === 0
-                      ? 'bg-elevated text-muted'
+                      ? 'bg-elevated text-muted rounded-badge pos-change-neutral'
                       : m.positionChange > 0
-                        ? 'bg-success/15 text-success'
-                        : 'bg-danger/15 text-danger'
+                        ? 'chip-success'
+                        : 'chip-danger'
                   }`}>
                     {m.positionChange == null || m.positionChange === 0
                       ? '±0'
@@ -959,18 +959,18 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
               <td className={`${td} min-w-0`}>
                 <div className="flex flex-col justify-center gap-0.5 min-w-0">
                   {canNavigateToManager ? (
-                    <RouterLink
-                      to={`/managers/${m.id}`}
-                      className="link text-base font-semibold truncate block min-w-0"
-                      title={m.login ?? m.shortName ?? m.name}
-                    >
-                      {displayName}
-                    </RouterLink>
-                  ) : (
-                    <span className="text-base font-semibold text-foreground truncate block min-w-0" title={m.login ?? m.shortName ?? m.name}>
-                      {displayName}
-                    </span>
-                  )}
+                  <RouterLink
+                    to={`/managers/${m.id}`}
+                    className="link font-semibold truncate block min-w-0"
+                    title={m.login ?? m.shortName ?? m.name}
+                  >
+                    {displayName}
+                  </RouterLink>
+                ) : (
+                  <span className="font-semibold text-foreground truncate block min-w-0" title={m.login ?? m.shortName ?? m.name}>
+                    {displayName}
+                  </span>
+                )}
                   <span className="text-xs text-muted truncate block min-w-0" title={m.login ?? m.shortName ?? m.name}>
                     {subName}
                   </span>

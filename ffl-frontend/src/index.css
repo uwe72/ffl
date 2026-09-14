@@ -273,6 +273,14 @@ body {
   color: var(--color-primary-foreground);
 }
 
+.row-selected .chip-success,
+.row-selected .chip-danger,
+.row-selected .pos-change-neutral {
+  --color-success: var(--ffl-success);
+  --color-danger: var(--ffl-danger);
+  --color-muted: var(--ffl-muted);
+}
+
 .hero {
   --color-foreground: #ffffff;
   --color-muted: #93a1b0;
