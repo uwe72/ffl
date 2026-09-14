@@ -815,7 +815,7 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
                     </span>
                     <span className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap ${
                       m.positionChange == null || m.positionChange === 0
-                        ? 'bg-elevated text-muted rounded-badge pos-change-neutral'
+                        ? 'bg-surface text-foreground rounded-badge pos-change-neutral'
                         : m.positionChange > 0
                           ? 'chip-success'
                           : 'chip-danger'
@@ -945,7 +945,7 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
                   </span>
                   <span className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap ${
                     m.positionChange == null || m.positionChange === 0
-                      ? 'bg-elevated text-muted rounded-badge pos-change-neutral'
+                      ? 'bg-surface text-foreground rounded-badge pos-change-neutral'
                       : m.positionChange > 0
                         ? 'chip-success'
                         : 'chip-danger'

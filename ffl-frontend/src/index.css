@@ -274,11 +274,13 @@ body {
 }
 
 .row-selected .chip-success,
-.row-selected .chip-danger,
-.row-selected .pos-change-neutral {
+.row-selected .chip-danger {
   --color-success: var(--ffl-success);
   --color-danger: var(--ffl-danger);
-  --color-muted: var(--ffl-muted);
+}
+
+.row-selected .pos-change-neutral {
+  --color-foreground: var(--ffl-text);
 }
 
 .hero {
