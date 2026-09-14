@@ -106,10 +106,6 @@ function groupCreatorName(group: { createdByFirstName?: string; createdByLastNam
   return group.createdByLogin || '-'
 }
 
-function managerLogin(m: { login?: string; managerName?: string; shortName?: string }): string {
-  return m.login ?? m.managerName ?? m.shortName ?? '-'
-}
-
 function HelpRow({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
     <div className="flex items-start gap-2.5">
@@ -781,15 +777,14 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
     <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
       <table className="w-full border-collapse text-sm table-fixed">
         <colgroup>
-          <col className="w-[72px]" />
-          <col className="w-auto" />
+          <col className="w-[88px]" />
           <col className="w-auto" />
           <col className="w-12" />
           <col className="w-10" />
         </colgroup>
         <thead className="bg-elevated sticky top-0">
           <tr>
-            <th colSpan={3} align="left" className={th}>
+            <th colSpan={2} align="left" className={th}>
               {headerTitle}
             </th>
             <th colSpan={2} align="center" className={th}>
@@ -798,8 +793,7 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
           </tr>
           <tr>
             <th align="center" className={th}>POS</th>
-            <th align="left" className={th}>Kurzname</th>
-            <th align="left" className={th}>Vor-/Nachname</th>
+            <th align="left" className={th}>Manager</th>
             <th align="center" className={th}>GES.</th>
             <th align="center" className={th}>Sp.</th>
           </tr>
@@ -809,43 +803,48 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
             .sort((a, b) => (a.positionTotal ?? 999) - (b.positionTotal ?? 999))
             .map((m, index) => {
               const isMe = m.isCurrentUser
+              const fullName = [m.firstName, m.lastName].filter(Boolean).join(' ')
+              const displayName = fullName || m.shortName || m.managerName
+              const subName = m.login ?? m.shortName ?? m.managerName
               return (
               <tr key={m.managerId} className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-on-dark row-selected font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}>
-                <td className={`${td} text-center font-medium text-foreground whitespace-nowrap`}>
-                  {m.positionTotal ? (
-                    <>
-                      {m.positionTotal}.
-                      {m.positionChange != null && m.positionChange !== 0 ? (
-                        <span className={`ml-0.5 text-[11px] font-semibold ${m.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
-                          {m.positionChange > 0 ? `↑${m.positionChange}` : `↓${Math.abs(m.positionChange)}`}
-                        </span>
-                      ) : (
-                        <span className="ml-0.5 text-[11px] text-subtle">-</span>
-                      )}
-                    </>
-                  ) : (
-                    <span>-</span>
-                  )}
-                </td>
-                <td className={`${td} min-w-0`}>
-                  {canNavigateToManager ? (
-                    <RouterLink
-                      to={`/managers/${m.managerId}`}
-                      className="link font-medium truncate block min-w-0"
-                      title={m.login ?? m.managerName}
-                    >
-                      {managerLogin(m)}
-                    </RouterLink>
-                  ) : (
-                    <span className="font-medium text-foreground truncate block min-w-0" title={m.login ?? m.managerName}>
-                      {managerLogin(m)}
+                <td className={`${td} text-center align-middle`}>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="font-medium text-foreground whitespace-nowrap">
+                      {m.positionTotal ? `${m.positionTotal}.` : '-'}
                     </span>
-                  )}
+                    <span className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge ${
+                      m.positionChange == null || m.positionChange === 0
+                        ? 'bg-elevated text-muted'
+                        : m.positionChange > 0
+                          ? 'bg-success/15 text-success'
+                          : 'bg-danger/15 text-danger'
+                    }`}>
+                      {m.positionChange == null || m.positionChange === 0
+                        ? '±0'
+                        : m.positionChange > 0 ? `+${m.positionChange}` : `-${Math.abs(m.positionChange)}`}
+                    </span>
+                  </div>
                 </td>
                 <td className={`${td} min-w-0`}>
-                  <span className="text-foreground truncate block min-w-0" title={`${m.firstName || '-'} ${m.lastName || '-'}`.trim()}>
-                    {[m.firstName, m.lastName].filter(Boolean).join(' ') || '-'}
-                  </span>
+                  <div className="flex flex-col justify-center gap-0.5 min-w-0">
+                    {canNavigateToManager ? (
+                      <RouterLink
+                        to={`/managers/${m.managerId}`}
+                        className="link text-base font-semibold truncate block min-w-0"
+                        title={m.login ?? m.shortName ?? m.managerName}
+                      >
+                        {displayName}
+                      </RouterLink>
+                    ) : (
+                      <span className="text-base font-semibold text-foreground truncate block min-w-0" title={m.login ?? m.shortName ?? m.managerName}>
+                        {displayName}
+                      </span>
+                    )}
+                    <span className="text-xs text-muted truncate block min-w-0" title={m.login ?? m.shortName ?? m.managerName}>
+                      {subName}
+                    </span>
+                  </div>
                 </td>
                 <td className={`${td} text-center font-bold text-foreground whitespace-nowrap`}>
                   {m.pointsTotal ?? '-'}
@@ -858,7 +857,7 @@ function GroupMobileTable({ group, canNavigateToManager, headerTitle }: { group:
             })}
           {group.managers.length === 0 && (
             <tr>
-              <td colSpan={5} className="text-center text-subtle py-8">
+              <td colSpan={4} className="text-center text-subtle py-8">
                 Keine Manager in dieser Gruppe
               </td>
             </tr>
@@ -906,15 +905,14 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
     <div className="overflow-x-auto rounded-card w-full" style={{ touchAction: 'pan-y' }}>
       <table className="w-full border-collapse text-sm table-fixed">
         <colgroup>
-          <col className="w-[72px]" />
-          <col className="w-auto" />
+          <col className="w-[88px]" />
           <col className="w-auto" />
           <col className="w-12" />
           <col className="w-10" />
         </colgroup>
         <thead className="bg-elevated sticky top-0">
           <tr>
-            <th colSpan={3} align="left" className={th}>
+            <th colSpan={2} align="left" className={th}>
               {headerTitle}
             </th>
             <th colSpan={2} align="center" className={th}>
@@ -923,8 +921,7 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
           </tr>
           <tr>
             <th align="center" className={th}>POS</th>
-            <th align="left" className={th}>Kurzname</th>
-            <th align="left" className={th}>Vor-/Nachname</th>
+            <th align="left" className={th}>Manager</th>
             <th align="center" className={th}>GES.</th>
             <th align="center" className={th}>Sp.</th>
           </tr>
@@ -932,47 +929,52 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
         <tbody className="bg-surface">
           {sorted.map((m, index) => {
             const isMe = selected && myManagerId != null && m.id === myManagerId
+            const fullName = [m.firstName, m.lastName].filter(Boolean).join(' ')
+            const displayName = fullName || m.shortName || m.name || '-'
+            const subName = m.login ?? m.shortName ?? m.name ?? '-'
             return (
             <tr
               key={m.id}
               ref={isMe ? rowRef : undefined}
               className={`hover:bg-card-hover border-b border-border ${isMe ? 'border-l-2 border-l-on-dark row-selected font-semibold' : ''} ${index % 2 === 1 ? 'bg-zebra' : ''}`}
             >
-              <td className={`${td} text-center font-medium text-foreground whitespace-nowrap`}>
-                {m.positionTotal ? (
-                  <>
-                    {m.positionTotal}.
-                    {m.positionChange != null && m.positionChange !== 0 ? (
-                      <span className={`ml-0.5 text-[11px] font-semibold ${m.positionChange > 0 ? 'text-success' : 'text-danger'}`}>
-                        {m.positionChange > 0 ? `↑${m.positionChange}` : `↓${Math.abs(m.positionChange)}`}
-                      </span>
-                    ) : (
-                      <span className="ml-0.5 text-[11px] text-subtle">-</span>
-                    )}
-                  </>
-                ) : (
-                  <span>-</span>
-                )}
-              </td>
-              <td className={`${td} min-w-0`}>
-                {canNavigateToManager ? (
-                  <RouterLink
-                    to={`/managers/${m.id}`}
-                    className="link font-medium truncate block min-w-0"
-                    title={m.login ?? m.shortName ?? m.name}
-                  >
-                    {managerLogin(m)}
-                  </RouterLink>
-                ) : (
-                  <span className="font-medium text-foreground truncate block min-w-0" title={m.login ?? m.shortName ?? m.name}>
-                    {managerLogin(m)}
+              <td className={`${td} text-center align-middle`}>
+                <div className="flex flex-col items-center gap-0.5">
+                  <span className="font-medium text-foreground whitespace-nowrap">
+                    {m.positionTotal ? `${m.positionTotal}.` : '-'}
                   </span>
-                )}
+                  <span className={`inline-flex items-center justify-center h-4 px-1.5 text-[10px] font-semibold leading-none whitespace-nowrap rounded-badge ${
+                    m.positionChange == null || m.positionChange === 0
+                      ? 'bg-elevated text-muted'
+                      : m.positionChange > 0
+                        ? 'bg-success/15 text-success'
+                        : 'bg-danger/15 text-danger'
+                  }`}>
+                    {m.positionChange == null || m.positionChange === 0
+                      ? '±0'
+                      : m.positionChange > 0 ? `+${m.positionChange}` : `-${Math.abs(m.positionChange)}`}
+                  </span>
+                </div>
               </td>
               <td className={`${td} min-w-0`}>
-                <span className="text-foreground truncate block min-w-0" title={`${m.firstName || '-'} ${m.lastName || '-'}`.trim()}>
-                  {[m.firstName, m.lastName].filter(Boolean).join(' ') || '-'}
-                </span>
+                <div className="flex flex-col justify-center gap-0.5 min-w-0">
+                  {canNavigateToManager ? (
+                    <RouterLink
+                      to={`/managers/${m.id}`}
+                      className="link text-base font-semibold truncate block min-w-0"
+                      title={m.login ?? m.shortName ?? m.name}
+                    >
+                      {displayName}
+                    </RouterLink>
+                  ) : (
+                    <span className="text-base font-semibold text-foreground truncate block min-w-0" title={m.login ?? m.shortName ?? m.name}>
+                      {displayName}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted truncate block min-w-0" title={m.login ?? m.shortName ?? m.name}>
+                    {subName}
+                  </span>
+                </div>
               </td>
               <td className={`${td} text-center font-bold text-foreground whitespace-nowrap`}>
                 {m.pointsTotal ?? '-'}
@@ -985,7 +987,7 @@ function ManagersMobileTable({ managers, canNavigateToManager, headerTitle, sele
           })}
           {sorted.length === 0 && (
             <tr>
-              <td colSpan={5} className="text-center text-subtle py-8">
+              <td colSpan={4} className="text-center text-subtle py-8">
                 Keine Manager gefunden
               </td>
             </tr>
