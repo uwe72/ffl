@@ -1161,7 +1161,7 @@ export default function Home() {
   const { isAuthenticated, user } = useAuth()
   const { data: season } = useCurrentSeason()
   const { data: currentManager } = useCurrentManager()
-  const { data: managers } = useManagersBySeason(season?.id ?? 0)
+  const { data: managers, isError: managersError } = useManagersBySeason(season?.id ?? 0)
   const { data: favorites } = useFavorites(season?.id ?? 0)
   const addFavorite = useAddFavorite(season?.id ?? 0)
   const removeFavorite = useRemoveFavorite(season?.id ?? 0)
@@ -1255,6 +1255,7 @@ export default function Home() {
 
   useEffect(() => {
     if (season === undefined) return
+    if (managers === undefined && !managersError) return
     if (!carouselEnabled) {
       if (activeManagerId !== ownManagerId) setActiveManagerId(ownManagerId ?? null)
       return
@@ -1262,7 +1263,7 @@ export default function Home() {
     if (activeManagerId != null) return
     const def = standardId ?? (favoriteManagerIds.length > 0 ? favoriteManagerIds[0] : null)
     setActiveManagerId(def)
-  }, [season, carouselEnabled, favoriteManagerIds, ownManagerId, standardId, activeManagerId])
+  }, [season, managers, managersError, carouselEnabled, favoriteManagerIds, ownManagerId, standardId, activeManagerId])
 
   const activeManager = useMemo(
     () => managers?.find(m => m.id === activeManagerId),
