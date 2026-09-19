@@ -1254,6 +1254,7 @@ export default function Home() {
   }, [favoriteList, managers, standardId])
 
   useEffect(() => {
+    if (season === undefined) return
     if (!carouselEnabled) {
       if (activeManagerId !== ownManagerId) setActiveManagerId(ownManagerId ?? null)
       return
@@ -1261,7 +1262,7 @@ export default function Home() {
     if (activeManagerId != null) return
     const def = standardId ?? (favoriteManagerIds.length > 0 ? favoriteManagerIds[0] : null)
     setActiveManagerId(def)
-  }, [carouselEnabled, favoriteManagerIds, ownManagerId, standardId, activeManagerId])
+  }, [season, carouselEnabled, favoriteManagerIds, ownManagerId, standardId, activeManagerId])
 
   const activeManager = useMemo(
     () => managers?.find(m => m.id === activeManagerId),
@@ -1824,7 +1825,11 @@ export default function Home() {
             {card(
               <div>
                 {!activeManagerId ? (
-                  <p className="text-sm text-muted py-10 text-center">Kein Team ausgewählt.</p>
+                  season === undefined ? (
+                    <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
+                  ) : (
+                    <p className="text-sm text-muted py-10 text-center">Kein Team ausgewählt.</p>
+                  )
                 ) : aufstellungQuery.isLoading || !aufstellungQuery.data ? (
                   <p className="text-sm text-muted py-10 text-center">Lade Daten…</p>
                 ) : null}
