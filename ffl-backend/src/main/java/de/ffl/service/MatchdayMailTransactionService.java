@@ -580,7 +580,7 @@ public class MatchdayMailTransactionService {
             sb.append(renderCommentCard(comment, commentHeading, cardBgAlt, textPrimary, isDark));
         }
 
-        List<RosterEntry> roster = collectFullRoster(manager, playerById);
+        List<RosterEntry> roster = collectFullRoster(manager, playerById, roundNumber >= transferRound);
         roster.sort((a, b) -> {
             PlayerRank pra = playerRankByPlayerId.get(a.player.getId());
             PlayerRank prb = playerRankByPlayerId.get(b.player.getId());
@@ -929,7 +929,7 @@ public class MatchdayMailTransactionService {
         sb.append("</table>");
     }
 
-    private static final class RosterEntry {
+    static final class RosterEntry {
         final Player player;
         final String posLabel;
         final String posColor;
@@ -945,7 +945,7 @@ public class MatchdayMailTransactionService {
         }
     }
 
-    private List<RosterEntry> collectFullRoster(Manager manager, Map<Long, Player> playerById) {
+    static List<RosterEntry> collectFullRoster(Manager manager, Map<Long, Player> playerById, boolean isRueckrunde) {
         List<RosterEntry> roster = new ArrayList<>();
         Player[] base = new Player[] {
             manager.getPlayerGoalkeeper(),
@@ -964,7 +964,7 @@ public class MatchdayMailTransactionService {
         for (int i = 0; i < base.length; i++) {
             Player p = base[i];
             if (p == null) continue;
-            boolean exchangedOut = isExchangedOld(manager, p);
+            boolean exchangedOut = WinterTransferPairs.isOldPlayerOfCompletePair(manager, p);
             String label = labels[i];
             String color = colors[i];
             if ("FREI".equals(label)) {
@@ -974,11 +974,13 @@ public class MatchdayMailTransactionService {
             }
             roster.add(new RosterEntry(p, label, color, true, !exchangedOut));
         }
-        for (Player p : WinterTransferPairs.newPlayers(manager)) {
-            Player resolved = playerById.getOrDefault(p.getId(), p);
-            String label = positionLabelFromEnum(resolved.getPosition());
-            String color = positionColorFromEnum(resolved.getPosition());
-            roster.add(new RosterEntry(resolved, label, color, false, true));
+        if (isRueckrunde) {
+            for (Player p : WinterTransferPairs.newPlayers(manager)) {
+                Player resolved = playerById.getOrDefault(p.getId(), p);
+                String label = positionLabelFromEnum(resolved.getPosition());
+                String color = positionColorFromEnum(resolved.getPosition());
+                roster.add(new RosterEntry(resolved, label, color, false, true));
+            }
         }
         return roster;
     }
@@ -987,7 +989,7 @@ public class MatchdayMailTransactionService {
         return WinterTransferPairs.isOldPlayerOfCompletePair(m, p);
     }
 
-    private String positionLabelFromEnum(Position pos) {
+    private static String positionLabelFromEnum(Position pos) {
         if (pos == null) return "SP";
         return switch (pos) {
             case GOALKEEPER -> "TW";
@@ -997,7 +999,7 @@ public class MatchdayMailTransactionService {
         };
     }
 
-    private String positionColorFromEnum(Position pos) {
+    private static String positionColorFromEnum(Position pos) {
         if (pos == null) return "#6b6b6b";
         return switch (pos) {
             case GOALKEEPER -> "#30D158";
