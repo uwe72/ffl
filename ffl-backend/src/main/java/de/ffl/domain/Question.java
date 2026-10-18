@@ -44,6 +44,10 @@ public class Question {
     @Column(name = "max_length")
     private Integer maxLength;
 
+    @Column(name = "hide_in_member_results", nullable = false)
+    @Builder.Default
+    private Boolean hideInMemberResults = false;
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     @Builder.Default

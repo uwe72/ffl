@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -84,6 +85,7 @@ public class SurveyService {
                 qr.setOrderIndex(q.getOrderIndex());
                 qr.setRequired(q.getRequired());
                 qr.setMaxLength(q.getMaxLength());
+                qr.setHideInMemberResults(q.getHideInMemberResults());
                 qr.setOptions(q.getOptions().stream()
                     .map(QuestionOption::getText)
                     .toList());
@@ -319,16 +321,42 @@ public class SurveyService {
     }
 
     @Transactional(readOnly = true)
-    public SurveyResultDto getResult(Long surveyId) {
+    public List<SurveyEndedDto> getEndedSurveys() {
+        return surveyRepository.findByStatus(SurveyStatus.BEENDET).stream()
+            .map(s -> SurveyEndedDto.builder()
+                .id(s.getId())
+                .title(s.getTitle())
+                .description(s.getDescription())
+                .status(s.getStatus())
+                .deadline(s.getDeadline())
+                .responseCount(surveyResponseRepository.countBySurveyId(s.getId()))
+                .build())
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SurveyResultDto getMemberResult(Long surveyId) {
         Survey survey = requireSurvey(surveyId);
-        long responseCount = surveyResponseRepository.countBySurveyId(surveyId);
-        List<SurveyResponse> responses = surveyResponseRepository.findBySurveyIdWithAnswers(surveyId);
+        if (survey.getStatus() != SurveyStatus.BEENDET) {
+            return null;
+        }
+        Set<Long> visibleQuestionIds = survey.getQuestions().stream()
+            .filter(q -> !Boolean.TRUE.equals(q.getHideInMemberResults()))
+            .map(Question::getId)
+            .collect(Collectors.toSet());
+        return buildResult(survey, visibleQuestionIds);
+    }
+
+    private SurveyResultDto buildResult(Survey survey, Set<Long> visibleQuestionIds) {
+        long responseCount = surveyResponseRepository.countBySurveyId(survey.getId());
+        List<SurveyResponse> responses = surveyResponseRepository.findBySurveyIdWithAnswers(survey.getId());
 
         List<QuestionResult> questions = survey.getQuestions().stream()
+            .filter(q -> visibleQuestionIds == null || visibleQuestionIds.contains(q.getId()))
             .map(q -> buildQuestionResult(q, responses, true))
             .toList();
         List<SurveyResponseDetailDto> detail = responses.stream()
-            .map(this::toResponseDetail)
+            .map(r -> toResponseDetail(r, visibleQuestionIds))
             .toList();
 
         return SurveyResultDto.builder()
@@ -342,6 +370,12 @@ public class SurveyService {
             .questions(questions)
             .responses(detail)
             .build();
+    }
+
+    @Transactional(readOnly = true)
+    public SurveyResultDto getResult(Long surveyId) {
+        Survey survey = requireSurvey(surveyId);
+        return buildResult(survey, null);
     }
 
     private void applyQuestions(Survey survey, List<SurveyQuestionRequest> questionRequests) {
@@ -359,6 +393,7 @@ public class SurveyService {
                 .orderIndex(r.getOrderIndex() != null ? r.getOrderIndex() : qi)
                 .required(!separator && Boolean.TRUE.equals(r.getRequired()))
                 .maxLength(separator ? null : (r.getMaxLength() != null ? r.getMaxLength() : defaultMaxLength(type)))
+                .hideInMemberResults(!separator && Boolean.TRUE.equals(r.getHideInMemberResults()))
                 .options(new ArrayList<>())
                 .build();
             if (!separator && r.getOptions() != null) {
@@ -541,10 +576,16 @@ public class SurveyService {
     }
 
     private SurveyResponseDetailDto toResponseDetail(SurveyResponse response) {
+        return toResponseDetail(response, null);
+    }
+
+    private SurveyResponseDetailDto toResponseDetail(SurveyResponse response, Set<Long> visibleQuestionIds) {
         Map<Long, Question> questionById = response.getSurvey() == null ? Map.of()
             : response.getSurvey().getQuestions().stream()
                 .collect(Collectors.toMap(Question::getId, Function.identity()));
         List<AnswerDetailDto> answers = response.getAnswers().stream()
+            .filter(a -> visibleQuestionIds == null
+                || (a.getQuestion() != null && visibleQuestionIds.contains(a.getQuestion().getId())))
             .map(a -> toAnswerDetail(a, questionById.get(a.getQuestion() == null ? null : a.getQuestion().getId())))
             .toList();
         return SurveyResponseDetailDto.builder()
@@ -601,6 +642,7 @@ public class SurveyService {
                     .orderIndex(q.getOrderIndex())
                     .required(q.getRequired())
                     .maxLength(q.getMaxLength())
+                    .hideInMemberResults(q.getHideInMemberResults())
                     .options(q.getOptions().stream()
                         .map(o -> QuestionOptionDto.builder()
                             .id(o.getId())

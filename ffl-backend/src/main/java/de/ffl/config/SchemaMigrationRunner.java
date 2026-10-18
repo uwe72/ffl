@@ -58,6 +58,12 @@ public class SchemaMigrationRunner implements CommandLineRunner {
             migrations.add("UPDATE ffl_survey SET deadline = created_at WHERE deadline IS NULL");
             migrations.add("ALTER TABLE ffl_survey ALTER COLUMN deadline SET NOT NULL");
 
+            if (!columnExists(conn, "ffl_survey_question", "hide_in_member_results")) {
+                migrations.add("ALTER TABLE ffl_survey_question ADD COLUMN hide_in_member_results BOOLEAN DEFAULT FALSE");
+            }
+            migrations.add("UPDATE ffl_survey_question SET hide_in_member_results = FALSE WHERE hide_in_member_results IS NULL");
+            migrations.add("ALTER TABLE ffl_survey_question ALTER COLUMN hide_in_member_results SET NOT NULL");
+
             try (Statement stmt = conn.createStatement()) {
                 for (String sql : migrations) {
                     stmt.execute(sql);

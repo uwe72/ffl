@@ -5,6 +5,7 @@ import type {
   SurveyCreateRequest,
   SurveyAnswerRequest,
   SurveyResult,
+  SurveyEnded,
 } from '../types'
 
 export const surveyApi = {
@@ -31,4 +32,9 @@ export const surveyPublicApi = {
   get: (id: number) => api.get<SurveyPublic>(`/public/survey/${id}`),
   submit: (id: number, data: SurveyAnswerRequest) =>
     api.post(`/public/survey/${id}/submit`, data),
+}
+
+export const surveyResultsApi = {
+  ended: () => api.get<SurveyEnded[]>('/survey-results'),
+  result: (id: number) => api.get<SurveyResult>(`/survey-results/${id}`),
 }

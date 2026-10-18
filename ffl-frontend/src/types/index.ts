@@ -781,6 +781,7 @@ export interface SurveyQuestion {
   orderIndex: number
   required: boolean
   maxLength?: number | null
+  hideInMemberResults?: boolean | null
   options: SurveyQuestionOption[]
 }
 
@@ -811,6 +812,7 @@ export interface SurveyQuestionRequest {
   orderIndex?: number
   required?: boolean
   maxLength?: number | null
+  hideInMemberResults?: boolean
   options?: string[]
 }
 
@@ -872,6 +874,15 @@ export interface SurveyResult {
   responseCount: number
   questions: QuestionResult[]
   responses: SurveyResponseDetail[]
+}
+
+export interface SurveyEnded {
+  id: number
+  title: string
+  description?: string | null
+  status: SurveyStatus
+  deadline: string
+  responseCount: number
 }
 
 export interface SetupPreviewDto {

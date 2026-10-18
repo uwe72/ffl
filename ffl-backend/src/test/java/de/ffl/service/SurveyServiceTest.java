@@ -709,4 +709,103 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("abgelaufen");
     }
+
+    private SurveyCreateRequest surveyWithHiddenNameQuestion() {
+        SurveyCreateRequest req = new SurveyCreateRequest();
+        req.setTitle("Mitgliederumfrage");
+        req.setDeadline(LocalDateTime.now().plusDays(30));
+        SurveyQuestionRequest name = new SurveyQuestionRequest();
+        name.setType(QuestionType.TEXTFIELD);
+        name.setText("Wie heißt Du? (optional)");
+        name.setHideInMemberResults(true);
+        SurveyQuestionRequest rating = new SurveyQuestionRequest();
+        rating.setType(QuestionType.RATING);
+        rating.setText("Wie zufrieden?");
+        rating.setRequired(true);
+        req.setQuestions(List.of(name, rating));
+        return req;
+    }
+
+    @Test
+    void createSurvey_storesHideInMemberResults() {
+        SurveyAdminDto dto = surveyService.createSurvey(surveyWithHiddenNameQuestion());
+        assertThat(dto.getQuestions().get(0).getHideInMemberResults()).isTrue();
+        assertThat(dto.getQuestions().get(1).getHideInMemberResults()).isFalse();
+    }
+
+    @Test
+    void createSurvey_separatorNeverHidesMemberResults() {
+        SurveyCreateRequest req = new SurveyCreateRequest();
+        req.setTitle("Gruppenumfrage");
+        req.setDeadline(LocalDateTime.now().plusDays(30));
+        SurveyQuestionRequest separator = new SurveyQuestionRequest();
+        separator.setType(QuestionType.SEPARATOR);
+        separator.setText("Abschnitt 1");
+        separator.setHideInMemberResults(true);
+        SurveyQuestionRequest rating = new SurveyQuestionRequest();
+        rating.setType(QuestionType.RATING);
+        rating.setText("Wie zufrieden?");
+        rating.setRequired(true);
+        req.setQuestions(List.of(separator, rating));
+
+        SurveyAdminDto dto = surveyService.createSurvey(req);
+        assertThat(dto.getQuestions().get(0).getHideInMemberResults()).isFalse();
+    }
+
+    @Test
+    void copySurvey_keepsHideInMemberResults() {
+        SurveyAdminDto dto = surveyService.createSurvey(surveyWithHiddenNameQuestion());
+        SurveyAdminDto copy = surveyService.copySurvey(dto.getId());
+        assertThat(copy.getQuestions().get(0).getHideInMemberResults()).isTrue();
+        assertThat(copy.getQuestions().get(1).getHideInMemberResults()).isFalse();
+    }
+
+    @Test
+    void getEndedSurveys_returnsOnlyBeendet() {
+        assertThat(surveyService.getEndedSurveys()).isEmpty();
+        SurveyAdminDto started = createStartedSurvey();
+        assertThat(surveyService.getEndedSurveys()).extracting(SurveyEndedDto::getId)
+            .doesNotContain(started.getId());
+
+        surveyService.endSurvey(started.getId());
+
+        List<SurveyEndedDto> ended = surveyService.getEndedSurveys();
+        assertThat(ended).extracting(SurveyEndedDto::getId).containsExactly(started.getId());
+        assertThat(ended.get(0).getStatus()).isEqualTo(SurveyStatus.BEENDET);
+        assertThat(ended.get(0).getTitle()).isEqualTo(started.getTitle());
+        assertThat(ended.get(0).getDeadline()).isEqualTo(started.getDeadline());
+        assertThat(ended.get(0).getResponseCount()).isZero();
+    }
+
+    @Test
+    void getMemberResult_requiresBeendet() {
+        SurveyAdminDto dto = createStartedSurvey();
+        assertThat(surveyService.getMemberResult(dto.getId())).isNull();
+        surveyService.endSurvey(dto.getId());
+        assertThat(surveyService.getMemberResult(dto.getId())).isNotNull();
+    }
+
+    @Test
+    void getMemberResult_hidesFlaggedQuestionsAndIndividualAnswers() {
+        SurveyAdminDto dto = surveyService
+            .startSurvey(surveyService.createSurvey(surveyWithHiddenNameQuestion()).getId());
+        Long nameId = dto.getQuestions().get(0).getId();
+        Long ratingId = dto.getQuestions().get(1).getId();
+        submit(dto.getId(), List.of(answer(nameId, null, "Klaus"), answer(ratingId, null, "4")));
+        submit(dto.getId(), List.of(answer(ratingId, null, "2")));
+        surveyService.endSurvey(dto.getId());
+
+        SurveyResultDto member = surveyService.getMemberResult(dto.getId());
+        assertThat(member.getResponseCount()).isEqualTo(2);
+        assertThat(member.getQuestions()).extracting(QuestionResult::getQuestionId).containsExactly(ratingId);
+        assertThat(member.getQuestions().get(0).getMean()).isEqualTo(3.0);
+        for (SurveyResponseDetailDto r : member.getResponses()) {
+            assertThat(r.getAnswers()).extracting(AnswerDetailDto::getQuestionId).doesNotContain(nameId);
+        }
+
+        SurveyResultDto admin = surveyService.getResult(dto.getId());
+        assertThat(admin.getQuestions()).extracting(QuestionResult::getQuestionId).containsExactly(nameId, ratingId);
+        assertThat(admin.getResponses()).anySatisfy(r ->
+            assertThat(r.getAnswers()).extracting(AnswerDetailDto::getQuestionId).contains(nameId));
+    }
 }

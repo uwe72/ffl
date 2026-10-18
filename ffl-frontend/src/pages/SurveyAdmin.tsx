@@ -1,23 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useSurveys, useCreateSurvey, useUpdateSurvey, useUpdateSurveyMeta, useCopySurvey, useDeleteSurvey, useDeleteSurveyResponse, useSurveyStatusAction, useSurveyResult } from '../hooks/useSurveys'
+import { useSurveys, useCreateSurvey, useUpdateSurvey, useUpdateSurveyMeta, useCopySurvey, useDeleteSurvey, useSurveyStatusAction } from '../hooks/useSurveys'
 import type { SurveyAdmin, QuestionType, SurveyQuestionRequest } from '../types'
 import BackButton from '../components/BackButton'
 import Button from '../components/Button'
 import SurveyPreviewDialog from '../components/SurveyPreviewDialog'
+import SurveyResultsView from '../components/SurveyResultsView'
 import { questionNumber } from '../components/SurveyFormView'
 import useIsMobile from '../hooks/useIsMobile'
-
-const STATUS_LABEL: Record<string, string> = {
-  ANGELEGT: 'Angelegt',
-  GESTARTET: 'Gestartet',
-  BEENDET: 'Beendet',
-}
+import { surveyStatusClass, SURVEY_STATUS_LABEL } from '../utils/surveyStatus'
 
 const TYPE_LABEL: Record<QuestionType, string> = {
-  RATING: 'Bewertung (1–5)',
+  RATING: 'Bewertung (1â€“5)',
   SINGLE: 'Einzelauswahl',
   MULTI: 'Mehrfachauswahl',
   TEXTFIELD: 'Textfeld',
@@ -31,13 +27,8 @@ function defaultMaxLength(type: QuestionType): number | null {
   return null
 }
 
-function statusClass(status: string) {
-  if (status === 'GESTARTET') return 'text-success bg-success-bg'
-  return 'text-muted bg-elevated'
-}
-
 function formatDate(iso?: string | null) {
-  if (!iso) return '–'
+  if (!iso) return 'â€“'
   try {
     return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
   } catch {
@@ -46,7 +37,7 @@ function formatDate(iso?: string | null) {
 }
 
 function formatDateTime(iso?: string | null) {
-  if (!iso) return '–'
+  if (!iso) return 'â€“'
   try {
     const d = new Date(iso)
     return `${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}, ${d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr`
@@ -81,6 +72,7 @@ interface DraftQuestion {
   text: string
   required: boolean
   maxLength: number | null
+  hideInMemberResults: boolean
   options: DraftOption[]
 }
 
@@ -184,14 +176,14 @@ export default function SurveyAdmin() {
   }
 
   const resetStatus = (id: number) => {
-    if (!window.confirm('Möchtest du den Status dieser Umfrage wirklich auf „Angelegt" zurücksetzen?')) return
+    if (!window.confirm('MÃ¶chtest du den Status dieser Umfrage wirklich auf â€žAngelegt" zurÃ¼cksetzen?')) return
     changeStatus(id, 'reset')
   }
 
   const remove = (id: number, responseCount: number) => {
     const warning = responseCount > 0
-      ? `Möchtest du diese Umfrage wirklich löschen? Alle ${responseCount} Antworten werden ebenfalls gelöscht.`
-      : 'Möchtest du diese Umfrage wirklich löschen?'
+      ? `MÃ¶chtest du diese Umfrage wirklich lÃ¶schen? Alle ${responseCount} Antworten werden ebenfalls gelÃ¶scht.`
+      : 'MÃ¶chtest du diese Umfrage wirklich lÃ¶schen?'
     if (!window.confirm(warning)) return
     deleteMutation.mutate(id, {
       onError: err => alert(apiErrorMessage(err)),
@@ -244,7 +236,7 @@ export default function SurveyAdmin() {
   }
 
   if (mode === 'result' && activeId != null) {
-    return <SurveyResults id={activeId} onBack={() => setMode('list')} />
+    return <SurveyResultsView id={activeId} onBack={() => setMode('list')} />
   }
 
   return (
@@ -274,15 +266,15 @@ export default function SurveyAdmin() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-3">
                     <h2 className="text-lg font-semibold text-foreground truncate">{s.title}</h2>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusClass(s.status)}`}>
-                      {STATUS_LABEL[s.status]}
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${surveyStatusClass(s.status)}`}>
+                      {SURVEY_STATUS_LABEL[s.status]}
                     </span>
                   </div>
                   {s.description && <p className="text-sm text-muted mt-1 line-clamp-2">{s.description}</p>}
                   <div className="flex items-center gap-4 mt-2 text-xs text-subtle">
                     <span>{s.questions.length} Fragen</span>
                     <span>{s.responseCount} Antworten</span>
-                    <span>Möglich bis: {formatDateTime(s.deadline)}</span>
+                    <span>MÃ¶glich bis: {formatDateTime(s.deadline)}</span>
                     <span>Erstellt: {formatDate(s.createdAt)}</span>
                   </div>
                 </div>
@@ -292,7 +284,7 @@ export default function SurveyAdmin() {
                       {!isMobile && <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startEdit(s)}>Bearbeiten</Button>}
                       <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'start')}>Starten</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
-                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
+                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>LÃ¶schen</Button>
                     </>
                   )}
                   {s.status === 'GESTARTET' && (
@@ -300,9 +292,9 @@ export default function SurveyAdmin() {
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startMetaEdit(s)}>Bearbeiten</Button>
                       <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => changeStatus(s.id, 'end')}>Beenden</Button>
-                      {s.responseCount === 0 && <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => resetStatus(s.id)}>Zurücksetzen</Button>}
+                      {s.responseCount === 0 && <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => resetStatus(s.id)}>ZurÃ¼cksetzen</Button>}
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
-                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
+                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>LÃ¶schen</Button>
                     </>
                   )}
                   {s.status === 'BEENDET' && (
@@ -310,9 +302,9 @@ export default function SurveyAdmin() {
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => showResults(s.id)}>Ergebnisse</Button>
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => startMetaEdit(s)}>Bearbeiten</Button>
                       <Button variant="emphasized" size={isMobile ? 'sm' : 'input'} onClick={() => requestReopen(s)}>Reaktivieren</Button>
-                      {s.responseCount === 0 && <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => resetStatus(s.id)}>Zurücksetzen</Button>}
+                      {s.responseCount === 0 && <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => resetStatus(s.id)}>ZurÃ¼cksetzen</Button>}
                       <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => copy(s.id)}>Kopieren</Button>
-                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>Löschen</Button>
+                      <Button variant="negative" size={isMobile ? 'sm' : 'input'} onClick={() => remove(s.id, s.responseCount)}>LÃ¶schen</Button>
                     </>
                   )}
                 </div>
@@ -347,6 +339,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
             text: q.text,
             required: q.required,
             maxLength: q.maxLength ?? defaultMaxLength(q.type),
+            hideInMemberResults: q.hideInMemberResults ?? false,
             options: q.options.map(o => ({ _key: nextDraftKey(), text: o.text })),
           })),
         }
@@ -386,12 +379,12 @@ function SurveyEditor({ existing, isNew, onCancel }: {
 
   const addQuestion = () => {
     pendingTextFocus.current = draft.questions.length
-    setDraft(prev => ({ ...prev, questions: [...prev.questions, { _key: nextDraftKey(), type: 'TEXTAREA', text: '', required: false, maxLength: 4000, options: [] }] }))
+    setDraft(prev => ({ ...prev, questions: [...prev.questions, { _key: nextDraftKey(), type: 'TEXTAREA', text: '', required: false, maxLength: 4000, hideInMemberResults: false, options: [] }] }))
   }
 
   const addSeparator = () => {
     pendingTextFocus.current = draft.questions.length
-    setDraft(prev => ({ ...prev, questions: [...prev.questions, { _key: nextDraftKey(), type: 'SEPARATOR', text: '', required: false, maxLength: null, options: [] }] }))
+    setDraft(prev => ({ ...prev, questions: [...prev.questions, { _key: nextDraftKey(), type: 'SEPARATOR', text: '', required: false, maxLength: null, hideInMemberResults: false, options: [] }] }))
   }
 
   const removeQuestion = (index: number) => {
@@ -466,7 +459,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       return false
     }
     if (!draft.questions.some(q => q.required && q.type !== 'SEPARATOR')) {
-      setError('Die Umfrage benötigt mindestens eine Pflichtfrage.')
+      setError('Die Umfrage benÃ¶tigt mindestens eine Pflichtfrage.')
       return false
     }
     const questions: SurveyQuestionRequest[] = draft.questions.map((q, i) => ({
@@ -475,18 +468,19 @@ function SurveyEditor({ existing, isNew, onCancel }: {
       orderIndex: i,
       required: q.required,
       maxLength: q.type === 'TEXTFIELD' || q.type === 'TEXTAREA' ? q.maxLength : null,
+      hideInMemberResults: q.type === 'SEPARATOR' ? false : q.hideInMemberResults,
       options: q.type === 'SEPARATOR' ? [] : q.options.map(o => o.text).filter(o => o.trim() !== ''),
     }))
     const missing = questions.findIndex(q => !q.text.trim())
     if (missing >= 0) {
       setError(questions[missing].type === 'SEPARATOR'
-        ? `Der Trenner an Position ${missing + 1} hat keine Überschrift.`
+        ? `Der Trenner an Position ${missing + 1} hat keine Ãœberschrift.`
         : `Frage ${questionNumber(draft.questions, missing)} hat keinen Text.`)
       return false
     }
     const choiceMissingOptions = questions.findIndex(q => (q.type === 'SINGLE' || q.type === 'MULTI') && (q.options ?? []).length === 0)
     if (choiceMissingOptions >= 0) {
-      setError(`Auswahlfrage ${questionNumber(draft.questions, choiceMissingOptions)} benötigt mindestens eine Option.`)
+      setError(`Auswahlfrage ${questionNumber(draft.questions, choiceMissingOptions)} benÃ¶tigt mindestens eine Option.`)
       return false
     }
     setError(null)
@@ -523,7 +517,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
           <h2 className="text-xl font-semibold text-foreground">{isNew && !created ? 'Neue Umfrage' : 'Umfrage bearbeiten'}</h2>
           <Button variant="transparent" size={isMobile ? 'sm' : 'input'} onClick={onCancel}>
             <i className="sap-icon sap-icon-nav-back text-base" />
-            Zurück
+            ZurÃ¼ck
           </Button>
         </div>
       </div>
@@ -549,7 +543,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
             />
           </div>
           <div>
-            <label className="block text-sm text-muted mb-1">Umfrage möglich bis *</label>
+            <label className="block text-sm text-muted mb-1">Umfrage mÃ¶glich bis *</label>
             <input
               type="datetime-local"
               value={draft.deadline}
@@ -576,7 +570,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                   <div className="flex flex-col gap-3">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="sm:col-span-2">
-                        <label className="block text-sm text-muted mb-1">Gruppenüberschrift *</label>
+                        <label className="block text-sm text-muted mb-1">GruppenÃ¼berschrift *</label>
                         <input
                           type="text"
                           ref={el => { questionTextRefs.current[qIndex] = el }}
@@ -622,7 +616,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                         onChange={e => {
                           const type = e.target.value as QuestionType
                           if (type === 'SEPARATOR') {
-                            setQuestion(qIndex, { type, required: false, maxLength: null, options: [] })
+                            setQuestion(qIndex, { type, required: false, maxLength: null, hideInMemberResults: false, options: [] })
                           } else {
                             setQuestion(qIndex, { type, maxLength: defaultMaxLength(type) })
                           }
@@ -636,7 +630,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-2 flex items-center">
+                    <div className="sm:col-span-2 flex flex-col gap-2">
                       <label className="flex items-center gap-2 text-sm text-foreground">
                         <input
                           type="checkbox"
@@ -646,10 +640,19 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                         />
                         Pflichtfrage
                       </label>
+                      <label className="flex items-center gap-2 text-sm text-foreground">
+                        <input
+                          type="checkbox"
+                          checked={q.hideInMemberResults}
+                          onChange={e => setQuestion(qIndex, { hideInMemberResults: e.target.checked })}
+                          className="h-4 w-4 accent-accent"
+                        />
+                        In Mitglieder-Ergebnissen verbergen
+                      </label>
                     </div>
                     {(q.type === 'TEXTFIELD' || q.type === 'TEXTAREA') && (
                       <div className="flex flex-col gap-1">
-                        <label className="text-sm text-muted">Max. Länge (Zeichen)</label>
+                        <label className="text-sm text-muted">Max. LÃ¤nge (Zeichen)</label>
                         <input
                           type="number"
                           min={1}
@@ -677,7 +680,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
                                 onChange={e => setOption(qIndex, oIndex, e.target.value)}
                                 className="input-field control w-full px-3 py-2 rounded-control text-sm"
                               />
-                              <Button variant="negative" size="sm" onClick={() => removeOption(qIndex, oIndex)}>×</Button>
+                              <Button variant="negative" size="sm" onClick={() => removeOption(qIndex, oIndex)}>Ã—</Button>
                             </SortableOptionRow>
                           ))}
                         </SortableContext>
@@ -697,10 +700,10 @@ function SurveyEditor({ existing, isNew, onCancel }: {
 
       <div className="mt-4 flex items-center gap-2 flex-wrap">
         <Button variant="ghost" size={isMobile ? 'sm' : 'input'} onClick={addQuestion}>
-          + Frage hinzufügen
+          + Frage hinzufÃ¼gen
         </Button>
         <Button variant="ghost" size={isMobile ? 'sm' : 'input'} onClick={addSeparator}>
-          + Trenner hinzufügen
+          + Trenner hinzufÃ¼gen
         </Button>
         <Button variant="secondary" size={isMobile ? 'sm' : 'input'} onClick={() => setShowPreview(true)}>
           Vorschau
@@ -718,7 +721,7 @@ function SurveyEditor({ existing, isNew, onCancel }: {
           Speichern
         </Button>
         <Button size={isMobile ? 'sm' : 'input'} onClick={handleSaveAndClose} disabled={create.isPending || update.isPending}>
-          {create.isPending || update.isPending ? 'Speichert...' : 'Speichern & schließen'}
+          {create.isPending || update.isPending ? 'Speichert...' : 'Speichern & schlieÃŸen'}
         </Button>
         <Button variant="transparent" size={isMobile ? 'sm' : 'input'} onClick={onCancel}>Abbrechen</Button>
         {saved && <span className="text-sm text-muted">Gespeichert</span>}
@@ -775,10 +778,10 @@ function ReopenDialog({ survey, onClose }: { survey: SurveyAdmin | null; onClose
           Umfrage reaktivieren
         </h2>
         <p className="text-sm text-muted mt-2">
-          Das Zieldatum von „{survey.title}" ist abgelaufen. Setze ein neues Zieldatum, um die Umfrage wieder zu öffnen.
+          Das Zieldatum von â€ž{survey.title}" ist abgelaufen. Setze ein neues Zieldatum, um die Umfrage wieder zu Ã¶ffnen.
         </p>
         <div className="mt-4">
-          <label className="block text-sm text-muted mb-1">Umfrage möglich bis *</label>
+          <label className="block text-sm text-muted mb-1">Umfrage mÃ¶glich bis *</label>
           <input
             type="datetime-local"
             value={deadline}
@@ -796,7 +799,7 @@ function ReopenDialog({ survey, onClose }: { survey: SurveyAdmin | null; onClose
             Abbrechen
           </Button>
           <Button variant="emphasized" size="input" onClick={handleReopen} disabled={statusAction.isPending}>
-            {statusAction.isPending ? 'Wird geöffnet...' : 'Reaktivieren'}
+            {statusAction.isPending ? 'Wird geÃ¶ffnet...' : 'Reaktivieren'}
           </Button>
         </div>
       </div>
@@ -860,14 +863,14 @@ function SurveyMetaEditor({ existing, onCancel }: {
           <h2 className="text-xl font-semibold text-foreground">Umfrage bearbeiten</h2>
           <Button variant="transparent" size={isMobile ? 'sm' : 'input'} onClick={onCancel}>
             <i className="sap-icon sap-icon-nav-back text-base" />
-            Zurück
+            ZurÃ¼ck
           </Button>
         </div>
       </div>
 
       <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card">
         <p className="text-sm text-muted mb-4">
-          Hier können nur Titel, Beschreibung und Zieldatum geändert werden. Die Fragen bleiben unverändert.
+          Hier kÃ¶nnen nur Titel, Beschreibung und Zieldatum geÃ¤ndert werden. Die Fragen bleiben unverÃ¤ndert.
         </p>
         <div className="flex flex-col gap-4">
           <div>
@@ -889,7 +892,7 @@ function SurveyMetaEditor({ existing, onCancel }: {
             />
           </div>
           <div>
-            <label className="block text-sm text-muted mb-1">Umfrage möglich bis *</label>
+            <label className="block text-sm text-muted mb-1">Umfrage mÃ¶glich bis *</label>
             <input
               type="datetime-local"
               value={draft.deadline}
@@ -898,7 +901,7 @@ function SurveyMetaEditor({ existing, onCancel }: {
             />
           </div>
           <div>
-            <label className="block text-sm text-muted mb-1">Fragen (schreibgeschützt)</label>
+            <label className="block text-sm text-muted mb-1">Fragen (schreibgeschÃ¼tzt)</label>
             <div className="flex flex-col divide-y divide-border border border-border rounded-control">
               {existing.questions.map(q => (
                 <div key={q.id} className="px-3 py-2 flex items-center gap-3 text-sm">
@@ -923,162 +926,10 @@ function SurveyMetaEditor({ existing, onCancel }: {
           Speichern
         </Button>
         <Button size={isMobile ? 'sm' : 'input'} onClick={handleSaveAndClose} disabled={updateMeta.isPending}>
-          {updateMeta.isPending ? 'Speichert...' : 'Speichern & schließen'}
+          {updateMeta.isPending ? 'Speichert...' : 'Speichern & schlieÃŸen'}
         </Button>
         <Button variant="transparent" size={isMobile ? 'sm' : 'input'} onClick={onCancel}>Abbrechen</Button>
         {saved && <span className="text-sm text-muted">Gespeichert</span>}
-      </div>
-    </div>
-  )
-}
-
-function SurveyResults({ id, onBack }: { id: number; onBack: () => void }) {
-  const isMobile = useIsMobile()
-  const { data: result, isLoading } = useSurveyResult(id)
-  const deleteResponse = useDeleteSurveyResponse()
-
-  const removeResponse = (responseId: number) => {
-    if (!window.confirm('Möchtest du diese Antwort wirklich löschen?')) return
-    deleteResponse.mutate({ surveyId: id, responseId }, {
-      onError: err => alert(apiErrorMessage(err)),
-    })
-  }
-
-  if (isLoading || !result) return <div className="text-center py-8 text-muted">Laden...</div>
-
-  const maxCount = Math.max(
-    1,
-    ...result.questions.flatMap(q => q.counts?.map(c => c.count) ?? [q.answerCount ?? 0]),
-  )
-
-  return (
-    <div>
-      <div className="px-3 py-4 md:p-6 bg-surface border border-border rounded-card mb-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-semibold text-foreground">{result.title}</h2>
-            <p className="text-sm text-muted mt-1">{result.responseCount} Antworten</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusClass(result.status)}`}>
-              {STATUS_LABEL[result.status]}
-            </span>
-            <Button variant="transparent" size={isMobile ? 'sm' : 'input'} onClick={onBack}>
-              <i className="sap-icon sap-icon-nav-back text-base" />
-              Zurück
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        {result.questions.map(q => {
-          if (q.type === 'SEPARATOR') {
-            return (
-              <div key={q.questionId} className="flex items-center gap-3 pt-2">
-                <h3 className="text-lg font-bold text-foreground whitespace-pre-wrap">{q.text}</h3>
-                <div className="flex-1 h-px bg-border" />
-              </div>
-            )
-          }
-          if (q.type === 'RATING') {
-            const total = q.ratingDistribution?.reduce((a, b) => a + b, 0) ?? 0
-            return (
-              <div key={q.questionId} className="p-5 bg-surface border border-border rounded-card">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-medium text-foreground">{q.text}</p>
-                  {q.mean != null && (
-                    <span className="text-sm text-foreground font-semibold tabular-nums">{q.mean.toFixed(2)} / 5</span>
-                  )}
-                </div>
-                <div className="flex flex-col gap-2">
-                  {[5, 4, 3, 2, 1].map(star => {
-                    const count = q.ratingDistribution?.[star - 1] ?? 0
-                    const pct = total > 0 ? Math.round((count / total) * 100) : 0
-                    return (
-                      <div key={star} className="flex items-center gap-3">
-                        <span className="text-sm text-muted w-8 shrink-0 text-right">{star}★</span>
-                        <div className="flex-1 h-5 bg-elevated rounded-full overflow-hidden">
-                          <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className="text-sm text-subtle w-8 shrink-0 tabular-nums">{count}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          }
-          if (q.type === 'SINGLE' || q.type === 'MULTI') {
-            return (
-              <div key={q.questionId} className="p-5 bg-surface border border-border rounded-card">
-                <p className="font-medium text-foreground mb-3">{q.text}</p>
-                <div className="flex flex-col gap-2">
-                  {(q.counts ?? []).map(c => {
-                    const pct = Math.round((c.count / maxCount) * 100)
-                    return (
-                      <div key={c.optionId} className="flex items-center gap-3">
-                        <span className="text-sm text-muted flex-1 min-w-0 truncate">{c.optionText}</span>
-                        <div className="flex-1 h-5 bg-elevated rounded-full overflow-hidden">
-                          <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className="text-sm text-subtle w-8 shrink-0 tabular-nums">{c.count}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          }
-          const texts = q.freeTexts ?? []
-          return (
-            <div key={q.questionId} className="p-5 bg-surface border border-border rounded-card">
-              <p className="font-medium text-foreground mb-3">{q.text}</p>
-              {texts.length === 0 ? (
-                <p className="text-sm text-subtle">Keine Freitext-Antworten</p>
-              ) : (
-                <ul className="flex flex-col divide-y divide-border">
-                  {texts.map((t, i) => (
-                    <li key={i} className="py-2 text-sm text-foreground whitespace-pre-wrap">{t}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )
-        })}
-
-        <div className="p-5 bg-surface border border-border rounded-card">
-          <p className="font-medium text-foreground mb-3">Einzelne Antworten</p>
-          {result.responses.length === 0 ? (
-            <p className="text-sm text-subtle">Noch keine Antworten</p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {result.responses.map(r => (
-                <div key={r.id} className="border border-border rounded-control p-3">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-xs text-subtle">{formatDate(r.submittedAt)}</p>
-                    <Button
-                      variant="negative"
-                      size={isMobile ? 'sm' : 'input'}
-                      onClick={() => removeResponse(r.id)}
-                      disabled={deleteResponse.isPending}
-                    >
-                      Löschen
-                    </Button>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    {r.answers.map((a, j) => (
-                      <div key={j} className="text-sm">
-                        <span className="text-muted">{a.questionText}: </span>
-                        <span className="text-foreground">{a.answerText}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   )

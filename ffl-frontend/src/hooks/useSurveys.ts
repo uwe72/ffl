@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { surveyApi, surveyPublicApi } from '../api/surveys'
+import { surveyApi, surveyPublicApi, surveyResultsApi } from '../api/surveys'
 import type { SurveyCreateRequest, SurveyAnswerRequest } from '../types'
 
 export const useSurveys = () => {
@@ -21,6 +21,24 @@ export const useActiveSurvey = () => {
   return useQuery({
     queryKey: ['survey', 'active'],
     queryFn: () => surveyPublicApi.active().then(res => res.data),
+    retry: false,
+  })
+}
+
+export const useEndedSurveys = (enabled: boolean) => {
+  return useQuery({
+    queryKey: ['survey', 'ended'],
+    queryFn: () => surveyResultsApi.ended().then(res => res.data),
+    enabled,
+    retry: false,
+  })
+}
+
+export const useMemberSurveyResult = (id: number) => {
+  return useQuery({
+    queryKey: ['survey', 'member-result', id],
+    queryFn: () => surveyResultsApi.result(id).then(res => res.data),
+    enabled: !!id,
     retry: false,
   })
 }

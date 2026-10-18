@@ -15,5 +15,6 @@ public class SurveyQuestionRequest {
     private Integer orderIndex;
     private Boolean required;
     private Integer maxLength;
+    private Boolean hideInMemberResults;
     private List<String> options;
 }

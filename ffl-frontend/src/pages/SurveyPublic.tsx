@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { usePublicSurvey, useSubmitSurvey } from '../hooks/useSurveys'
+import { useAuth } from '../context/AuthContext'
 import type { SurveyAnswerInput } from '../types'
 import Button from '../components/Button'
 import BackButton from '../components/BackButton'
+import SurveyResultsView from '../components/SurveyResultsView'
 import {
   SurveyFormHeader,
   SurveyFormQuestions,
@@ -47,6 +49,8 @@ function clearDraft(surveyId: number) {
 export default function SurveyPublic() {
   const { id } = useParams<{ id: string }>()
   const surveyId = Number(id)
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const { data: survey, isLoading, error } = usePublicSurvey(surveyId)
   const submit = useSubmitSurvey()
   const [answers, setAnswers] = useState<AnswerState>({})
@@ -81,6 +85,10 @@ export default function SurveyPublic() {
         </div>
       </div>
     )
+  }
+
+  if (survey.status === 'BEENDET' && isAuthenticated) {
+    return <SurveyResultsView id={survey.id} mode="member" onBack={() => navigate('/umfrage')} />
   }
 
   if (survey.status !== 'GESTARTET') {

@@ -16,5 +16,6 @@ public class SurveyQuestionAdminDto {
     private Integer orderIndex;
     private Boolean required;
     private Integer maxLength;
+    private Boolean hideInMemberResults;
     private List<QuestionOptionDto> options;
 }
