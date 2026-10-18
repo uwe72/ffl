@@ -32,6 +32,9 @@ Thumbs.db
 # Claude
 .claude/
 
+# opencode (Agent-Pläne)
+.opencode/
+
 # Embedded PostgreSQL
 ffl-backend/data/pg-data/
 
