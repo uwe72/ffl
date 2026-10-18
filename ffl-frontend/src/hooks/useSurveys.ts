@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { surveyApi, surveyPublicApi, surveyResultsApi } from '../api/surveys'
-import type { SurveyCreateRequest, SurveyAnswerRequest } from '../types'
+import type { SurveyCreateRequest, SurveyAnswerRequest, SurveyMemberVisibilityRequest } from '../types'
 
 export const useSurveys = () => {
   return useQuery({
@@ -123,7 +123,19 @@ export const useUpdateSurveyMeta = () => {
       surveyApi.updateMeta(id, data).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surveys'] })
-      queryClient.invalidateQueries({ queryKey: ['survey', 'active'] })
+      queryClient.invalidateQueries({ queryKey: ['survey'] })
+    },
+  })
+}
+
+export const useUpdateMemberVisibility = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: SurveyMemberVisibilityRequest }) =>
+      surveyApi.updateMemberVisibility(id, data).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] })
+      queryClient.invalidateQueries({ queryKey: ['survey'] })
     },
   })
 }

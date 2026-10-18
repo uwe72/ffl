@@ -44,7 +44,7 @@ public class Question {
     @Column(name = "max_length")
     private Integer maxLength;
 
-    @Column(name = "hide_in_member_results", nullable = false)
+    @Column(name = "hide_in_member_results", nullable = false, columnDefinition = "boolean not null default false")
     @Builder.Default
     private Boolean hideInMemberResults = false;
 

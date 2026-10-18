@@ -6,6 +6,7 @@ import type {
   SurveyAnswerRequest,
   SurveyResult,
   SurveyEnded,
+  SurveyMemberVisibilityRequest,
 } from '../types'
 
 export const surveyApi = {
@@ -15,6 +16,8 @@ export const surveyApi = {
   update: (id: number, data: SurveyCreateRequest) => api.put<SurveyAdmin>(`/surveys/${id}`, data),
   updateMeta: (id: number, data: { title: string; description: string; deadline: string }) =>
     api.put<SurveyAdmin>(`/surveys/${id}/meta`, data),
+  updateMemberVisibility: (id: number, data: SurveyMemberVisibilityRequest) =>
+    api.put<SurveyAdmin>(`/surveys/${id}/member-visibility`, data),
   copy: (id: number) => api.post<SurveyAdmin>(`/surveys/${id}/copy`),
   remove: (id: number) => api.delete(`/surveys/${id}`),
   removeResponse: (surveyId: number, responseId: number) =>

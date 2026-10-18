@@ -808,4 +808,87 @@ class SurveyServiceTest extends AbstractSeasonTestBase {
         assertThat(admin.getResponses()).anySatisfy(r ->
             assertThat(r.getAnswers()).extracting(AnswerDetailDto::getQuestionId).contains(nameId));
     }
+
+    @Test
+    void updateQuestionVisibility_onBeendet_setsAndRemovesFlag() {
+        SurveyAdminDto dto = surveyService
+            .startSurvey(surveyService.createSurvey(surveyWithHiddenNameQuestion()).getId());
+        Long nameId = dto.getQuestions().get(0).getId();
+        Long ratingId = dto.getQuestions().get(1).getId();
+        surveyService.endSurvey(dto.getId());
+
+        SurveyAdminDto hidden = surveyService.updateQuestionVisibility(dto.getId(), visibilityRequest(List.of(nameId)));
+        assertThat(hidden.getQuestions().get(0).getHideInMemberResults()).isTrue();
+        assertThat(surveyService.getMemberResult(dto.getId()).getQuestions())
+            .extracting(QuestionResult::getQuestionId).containsExactly(ratingId);
+
+        SurveyAdminDto visible = surveyService.updateQuestionVisibility(dto.getId(), visibilityRequest(List.of()));
+        assertThat(visible.getQuestions().get(0).getHideInMemberResults()).isFalse();
+        assertThat(surveyService.getMemberResult(dto.getId()).getQuestions())
+            .extracting(QuestionResult::getQuestionId).containsExactly(nameId, ratingId);
+    }
+
+    @Test
+    void updateQuestionVisibility_onGestartet_allowed() {
+        SurveyAdminDto dto = createStartedSurvey();
+        Long ratingId = dto.getQuestions().get(0).getId();
+
+        SurveyAdminDto updated = surveyService.updateQuestionVisibility(dto.getId(), visibilityRequest(List.of(ratingId)));
+
+        assertThat(updated.getStatus()).isEqualTo(SurveyStatus.GESTARTET);
+        assertThat(updated.getQuestions().get(0).getHideInMemberResults()).isTrue();
+        assertThat(surveyService.getMemberResult(dto.getId())).isNull();
+    }
+
+    @Test
+    void updateQuestionVisibility_onAngelegt_throws() {
+        SurveyAdminDto dto = surveyService.createSurvey(fullSurveyRequest());
+        Long ratingId = dto.getQuestions().get(0).getId();
+        assertThatThrownBy(() -> surveyService.updateQuestionVisibility(dto.getId(), visibilityRequest(List.of(ratingId))))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Nur gestartete oder beendete");
+    }
+
+    @Test
+    void updateQuestionVisibility_withForeignQuestionId_throws() {
+        SurveyAdminDto dto = createStartedSurvey();
+        surveyService.endSurvey(dto.getId());
+        SurveyAdminDto other = createStartedSurvey();
+        Long foreignId = other.getQuestions().get(0).getId();
+
+        assertThatThrownBy(() -> surveyService.updateQuestionVisibility(dto.getId(), visibilityRequest(List.of(foreignId))))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("gehört nicht zu dieser Umfrage");
+        assertThat(surveyService.getAdminSurvey(dto.getId()).getQuestions())
+            .allSatisfy(q -> assertThat(q.getHideInMemberResults()).isFalse());
+    }
+
+    @Test
+    void updateQuestionVisibility_ignoresSeparator() {
+        SurveyCreateRequest req = new SurveyCreateRequest();
+        req.setTitle("Gruppenumfrage");
+        req.setDeadline(LocalDateTime.now().plusDays(30));
+        SurveyQuestionRequest separator = new SurveyQuestionRequest();
+        separator.setType(QuestionType.SEPARATOR);
+        separator.setText("Abschnitt 1");
+        SurveyQuestionRequest rating = new SurveyQuestionRequest();
+        rating.setType(QuestionType.RATING);
+        rating.setText("Wie zufrieden?");
+        rating.setRequired(true);
+        req.setQuestions(List.of(separator, rating));
+
+        SurveyAdminDto dto = surveyService.startSurvey(surveyService.createSurvey(req).getId());
+        Long separatorId = dto.getQuestions().get(0).getId();
+        surveyService.endSurvey(dto.getId());
+
+        SurveyAdminDto updated = surveyService.updateQuestionVisibility(dto.getId(), visibilityRequest(List.of(separatorId)));
+        assertThat(updated.getQuestions().get(0).getHideInMemberResults()).isFalse();
+        assertThat(updated.getQuestions().get(1).getHideInMemberResults()).isFalse();
+    }
+
+    private SurveyMemberVisibilityRequest visibilityRequest(List<Long> hiddenQuestionIds) {
+        SurveyMemberVisibilityRequest req = new SurveyMemberVisibilityRequest();
+        req.setHiddenQuestionIds(hiddenQuestionIds);
+        return req;
+    }
 }

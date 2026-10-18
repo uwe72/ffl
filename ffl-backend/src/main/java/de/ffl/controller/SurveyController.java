@@ -2,6 +2,7 @@ package de.ffl.controller;
 
 import de.ffl.dto.SurveyAdminDto;
 import de.ffl.dto.SurveyCreateRequest;
+import de.ffl.dto.SurveyMemberVisibilityRequest;
 import de.ffl.dto.SurveyMetaUpdateRequest;
 import de.ffl.dto.SurveyReopenRequest;
 import de.ffl.dto.SurveyResultDto;
@@ -86,6 +87,12 @@ public class SurveyController {
     public ResponseEntity<SurveyAdminDto> updateMeta(@PathVariable Long id,
                                                      @Valid @RequestBody SurveyMetaUpdateRequest request) {
         return ResponseEntity.ok(surveyService.updateSurveyMeta(id, request));
+    }
+
+    @PutMapping("/{id}/member-visibility")
+    public ResponseEntity<SurveyAdminDto> updateMemberVisibility(@PathVariable Long id,
+                                                                 @Valid @RequestBody SurveyMemberVisibilityRequest request) {
+        return ResponseEntity.ok(surveyService.updateQuestionVisibility(id, request));
     }
 
     @GetMapping("/{id}/result")

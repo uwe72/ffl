@@ -199,6 +199,29 @@ public class SurveyService {
         return toAdminDto(surveyRepository.save(survey), surveyResponseRepository.countBySurveyId(id));
     }
 
+    @Transactional
+    public SurveyAdminDto updateQuestionVisibility(Long id, SurveyMemberVisibilityRequest request) {
+        Survey survey = requireSurvey(id);
+        SurveyStatus status = survey.getStatus();
+        if (status != SurveyStatus.BEENDET && status != SurveyStatus.GESTARTET) {
+            throw new IllegalArgumentException("Nur gestartete oder beendete Umfragen können hier bearbeitet werden");
+        }
+        List<Long> hiddenIds = request.getHiddenQuestionIds() == null ? List.of() : request.getHiddenQuestionIds();
+        Map<Long, Question> questionsById = survey.getQuestions().stream()
+            .collect(Collectors.toMap(Question::getId, Function.identity()));
+        for (Long questionId : hiddenIds) {
+            if (!questionsById.containsKey(questionId)) {
+                throw new IllegalArgumentException("Frage gehört nicht zu dieser Umfrage");
+            }
+        }
+        for (Question q : survey.getQuestions()) {
+            boolean hide = q.getType() != QuestionType.SEPARATOR && hiddenIds.contains(q.getId());
+            q.setHideInMemberResults(hide);
+        }
+        survey.setUpdatedAt(LocalDateTime.now());
+        return toAdminDto(surveyRepository.save(survey), surveyResponseRepository.countBySurveyId(id));
+    }
+
     @Transactional(readOnly = true)
     public List<SurveyAdminDto> listSurveys() {
         return surveyRepository.findAllByOrderByCreatedAtDesc().stream()

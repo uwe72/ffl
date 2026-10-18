@@ -823,6 +823,10 @@ export interface SurveyCreateRequest {
   questions: SurveyQuestionRequest[]
 }
 
+export interface SurveyMemberVisibilityRequest {
+  hiddenQuestionIds: number[]
+}
+
 export interface SurveyAnswerInput {
   questionId: number
   optionIds?: number[]
