@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { Navigate, useParams, useNavigate } from 'react-router-dom'
 import { usePublicSurvey, useSubmitSurvey } from '../hooks/useSurveys'
 import { useAuth } from '../context/AuthContext'
 import type { SurveyAnswerInput } from '../types'
@@ -84,6 +84,12 @@ export default function SurveyPublic() {
           <p className="text-muted text-sm">Deine Antwort wurde übermittelt.</p>
         </div>
       </div>
+    )
+  }
+
+  if (survey.status === 'BEENDET' && !isAuthenticated) {
+    return (
+      <Navigate to="/login" replace state={{ from: { pathname: `/umfrage/${surveyId}` } }} />
     )
   }
 

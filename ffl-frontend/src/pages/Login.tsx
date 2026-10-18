@@ -27,6 +27,7 @@ export default function Login() {
   const firstInputRef = useRef<HTMLInputElement>(null)
   const justRegistered = (location.state as { registered?: boolean })?.registered === true
   const passwordReset = (location.state as { passwordReset?: boolean })?.passwordReset === true
+  const fromPath = (location.state as { from?: { pathname?: string } })?.from?.pathname ?? '/'
 
   const validateField = (field: keyof FieldErrors, value: string) => {
     if (!value.trim()) {
@@ -65,7 +66,7 @@ export default function Login() {
     try {
       await authLogin({ login: login.trim(), password })
       trackEvent('auth', 'login', 'success')
-      navigate('/')
+      navigate(fromPath)
     } catch (err) {
       trackEvent('auth', 'login', 'failure')
       setError('Ungültiger Login oder Passwort')
